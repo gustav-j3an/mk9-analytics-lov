@@ -1,4 +1,11 @@
-import { useMemo, useState, type FormEvent } from "react";
+import {
+  useMemo,
+  useState,
+  type Dispatch,
+  type FormEvent,
+  type ReactNode,
+  type SetStateAction,
+} from "react";
 import {
   AlertTriangle,
   BarChart3,
@@ -480,7 +487,7 @@ function SummaryLine({ label, value, icon: Icon }: { label: string; value: strin
   );
 }
 
-function OperationsModule({ operations, setOperations, visits }: { operations: Operation[]; setOperations: React.Dispatch<React.SetStateAction<Operation[]>>; visits: Visit[] }) {
+function OperationsModule({ operations, setOperations, visits }: { operations: Operation[]; setOperations: Dispatch<SetStateAction<Operation[]>>; visits: Visit[] }) {
   function addOperation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -547,7 +554,7 @@ function OperationsModule({ operations, setOperations, visits }: { operations: O
   );
 }
 
-function StoresModule({ stores, setStores }: { stores: StoreItem[]; setStores: React.Dispatch<React.SetStateAction<StoreItem[]>> }) {
+function StoresModule({ stores, setStores }: { stores: StoreItem[]; setStores: Dispatch<SetStateAction<StoreItem[]>> }) {
   const [filter, setFilter] = useState("");
   const filtered = stores.filter((store) => `${store.name} ${store.code} ${store.city} ${store.state}`.toLowerCase().includes(filter.toLowerCase()));
 
@@ -598,7 +605,7 @@ function StoresModule({ stores, setStores }: { stores: StoreItem[]; setStores: R
   );
 }
 
-function PromotersModule({ promoters, setPromoters }: { promoters: Promoter[]; setPromoters: React.Dispatch<React.SetStateAction<Promoter[]>> }) {
+function PromotersModule({ promoters, setPromoters }: { promoters: Promoter[]; setPromoters: Dispatch<SetStateAction<Promoter[]>> }) {
   function addPromoter(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -655,7 +662,7 @@ function PromotersModule({ promoters, setPromoters }: { promoters: Promoter[]; s
   );
 }
 
-function RoutesModule({ stores, promoters, visits, setVisits, activeOperation }: { stores: StoreItem[]; promoters: Promoter[]; visits: Visit[]; setVisits: React.Dispatch<React.SetStateAction<Visit[]>>; activeOperation?: Operation }) {
+function RoutesModule({ stores, promoters, visits, setVisits, activeOperation }: { stores: StoreItem[]; promoters: Promoter[]; visits: Visit[]; setVisits: Dispatch<SetStateAction<Visit[]>>; activeOperation?: Operation }) {
   const [selectedPromoter, setSelectedPromoter] = useState(promoters[0]?.id ?? "");
   const activePromoter = promoters.find((promoter) => promoter.id === selectedPromoter);
   const suggestedStores = stores.filter((store) => !activePromoter || store.city === activePromoter.city).slice(0, 3);
@@ -718,7 +725,7 @@ function RouteVisitCard({ visit, store }: { visit: Visit; store?: StoreItem }) {
   );
 }
 
-function VisitsModule({ visits, setVisits, stores, promoters, operations }: { visits: Visit[]; setVisits: React.Dispatch<React.SetStateAction<Visit[]>>; stores: StoreItem[]; promoters: Promoter[]; operations: Operation[] }) {
+function VisitsModule({ visits, setVisits, stores, promoters, operations }: { visits: Visit[]; setVisits: Dispatch<SetStateAction<Visit[]>>; stores: StoreItem[]; promoters: Promoter[]; operations: Operation[] }) {
   const [statusFilter, setStatusFilter] = useState<"TODAS" | VisitStatus>("TODAS");
   const filtered = statusFilter === "TODAS" ? visits : visits.filter((visit) => visit.status === statusFilter);
 
@@ -760,7 +767,7 @@ function VisitsModule({ visits, setVisits, stores, promoters, operations }: { vi
   );
 }
 
-function ImportsModule({ imports, setImports }: { imports: ImportItem[]; setImports: React.Dispatch<React.SetStateAction<ImportItem[]>> }) {
+function ImportsModule({ imports, setImports }: { imports: ImportItem[]; setImports: Dispatch<SetStateAction<ImportItem[]>> }) {
   function addImport(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -813,7 +820,7 @@ function ImportsModule({ imports, setImports }: { imports: ImportItem[]; setImpo
   );
 }
 
-function ReconciliationModule({ visits, setVisits, stores, promoters, imports }: { visits: Visit[]; setVisits: React.Dispatch<React.SetStateAction<Visit[]>>; stores: StoreItem[]; promoters: Promoter[]; imports: ImportItem[] }) {
+function ReconciliationModule({ visits, setVisits, stores, promoters, imports }: { visits: Visit[]; setVisits: Dispatch<SetStateAction<Visit[]>>; stores: StoreItem[]; promoters: Promoter[]; imports: ImportItem[] }) {
   const diagnostics = visits.map((visit) => {
     const issue = visit.status === "REALIZADA" && visit.evidence?.includes("divergente")
       ? "DATE_MISMATCH"
@@ -888,7 +895,7 @@ function DataToolbar({ value, onChange, placeholder }: { value: string; onChange
   );
 }
 
-function TableShell({ headers, children }: { headers: string[]; children: React.ReactNode }) {
+function TableShell({ headers, children }: { headers: string[]; children: ReactNode }) {
   return (
     <div className="overflow-hidden rounded-md border bg-card">
       <div className="overflow-x-auto">
