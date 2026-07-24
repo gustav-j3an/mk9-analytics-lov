@@ -4,7 +4,7 @@ import { Mk9AnalyticsApp } from "@/components/mk9-analytics-app";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "GitHub Explorer — Navegue seus repositórios" },
+      { title: "MK9 Analytics — Gestão operacional" },
       {
         name: "description",
         content:
