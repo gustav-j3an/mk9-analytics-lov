@@ -1,19 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { GithubExplorer } from "@/components/github-explorer";
+import { Mk9AnalyticsApp } from "@/components/mk9-analytics-app";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "GitHub Explorer — Navegue seus repositórios" },
+      { title: "MK9 Analytics — Gestão operacional" },
       {
         name: "description",
         content:
-          "Selecione um repositório do GitHub e explore sua estrutura de pastas e arquivos diretamente na interface.",
+          "MK9 Analytics centraliza operações de trade marketing, lojas, promotores, roteiros, visitas, importações e conciliação em um painel operacional.",
       },
-      { property: "og:title", content: "GitHub Explorer" },
+      { property: "og:title", content: "MK9 Analytics — Gestão operacional" },
       {
         property: "og:description",
-        content: "Explore repositórios do GitHub direto no app.",
+        content: "Acesse as funcionalidades principais do MK9 Analytics em um painel de trade marketing.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -23,19 +23,5 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  return (
-    <main className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl px-4 py-6">
-        <header className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            GitHub Explorer
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Escolha um repositório à esquerda e navegue por sua estrutura.
-          </p>
-        </header>
-        <GithubExplorer />
-      </div>
-    </main>
-  );
+  return <Mk9AnalyticsApp />;
 }
