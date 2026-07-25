@@ -112,6 +112,29 @@ export async function loadIndustry(industryId: string) {
   return { id: data.id as string, name: data.name as string };
 }
 
+export async function cancelPreviousPreviews(input: {
+  industryId: string;
+  operationMonth: number;
+  operationYear: number;
+  exceptImportId?: string | null;
+}) {
+  const q = supabaseAdmin
+    .from("mk9_checklist_imports")
+    .update({
+      status: "cancelled",
+      error_message: "Prévia abandonada — substituída por nova importação",
+      finished_at: new Date().toISOString(),
+    })
+    .eq("industry_id", input.industryId)
+    .eq("operation_month", input.operationMonth)
+    .eq("operation_year", input.operationYear)
+    .in("status", ["pending", "previewing"]);
+  const { error } = input.exceptImportId
+    ? await q.neq("id", input.exceptImportId)
+    : await q;
+  if (error) throw new Error(error.message);
+}
+
 export async function createChecklistImport(input: {
   filename: string;
   industryId: string;
@@ -134,6 +157,7 @@ export async function createChecklistImport(input: {
   if (error) throw new Error(error.message);
   return { id: data.id as string };
 }
+
 
 export async function savePreviewSnapshot(importId: string, preview: ChecklistPreview) {
   const { error } = await supabaseAdmin
