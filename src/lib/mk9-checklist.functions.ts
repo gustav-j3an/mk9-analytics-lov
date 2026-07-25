@@ -189,3 +189,17 @@ export const checklistDelete = createServerFn({ method: "POST" })
     await deleteChecklistImport(data.importId);
     return { ok: true };
   });
+
+// Marca a prévia como descartada sem apagar o registro do histórico.
+export const checklistCancel = createServerFn({ method: "POST" })
+  .inputValidator(async (data: unknown) => validate("checklistCancel", () => z.object({ importId: z.string().uuid() }).parse(data)))
+  .handler(async ({ data }) => {
+    const { updateImportStatus } = await import("./mk9-checklist/persistence.server");
+    await updateImportStatus(data.importId, {
+      status: "cancelled",
+      errorMessage: "Prévia descartada pelo usuário",
+      finishedAt: new Date(),
+    });
+    return { ok: true };
+  });
+
