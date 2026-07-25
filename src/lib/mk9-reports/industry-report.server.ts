@@ -31,6 +31,8 @@ export interface StoreLine {
   coveragePct: number;
   actualDates: string[];
   status: StoreStatus;
+  /** Métricas canônicas (nova camada nomeada em PT). */
+  metrics: VisitMetrics;
 }
 
 export interface UfLine {
@@ -42,6 +44,7 @@ export interface UfLine {
   extra: number;
   pending: number;
   coveragePct: number;
+  metrics: VisitMetrics;
 }
 
 export interface IndustryReportInput {
@@ -71,6 +74,8 @@ export interface IndustryReport {
     contractualCoveragePct: number;
     operationalCoveragePct: number;
     coveragePct: number; // alias para compatibilidade visual = cobertura contratual
+    /** Métricas canônicas (nova camada nomeada em PT). */
+    metrics: VisitMetrics;
   };
   stores: StoreLine[];
   ufs: UfLine[];
