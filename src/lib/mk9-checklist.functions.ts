@@ -65,9 +65,13 @@ export const checklistCommit = createServerFn({ method: "POST" })
   .inputValidator(async (data: unknown) => validate("checklistCommit", () => commitSchema.parse(data)))
   .handler(async ({ data }) => {
     const { withRichErrors, buildRichError } = await import("./mk9-checklist/errors.server");
-    const { persistActualVisits, updateImportStatus, ensureChecklistStores } = await import(
-      "./mk9-checklist/persistence.server"
-    );
+    const {
+      persistActualVisits,
+      updateImportStatus,
+      ensureChecklistStores,
+      loadPreviewSnapshot,
+      upsertIndustryStoreFrequencies,
+    } = await import("./mk9-checklist/persistence.server");
     const startedAt = Date.now();
     // Marca committing logo no início para que o histórico saia de "previewing".
     await updateImportStatus(data.importId, { status: "committing" }).catch(() => undefined);
