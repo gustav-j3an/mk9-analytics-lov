@@ -17,6 +17,19 @@ export function normalizeName(input: string | null | undefined): string {
   return normalizeText(input);
 }
 
+// Normalização específica para nomes de LOJA.
+// Objetivo: unificar variantes tipográficas do mesmo estabelecimento
+// (hífens, pontuação, espaços duplicados, acentos, caixa).
+// Ex.: "TATICO - SAMAMBAIA NORTE" == "TATICO SAMAMBAIA - NORTE" == "tatico  samambaia—norte".
+export function normalizeStoreName(input: string | null | undefined): string {
+  if (!input) return "";
+  return stripDiacritics(String(input))
+    .toLowerCase()
+    .replace(/[\-–—/,.()·|]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function normalizeUF(input: string | null | undefined): string | null {
   if (!input) return null;
   const uf = String(input).trim().toUpperCase();
