@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog,
@@ -180,6 +181,11 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
         operationYear: year,
       });
     },
+    onMutate: () => {
+      setAckNewStores(false);
+      setConfirmOpen(false);
+      setHighlightAck(false);
+    },
     onSuccess: (res: ChecklistPreviewResponse) => {
       setPreview(res.preview);
       setImportId(res.importId);
@@ -290,10 +296,17 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   );
 
   const validItems = items.filter(
-    (i) => i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store",
+    (i) =>
+      (i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store") &&
+      Boolean(i.scheduledDate),
   ).length;
-  const newStoresCount = preview?.counters.storesNew ?? 0;
-  const canConfirm = validItems > 0 && (newStoresCount === 0 || ackNewStores);
+  const newStoresCount = Number(preview?.counters.storesNew ?? 0);
+  const canConfirm =
+    preview != null &&
+    validItems > 0 &&
+    !previewMut.isPending &&
+    !commitMut.isPending &&
+    (newStoresCount === 0 || ackNewStores);
 
   const periodLabel = useMemo(() => {
     if (!items.length) return null;
@@ -451,6 +464,57 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
               </div>
             )}
 
+            <div className="space-y-3 border-t pt-4">
+              {newStoresCount > 0 && (
+                <label
+                  ref={ackRef}
+                  className={`flex items-start gap-3 rounded-md border p-3 text-sm cursor-pointer transition-all ${
+                    highlightAck
+                      ? "border-amber-500 bg-amber-500/15 ring-2 ring-amber-500/60 animate-pulse"
+                      : "border-amber-500/40 bg-amber-500/5"
+                  } text-amber-800 dark:text-amber-300`}
+                >
+                  <Checkbox
+                    className="mt-0.5 border-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:text-white"
+                    checked={ackNewStores}
+                    onCheckedChange={(checked) => setAckNewStores(checked === true)}
+                  />
+                  <span>
+                    Estou ciente de que <strong>{newStoresCount}</strong> novas lojas serão cadastradas
+                    automaticamente na Base MK9.
+                  </span>
+                </label>
+              )}
+              <div className="flex items-center gap-3">
+                <div
+                  onClick={() => {
+                    if (!canConfirm && newStoresCount > 0 && !ackNewStores) flashAck();
+                  }}
+                >
+                  <Button
+                    size="lg"
+                    onClick={() => setConfirmOpen(true)}
+                    disabled={!canConfirm}
+                  >
+                    {commitMut.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4" />
+                    )}
+                    Confirmar importação
+                  </Button>
+                </div>
+                {!canConfirm && newStoresCount > 0 && !ackNewStores && (
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    Marque a confirmação sobre as novas lojas para habilitar a importação.
+                  </p>
+                )}
+                {validItems === 0 && (
+                  <p className="text-xs text-destructive">Nenhuma visita válida para importar.</p>
+                )}
+              </div>
+            </div>
+
             <div className="flex flex-wrap gap-2">
               {(["all", "found", "linked_by_similarity", "new_store", "invalid_date"] as const).map((f) => (
                 <button
@@ -522,60 +586,6 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                 </ul>
               </div>
             )}
-
-            {/* Checkbox de ciência + botão Confirmar (regra 1, 2 e 3) */}
-            <div className="space-y-3 border-t pt-4">
-              {newStoresCount > 0 && (
-                <label
-                  ref={ackRef}
-                  className={`flex items-start gap-2 rounded-md border p-3 text-xs cursor-pointer transition-all ${
-                    highlightAck
-                      ? "border-amber-500 bg-amber-500/15 ring-2 ring-amber-500/60 animate-pulse"
-                      : "border-amber-500/40 bg-amber-500/5"
-                  } text-amber-800 dark:text-amber-300`}
-                >
-                  <input
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={ackNewStores}
-                    onChange={(e) => setAckNewStores(e.target.checked)}
-                  />
-                  <span>
-                    Estou ciente de que <strong>{newStoresCount}</strong> nova(s) loja(s) serão cadastradas
-                    automaticamente na Base MK9. Os dados ausentes serão marcados como “Não informado” e
-                    poderão ser completados depois.
-                  </span>
-                </label>
-              )}
-              <div className="flex items-center gap-3">
-                <div
-                  onClick={() => {
-                    if (!canConfirm && newStoresCount > 0 && !ackNewStores) flashAck();
-                  }}
-                >
-                  <Button
-                    size="lg"
-                    onClick={() => setConfirmOpen(true)}
-                    disabled={commitMut.isPending || !canConfirm}
-                  >
-                    {commitMut.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <CheckCircle2 className="h-4 w-4" />
-                    )}
-                    Confirmar importação
-                  </Button>
-                </div>
-                {!canConfirm && newStoresCount > 0 && !ackNewStores && (
-                  <p className="text-xs text-amber-700 dark:text-amber-400">
-                    Marque a confirmação acima para habilitar a importação.
-                  </p>
-                )}
-                {validItems === 0 && (
-                  <p className="text-xs text-destructive">Nenhuma visita válida para importar.</p>
-                )}
-              </div>
-            </div>
           </CardContent>
         </Card>
       )}
@@ -658,8 +668,12 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
           <AlertDialogFooter>
             <AlertDialogCancel disabled={commitMut.isPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); commitMut.mutate(); }}
-              disabled={commitMut.isPending || !canConfirm}
+              onClick={(e) => {
+                e.preventDefault();
+                console.log("[CHECKLIST] confirmação final clicada");
+                commitMut.mutate();
+              }}
+              disabled={!canConfirm}
             >
               {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Confirmar importação
