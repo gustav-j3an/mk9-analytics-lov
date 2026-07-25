@@ -492,6 +492,7 @@ export type Database = {
       }
       mk9_planned_visits: {
         Row: {
+          archived_at: string | null
           completed_at: string | null
           created_at: string
           id: string
@@ -507,6 +508,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           completed_at?: string | null
           created_at?: string
           id?: string
@@ -522,6 +524,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           completed_at?: string | null
           created_at?: string
           id?: string

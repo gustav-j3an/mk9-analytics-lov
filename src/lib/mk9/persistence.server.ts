@@ -83,7 +83,8 @@ export function createSupabaseRepository(): Mk9Repository {
       const last = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
       const { data, error } = await supabaseAdmin
         .from("mk9_planned_visits").select("*")
-        .gte("scheduled_date", first).lte("scheduled_date", last);
+        .gte("scheduled_date", first).lte("scheduled_date", last)
+        .is("archived_at", null);
       if (error) throw error;
       return (data ?? []).map(mapVisit);
     },
@@ -276,6 +277,7 @@ export function createSupabaseRepository(): Mk9Repository {
             id: r.id, promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
             route_id: r.routeId ?? null, scheduled_date: r.scheduledDate,
             status: r.status, source_sheet: r.sourceSheet, last_import_id: importId,
+            archived_at: null,
           })),
           { onConflict: "promoter_id,store_id,industry_id,scheduled_date", defaultToNull: false },
         ).select();
@@ -286,9 +288,11 @@ export function createSupabaseRepository(): Mk9Repository {
     },
     async removeFuturePlannedVisits(ids) {
       if (!ids.length) return;
-      // preserva as realizadas garantindo status=planned no filtro
+      // Arquivamento lógico: preserva o id e as reconciliações vinculadas.
+      // Apenas visitas ainda planejadas são arquivadas; realizadas/canceladas ficam intactas.
       const { error } = await supabaseAdmin.from("mk9_planned_visits")
-        .delete().in("id", ids).eq("status", "planned");
+        .update({ archived_at: new Date().toISOString() })
+        .in("id", ids).eq("status", "planned").is("archived_at", null);
       if (error) throw error;
     },
     async createImport(input) {
