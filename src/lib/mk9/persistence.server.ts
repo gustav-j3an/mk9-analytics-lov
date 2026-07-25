@@ -277,7 +277,7 @@ export function createSupabaseRepository(): Mk9Repository {
             route_id: r.routeId ?? null, scheduled_date: r.scheduledDate,
             status: r.status, source_sheet: r.sourceSheet, last_import_id: importId,
           })),
-          { onConflict: "promoter_id,store_id,industry_id,scheduled_date" },
+          { onConflict: "promoter_id,store_id,industry_id,scheduled_date", defaultToNull: false },
         ).select();
         if (error) throw error;
         out.push(...(data ?? []).map(mapVisit));
