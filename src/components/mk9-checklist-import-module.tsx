@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -10,6 +10,7 @@ import {
   Clock,
   Trash2,
   ClipboardCheck,
+  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,10 +32,12 @@ import {
   checklistCommit,
   checklistList,
   checklistDelete,
+  checklistCancel,
 } from "@/lib/mk9-checklist.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 import { detectMk9FileKind } from "@/lib/mk9/detect-file-kind";
 import type { ChecklistPreview } from "@/lib/mk9-checklist/types";
+
 
 const MONTHS = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
