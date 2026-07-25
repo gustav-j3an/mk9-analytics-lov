@@ -284,12 +284,11 @@ export function Mk9IndustryReportModule() {
                     <th>UF</th>
                     <th>Freq.</th>
                     <th>Fonte</th>
-                    <th>Contr.</th>
-                    <th>Real.</th>
-                    <th>Vál.</th>
-                    <th>Pend.</th>
-                    <th>Extra</th>
-                    <th>Cob.</th>
+                    <th>Contratadas</th>
+                    <th>Realizadas</th>
+                    <th>Pendentes</th>
+                    <th>Extras</th>
+                    <th>Cobertura</th>
                     <th>Execução</th>
                     <th>Roteiro</th>
                     <th>Datas realizadas</th>
@@ -311,7 +310,6 @@ export function Mk9IndustryReportModule() {
                         <td className="text-xs text-muted-foreground">{SOURCE_LABEL[s.contractedSource] ?? s.contractedSource}</td>
                         <td>{s.expected}</td>
                         <td>{s.actual}</td>
-                        <td>{s.validForCoverage}</td>
                         <td>{s.pending}</td>
                         <td>{s.extra}</td>
                         <td>{s.coveragePct}%</td>
@@ -322,7 +320,7 @@ export function Mk9IndustryReportModule() {
                     );
                   })}
                   {report.stores.length === 0 && (
-                    <tr><td colSpan={13} className="py-6 text-center text-muted-foreground">Nenhuma loja no período com esses filtros.</td></tr>
+                    <tr><td colSpan={12} className="py-6 text-center text-muted-foreground">Nenhuma loja no período com esses filtros.</td></tr>
                   )}
                 </tbody>
               </table>
