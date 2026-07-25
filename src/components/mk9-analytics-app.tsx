@@ -131,13 +131,32 @@ export function Mk9AnalyticsApp() {
   const visits = visitsQ.data ?? [];
 
   const metrics = useMemo(() => {
-    const planned = visits.length;
-    const completed = visits.filter((v) => v.status === "completed").length;
+    // Camada canônica de métricas — sempre por loja.
+    // Aqui, no dashboard global, planejadas = contratadas e completed = executadas.
+    const perStoreMap = new Map<string, { contratadas: number; executadas: number }>();
+    for (const v of visits) {
+      const key = (v as any).storeId ?? (v as any).storeName ?? v.id;
+      const cur = perStoreMap.get(key) ?? { contratadas: 0, executadas: 0 };
+      cur.contratadas += 1;
+      if (v.status === "completed") cur.executadas += 1;
+      perStoreMap.set(key, cur);
+    }
+    let contratadas = 0, executadas = 0, validas = 0, extras = 0, pendencias = 0;
+    for (const s of perStoreMap.values()) {
+      contratadas += s.contratadas;
+      executadas += s.executadas;
+      const v = Math.min(s.contratadas, s.executadas);
+      validas += v;
+      extras += Math.max(0, s.executadas - s.contratadas);
+      pendencias += Math.max(0, s.contratadas - v);
+    }
+    const planned = contratadas;
+    const completed = executadas;
     const cancelled = visits.filter((v) => v.status === "cancelled").length;
     const today = new Date().toISOString().slice(0, 10);
     const delayed = visits.filter((v) => v.status === "planned" && v.scheduledDate < today).length;
-    const coverage = planned > 0 ? Math.round((completed / planned) * 100) : 0;
-    return { planned, completed, cancelled, delayed, coverage };
+    const coverage = contratadas > 0 ? Math.round((validas / contratadas) * 100) : 0;
+    return { planned, completed, cancelled, delayed, coverage, contratadas, executadas, validas, extras, pendencias };
   }, [visits]);
 
   const searchResults = useMemo(() => {
@@ -328,7 +347,7 @@ export function Mk9AnalyticsApp() {
 function DashboardModule({
   metrics, industries, stores, promoters, routes, visits, onOpenModule, loading,
 }: {
-  metrics: { planned: number; completed: number; cancelled: number; delayed: number; coverage: number };
+  metrics: { planned: number; completed: number; cancelled: number; delayed: number; coverage: number; contratadas: number; executadas: number; validas: number; extras: number; pendencias: number };
   industries: any[]; stores: any[]; promoters: any[]; routes: any[]; visits: any[];
   onOpenModule: (module: ModuleId) => void; loading: boolean;
 }) {
@@ -357,9 +376,9 @@ function DashboardModule({
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard tone="blue" icon={Route} label="Visitas planejadas" value={metrics.planned} detail={`${metrics.completed} realizadas`} />
-        <KpiCard tone="green" icon={CheckCircle2} label="Cobertura" value={`${metrics.coverage}%`} detail="execução do período" />
-        <KpiCard tone="amber" icon={AlertTriangle} label="Visitas atrasadas" value={metrics.delayed} detail="planejadas vencidas" />
+        <KpiCard tone="blue" icon={Route} label="Visitas contratadas" value={metrics.contratadas} detail={`${metrics.executadas} executadas`} />
+        <KpiCard tone="green" icon={CheckCircle2} label="Cobertura" value={`${metrics.coverage}%`} detail={`${metrics.validas} válidas · ${metrics.extras} extras`} />
+        <KpiCard tone="amber" icon={AlertTriangle} label="Pendências" value={metrics.pendencias} detail={`${metrics.delayed} atrasadas`} />
         <KpiCard tone="violet" icon={FileSpreadsheet} label="Rotas ativas" value={routes.length} detail={`${promoters.length} promotores`} />
       </div>
 

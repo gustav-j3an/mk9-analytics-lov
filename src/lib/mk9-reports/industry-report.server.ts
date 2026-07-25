@@ -1,6 +1,7 @@
 // Engine de agregação do Relatório da Indústria.
 // Fonte de "visitas contratadas" = roteiro planejado dentro do período (regra escolhida).
 import type { PeriodWindow } from "./period.server";
+import { aggregateVisitMetrics, computeVisitMetrics, type VisitMetrics } from "./metrics";
 
 export type StoreStatus =
   | "ATENDIDA_INTEGRAL"
@@ -30,6 +31,8 @@ export interface StoreLine {
   coveragePct: number;
   actualDates: string[];
   status: StoreStatus;
+  /** Métricas canônicas (nova camada nomeada em PT). */
+  metrics: VisitMetrics;
 }
 
 export interface UfLine {
@@ -41,6 +44,7 @@ export interface UfLine {
   extra: number;
   pending: number;
   coveragePct: number;
+  metrics: VisitMetrics;
 }
 
 export interface IndustryReportInput {
@@ -70,6 +74,8 @@ export interface IndustryReport {
     contractualCoveragePct: number;
     operationalCoveragePct: number;
     coveragePct: number; // alias para compatibilidade visual = cobertura contratual
+    /** Métricas canônicas (nova camada nomeada em PT). */
+    metrics: VisitMetrics;
   };
   stores: StoreLine[];
   ufs: UfLine[];
@@ -187,42 +193,43 @@ export async function buildIndustryReport(
   }
 
   const stores: StoreLine[] = Array.from(map.values()).map((b) => {
-    const validForCoverage = Math.min(b.actual, b.expected);
-    const extra = Math.max(0, b.actual - b.expected);
-    const pending = Math.max(0, b.expected - validForCoverage);
-    const coveragePct = b.expected > 0 ? Math.round((validForCoverage / b.expected) * 100) : 0;
+    const m = computeVisitMetrics({ contratadas: b.expected, executadas: b.actual });
     let status: StoreStatus;
-    if (b.expected === 0 && b.actual > 0) status = "FORA_ROTEIRO";
-    else if (b.expected === 0 && b.actual === 0) status = "NAO_ATENDIDA";
-    else if (b.actual >= b.expected && b.actual > b.expected) status = "ACIMA_FREQUENCIA";
-    else if (b.actual >= b.expected) status = "ATENDIDA_INTEGRAL";
-    else if (b.actual === 0) status = "NAO_ATENDIDA";
+    if (m.contratadas === 0 && m.executadas > 0) status = "FORA_ROTEIRO";
+    else if (m.contratadas === 0 && m.executadas === 0) status = "NAO_ATENDIDA";
+    else if (m.extras > 0) status = "ACIMA_FREQUENCIA";
+    else if (m.executadas >= m.contratadas) status = "ATENDIDA_INTEGRAL";
+    else if (m.executadas === 0) status = "NAO_ATENDIDA";
     else status = "ATENDIDA_PARCIAL";
     return {
       storeId: b.storeId,
       storeName: b.storeName,
       chain: b.chain,
       uf: b.uf,
-      expected: b.expected,
-      actual: b.actual,
-      validForCoverage,
-      extra,
-      pending,
-      coveragePct,
+      expected: m.contratadas,
+      actual: m.executadas,
+      validForCoverage: m.validas,
+      extra: m.extras,
+      pending: m.pendencias,
+      coveragePct: m.coberturaPct,
       actualDates: Array.from(b.actualDates).sort(),
       status,
+      metrics: m,
     };
   });
   stores.sort((a, z) => a.storeName.localeCompare(z.storeName, "pt-BR"));
   const storeIdsInReport = new Set(stores.map((s) => s.storeId));
   const recRows = (recs ?? []).filter((r: any) => !r.store_id || storeIdsInReport.has(r.store_id as string));
 
-  // Totais
-  const contracted = stores.reduce((s, x) => s + x.expected, 0);
-  const actual = stores.reduce((s, x) => s + x.actual, 0);
-  const validForContractCoverage = stores.reduce((s, x) => s + x.validForCoverage, 0);
-  const extra = stores.reduce((s, x) => s + x.extra, 0);
-  const pending = stores.reduce((s, x) => s + x.pending, 0);
+  // Totais — usam a camada canônica de métricas (soma loja a loja).
+  const totalsMetrics = aggregateVisitMetrics(
+    stores.map((s) => ({ contratadas: s.expected, executadas: s.actual })),
+  );
+  const contracted = totalsMetrics.contratadas;
+  const actual = totalsMetrics.executadas;
+  const validForContractCoverage = totalsMetrics.validas;
+  const extra = totalsMetrics.extras;
+  const pending = totalsMetrics.pendencias;
   const divergent = recRows.filter((r: any) => r.status === "DATE_DIVERGENCE").length;
   const unplanned = recRows.filter((r: any) => r.status === "UNPLANNED_VISIT").length;
   const reconciledPlannedIds = new Set<string>();
@@ -235,25 +242,35 @@ export async function buildIndustryReport(
     if (status === "IGNORED" || status === "NOT_COMPLETED" || status === "DUPLICATE_ACTUAL") continue;
     reconciledPlannedIds.add(plannedVisitId);
   }
-  const contractualCoveragePct = contracted > 0 ? Math.round((validForContractCoverage / contracted) * 100) : 0;
+  const contractualCoveragePct = totalsMetrics.coberturaPct;
   const operationalCoveragePct = contracted > 0 ? Math.round((reconciledPlannedIds.size / contracted) * 100) : 0;
   const coveragePct = contractualCoveragePct;
 
-  // Por UF
-  const ufMap = new Map<string, UfLine>();
+  // Por UF — também via camada canônica.
+  const ufBuckets = new Map<string, Array<{ contratadas: number; executadas: number }>>();
+  const ufStoreCount = new Map<string, number>();
   for (const s of stores) {
     const key = s.uf ?? "—";
-    const cur = ufMap.get(key) ?? { uf: key, stores: 0, expected: 0, actual: 0, validForCoverage: 0, extra: 0, pending: 0, coveragePct: 0 };
-    cur.stores += 1;
-    cur.expected += s.expected;
-    cur.actual += s.actual;
-    cur.validForCoverage += s.validForCoverage;
-    cur.extra += s.extra;
-    cur.pending += s.pending;
-    ufMap.set(key, cur);
+    const arr = ufBuckets.get(key) ?? [];
+    arr.push({ contratadas: s.expected, executadas: s.actual });
+    ufBuckets.set(key, arr);
+    ufStoreCount.set(key, (ufStoreCount.get(key) ?? 0) + 1);
   }
-  const ufs: UfLine[] = Array.from(ufMap.values())
-    .map((u) => ({ ...u, coveragePct: u.expected > 0 ? Math.round((u.validForCoverage / u.expected) * 100) : 0 }))
+  const ufs: UfLine[] = Array.from(ufBuckets.entries())
+    .map(([uf, arr]) => {
+      const m = aggregateVisitMetrics(arr);
+      return {
+        uf,
+        stores: ufStoreCount.get(uf) ?? 0,
+        expected: m.contratadas,
+        actual: m.executadas,
+        validForCoverage: m.validas,
+        extra: m.extras,
+        pending: m.pendencias,
+        coveragePct: m.coberturaPct,
+        metrics: m,
+      } as UfLine;
+    })
     .sort((a, b) => a.uf.localeCompare(b.uf));
 
   const actualDatesByStore: Record<string, string[]> = {};
@@ -276,6 +293,7 @@ export async function buildIndustryReport(
       contractualCoveragePct,
       operationalCoveragePct,
       coveragePct,
+      metrics: totalsMetrics,
     },
     stores,
     ufs,

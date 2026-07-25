@@ -126,16 +126,16 @@ function drawTitle(ctx: PdfCtx, year: number, month: number) {
 
 function drawKpis(ctx: PdfCtx) {
   const t = ctx.report.totals;
+  const m = t.metrics;
   const cards = [
     ["Lojas", String(t.totalStores), "brand"],
-    ["Contratadas", String(t.contracted), "brand"],
-    ["Planejadas", String(t.planned), "brand"],
-    ["Realizadas", String(t.actual), "good"],
-    ["Válidas p/ cobertura", String(t.validForContractCoverage), "good"],
-    ["Pendentes", String(t.pending), "bad"],
+    ["Visitas contratadas", String(m.contratadas), "brand"],
+    ["Visitas executadas", String(m.executadas), "good"],
+    ["Visitas válidas", String(m.validas), "good"],
+    ["Pendências", String(m.pendencias), "bad"],
+    ["Extras", String(m.extras), "warn"],
     ["Fora do roteiro", String(t.unplanned), "warn"],
-    ["Extras", String(t.extra), "warn"],
-    ["Cob. contratual", pct(t.contractualCoveragePct), t.contractualCoveragePct >= 90 ? "good" : t.contractualCoveragePct >= 70 ? "warn" : "bad"],
+    ["Cob. contratual", pct(m.coberturaPct), m.coberturaPct >= 90 ? "good" : m.coberturaPct >= 70 ? "warn" : "bad"],
     ["Cob. operacional", pct(t.operationalCoveragePct), t.operationalCoveragePct >= 90 ? "good" : t.operationalCoveragePct >= 70 ? "warn" : "bad"],
   ] as const;
   const cols = 5;
