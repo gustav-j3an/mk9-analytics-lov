@@ -199,19 +199,18 @@ function drawUfTable(ctx: PdfCtx) {
   const cols: Column[] = [
     { label: "UF", w: 42 },
     { label: "Lojas", w: 52 },
-    { label: "Contr.", w: 58 },
-    { label: "Real.", w: 54 },
-    { label: "Válidas", w: 58 },
-    { label: "Pend.", w: 50 },
-    { label: "Extras", w: 50 },
-    { label: "Cobertura", w: CONTENT_W - 364 },
+    { label: "Contr.", w: 62 },
+    { label: "Real.", w: 60 },
+    { label: "Pend.", w: 56 },
+    { label: "Extras", w: 56 },
+    { label: "Cobertura", w: CONTENT_W - 328 },
   ];
   drawTableHeader(ctx, cols);
   ctx.report.ufs.forEach((u, i) => {
     ensure(ctx, 18);
     const y = ctx.y - 15;
     if (i % 2 === 1) ctx.page.drawRectangle({ x: MARGIN, y: y - 3, width: CONTENT_W, height: 18, color: COLOR_ROW_ALT });
-    const vals = [u.uf, String(u.stores), String(u.expected), String(u.actual), String(u.validForCoverage), String(u.pending), String(u.extra), pct(u.coveragePct)];
+    const vals = [u.uf, String(u.stores), String(u.expected), String(u.actual), String(u.pending), String(u.extra), pct(u.coveragePct)];
     let x = MARGIN + 5;
     vals.forEach((v, idx) => {
       ctx.page.drawText(truncate(ctx.font, v, 8.5, cols[idx].w - 8), { x, y, size: 8.5, font: ctx.font, color: COLOR_TEXT });
