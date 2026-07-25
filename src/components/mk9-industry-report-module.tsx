@@ -222,12 +222,12 @@ export function Mk9IndustryReportModule() {
 
           <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
             <Kpi label="Lojas" value={report.totals.totalStores} />
-            <Kpi label="Contratadas" value={report.totals.contracted} />
-            <Kpi label="Válidas" value={report.totals.validForContractCoverage} tone="good" />
-            <Kpi label="Realizadas" value={report.totals.actual} tone="good" />
-            <Kpi label="Pendentes" value={report.totals.pending} tone="bad" />
-            <Kpi label="Extras" value={report.totals.extra} tone="warn" />
-            <Kpi label="Cobertura contratual" value={`${report.totals.contractualCoveragePct}%`} tone={report.totals.contractualCoveragePct >= 90 ? "good" : report.totals.contractualCoveragePct >= 70 ? "warn" : "bad"} />
+            <Kpi label="Visitas contratadas" value={report.totals.metrics.contratadas} />
+            <Kpi label="Visitas executadas" value={report.totals.metrics.executadas} tone="good" />
+            <Kpi label="Visitas válidas" value={report.totals.metrics.validas} tone="good" />
+            <Kpi label="Pendências" value={report.totals.metrics.pendencias} tone="bad" />
+            <Kpi label="Extras" value={report.totals.metrics.extras} tone="warn" />
+            <Kpi label="Cobertura contratual" value={`${report.totals.metrics.coberturaPct}%`} tone={report.totals.metrics.coberturaPct >= 90 ? "good" : report.totals.metrics.coberturaPct >= 70 ? "warn" : "bad"} />
             <Kpi label="Cobertura operacional" value={`${report.totals.operationalCoveragePct}%`} tone={report.totals.operationalCoveragePct >= 90 ? "good" : report.totals.operationalCoveragePct >= 70 ? "warn" : "bad"} />
             <Kpi label="Fora do roteiro" value={report.totals.unplanned} tone="warn" />
           </div>
@@ -235,7 +235,7 @@ export function Mk9IndustryReportModule() {
           <div className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
             <p className="font-medium text-foreground">Critério de cobertura</p>
             <p className="mt-1">
-              A cobertura contratual soma, loja a loja, apenas as visitas válidas até o limite esperado. Visitas extras ficam separadas e não compensam pendências de outras lojas.
+              <strong>Contratadas</strong> = roteiro planejado no ciclo. <strong>Executadas</strong> = visitas do checklist. <strong>Válidas</strong> = mín(contratadas, executadas) por loja. <strong>Extras</strong> = execução acima do contrato (não compensa pendências de outras lojas). <strong>Pendências</strong> = contratadas − válidas.
             </p>
           </div>
 
