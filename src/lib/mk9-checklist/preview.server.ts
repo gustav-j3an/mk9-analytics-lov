@@ -39,9 +39,6 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     operationYear: input.operationYear,
   });
 
-  diagnostics.info("load-industry", "Carregando indústria selecionada", { industryId: input.industryId });
-  const industry = await loadIndustry(input.industryId);
-
   diagnostics.info("parse-workbook", "Chamando parser específico de checklist", {
     parser: "src/lib/mk9-checklist/parser.ts:parseChecklistWorkbook",
   });
@@ -75,6 +72,9 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     );
     throw new Error(JSON.stringify(payload));
   }
+
+  diagnostics.info("load-industry", "Carregando indústria selecionada", { industryId: input.industryId });
+  const industry = await loadIndustry(input.industryId);
 
   diagnostics.info("load-stores", "Carregando índice de lojas da base MK9", {});
   const stores = await loadStoresIndex();
