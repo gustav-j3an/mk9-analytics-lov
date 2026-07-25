@@ -1,15 +1,18 @@
 // Engine de agregação do Relatório da Indústria.
 //
-// Fonte das "visitas contratadas" (nesta ordem, por loja):
-//   1) frequência semanal cadastrada na indústria/loja  →  weekly * períodoEmSemanas
-//   2) frequência mensal cadastrada na indústria/loja   →  monthly (arredondado)
-//   3) roteiro planejado dentro do período (fallback histórico quando não há
-//      frequência cadastrada nem checklist prévio para aquela loja).
+// Fonte ÚNICA das "visitas contratadas" por loja: cadastro de frequência da
+// indústria (mk9_industry_store_frequency). A existência ou ausência de
+// roteiro planejado NÃO altera o valor contratado — o roteiro é somente
+// auditoria (routeStatus). Extras de uma loja não compensam pendências de
+// outra.
 //
-// A ausência de roteiro NUNCA significa "zero contratado" quando existe
-// frequência cadastrada. Extras de uma loja não compensam pendências de outra.
+// Escala pelo período REAL da competência (não pelo mês fixo):
+//   weekly  → round(weekly  * totalDays / 7)
+//   monthly → round(monthly * totalDays / 30)
+// Cobertura é limitada a 100 % (já garantido por validas = min(contr., exec.)).
 import type { PeriodWindow } from "./period.server";
 import { aggregateVisitMetrics, computeVisitMetrics, type VisitMetrics } from "./metrics";
+
 
 export type StoreStatus =
   | "ATENDIDA_INTEGRAL"
@@ -40,7 +43,7 @@ export const ROUTE_STATUS_LABEL: Record<RouteStatus, string> = {
   SEM_ROTEIRO: "Sem roteiro",
 };
 
-export type ContractedSource = "WEEKLY_FREQUENCY" | "MONTHLY_FREQUENCY" | "PLANNED_ROUTE" | "NONE";
+export type ContractedSource = "WEEKLY_FREQUENCY" | "MONTHLY_FREQUENCY" | "NONE";
 
 export interface StoreLine {
   storeId: string;
@@ -118,20 +121,25 @@ function weeksInWindow(window: PeriodWindow): number {
   return Math.max(1, Math.round(window.totalDays / 7));
 }
 
-/** Contratadas por loja a partir da frequência cadastrada. Nunca negativo. */
+/**
+ * Contratadas por loja a partir da frequência cadastrada, escalada pelo
+ * período REAL da competência. Nunca negativo. Nunca usa roteiro.
+ */
 function contractedFromFrequency(
   weekly: number | null,
   monthly: number | null,
-  weeks: number,
+  totalDays: number,
 ): { contratadas: number; source: ContractedSource } {
+  const days = Math.max(1, totalDays);
   if (weekly != null && Number.isFinite(weekly) && weekly > 0) {
-    return { contratadas: Math.max(0, Math.round(weekly * weeks)), source: "WEEKLY_FREQUENCY" };
+    return { contratadas: Math.max(0, Math.round(weekly * (days / 7))), source: "WEEKLY_FREQUENCY" };
   }
   if (monthly != null && Number.isFinite(monthly) && monthly > 0) {
-    return { contratadas: Math.max(0, Math.round(monthly)), source: "MONTHLY_FREQUENCY" };
+    return { contratadas: Math.max(0, Math.round(monthly * (days / 30))), source: "MONTHLY_FREQUENCY" };
   }
   return { contratadas: 0, source: "NONE" };
 }
+
 
 export async function buildIndustryReport(
   supabase: any,
@@ -270,15 +278,13 @@ export async function buildIndustryReport(
 
   // Monta linhas por loja
   const stores: StoreLine[] = Array.from(map.values()).map((b) => {
-    // Contratadas: frequência > rota planejada > 0
-    const fromFreq = contractedFromFrequency(b.weekly, b.monthly, weeks);
-    let contratadas = fromFreq.contratadas;
-    let source: ContractedSource = fromFreq.source;
-    if (contratadas === 0 && b.plannedCount > 0) {
-      contratadas = b.plannedCount;
-      source = "PLANNED_ROUTE";
-    }
+    // Contratadas: SEMPRE da frequência cadastrada, escalada pelo período real.
+    // Roteiro planejado é auditoria (routeStatus) — nunca substitui contrato.
+    const fromFreq = contractedFromFrequency(b.weekly, b.monthly, window.totalDays);
+    const contratadas = fromFreq.contratadas;
+    const source: ContractedSource = fromFreq.source;
     const m = computeVisitMetrics({ contratadas, executadas: b.actual });
+
 
     // status_execucao (independe de roteiro)
     const executionStatus: ExecutionStatus =

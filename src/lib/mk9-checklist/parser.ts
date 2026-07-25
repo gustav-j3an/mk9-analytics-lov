@@ -133,9 +133,9 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
         const cell = row[c];
         if (localStoreCol < 0 && headerMatch(cell, ["loja", "cliente", "pdv"])) { localStoreCol = c; continue; }
         if (localUfCol < 0 && headerMatch(cell, ["uf", "estado"])) { localUfCol = c; continue; }
-        if (localWeeklyCol < 0 && headerMatch(cell, ["visita semanal", "freq semanal", "frequencia semanal"])) { localWeeklyCol = c; continue; }
-        if (localMonthlyCol < 0 && headerMatch(cell, ["visita mensal", "freq mensal", "frequencia mensal"])) { localMonthlyCol = c; continue; }
-        if (localRealizadoCol < 0 && headerMatch(cell, ["realizado", "realizadas", "total realizado"])) { localRealizadoCol = c; continue; }
+        if (localWeeklyCol < 0 && headerMatch(cell, ["visita semanal", "visitas semanais", "freq semanal", "frequencia semanal", "frequência semanal"])) { localWeeklyCol = c; continue; }
+        if (localMonthlyCol < 0 && headerMatch(cell, ["visita mensal", "visitas mensais", "freq mensal", "frequencia mensal", "frequência mensal", "frequencia contratada", "frequência contratada", "contratada", "meta mensal"])) { localMonthlyCol = c; continue; }
+        if (localRealizadoCol < 0 && headerMatch(cell, ["realizado", "realizadas", "total realizado", "executado", "executadas"])) { localRealizadoCol = c; continue; }
         const iso = detectDateColumn(cell);
         if (iso) localDateCols.push({ col: c, iso });
       }
