@@ -59,6 +59,13 @@ export interface CommitInput {
 
 export async function commitImport(repo: Mk9Repository, input: CommitInput) {
   const start = Date.now();
+  console.info("[IMPORT ROUTE VERSION] soft-delete-v2", {
+    importId: input.importId,
+    filename: input.filename,
+    operationMonth: input.operationMonth,
+    operationYear: input.operationYear,
+    syncMode: input.syncMode,
+  });
   await repo.updateImportStatus(input.importId, { status: "committing" });
   try {
     const parsed = parseWorkbook(input.buffer, input.filename);
@@ -102,11 +109,11 @@ export async function commitImport(repo: Mk9Repository, input: CommitInput) {
 
     // 3) upsert rotas/visitas
     await repo.upsertPlannedRoutes(routesReady, input.importId);
-    await repo.upsertPlannedVisits(visitsReady, input.importId);
+    await repo.upsertPlannedVisits(visitsReady, input.importId, plan.toRemove.visitIds);
 
-    // 4) remoções
+    // 4) remoções de rotas somente. Visitas ausentes são arquivadas dentro da
+    // rotina transacional mk9_sync_planned_visits, nunca apagadas fisicamente.
     await repo.removePlannedRoutes(plan.toRemove.routeIds);
-    await repo.removeFuturePlannedVisits(plan.toRemove.visitIds);
 
     const durationMs = Date.now() - start;
     await repo.updateImportStatus(input.importId, {

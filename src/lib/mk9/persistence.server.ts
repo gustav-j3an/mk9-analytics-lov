@@ -288,34 +288,66 @@ export function createSupabaseRepository(): Mk9Repository {
       const { error } = await supabaseAdmin.from("mk9_planned_routes").delete().in("id", ids);
       if (error) throw error;
     },
-    async upsertPlannedVisits(records, importId) {
-      if (!records.length) return [];
+    async upsertPlannedVisits(records, importId, archiveIds = []) {
       const dedup = new Map<string, PlannedVisitRecord>();
       for (const r of records) {
         const k = `${r.promoterId}|${r.storeId}|${r.industryId}|${r.scheduledDate}`;
         dedup.set(k, r);
       }
       const list = Array.from(dedup.values());
-      const CHUNK = 500;
+      const archiveSample = archiveIds.slice(0, 25);
+      console.info("[ARCHIVE PLANNED VISITS]", {
+        scope: "mk9 roteiro full sync",
+        quantidade: archiveIds.length,
+        ids: archiveSample,
+        truncated: archiveIds.length > archiveSample.length,
+      });
+
+      // Transação no banco: atualiza existentes sem tocar no id, insere novos
+      // sem enviar id (DEFAULT gen_random_uuid()) e arquiva ausentes.
+      const payload = list.map((r) => ({
+        promoter_id: r.promoterId,
+        store_id: r.storeId,
+        industry_id: r.industryId,
+        route_id: r.routeId ?? null,
+        scheduled_date: r.scheduledDate,
+        status: r.status,
+        source_sheet: r.sourceSheet ?? null,
+      }));
+      const { error } = await (supabaseAdmin as any).rpc("mk9_sync_planned_visits", {
+        _rows: payload,
+        _archive_ids: archiveIds,
+        _import_id: importId,
+      });
+      if (error) throw error;
+
+      if (!list.length) return [];
       const out: PlannedVisitRecord[] = [];
+      const CHUNK = 500;
       for (let i = 0; i < list.length; i += CHUNK) {
         const slice = list.slice(i, i + CHUNK);
-        const { data, error } = await supabaseAdmin.from("mk9_planned_visits").upsert(
-          slice.map((r) => withOptionalId({
-            id: r.id, promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
-            route_id: r.routeId ?? null, scheduled_date: r.scheduledDate,
-            status: r.status, source_sheet: r.sourceSheet, last_import_id: importId,
-            archived_at: null,
-          })),
-          { onConflict: "promoter_id,store_id,industry_id,scheduled_date", defaultToNull: false },
-        ).select();
-        if (error) throw error;
+        let q = supabaseAdmin
+          .from("mk9_planned_visits")
+          .select("*")
+          .is("archived_at", null);
+        const or = slice
+          .map((r) => `and(promoter_id.eq.${r.promoterId},store_id.eq.${r.storeId},industry_id.eq.${r.industryId},scheduled_date.eq.${r.scheduledDate})`)
+          .join(",");
+        const { data, error: readErr } = await q.or(or);
+        if (readErr) throw readErr;
         out.push(...(data ?? []).map(mapVisit));
       }
       return out;
     },
     async removeFuturePlannedVisits(ids) {
       if (!ids.length) return;
+      const archiveSample = ids.slice(0, 25);
+      console.info("[ARCHIVE PLANNED VISITS]", {
+        scope: "legacy removeFuturePlannedVisits",
+        quantidade: ids.length,
+        ids: archiveSample,
+        truncated: ids.length > archiveSample.length,
+      });
       // Arquivamento lógico: preserva o id e as reconciliações vinculadas.
       // Apenas visitas ainda planejadas são arquivadas; realizadas/canceladas ficam intactas.
       const { error } = await supabaseAdmin.from("mk9_planned_visits")
