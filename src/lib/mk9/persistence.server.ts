@@ -78,7 +78,9 @@ export function createSupabaseRepository(): Mk9Repository {
     },
     async upsertIndustries(records, importId) {
       if (!records.length) return [];
-      const payload = records.map((r) => ({
+      const dedup = new Map<string, IndustryRecord>();
+      for (const r of records) dedup.set(r.nameNormalized, { ...dedup.get(r.nameNormalized), ...r });
+      const payload = Array.from(dedup.values()).map((r) => ({
         id: r.id, name: r.name, name_normalized: r.nameNormalized,
         monthly_contracted_frequency: r.monthlyContractedFrequency,
         monthly_estimated_frequency: r.monthlyEstimatedFrequency,
@@ -94,20 +96,49 @@ export function createSupabaseRepository(): Mk9Repository {
     },
     async upsertStores(records, importId) {
       if (!records.length) return [];
-      const payload = records.map((r) => ({
+      const dedup = new Map<string, StoreRecord>();
+      for (const r of records) {
+        const k = `${r.nameNormalized}::${r.uf ?? ""}`;
+        dedup.set(k, { ...dedup.get(k), ...r });
+      }
+      const payload = Array.from(dedup.values()).map((r) => ({
         id: r.id, chain: r.chain, name: r.name,
         name_normalized: r.nameNormalized, uf: r.uf, last_import_id: importId,
       }));
-      const { data, error } = await supabaseAdmin
-        .from("mk9_stores").upsert(payload, { onConflict: "name_normalized,uf" }).select();
-      if (error) throw error;
-      return (data ?? []).map(mapStore);
+      // (name_normalized, uf) unique treats NULL uf as distinct; split NULL-uf rows into insert-if-missing
+      const withUf = payload.filter((p) => p.uf !== null && p.uf !== undefined);
+      const withoutUf = payload.filter((p) => p.uf === null || p.uf === undefined);
+      const out: StoreRecord[] = [];
+      if (withUf.length) {
+        const { data, error } = await supabaseAdmin
+          .from("mk9_stores").upsert(withUf, { onConflict: "name_normalized,uf" }).select();
+        if (error) throw error;
+        out.push(...(data ?? []).map(mapStore));
+      }
+      for (const p of withoutUf) {
+        const { data: existing } = await supabaseAdmin.from("mk9_stores")
+          .select("*").eq("name_normalized", p.name_normalized).is("uf", null).maybeSingle();
+        if (existing) {
+          const { data, error } = await supabaseAdmin.from("mk9_stores")
+            .update({ chain: p.chain, name: p.name, last_import_id: importId })
+            .eq("id", existing.id).select().single();
+          if (error) throw error;
+          out.push(mapStore(data));
+        } else {
+          const { data, error } = await supabaseAdmin.from("mk9_stores").insert(p).select().single();
+          if (error) throw error;
+          out.push(mapStore(data));
+        }
+      }
+      return out;
     },
     async upsertPromoters(records, importId) {
       if (!records.length) return [];
-      // upsert por id quando existir; senão insert simples com dedup por name_normalized manual
-      const withId = records.filter((r) => r.id);
-      const withoutId = records.filter((r) => !r.id);
+      const dedup = new Map<string, PromoterRecord>();
+      for (const r of records) dedup.set(r.id ?? `norm:${r.nameNormalized}`, { ...dedup.get(r.id ?? `norm:${r.nameNormalized}`), ...r });
+      const list = Array.from(dedup.values());
+      const withId = list.filter((r) => r.id);
+      const withoutId = list.filter((r) => !r.id);
       const out: PromoterRecord[] = [];
       if (withId.length) {
         const { data, error } = await supabaseAdmin.from("mk9_promoters").upsert(
@@ -121,24 +152,40 @@ export function createSupabaseRepository(): Mk9Repository {
         if (error) throw error;
         out.push(...(data ?? []).map(mapPromoter));
       }
-      if (withoutId.length) {
-        const { data, error } = await supabaseAdmin.from("mk9_promoters").insert(
-          withoutId.map((r) => ({
-            external_id: r.externalId, name: r.name,
-            name_normalized: r.nameNormalized, city: r.city,
-            contact: r.contact, contact_normalized: r.contactNormalized,
-            notes: r.notes, last_import_id: importId,
-          })),
-        ).select();
-        if (error) throw error;
-        out.push(...(data ?? []).map(mapPromoter));
+      for (const r of withoutId) {
+        // dedup por name_normalized (não há unique constraint no DB — evita duplicar em re-imports)
+        const { data: existing } = await supabaseAdmin.from("mk9_promoters")
+          .select("*").eq("name_normalized", r.nameNormalized).maybeSingle();
+        const payload = {
+          external_id: r.externalId, name: r.name,
+          name_normalized: r.nameNormalized, city: r.city,
+          contact: r.contact, contact_normalized: r.contactNormalized,
+          notes: r.notes, last_import_id: importId,
+        };
+        if (existing) {
+          const { data, error } = await supabaseAdmin.from("mk9_promoters")
+            .update(payload).eq("id", existing.id).select().single();
+          if (error) throw error;
+          out.push(mapPromoter(data));
+        } else {
+          const { data, error } = await supabaseAdmin.from("mk9_promoters")
+            .insert(payload).select().single();
+          if (error) throw error;
+          out.push(mapPromoter(data));
+        }
       }
       return out;
     },
     async upsertPlannedRoutes(records, importId) {
       if (!records.length) return [];
+      const dedup = new Map<string, PlannedRouteRecord>();
+      for (const r of records) {
+        const k = `${r.promoterId}|${r.storeId}|${r.industryId}|${r.weekday}|${r.operationMonth}|${r.operationYear}`;
+        dedup.set(k, r);
+      }
+      const list = Array.from(dedup.values());
       const { data, error } = await supabaseAdmin.from("mk9_planned_routes").upsert(
-        records.map((r) => ({
+        list.map((r) => ({
           id: r.id, promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
           weekday: r.weekday, operation_month: r.operationMonth, operation_year: r.operationYear,
           source_sheet: r.sourceSheet, last_import_id: importId,
@@ -155,16 +202,28 @@ export function createSupabaseRepository(): Mk9Repository {
     },
     async upsertPlannedVisits(records, importId) {
       if (!records.length) return [];
-      const { data, error } = await supabaseAdmin.from("mk9_planned_visits").upsert(
-        records.map((r) => ({
-          id: r.id, promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
-          route_id: r.routeId ?? null, scheduled_date: r.scheduledDate,
-          status: r.status, source_sheet: r.sourceSheet, last_import_id: importId,
-        })),
-        { onConflict: "promoter_id,store_id,industry_id,scheduled_date" },
-      ).select();
-      if (error) throw error;
-      return (data ?? []).map(mapVisit);
+      const dedup = new Map<string, PlannedVisitRecord>();
+      for (const r of records) {
+        const k = `${r.promoterId}|${r.storeId}|${r.industryId}|${r.scheduledDate}`;
+        dedup.set(k, r);
+      }
+      const list = Array.from(dedup.values());
+      const CHUNK = 500;
+      const out: PlannedVisitRecord[] = [];
+      for (let i = 0; i < list.length; i += CHUNK) {
+        const slice = list.slice(i, i + CHUNK);
+        const { data, error } = await supabaseAdmin.from("mk9_planned_visits").upsert(
+          slice.map((r) => ({
+            id: r.id, promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
+            route_id: r.routeId ?? null, scheduled_date: r.scheduledDate,
+            status: r.status, source_sheet: r.sourceSheet, last_import_id: importId,
+          })),
+          { onConflict: "promoter_id,store_id,industry_id,scheduled_date" },
+        ).select();
+        if (error) throw error;
+        out.push(...(data ?? []).map(mapVisit));
+      }
+      return out;
     },
     async removeFuturePlannedVisits(ids) {
       if (!ids.length) return;
