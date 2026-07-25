@@ -30,6 +30,29 @@ export function normalizeStoreName(input: string | null | undefined): string {
     .trim();
 }
 
+// Palavras genéricas descartadas ao gerar a chave de tokens (não distinguem lojas).
+const STORE_STOPWORDS = new Set([
+  "av", "avenida", "r", "rua", "al", "alameda", "rod", "rodovia",
+  "de", "da", "do", "das", "dos", "e",
+  "loja", "unidade", "un", "n", "no", "num", "nº",
+]);
+
+// Forma "compacta": normalizada e SEM espaços. Serve para casar
+// "T-63" vs "T63" (mesmo estabelecimento, hífen opcional entre letra/dígito).
+export function storeCompactKey(normalized: string): string {
+  return normalized.replace(/\s+/g, "");
+}
+
+// Chave por conjunto ordenado de tokens (sem stopwords). Serve para casar
+// mesmas palavras em ordem diferente:
+// "ATACADÃO AV. RIO VERDE APARECIDA DE GOIANIA" ==
+// "ATACADÃO - APARECIDA DE GOIANIA AV. RIO VERDE".
+export function storeTokenSetKey(normalized: string): string {
+  const tokens = normalized.split(/\s+/).filter((t) => t && !STORE_STOPWORDS.has(t));
+  const unique = Array.from(new Set(tokens)).sort();
+  return unique.join(" ");
+}
+
 export function normalizeUF(input: string | null | undefined): string | null {
   if (!input) return null;
   const uf = String(input).trim().toUpperCase();

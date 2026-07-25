@@ -3,6 +3,7 @@ import type { ChecklistDiagnostics } from "./diagnostics";
 import { buildRichError } from "./errors.server";
 import { parseChecklistWorkbook } from "./parser";
 import { diceCoefficient } from "./similarity";
+import { storeCompactKey, storeTokenSetKey } from "@/lib/mk9/normalization";
 import {
   cancelPreviousPreviews,
   createChecklistImport,
@@ -105,6 +106,18 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     const unique = stores.uniqueByName.get(normalized);
     if (unique) {
       const r: Resolution = { kind: "found", storeId: unique.id, matchedName: unique.name };
+      resolveCache.set(key, r);
+      return r;
+    }
+    // 2.1) Chave compacta (sem espaços): casa "T-63" com "T63" e afins.
+    const ufKey = uf ?? "";
+    // 2.1) Chave compacta (sem espaços): casa "T-63" com "T63" e afins.
+    const compactMatch = stores.pickUnique("compact", ufKey, storeCompactKey(normalized));
+    // 2.2) Chave por conjunto de tokens (ignora ordem e stopwords).
+    const tokenMatch = stores.pickUnique("tokenSet", ufKey, storeTokenSetKey(normalized));
+    const fuzzyExact = compactMatch ?? tokenMatch;
+    if (fuzzyExact) {
+      const r: Resolution = { kind: "found", storeId: fuzzyExact.id, matchedName: fuzzyExact.name };
       resolveCache.set(key, r);
       return r;
     }
