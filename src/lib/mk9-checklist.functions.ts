@@ -69,11 +69,14 @@ export const checklistCommit = createServerFn({ method: "POST" })
       "./mk9-checklist/persistence.server"
     );
     const startedAt = Date.now();
+    // Marca committing logo no início para que o histórico saia de "previewing".
+    await updateImportStatus(data.importId, { status: "committing" }).catch(() => undefined);
     try {
       // 1) Cria/reaproveita lojas ausentes (isNew=true). Lojas já resolvidas passam direto.
       const newCandidates = data.items
         .filter((i) => i.isNew || !i.storeId)
         .map((i) => ({ storeName: i.storeName, storeNormalized: i.storeNormalized, uf: i.uf ?? null }));
+
 
       const createdMap = await withRichErrors(
         { step: "ensure-checklist-stores", function: "checklistCommit", extra: { candidates: newCandidates.length } },
