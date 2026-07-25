@@ -175,7 +175,20 @@ export const checklistCommit = createServerFn({ method: "POST" })
         finishedAt: new Date(),
         durationMs: Date.now() - startedAt,
       });
-      return { importId: data.importId, persisted, skipped, total: data.items.length };
+      // Executa conciliação automaticamente para o período/indústria
+      let reconciliationError: string | null = null;
+      try {
+        const { reconcile } = await import("./mk9-reconciliation/engine.server");
+        await reconcile({
+          operationYear: data.operationYear,
+          operationMonth: data.operationMonth,
+          industryId: data.industryId,
+          sourceImportId: data.importId,
+        });
+      } catch (recErr: any) {
+        reconciliationError = String(recErr?.message ?? recErr);
+      }
+      return { importId: data.importId, persisted, skipped, total: data.items.length, reconciliationError };
     } catch (e: any) {
       await updateImportStatus(data.importId, {
         status: "failed",
