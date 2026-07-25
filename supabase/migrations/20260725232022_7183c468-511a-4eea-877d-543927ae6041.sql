@@ -1,0 +1,2 @@
+ALTER TABLE public.mk9_planned_visits ADD COLUMN IF NOT EXISTS archived_at timestamptz;
+CREATE INDEX IF NOT EXISTS mk9_planned_visits_archived_at_idx ON public.mk9_planned_visits (archived_at) WHERE archived_at IS NULL;
