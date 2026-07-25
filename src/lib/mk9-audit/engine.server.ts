@@ -1,0 +1,265 @@
+// Motor da Auditoria de Execução MK9.
+// Reutiliza a mesma regra de contratação (frequência da indústria por loja)
+// já usada em industry-report.server.ts. Executadas = total bruto de checklist
+// no período da indústria. Pendentes = max(0, contratadas - executadas).
+// Cobertura = executadas / contratadas (limite 100%). Promotor responsável
+// vem do roteiro planejado (mk9_planned_routes), pela maioria por loja.
+
+import { loadPeriodConfig, resolveWindow, type PeriodWindow } from "@/lib/mk9-reports/period.server";
+import { computeVisitMetrics, aggregateVisitMetrics } from "@/lib/mk9-reports/metrics";
+
+export type ExecStatus = "COMPLETO" | "PARCIAL" | "NAO_REALIZADO";
+export const EXEC_STATUS_LABEL: Record<ExecStatus, string> = {
+  COMPLETO: "Completo",
+  PARCIAL: "Parcial",
+  NAO_REALIZADO: "Não realizado",
+};
+
+export interface AuditStoreLine {
+  storeId: string;
+  storeName: string;
+  chain: string | null;
+  uf: string | null;
+  industryId: string;
+  industryName: string;
+  promoterId: string | null;
+  promoterName: string | null;
+  contratadas: number;
+  realizadas: number;
+  pendentes: number;
+  coberturaPct: number;
+  status: ExecStatus;
+  weeklyFrequency: number | null;
+  monthlyFrequency: number | null;
+}
+
+export interface AuditPromoterLine {
+  promoterId: string | null;
+  promoterName: string;
+  storesCount: number;
+  contratadas: number;
+  realizadas: number;
+  pendentes: number;
+  coberturaPct: number;
+}
+
+export interface AuditIndustryLine {
+  industryId: string;
+  industryName: string;
+  window: { startDate: string; endDate: string; totalDays: number };
+  storesCount: number;
+  contratadas: number;
+  realizadas: number;
+  pendentes: number;
+  coberturaPct: number;
+}
+
+export interface AuditScope {
+  year: number;
+  month: number;
+  industryId?: string | null;
+  uf?: string | null;
+  promoterId?: string | null;
+}
+
+function contractedFromFrequency(weekly: number | null, monthly: number | null, totalDays: number): number {
+  if (monthly != null && Number.isFinite(monthly) && monthly > 0) return Math.max(0, Math.round(monthly));
+  if (weekly != null && Number.isFinite(weekly) && weekly > 0) {
+    const days = Math.max(1, totalDays);
+    return Math.max(0, Math.round(weekly * (days / 7)));
+  }
+  return 0;
+}
+
+function pickStatus(contratadas: number, realizadas: number): ExecStatus {
+  if (contratadas === 0 && realizadas === 0) return "NAO_REALIZADO";
+  const valid = Math.min(contratadas, realizadas);
+  if (valid >= contratadas && contratadas > 0) return "COMPLETO";
+  if (realizadas === 0) return "NAO_REALIZADO";
+  return "PARCIAL";
+}
+
+interface IndustryContext {
+  industryId: string;
+  industryName: string;
+  window: PeriodWindow;
+  stores: AuditStoreLine[];
+}
+
+async function buildIndustryContext(
+  supabase: any,
+  industry: { id: string; name: string },
+  year: number,
+  month: number,
+  uf: string | null,
+): Promise<IndustryContext> {
+  const cfg = await loadPeriodConfig(supabase, industry.id);
+  const win = resolveWindow(cfg, year, month);
+
+  // Frequência por loja
+  const { data: freqs, error: eF } = await supabase
+    .from("mk9_industry_store_frequency")
+    .select("store_id, weekly_frequency, monthly_frequency, store:mk9_stores(id,name,chain,uf)")
+    .eq("industry_id", industry.id)
+    .limit(20000);
+  if (eF) throw new Error(eF.message);
+
+  // Visitas realizadas na janela
+  const { data: actuals, error: eA } = await supabase
+    .from("mk9_actual_visits")
+    .select("store_id, scheduled_date, store:mk9_stores(id,name,chain,uf)")
+    .eq("industry_id", industry.id)
+    .gte("scheduled_date", win.startDate)
+    .lte("scheduled_date", win.endDate)
+    .limit(50000);
+  if (eA) throw new Error(eA.message);
+
+  // Promotor responsável por loja: maioria em mk9_planned_routes do mês
+  const { data: routes, error: eR } = await supabase
+    .from("mk9_planned_routes")
+    .select("store_id, promoter_id, promoter:mk9_promoters(id,name)")
+    .eq("industry_id", industry.id)
+    .eq("operation_year", year)
+    .eq("operation_month", month)
+    .limit(50000);
+  if (eR) throw new Error(eR.message);
+
+  const promoterVotes = new Map<string, Map<string, { name: string; count: number }>>();
+  for (const r of routes ?? []) {
+    if (!r.store_id || !r.promoter_id) continue;
+    const inner = promoterVotes.get(r.store_id) ?? new Map();
+    const cur = inner.get(r.promoter_id) ?? { name: r.promoter?.name ?? "—", count: 0 };
+    cur.count += 1;
+    inner.set(r.promoter_id, cur);
+    promoterVotes.set(r.store_id, inner);
+  }
+  const promoterByStore = new Map<string, { id: string; name: string }>();
+  for (const [sid, inner] of promoterVotes) {
+    let best: { id: string; name: string; count: number } | null = null;
+    for (const [pid, v] of inner) {
+      if (!best || v.count > best.count) best = { id: pid, name: v.name, count: v.count };
+    }
+    if (best) promoterByStore.set(sid, { id: best.id, name: best.name });
+  }
+
+  type Bucket = {
+    storeId: string; storeName: string; chain: string | null; uf: string | null;
+    weekly: number | null; monthly: number | null; actual: number;
+  };
+  const map = new Map<string, Bucket>();
+  const touch = (id: string, s: any) => {
+    let b = map.get(id);
+    if (!b) {
+      b = { storeId: id, storeName: s?.name ?? "—", chain: s?.chain ?? null, uf: s?.uf ?? null, weekly: null, monthly: null, actual: 0 };
+      map.set(id, b);
+    }
+    return b;
+  };
+  for (const f of freqs ?? []) {
+    if (!f.store_id) continue;
+    if (uf && f.store?.uf !== uf) continue;
+    const b = touch(f.store_id, f.store);
+    b.weekly = (f.weekly_frequency as number | null) ?? b.weekly;
+    b.monthly = (f.monthly_frequency as number | null) ?? b.monthly;
+  }
+  for (const a of actuals ?? []) {
+    if (!a.store_id) continue;
+    if (uf && a.store?.uf !== uf) continue;
+    const b = touch(a.store_id, a.store);
+    b.actual += 1;
+  }
+
+  const stores: AuditStoreLine[] = Array.from(map.values()).map((b) => {
+    const contratadas = contractedFromFrequency(b.weekly, b.monthly, win.totalDays);
+    const m = computeVisitMetrics({ contratadas, executadas: b.actual });
+    const realizadas = m.executadas;
+    const pendentes = Math.max(0, contratadas - realizadas);
+    const coberturaPct = contratadas > 0 ? Math.min(100, Math.round((realizadas / contratadas) * 100)) : 0;
+    const promo = promoterByStore.get(b.storeId);
+    return {
+      storeId: b.storeId,
+      storeName: b.storeName,
+      chain: b.chain,
+      uf: b.uf,
+      industryId: industry.id,
+      industryName: industry.name,
+      promoterId: promo?.id ?? null,
+      promoterName: promo?.name ?? null,
+      contratadas,
+      realizadas,
+      pendentes,
+      coberturaPct,
+      status: pickStatus(contratadas, realizadas),
+      weeklyFrequency: b.weekly,
+      monthlyFrequency: b.monthly,
+    };
+  });
+  stores.sort((a, z) => a.storeName.localeCompare(z.storeName, "pt-BR"));
+  return { industryId: industry.id, industryName: industry.name, window: win, stores };
+}
+
+async function loadIndustries(supabase: any, industryId: string | null | undefined) {
+  let q = supabase.from("mk9_industries").select("id,name").order("name", { ascending: true });
+  if (industryId) q = q.eq("id", industryId);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Array<{ id: string; name: string }>;
+}
+
+export async function auditByStore(supabase: any, scope: AuditScope): Promise<{ stores: AuditStoreLine[]; totals: AuditIndustryLine[] }> {
+  const industries = await loadIndustries(supabase, scope.industryId ?? null);
+  const contexts = await Promise.all(industries.map((ind) => buildIndustryContext(supabase, ind, scope.year, scope.month, scope.uf ?? null)));
+  const all: AuditStoreLine[] = [];
+  const totals: AuditIndustryLine[] = [];
+  for (const c of contexts) {
+    let stores = c.stores;
+    if (scope.promoterId) stores = stores.filter((s) => s.promoterId === scope.promoterId);
+    for (const s of stores) all.push(s);
+    const agg = aggregateVisitMetrics(stores.map((s) => ({ contratadas: s.contratadas, executadas: s.realizadas })));
+    const realizadas = agg.executadas;
+    const contratadas = agg.contratadas;
+    const pendentes = Math.max(0, contratadas - realizadas);
+    const coberturaPct = contratadas > 0 ? Math.min(100, Math.round((realizadas / contratadas) * 100)) : 0;
+    totals.push({
+      industryId: c.industryId,
+      industryName: c.industryName,
+      window: { startDate: c.window.startDate, endDate: c.window.endDate, totalDays: c.window.totalDays },
+      storesCount: stores.length,
+      contratadas, realizadas, pendentes, coberturaPct,
+    });
+  }
+  return { stores: all, totals };
+}
+
+export async function auditByPromoter(supabase: any, scope: AuditScope): Promise<AuditPromoterLine[]> {
+  const { stores } = await auditByStore(supabase, scope);
+  const map = new Map<string, { name: string; storesCount: number; contratadas: number; realizadas: number }>();
+  for (const s of stores) {
+    const key = s.promoterId ?? "__NONE__";
+    const cur = map.get(key) ?? { name: s.promoterName ?? "Não atribuído", storesCount: 0, contratadas: 0, realizadas: 0 };
+    cur.storesCount += 1;
+    cur.contratadas += s.contratadas;
+    cur.realizadas += s.realizadas;
+    map.set(key, cur);
+  }
+  return Array.from(map.entries())
+    .map(([pid, v]) => {
+      const pendentes = Math.max(0, v.contratadas - v.realizadas);
+      const coberturaPct = v.contratadas > 0 ? Math.min(100, Math.round((v.realizadas / v.contratadas) * 100)) : 0;
+      return {
+        promoterId: pid === "__NONE__" ? null : pid,
+        promoterName: v.name,
+        storesCount: v.storesCount,
+        contratadas: v.contratadas,
+        realizadas: v.realizadas,
+        pendentes,
+        coberturaPct,
+      };
+    })
+    .sort((a, b) => a.promoterName.localeCompare(b.promoterName, "pt-BR"));
+}
+
+export async function auditByIndustry(supabase: any, scope: AuditScope): Promise<AuditIndustryLine[]> {
+  const { totals } = await auditByStore(supabase, scope);
+  return totals.sort((a, b) => a.industryName.localeCompare(b.industryName, "pt-BR"));
+}
