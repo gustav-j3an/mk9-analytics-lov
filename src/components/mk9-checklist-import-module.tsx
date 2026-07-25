@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
-  checklistPreview,
   checklistCommit,
   checklistList,
   checklistDelete,
@@ -49,17 +48,6 @@ const STATUS_LABEL: Record<string, { label: string; variant: "default" | "second
   failed: { label: "Falhou", variant: "destructive" },
   cancelled: { label: "Cancelada", variant: "secondary" },
 };
-
-async function fileToBase64(file: File): Promise<string> {
-  const buf = await file.arrayBuffer();
-  const bytes = new Uint8Array(buf);
-  let binary = "";
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)));
-  }
-  return btoa(binary);
-}
 
 function shortDate(value: string) {
   if (!value) return "—";
@@ -86,6 +74,20 @@ type RichError = {
   raw?: string;
 };
 
+type ChecklistDebugEvent = {
+  at: string;
+  level: "info" | "error";
+  step: string;
+  message: string;
+  data?: Record<string, unknown>;
+};
+
+type ChecklistPreviewResponse = {
+  importId: string;
+  preview: ChecklistPreview;
+  diagnostics?: ChecklistDebugEvent[];
+};
+
 function parseServerError(e: any): RichError {
   const raw = e?.message ?? String(e ?? "");
   try {
@@ -93,6 +95,37 @@ function parseServerError(e: any): RichError {
     if (parsed && typeof parsed === "object" && parsed.__mk9Error) return parsed as RichError;
   } catch {}
   return { message: raw || "Erro desconhecido", raw };
+}
+
+async function requestChecklistPreview(input: {
+  file: File;
+  industryId: string;
+  operationMonth: number;
+  operationYear: number;
+}): Promise<ChecklistPreviewResponse> {
+  const form = new FormData();
+  form.append("file", input.file, input.file.name);
+  form.append("industryId", input.industryId);
+  form.append("operationMonth", String(input.operationMonth));
+  form.append("operationYear", String(input.operationYear));
+
+  const response = await fetch("/api/checklists/preview", {
+    method: "POST",
+    body: form,
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const err = payload?.error ?? {
+      __mk9Error: true,
+      step: "http-response",
+      function: "requestChecklistPreview",
+      message: `HTTP ${response.status}: ${response.statusText}`,
+      extra: { diagnostics: payload?.diagnostics ?? [] },
+    };
+    throw new Error(JSON.stringify(err));
+  }
+  return payload as ChecklistPreviewResponse;
 }
 
 export function Mk9ChecklistImportModule() {
@@ -108,7 +141,6 @@ export function Mk9ChecklistImportModule() {
   const [lastError, setLastError] = useState<RichError | null>(null);
 
 
-  const previewFn = useServerFn(checklistPreview);
   const commitFn = useServerFn(checklistCommit);
   const listFn = useServerFn(checklistList);
   const deleteFn = useServerFn(checklistDelete);
@@ -122,12 +154,14 @@ export function Mk9ChecklistImportModule() {
     mutationFn: async () => {
       if (!file) throw new Error("Selecione a planilha do checklist");
       if (!industryId) throw new Error("Selecione a indústria");
-      const base64 = await fileToBase64(file);
-      return previewFn({
-        data: { filename: file.name, base64, industryId, operationMonth: month, operationYear: year },
+      return requestChecklistPreview({
+        file,
+        industryId,
+        operationMonth: month,
+        operationYear: year,
       });
     },
-    onSuccess: (res) => {
+    onSuccess: (res: ChecklistPreviewResponse) => {
       setPreview(res.preview);
       setImportId(res.importId);
       setLastError(null);

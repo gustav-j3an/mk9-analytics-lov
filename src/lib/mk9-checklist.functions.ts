@@ -47,7 +47,7 @@ export const checklistPreview = createServerFn({ method: "POST" })
       base64Length: data.base64.length,
       parser: "parseChecklistWorkbook",
     });
-    return runChecklistPreview(
+    const result = await runChecklistPreview(
       {
         buffer: b64ToArrayBuffer(data.base64),
         filename: data.filename,
@@ -59,6 +59,7 @@ export const checklistPreview = createServerFn({ method: "POST" })
       },
       diagnostics,
     );
+    return { importId: result.importId, preview: result.preview };
   });
 
 export const checklistCommit = createServerFn({ method: "POST" })
