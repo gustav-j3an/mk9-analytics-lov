@@ -198,17 +198,16 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
 
     let contratadas = 0;
     let executadas = 0;
-    let validas = 0;
     let extras = 0;
-    let pendencias = 0;
     for (const s of perStore.values()) {
       contratadas += s.contratadas;
       executadas += s.executadas;
-      const v = Math.min(s.contratadas, s.executadas);
-      validas += v;
       extras += Math.max(0, s.executadas - s.contratadas);
-      pendencias += Math.max(0, s.contratadas - v);
     }
-    const coverage = contratadas > 0 ? Math.round((validas / contratadas) * 100) : 0;
+    // Nova regra: realizadas é o total bruto do checklist (nunca reduzido).
+    // Pendentes e cobertura globais usam contratadas - realizadas.
+    const pendencias = Math.max(0, contratadas - executadas);
+    const validas = Math.min(contratadas, executadas);
+    const coverage = contratadas > 0 ? Math.min(100, Math.round((executadas / contratadas) * 100)) : 0;
     return { contratadas, executadas, validas, extras, pendencias, coverage };
   });
