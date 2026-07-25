@@ -537,6 +537,36 @@ export type Database = {
           },
         ]
       }
+      mk9_profiles: {
+        Row: {
+          active: boolean
+          created_at: string
+          email: string | null
+          id: string
+          name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mk9_promoters: {
         Row: {
           city: string | null
@@ -631,6 +661,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mk9_user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["mk9_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["mk9_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["mk9_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       mk9_visit_reconciliations: {
         Row: {
@@ -761,6 +812,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_mk9_role: {
+        Args: {
+          required_role: Database["public"]["Enums"]["mk9_role"]
+          user_uuid: string
+        }
+        Returns: boolean
+      }
       mk9_merge_stores: {
         Args: { canonical: string; other: string }
         Returns: undefined
@@ -795,6 +853,7 @@ export type Database = {
         | "DUPLICATE_ACTUAL"
         | "MANUALLY_MATCHED"
         | "IGNORED"
+      mk9_role: "ADMIN" | "SUPERVISOR" | "PROMOTOR" | "CLIENTE" | "AUDITOR"
       mk9_sync_mode: "full" | "add_only" | "registry_only" | "routes_only"
       mk9_visit_status: "planned" | "completed" | "cancelled" | "skipped"
       mk9_week_grouping: "CALENDAR_WEEK" | "CYCLE_WEEK"
@@ -955,6 +1014,7 @@ export const Constants = {
         "MANUALLY_MATCHED",
         "IGNORED",
       ],
+      mk9_role: ["ADMIN", "SUPERVISOR", "PROMOTOR", "CLIENTE", "AUDITOR"],
       mk9_sync_mode: ["full", "add_only", "registry_only", "routes_only"],
       mk9_visit_status: ["planned", "completed", "cancelled", "skipped"],
       mk9_week_grouping: ["CALENDAR_WEEK", "CYCLE_WEEK"],
