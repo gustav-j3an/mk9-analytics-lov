@@ -2,7 +2,7 @@
 // Detecta cabeçalho, colunas de DATAS COMPLETAS (dd/mm/yyyy, serial Excel, Date) e marcações (✅, ✓, x, sim, 1...).
 // Reconhece a coluna final REALIZADO para conciliar totais.
 import * as XLSX from "xlsx";
-import { isDayMarked, normalizeName, normalizeUF, parseNumber, normalizeText } from "@/lib/mk9/normalization";
+import { isDayMarked, normalizeStoreName, normalizeUF, parseNumber, normalizeText } from "@/lib/mk9/normalization";
 import type { ChecklistMark } from "./types";
 
 export interface ParsedChecklist {
@@ -201,7 +201,7 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
       const rawName = row[storeCol];
       if (rawName === null || rawName === undefined || String(rawName).trim() === "") continue;
       const storeName = String(rawName).trim();
-      const storeNormalized = normalizeName(storeName);
+      const storeNormalized = normalizeStoreName(storeName);
       if (!storeNormalized) continue;
       if (/^(total|totais|geral|subtotal)/i.test(storeName)) continue;
 
