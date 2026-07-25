@@ -153,7 +153,7 @@ export const checklistPreview = createServerFn({ method: "POST" })
       operationYear: data.operationYear,
     });
     await savePreviewSnapshot(importId, preview);
-    await updateImportStatus(importId, { status: "previewing", counters: preview.counters });
+    await updateImportStatus(importId, { status: "previewing", counters: { ...preview.counters } });
 
     return { importId, preview };
   });
