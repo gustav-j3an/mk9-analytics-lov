@@ -67,7 +67,10 @@ export const checklistPreview = createServerFn({ method: "POST" })
 export const checklistCommit = createServerFn({ method: "POST" })
   .inputValidator(async (data: unknown) => validate("checklistCommit", () => commitSchema.parse(data)))
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { withRichErrors, buildRichError } = await import("./mk9-checklist/errors.server");
+
     const {
       persistActualVisits,
       updateImportStatus,
