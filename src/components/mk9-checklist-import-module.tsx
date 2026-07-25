@@ -145,13 +145,26 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const [ackNewStores, setAckNewStores] = useState(false);
   const [lastError, setLastError] = useState<RichError | null>(null);
   const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
-
+  const [highlightAck, setHighlightAck] = useState(false);
+  const [phase, setPhase] = useState<
+    "idle" | "confirming" | "stores" | "visits" | "reconcile" | "done" | "failed"
+  >("idle");
+  const phaseTimersRef = useRef<number[]>([]);
+  const ackRef = useRef<HTMLLabelElement | null>(null);
 
   const commitFn = useServerFn(checklistCommit);
   const listFn = useServerFn(checklistList);
   const deleteFn = useServerFn(checklistDelete);
+  const cancelFn = useServerFn(checklistCancel);
   const industriesFn = useServerFn(mk9ListIndustries);
   const qc = useQueryClient();
+
+  const clearPhaseTimers = () => {
+    for (const t of phaseTimersRef.current) window.clearTimeout(t);
+    phaseTimersRef.current = [];
+  };
+  useEffect(() => () => clearPhaseTimers(), []);
+
 
   const industriesQ = useQuery({ queryKey: ["mk9-industries"], queryFn: () => industriesFn() });
   const historyQ = useQuery({ queryKey: ["mk9-checklist-imports"], queryFn: () => listFn() });
