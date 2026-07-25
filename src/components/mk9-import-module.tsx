@@ -112,7 +112,7 @@ function invalidateMk9(qc: ReturnType<typeof useQueryClient>) {
   }
 }
 
-export function Mk9ImportModule() {
+export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists?: () => void } = {}) {
   const now = new Date();
   const [file, setFile] = useState<File | null>(null);
   const [month, setMonth] = useState<number>(now.getMonth() + 1);
@@ -123,6 +123,7 @@ export function Mk9ImportModule() {
   const [filter, setFilter] = useState<string>("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
 
   const previewFn = useServerFn(mk9PreviewImport);
   const commitFn = useServerFn(mk9CommitImport);
