@@ -272,12 +272,30 @@ export function createSupabaseRepository(): Mk9Repository {
         dedup.set(k, r);
       }
       const list = Array.from(dedup.values());
+      const months = Array.from(new Set(list.map((r) => r.operationMonth)));
+      const years = Array.from(new Set(list.map((r) => r.operationYear)));
+      const { data: existingRows, error: exErr } = await supabaseAdmin
+        .from("mk9_planned_routes")
+        .select("id, promoter_id, store_id, industry_id, weekday, operation_month, operation_year")
+        .in("operation_month", months)
+        .in("operation_year", years);
+      if (exErr) throw exErr;
+      const routeIdByKey = new Map<string, string>();
+      for (const row of existingRows ?? []) {
+        routeIdByKey.set(
+          `${row.promoter_id}|${row.store_id}|${row.industry_id}|${row.weekday}|${row.operation_month}|${row.operation_year}`,
+          row.id as string,
+        );
+      }
       const { data, error } = await supabaseAdmin.from("mk9_planned_routes").upsert(
-        list.map((r) => withOptionalId({
-          id: r.id, promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
+        list.map((r) => {
+          const key = `${r.promoterId}|${r.storeId}|${r.industryId}|${r.weekday}|${r.operationMonth}|${r.operationYear}`;
+          return withOptionalId({
+          id: r.id ?? routeIdByKey.get(key), promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
           weekday: r.weekday, operation_month: r.operationMonth, operation_year: r.operationYear,
           source_sheet: r.sourceSheet, last_import_id: importId,
-        })),
+        });
+        }),
         { onConflict: "promoter_id,store_id,industry_id,weekday,operation_month,operation_year", defaultToNull: false },
       ).select();
       if (error) throw error;
