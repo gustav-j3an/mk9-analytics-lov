@@ -91,7 +91,7 @@ export function createSupabaseRepository(): Mk9Repository {
       if (!records.length) return [];
       const dedup = new Map<string, IndustryRecord>();
       for (const r of records) dedup.set(r.nameNormalized, { ...dedup.get(r.nameNormalized), ...r });
-      const payload = Array.from(dedup.values()).map((r) => ({
+      const payload = Array.from(dedup.values()).map((r) => withOptionalId({
         id: r.id, name: r.name, name_normalized: r.nameNormalized,
         monthly_contracted_frequency: r.monthlyContractedFrequency,
         monthly_estimated_frequency: r.monthlyEstimatedFrequency,
