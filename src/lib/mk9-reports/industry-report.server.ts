@@ -332,10 +332,22 @@ export async function buildIndustryReport(
   const storeIdsInReport = new Set(stores.map((s) => s.storeId));
   const recRows = (recs ?? []).filter((r: any) => !r.store_id || storeIdsInReport.has(r.store_id as string));
 
-  // Totais canônicos via camada de métricas
+  // Totais canônicos via camada de métricas (para 'validas' e 'extras' agregados)
   const totalsMetrics = aggregateVisitMetrics(
     stores.map((s) => ({ contratadas: s.metrics.contratadas, executadas: s.metrics.executadas })),
   );
+  // Nova regra: realizadas é SEMPRE o total bruto do checklist (nunca reduzido).
+  // Pendentes e cobertura globais usam contratadas - realizadas.
+  const contractedVisitsCount = totalsMetrics.contratadas;
+  const executedVisitsCount = totalsMetrics.executadas;
+  const pendingVisitsCount = Math.max(0, contractedVisitsCount - executedVisitsCount);
+  const contractCoveragePct =
+    contractedVisitsCount > 0
+      ? Math.min(100, Math.round((executedVisitsCount / contractedVisitsCount) * 100))
+      : 0;
+  totalsMetrics.pendencias = pendingVisitsCount;
+  totalsMetrics.coberturaPct = contractCoveragePct;
+
   const divergent = recRows.filter((r: any) => r.status === "DATE_DIVERGENCE").length;
   const unplanned = recRows.filter((r: any) => r.status === "UNPLANNED_VISIT").length;
 

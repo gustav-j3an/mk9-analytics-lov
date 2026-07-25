@@ -134,15 +134,14 @@ function drawKpis(ctx: PdfCtx) {
   const cards = [
     ["Lojas", String(t.totalStores), "brand"],
     ["Visitas contratadas", String(m.contratadas), "brand"],
-    ["Visitas executadas", String(m.executadas), "good"],
-    ["Visitas válidas", String(m.validas), "good"],
-    ["Pendências", String(m.pendencias), "bad"],
+    ["Visitas realizadas", String(m.executadas), "good"],
+    ["Visitas pendentes", String(m.pendencias), "bad"],
     ["Extras", String(m.extras), "warn"],
     ["Fora do roteiro", String(t.unplanned), "warn"],
-    ["Cob. contratual", pct(m.coberturaPct), m.coberturaPct >= 90 ? "good" : m.coberturaPct >= 70 ? "warn" : "bad"],
+    ["Cobertura", pct(m.coberturaPct), m.coberturaPct >= 90 ? "good" : m.coberturaPct >= 70 ? "warn" : "bad"],
     ["Cob. operacional", pct(t.operationalCoveragePct), t.operationalCoveragePct >= 90 ? "good" : t.operationalCoveragePct >= 70 ? "warn" : "bad"],
   ] as const;
-  const cols = 5;
+  const cols = 4;
   const gap = 8;
   const cardW = (CONTENT_W - gap * (cols - 1)) / cols;
   const cardH = 48;
@@ -165,13 +164,13 @@ function drawKpis(ctx: PdfCtx) {
 
 function drawCoverageExplanation(ctx: PdfCtx) {
   ensure(ctx, 58);
-  ctx.page.drawText("Critério de cobertura", { x: MARGIN, y: ctx.y - 12, size: 10, font: ctx.fontB, color: COLOR_TEXT });
+  ctx.page.drawText("Critério de cálculo", { x: MARGIN, y: ctx.y - 12, size: 10, font: ctx.fontB, color: COLOR_TEXT });
   ctx.y -= 18;
   const lines = [
-    "Contratadas = soma da coluna VISITA MENSAL do checklist por loja; roteiro é auditoria separada.",
-    "Cobertura contratual = soma por loja de min(realizadas válidas, visitas contratadas) / visitas contratadas.",
-    "Visitas extras em uma loja são destacadas separadamente e não compensam pendências de outra loja.",
-    "Cobertura operacional = visitas planejadas conciliadas / visitas planejadas no roteiro.",
+    "Contratadas = soma da coluna VISITA MENSAL do checklist por loja.",
+    "Realizadas = TODAS as visitas confirmadas no checklist (nunca reduzido, mesmo acima do contrato).",
+    "Pendentes = max(0, contratadas - realizadas) por loja. Extras = max(0, realizadas - contratadas) por loja.",
+    "Cobertura = realizadas / contratadas, limitada a 100 %. Roteiro é auditoria separada.",
   ];
   for (const line of lines) {
     ctx.page.drawText(sanitizePdfText(line), { x: MARGIN, y: ctx.y - 10, size: 8.5, font: ctx.font, color: COLOR_MUTED });
@@ -200,19 +199,18 @@ function drawUfTable(ctx: PdfCtx) {
   const cols: Column[] = [
     { label: "UF", w: 42 },
     { label: "Lojas", w: 52 },
-    { label: "Contr.", w: 58 },
-    { label: "Real.", w: 54 },
-    { label: "Válidas", w: 58 },
-    { label: "Pend.", w: 50 },
-    { label: "Extras", w: 50 },
-    { label: "Cobertura", w: CONTENT_W - 364 },
+    { label: "Contr.", w: 62 },
+    { label: "Real.", w: 60 },
+    { label: "Pend.", w: 56 },
+    { label: "Extras", w: 56 },
+    { label: "Cobertura", w: CONTENT_W - 328 },
   ];
   drawTableHeader(ctx, cols);
   ctx.report.ufs.forEach((u, i) => {
     ensure(ctx, 18);
     const y = ctx.y - 15;
     if (i % 2 === 1) ctx.page.drawRectangle({ x: MARGIN, y: y - 3, width: CONTENT_W, height: 18, color: COLOR_ROW_ALT });
-    const vals = [u.uf, String(u.stores), String(u.expected), String(u.actual), String(u.validForCoverage), String(u.pending), String(u.extra), pct(u.coveragePct)];
+    const vals = [u.uf, String(u.stores), String(u.expected), String(u.actual), String(u.pending), String(u.extra), pct(u.coveragePct)];
     let x = MARGIN + 5;
     vals.forEach((v, idx) => {
       ctx.page.drawText(truncate(ctx.font, v, 8.5, cols[idx].w - 8), { x, y, size: 8.5, font: ctx.font, color: COLOR_TEXT });
@@ -235,17 +233,16 @@ function drawStoreTable(ctx: PdfCtx) {
   ctx.page.drawText("Resultado por loja", { x: MARGIN, y: ctx.y - 12, size: 11, font: ctx.fontB, color: COLOR_TEXT });
   ctx.y -= 20;
   const cols: Column[] = [
-    { label: "Loja", w: 122 },
-    { label: "UF", w: 24 },
-    { label: "Contr.", w: 36 },
-    { label: "Real.", w: 34 },
-    { label: "Vál.", w: 30 },
-    { label: "Pend.", w: 34 },
-    { label: "Extra", w: 34 },
-    { label: "Cob.", w: 34 },
-    { label: "Exec.", w: 54 },
-    { label: "Roteiro", w: 58 },
-    { label: "Datas realizadas", w: CONTENT_W - 460 },
+    { label: "Loja", w: 132 },
+    { label: "UF", w: 26 },
+    { label: "Contr.", w: 38 },
+    { label: "Real.", w: 36 },
+    { label: "Pend.", w: 36 },
+    { label: "Extra", w: 36 },
+    { label: "Cob.", w: 36 },
+    { label: "Execução", w: 60 },
+    { label: "Roteiro", w: 62 },
+    { label: "Datas realizadas", w: CONTENT_W - 462 },
   ];
   const drawHeader = () => drawTableHeader(ctx, cols);
   drawHeader();
@@ -262,18 +259,17 @@ function drawStoreTable(ctx: PdfCtx) {
       s.uf ?? "—",
       String(s.expected),
       String(s.actual),
-      String(s.validForCoverage),
       String(s.pending),
       String(s.extra),
       pct(s.coveragePct),
-      truncate(ctx.font, EXECUTION_STATUS_LABEL[s.executionStatus], 8, cols[8].w - 8),
-      truncate(ctx.font, ROUTE_STATUS_LABEL[s.routeStatus], 8, cols[9].w - 8),
-      truncate(ctx.font, dateList(s), 8, cols[10].w - 8),
+      truncate(ctx.font, EXECUTION_STATUS_LABEL[s.executionStatus], 8, cols[7].w - 8),
+      truncate(ctx.font, ROUTE_STATUS_LABEL[s.routeStatus], 8, cols[8].w - 8),
+      truncate(ctx.font, dateList(s), 8, cols[9].w - 8),
     ];
     let x = MARGIN + 5;
     vals.forEach((v, idx) => {
-      const color = idx === 8 ? executionColor(s.executionStatus) : idx === 9 ? routeColor(s.routeStatus) : COLOR_TEXT;
-      ctx.page.drawText(sanitizePdfText(v), { x, y, size: 8, font: idx === 8 || idx === 9 ? ctx.fontB : ctx.font, color });
+      const color = idx === 7 ? executionColor(s.executionStatus) : idx === 8 ? routeColor(s.routeStatus) : COLOR_TEXT;
+      ctx.page.drawText(sanitizePdfText(v), { x, y, size: 8, font: idx === 7 || idx === 8 ? ctx.fontB : ctx.font, color });
       x += cols[idx].w;
     });
     ctx.y -= 18;

@@ -232,21 +232,21 @@ export function Mk9IndustryReportModule() {
           <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
             <Kpi label="Lojas" value={report.totals.totalStores} />
             <Kpi label="Visitas contratadas" value={report.totals.metrics.contratadas} />
-            <Kpi label="Visitas executadas" value={report.totals.metrics.executadas} tone="good" />
-            <Kpi label="Visitas válidas" value={report.totals.metrics.validas} tone="good" />
-            <Kpi label="Pendências" value={report.totals.metrics.pendencias} tone="bad" />
+            <Kpi label="Visitas realizadas" value={report.totals.metrics.executadas} tone="good" />
+            <Kpi label="Visitas pendentes" value={report.totals.metrics.pendencias} tone="bad" />
             <Kpi label="Extras" value={report.totals.metrics.extras} tone="warn" />
-            <Kpi label="Cobertura contratual" value={`${report.totals.metrics.coberturaPct}%`} tone={report.totals.metrics.coberturaPct >= 90 ? "good" : report.totals.metrics.coberturaPct >= 70 ? "warn" : "bad"} />
+            <Kpi label="Cobertura" value={`${report.totals.metrics.coberturaPct}%`} tone={report.totals.metrics.coberturaPct >= 90 ? "good" : report.totals.metrics.coberturaPct >= 70 ? "warn" : "bad"} />
             <Kpi label="Cobertura operacional" value={`${report.totals.operationalCoveragePct}%`} tone={report.totals.operationalCoveragePct >= 90 ? "good" : report.totals.operationalCoveragePct >= 70 ? "warn" : "bad"} />
             <Kpi label="Fora do roteiro" value={report.totals.unplanned} tone="warn" />
           </div>
 
           <div className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Critério de cobertura</p>
+            <p className="font-medium text-foreground">Critério de cálculo</p>
             <p className="mt-1">
-              <strong>Contratadas</strong> = soma da coluna VISITA MENSAL por loja. <strong>Executadas</strong> = visitas do checklist. <strong>Válidas</strong> = mín(contratadas, executadas) por loja. <strong>Extras</strong> = execução acima do contrato (não compensa pendências de outras lojas). <strong>Pendências</strong> = contratadas − válidas. <strong>Roteiro</strong> é auditoria separada.
+              <strong>Contratadas</strong> = soma da coluna VISITA MENSAL por loja. <strong>Realizadas</strong> = TODAS as visitas confirmadas no checklist (nunca reduzido, mesmo acima do contrato). <strong>Pendentes</strong> = max(0, contratadas − realizadas) por loja. <strong>Extras</strong> = max(0, realizadas − contratadas) por loja, indicador separado. <strong>Cobertura</strong> = realizadas / contratadas, limitada a 100 %. <strong>Roteiro</strong> é auditoria separada.
             </p>
           </div>
+
 
           {report.ufs.length > 0 && (
             <Card>
@@ -254,7 +254,7 @@ export function Mk9IndustryReportModule() {
               <CardContent>
                 <table className="w-full text-sm">
                   <thead className="border-b text-left text-xs uppercase text-muted-foreground">
-                    <tr><th className="py-2">UF</th><th>Lojas</th><th>Contratadas</th><th>Realizadas</th><th>Válidas</th><th>Pendentes</th><th>Extras</th><th>Cobertura</th></tr>
+                    <tr><th className="py-2">UF</th><th>Lojas</th><th>Contratadas</th><th>Realizadas</th><th>Pendentes</th><th>Extras</th><th>Cobertura</th></tr>
                   </thead>
                   <tbody>
                     {report.ufs.map((u) => (
@@ -263,7 +263,6 @@ export function Mk9IndustryReportModule() {
                         <td>{u.stores}</td>
                         <td>{u.expected}</td>
                         <td>{u.actual}</td>
-                        <td>{u.validForCoverage}</td>
                         <td>{u.pending}</td>
                         <td>{u.extra}</td>
                         <td>{u.coveragePct}%</td>
@@ -285,12 +284,11 @@ export function Mk9IndustryReportModule() {
                     <th>UF</th>
                     <th>Freq.</th>
                     <th>Fonte</th>
-                    <th>Contr.</th>
-                    <th>Real.</th>
-                    <th>Vál.</th>
-                    <th>Pend.</th>
-                    <th>Extra</th>
-                    <th>Cob.</th>
+                    <th>Contratadas</th>
+                    <th>Realizadas</th>
+                    <th>Pendentes</th>
+                    <th>Extras</th>
+                    <th>Cobertura</th>
                     <th>Execução</th>
                     <th>Roteiro</th>
                     <th>Datas realizadas</th>
@@ -312,7 +310,6 @@ export function Mk9IndustryReportModule() {
                         <td className="text-xs text-muted-foreground">{SOURCE_LABEL[s.contractedSource] ?? s.contractedSource}</td>
                         <td>{s.expected}</td>
                         <td>{s.actual}</td>
-                        <td>{s.validForCoverage}</td>
                         <td>{s.pending}</td>
                         <td>{s.extra}</td>
                         <td>{s.coveragePct}%</td>
@@ -323,7 +320,7 @@ export function Mk9IndustryReportModule() {
                     );
                   })}
                   {report.stores.length === 0 && (
-                    <tr><td colSpan={13} className="py-6 text-center text-muted-foreground">Nenhuma loja no período com esses filtros.</td></tr>
+                    <tr><td colSpan={12} className="py-6 text-center text-muted-foreground">Nenhuma loja no período com esses filtros.</td></tr>
                   )}
                 </tbody>
               </table>

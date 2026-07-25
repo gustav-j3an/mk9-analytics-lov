@@ -158,21 +158,21 @@ export function Mk9AnalyticsApp() {
       if (v.status === "completed") cur.executadas += 1;
       perStoreMap.set(key, cur);
     }
-    let contratadas = 0, executadas = 0, validas = 0, extras = 0, pendencias = 0;
+    let contratadas = 0, executadas = 0, extras = 0;
     for (const s of perStoreMap.values()) {
       contratadas += s.contratadas;
       executadas += s.executadas;
-      const v = Math.min(s.contratadas, s.executadas);
-      validas += v;
       extras += Math.max(0, s.executadas - s.contratadas);
-      pendencias += Math.max(0, s.contratadas - v);
     }
+    // Realizadas = total bruto. Pendentes/cobertura globais = contratadas - realizadas.
+    const pendencias = Math.max(0, contratadas - executadas);
+    const validas = Math.min(contratadas, executadas);
     const planned = contratadas;
     const completed = executadas;
     const cancelled = visits.filter((v) => v.status === "cancelled").length;
     const today = new Date().toISOString().slice(0, 10);
     const delayed = visits.filter((v) => v.status === "planned" && v.scheduledDate < today).length;
-    const coverage = contratadas > 0 ? Math.round((validas / contratadas) * 100) : 0;
+    const coverage = contratadas > 0 ? Math.min(100, Math.round((executadas / contratadas) * 100)) : 0;
     return { planned, completed, cancelled, delayed, coverage, contratadas, executadas, validas, extras, pendencias };
   }, [contractMetrics, visits]);
 
@@ -394,8 +394,8 @@ function DashboardModule({
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard tone="blue" icon={Route} label="Visitas contratadas" value={metrics.contratadas} detail={`${metrics.executadas} executadas`} />
-        <KpiCard tone="green" icon={CheckCircle2} label="Cobertura" value={`${metrics.coverage}%`} detail={`${metrics.validas} válidas · ${metrics.extras} extras`} />
-        <KpiCard tone="amber" icon={AlertTriangle} label="Pendências" value={metrics.pendencias} detail={`${metrics.delayed} atrasadas`} />
+        <KpiCard tone="green" icon={CheckCircle2} label="Cobertura" value={`${metrics.coverage}%`} detail={`${metrics.executadas} realizadas · ${metrics.extras} extras`} />
+        <KpiCard tone="amber" icon={AlertTriangle} label="Pendentes" value={metrics.pendencias} detail={`${metrics.delayed} atrasadas`} />
         <KpiCard tone="violet" icon={FileSpreadsheet} label="Rotas ativas" value={routes.length} detail={`${promoters.length} promotores`} />
       </div>
 
