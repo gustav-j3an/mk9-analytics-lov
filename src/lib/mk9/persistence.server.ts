@@ -196,7 +196,7 @@ export function createSupabaseRepository(): Mk9Repository {
       }
       const list = Array.from(dedup.values());
       const { data, error } = await supabaseAdmin.from("mk9_planned_routes").upsert(
-        list.map((r) => ({
+        list.map((r) => withOptionalId({
           id: r.id, promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
           weekday: r.weekday, operation_month: r.operationMonth, operation_year: r.operationYear,
           source_sheet: r.sourceSheet, last_import_id: importId,
