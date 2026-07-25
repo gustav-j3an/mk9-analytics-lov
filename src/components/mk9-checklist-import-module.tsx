@@ -522,9 +522,64 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                 </ul>
               </div>
             )}
+
+            {/* Checkbox de ciência + botão Confirmar (regra 1, 2 e 3) */}
+            <div className="space-y-3 border-t pt-4">
+              {newStoresCount > 0 && (
+                <label
+                  ref={ackRef}
+                  className={`flex items-start gap-2 rounded-md border p-3 text-xs cursor-pointer transition-all ${
+                    highlightAck
+                      ? "border-amber-500 bg-amber-500/15 ring-2 ring-amber-500/60 animate-pulse"
+                      : "border-amber-500/40 bg-amber-500/5"
+                  } text-amber-800 dark:text-amber-300`}
+                >
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={ackNewStores}
+                    onChange={(e) => setAckNewStores(e.target.checked)}
+                  />
+                  <span>
+                    Estou ciente de que <strong>{newStoresCount}</strong> nova(s) loja(s) serão cadastradas
+                    automaticamente na Base MK9. Os dados ausentes serão marcados como “Não informado” e
+                    poderão ser completados depois.
+                  </span>
+                </label>
+              )}
+              <div className="flex items-center gap-3">
+                <div
+                  onClick={() => {
+                    if (!canConfirm && newStoresCount > 0 && !ackNewStores) flashAck();
+                  }}
+                >
+                  <Button
+                    size="lg"
+                    onClick={() => setConfirmOpen(true)}
+                    disabled={commitMut.isPending || !canConfirm}
+                  >
+                    {commitMut.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4" />
+                    )}
+                    Confirmar importação
+                  </Button>
+                </div>
+                {!canConfirm && newStoresCount > 0 && !ackNewStores && (
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    Marque a confirmação acima para habilitar a importação.
+                  </p>
+                )}
+                {validItems === 0 && (
+                  <p className="text-xs text-destructive">Nenhuma visita válida para importar.</p>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
+
 
       <Card className="glass-panel">
         <CardHeader>
