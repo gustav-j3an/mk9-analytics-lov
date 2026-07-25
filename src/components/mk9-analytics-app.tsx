@@ -351,9 +351,41 @@ export function Mk9AnalyticsApp() {
                 >
                   <Bell className="h-[18px] w-[18px]" />
                 </button>
-                <button className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-sm font-semibold text-primary-foreground shadow-sm">
-                  MK
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setUserMenu((v) => !v)}
+                    className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-sm font-semibold text-primary-foreground shadow-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    aria-label="Conta"
+                  >
+                    {(profile?.name ?? user?.email ?? "MK").slice(0, 2).toUpperCase()}
+                  </button>
+                  {userMenu && (
+                    <div className="animate-fade-up absolute right-0 top-12 z-30 w-64 overflow-hidden rounded-xl border border-border/80 bg-popover p-2 shadow-[var(--shadow-elevated)]">
+                      <div className="px-3 py-2">
+                        <p className="truncate text-sm font-medium">{profile?.name ?? user?.email ?? "Usuário"}</p>
+                        <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {roles.length === 0 ? (
+                            <Badge variant="outline" className="text-[10px]">sem papel</Badge>
+                          ) : (
+                            roles.map((r) => (
+                              <Badge key={r} variant="secondary" className="gap-1 text-[10px]">
+                                <Shield className="h-3 w-3" /> {r}
+                              </Badge>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                      <div className="my-1 border-t border-border/60" />
+                      <button
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                      >
+                        <LogOut className="h-4 w-4" /> Sair
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </header>
