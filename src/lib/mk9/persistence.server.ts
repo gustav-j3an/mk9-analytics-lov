@@ -83,7 +83,8 @@ export function createSupabaseRepository(): Mk9Repository {
       const last = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
       const { data, error } = await supabaseAdmin
         .from("mk9_planned_visits").select("*")
-        .gte("scheduled_date", first).lte("scheduled_date", last);
+        .gte("scheduled_date", first).lte("scheduled_date", last)
+        .is("archived_at", null);
       if (error) throw error;
       return (data ?? []).map(mapVisit);
     },
