@@ -163,7 +163,12 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
       invalidDates,
     },
     items,
-    warnings: parsed.warnings,
+    warnings: [
+      ...(parsed.firstDate && parsed.lastDate
+        ? [`Período detectado: ${parsed.firstDate.split("-").reverse().join("/")} a ${parsed.lastDate.split("-").reverse().join("/")} (${parsed.dateColumnCount} colunas de data). Soma REALIZADO: ${parsed.realizadoSum}.`]
+        : []),
+      ...parsed.warnings,
+    ],
   };
 
   diagnostics.info("preview-built", "Contadores da prévia preenchidos", {
