@@ -179,13 +179,18 @@ export const reconcileLinkStore = createServerFn({ method: "POST" })
     z.object({ reconciliationId: z.string().uuid(), storeId: z.string().uuid(), notes: z.string().nullish() }).parse(d),
   )
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN", "SUPERVISOR"]);
     const { linkStoreToReconciliation } = await import("./mk9-reconciliation/engine.server");
-    return linkStoreToReconciliation({
+    const result = await linkStoreToReconciliation({
       reconciliationId: data.reconciliationId,
       storeId: data.storeId,
       notes: data.notes ?? null,
     });
+    await logAudit(ctx, "mk9.reconcile.linkStore", "mk9_visit_reconciliations", data.reconciliationId, { storeId: data.storeId });
+    return result;
   });
+
 
 export const reconcileListImports = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
