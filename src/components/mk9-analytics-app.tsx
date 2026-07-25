@@ -135,7 +135,7 @@ export function Mk9AnalyticsApp() {
     // Aqui, no dashboard global, planejadas = contratadas e completed = executadas.
     const perStoreMap = new Map<string, { contratadas: number; executadas: number }>();
     for (const v of visits) {
-      const key = v.storeId ?? v.id;
+      const key = (v as any).storeId ?? (v as any).storeName ?? v.id;
       const cur = perStoreMap.get(key) ?? { contratadas: 0, executadas: 0 };
       cur.contratadas += 1;
       if (v.status === "completed") cur.executadas += 1;
