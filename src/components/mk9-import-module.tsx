@@ -34,6 +34,7 @@ import {
   mk9ListImports,
   mk9DeleteImport,
 } from "@/lib/mk9-import.functions";
+import { detectMk9FileKind } from "@/lib/mk9/detect-file-kind";
 import type { ImportPreview, SyncMode } from "@/lib/mk9/types";
 
 const STATUS_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
@@ -112,7 +113,7 @@ function invalidateMk9(qc: ReturnType<typeof useQueryClient>) {
   }
 }
 
-export function Mk9ImportModule() {
+export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists?: () => void } = {}) {
   const now = new Date();
   const [file, setFile] = useState<File | null>(null);
   const [month, setMonth] = useState<number>(now.getMonth() + 1);
@@ -123,6 +124,7 @@ export function Mk9ImportModule() {
   const [filter, setFilter] = useState<string>("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
 
   const previewFn = useServerFn(mk9PreviewImport);
   const commitFn = useServerFn(mk9CommitImport);
@@ -190,8 +192,29 @@ export function Mk9ImportModule() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground">Arquivo .xlsx</label>
-              <Input type="file" accept=".xlsx" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              <label className="text-sm text-muted-foreground">Arquivo .xlsx (Base MK9 — roteiro/consulta)</label>
+              <Input
+                type="file"
+                accept=".xlsx"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  setPreview(null);
+                  setImportId(null);
+                  setRejected(null);
+                  if (!f) { setFile(null); return; }
+                  const det = await detectMk9FileKind(f);
+                  if (det.kind === "checklist") {
+                    setFile(null);
+                    setRejected({
+                      reason: det.reason,
+                      sheets: det.sheets,
+                    });
+                    e.target.value = "";
+                    return;
+                  }
+                  setFile(f);
+                }}
+              />
             </div>
             <div>
               <label className="text-sm text-muted-foreground">Mês</label>
@@ -230,6 +253,32 @@ export function Mk9ImportModule() {
           </div>
         </CardContent>
       </Card>
+
+      {rejected && (
+        <Card className="glass-panel border-destructive/40">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div className="space-y-1 flex-1 min-w-0">
+                <p className="font-medium text-destructive">
+                  Este arquivo parece ser um checklist mensal. Importe-o em Importações › Checklists.
+                </p>
+                <p className="text-xs text-muted-foreground">{rejected.reason}</p>
+                {rejected.sheets.length > 0 && (
+                  <p className="text-xs text-muted-foreground">Abas encontradas: {rejected.sheets.join(", ")}</p>
+                )}
+              </div>
+            </div>
+            {onSwitchToChecklists && (
+              <div>
+                <Button size="sm" onClick={() => { setRejected(null); onSwitchToChecklists(); }}>
+                  Ir para Checklists
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {preview && c && (
         <Card className="glass-panel">

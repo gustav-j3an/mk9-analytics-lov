@@ -33,6 +33,7 @@ import {
   checklistDelete,
 } from "@/lib/mk9-checklist.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
+import { detectMk9FileKind } from "@/lib/mk9/detect-file-kind";
 import type { ChecklistPreview } from "@/lib/mk9-checklist/types";
 
 const MONTHS = [
@@ -128,7 +129,7 @@ async function requestChecklistPreview(input: {
   return payload as ChecklistPreviewResponse;
 }
 
-export function Mk9ChecklistImportModule() {
+export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: () => void } = {}) {
   const now = new Date();
   const [file, setFile] = useState<File | null>(null);
   const [month, setMonth] = useState<number>(now.getMonth() + 1);
@@ -139,6 +140,7 @@ export function Mk9ChecklistImportModule() {
   const [filter, setFilter] = useState<"all" | "found" | "store_not_found" | "invalid_date">("all");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [lastError, setLastError] = useState<RichError | null>(null);
+  const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
 
 
   const commitFn = useServerFn(checklistCommit);
@@ -237,14 +239,36 @@ export function Mk9ChecklistImportModule() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5" />
-            Importar checklist da indústria
+            Importar checklist mensal
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground">Arquivo .xlsx</label>
-              <Input type="file" accept=".xlsx,.xls" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              <label className="text-sm text-muted-foreground">Arquivo .xlsx (checklist mensal da indústria)</label>
+              <Input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  setPreview(null);
+                  setImportId(null);
+                  setLastError(null);
+                  setRejected(null);
+                  if (!f) { setFile(null); return; }
+                  const det = await detectMk9FileKind(f);
+                  if (det.kind === "base") {
+                    setFile(null);
+                    setRejected({
+                      reason: det.reason,
+                      sheets: det.sheets,
+                    });
+                    e.target.value = "";
+                    return;
+                  }
+                  setFile(f);
+                }}
+              />
             </div>
             <div>
               <label className="text-sm text-muted-foreground">Mês</label>
@@ -287,6 +311,32 @@ export function Mk9ChecklistImportModule() {
           </div>
         </CardContent>
       </Card>
+
+      {rejected && (
+        <Card className="glass-panel border-destructive/40">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div className="space-y-1 flex-1 min-w-0">
+                <p className="font-medium text-destructive">
+                  Este arquivo parece ser a Base MK9 (roteiro/consulta). Importe-o em Importações › Base MK9.
+                </p>
+                <p className="text-xs text-muted-foreground">{rejected.reason}</p>
+                {rejected.sheets.length > 0 && (
+                  <p className="text-xs text-muted-foreground">Abas encontradas: {rejected.sheets.join(", ")}</p>
+                )}
+              </div>
+            </div>
+            {onSwitchToBase && (
+              <div>
+                <Button size="sm" onClick={() => { setRejected(null); onSwitchToBase(); }}>
+                  Ir para Base MK9
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {lastError && <ErrorPanel err={lastError} onDismiss={() => setLastError(null)} />}
 
