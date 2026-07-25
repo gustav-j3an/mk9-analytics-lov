@@ -123,6 +123,7 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => monthYearSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { resolveWindow } = await import("@/lib/mk9-reports/period.server");
 
     const [
       { data: freqs, error: freqError },
