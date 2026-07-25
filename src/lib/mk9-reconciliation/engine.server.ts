@@ -555,3 +555,237 @@ export async function listReconciliations(scope: ReconcileScope, limit = 500) {
   if (error) throw new Error(error.message);
   return data ?? [];
 }
+
+// ============ LISTAGEM PAGINADA + FILTROS ============
+
+export interface PagedFilters extends ReconcileScope {
+  statuses?: ReconciliationStatus[] | null;
+  promoterId?: string | null;
+  storeId?: string | null;
+  uf?: string | null;
+  search?: string | null;
+  page?: number;
+  pageSize?: number;
+}
+
+export async function listReconciliationsPaged(f: PagedFilters) {
+  const page = Math.max(1, f.page ?? 1);
+  const pageSize = Math.min(200, Math.max(1, f.pageSize ?? 50));
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let q = supabaseAdmin
+    .from("mk9_visit_reconciliations")
+    .select(
+      "id, status, match_score, match_type, planned_date, actual_date, date_diff_days, reviewed_manually, reviewed_by, reviewed_at, raw_store_name, raw_store_uf, notes, industry:mk9_industries(id,name), store:mk9_stores(id,name,uf), promoter:mk9_promoters(id,name), planned_visit_id, actual_visit_id, source_import_id, candidates",
+      { count: "exact" },
+    )
+    .eq("operation_year", f.operationYear)
+    .eq("operation_month", f.operationMonth);
+  if (f.industryId) q = q.eq("industry_id", f.industryId);
+  if (f.sourceImportId) q = q.eq("source_import_id", f.sourceImportId);
+  if (f.promoterId) q = q.eq("promoter_id", f.promoterId);
+  if (f.storeId) q = q.eq("store_id", f.storeId);
+  if (f.statuses && f.statuses.length) q = q.in("status", f.statuses);
+
+  q = q.order("status", { ascending: true }).order("planned_date", { ascending: true }).range(from, to);
+  const { data, count, error } = await q;
+  if (error) throw new Error(error.message);
+
+  let rows = (data ?? []) as any[];
+  if (f.uf) {
+    const uf = f.uf.toUpperCase();
+    rows = rows.filter((r) => (r.store?.uf ?? r.raw_store_uf) === uf);
+  }
+  if (f.search && f.search.trim()) {
+    const term = f.search.trim().toLowerCase();
+    rows = rows.filter((r) => {
+      const bag = [r.industry?.name, r.store?.name, r.raw_store_name, r.promoter?.name, r.status]
+        .filter(Boolean).join(" ").toLowerCase();
+      return bag.includes(term);
+    });
+  }
+
+  return { rows, total: count ?? 0, page, pageSize };
+}
+
+// ============ DETALHE EXPANDIDO ============
+export async function getReconciliationDetail(id: string) {
+  const { data: r, error } = await supabaseAdmin
+    .from("mk9_visit_reconciliations")
+    .select("*, industry:mk9_industries(id,name), store:mk9_stores(id,name,chain,uf), promoter:mk9_promoters(id,name)")
+    .eq("id", id).single();
+  if (error) throw new Error(error.message);
+
+  let planned: any = null;
+  if (r.planned_visit_id) {
+    const { data } = await supabaseAdmin
+      .from("mk9_planned_visits")
+      .select("id, scheduled_date, status, source_sheet, notes, promoter:mk9_promoters(id,name), store:mk9_stores(id,name,chain,uf), industry:mk9_industries(id,name), route:mk9_planned_routes(id,weekday,source_sheet)")
+      .eq("id", r.planned_visit_id).maybeSingle();
+    planned = data;
+  }
+  let actual: any = null;
+  let importInfo: any = null;
+  if (r.actual_visit_id) {
+    const { data } = await supabaseAdmin
+      .from("mk9_actual_visits")
+      .select("id, scheduled_date, status, notes, source_import_id, store:mk9_stores(id,name,chain,uf), industry:mk9_industries(id,name)")
+      .eq("id", r.actual_visit_id).maybeSingle();
+    actual = data;
+    if (data?.source_import_id) {
+      const { data: imp } = await supabaseAdmin
+        .from("mk9_checklist_imports")
+        .select("id, filename, operation_month, operation_year, started_at")
+        .eq("id", data.source_import_id).maybeSingle();
+      importInfo = imp;
+    }
+  } else if (r.source_import_id) {
+    const { data: imp } = await supabaseAdmin
+      .from("mk9_checklist_imports")
+      .select("id, filename, operation_month, operation_year, started_at")
+      .eq("id", r.source_import_id).maybeSingle();
+    importInfo = imp;
+  }
+  return { reconciliation: r, planned, actual, importInfo };
+}
+
+// ============ BUSCAR PLANEJADAS CANDIDATAS ============
+export async function findPlannedCandidates(input: { actualVisitId: string; windowDays?: number }) {
+  const { data: a, error } = await supabaseAdmin
+    .from("mk9_actual_visits")
+    .select("id, industry_id, store_id, scheduled_date")
+    .eq("id", input.actualVisitId).single();
+  if (error) throw new Error(error.message);
+
+  const window = input.windowDays ?? 7;
+  const d0 = new Date(a.scheduled_date + "T00:00:00Z");
+  const from = new Date(d0.getTime() - window * 86400000).toISOString().slice(0, 10);
+  const to = new Date(d0.getTime() + window * 86400000).toISOString().slice(0, 10);
+
+  const { data: rows, error: e2 } = await supabaseAdmin
+    .from("mk9_planned_visits")
+    .select("id, scheduled_date, industry_id, store_id, promoter:mk9_promoters(id,name), store:mk9_stores(id,name,uf), industry:mk9_industries(id,name)")
+    .eq("industry_id", a.industry_id)
+    .gte("scheduled_date", from).lte("scheduled_date", to)
+    .order("scheduled_date", { ascending: true }).limit(50);
+  if (e2) throw new Error(e2.message);
+
+  const enriched = (rows ?? []).map((p: any) => ({
+    ...p,
+    diffDays: diffDays(p.scheduled_date, a.scheduled_date),
+    sameStore: p.store_id === a.store_id,
+  }));
+  enriched.sort((x, y) => {
+    if (x.sameStore !== y.sameStore) return x.sameStore ? -1 : 1;
+    return Math.abs(x.diffDays) - Math.abs(y.diffDays);
+  });
+  return { actual: a, candidates: enriched };
+}
+
+// ============ ACEITAR DIVERGÊNCIA ============
+export async function acceptDivergence(input: { reconciliationId: string; reviewedBy?: string | null; notes?: string | null }) {
+  const { error } = await supabaseAdmin
+    .from("mk9_visit_reconciliations")
+    .update({
+      status: "MANUALLY_MATCHED",
+      match_type: "MANUAL",
+      match_score: 100,
+      reviewed_manually: true,
+      reviewed_by: input.reviewedBy ?? null,
+      reviewed_at: new Date().toISOString(),
+      notes: input.notes ?? null,
+    })
+    .eq("id", input.reconciliationId);
+  if (error) throw new Error(error.message);
+  return { ok: true };
+}
+
+// ============ BUSCA DE LOJAS ============
+export async function searchStores(input: { query: string; uf?: string | null; limit?: number }) {
+  let q = supabaseAdmin
+    .from("mk9_stores").select("id, name, chain, uf")
+    .order("name", { ascending: true }).limit(Math.min(50, input.limit ?? 20));
+  if (input.query.trim()) q = q.ilike("name", `%${input.query.trim()}%`);
+  if (input.uf) q = q.eq("uf", input.uf.toUpperCase());
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+// ============ VINCULAR LOJA A STORE_NOT_FOUND ============
+export async function linkStoreToReconciliation(input: {
+  reconciliationId: string; storeId: string; reviewedBy?: string | null; notes?: string | null;
+}) {
+  const { data: r, error } = await supabaseAdmin
+    .from("mk9_visit_reconciliations")
+    .select("id, industry_id, actual_date, operation_month, operation_year, source_import_id")
+    .eq("id", input.reconciliationId).single();
+  if (error) throw new Error(error.message);
+  if (!r.actual_date) throw new Error("Reconciliação sem data realizada");
+
+  const { data: av, error: eAv } = await supabaseAdmin
+    .from("mk9_actual_visits")
+    .upsert(
+      {
+        industry_id: r.industry_id,
+        store_id: input.storeId,
+        scheduled_date: r.actual_date,
+        origin: "CHECKLIST",
+        status: "completed",
+        source_import_id: r.source_import_id,
+      },
+      { onConflict: "industry_id,store_id,scheduled_date,origin", ignoreDuplicates: false },
+    )
+    .select("id").single();
+  if (eAv) throw new Error(eAv.message);
+
+  const d0 = new Date(r.actual_date + "T00:00:00Z");
+  const from = new Date(d0.getTime() - NEAR_DATE_WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
+  const to = new Date(d0.getTime() + NEAR_DATE_WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
+  const { data: candidates } = await supabaseAdmin
+    .from("mk9_planned_visits")
+    .select("id, scheduled_date, promoter_id")
+    .eq("industry_id", r.industry_id).eq("store_id", input.storeId)
+    .gte("scheduled_date", from).lte("scheduled_date", to);
+
+  await supabaseAdmin.from("mk9_visit_reconciliations").delete().eq("id", input.reconciliationId);
+
+  if (candidates && candidates.length > 0) {
+    const best = [...candidates].sort(
+      (a, b) => Math.abs(diffDays(a.scheduled_date, r.actual_date!)) - Math.abs(diffDays(b.scheduled_date, r.actual_date!)),
+    )[0];
+    await manualMatch({
+      actualVisitId: av.id, plannedVisitId: best.id,
+      reviewedBy: input.reviewedBy ?? null, notes: input.notes ?? "Loja vinculada manualmente",
+    });
+  } else {
+    await supabaseAdmin.from("mk9_visit_reconciliations").insert({
+      planned_visit_id: null, actual_visit_id: av.id,
+      industry_id: r.industry_id, store_id: input.storeId, promoter_id: null,
+      operation_month: r.operation_month, operation_year: r.operation_year,
+      planned_date: null, actual_date: r.actual_date, date_diff_days: null,
+      status: "UNPLANNED_VISIT", match_score: 0, match_type: "NONE",
+      reviewed_manually: true, reviewed_by: input.reviewedBy ?? null,
+      reviewed_at: new Date().toISOString(), notes: input.notes ?? "Loja vinculada manualmente",
+      source_import_id: r.source_import_id,
+    });
+  }
+  return { ok: true };
+}
+
+// ============ LISTAR IMPORTS DO CHECKLIST NO ESCOPO ============
+export async function listChecklistImportsInScope(scope: {
+  operationYear: number; operationMonth: number; industryId?: string | null;
+}) {
+  let q = supabaseAdmin
+    .from("mk9_checklist_imports")
+    .select("id, filename, industry_id, started_at, status")
+    .eq("operation_year", scope.operationYear)
+    .eq("operation_month", scope.operationMonth)
+    .order("started_at", { ascending: false }).limit(50);
+  if (scope.industryId) q = q.eq("industry_id", scope.industryId);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}

@@ -79,3 +79,100 @@ export const reconcileUndoReview = createServerFn({ method: "POST" })
     const { undoReview } = await import("./mk9-reconciliation/engine.server");
     return undoReview(data.reconciliationId);
   });
+
+const pagedSchema = z.object({
+  operationYear: z.number().int().min(2020).max(2100),
+  operationMonth: z.number().int().min(1).max(12),
+  industryId: z.string().uuid().nullish(),
+  sourceImportId: z.string().uuid().nullish(),
+  promoterId: z.string().uuid().nullish(),
+  storeId: z.string().uuid().nullish(),
+  uf: z.string().nullish(),
+  statuses: z.array(z.string()).nullish(),
+  search: z.string().nullish(),
+  page: z.number().int().min(1).max(10000).nullish(),
+  pageSize: z.number().int().min(1).max(200).nullish(),
+});
+
+export const reconcileListPaged = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => pagedSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { listReconciliationsPaged } = await import("./mk9-reconciliation/engine.server");
+    return listReconciliationsPaged({
+      operationYear: data.operationYear,
+      operationMonth: data.operationMonth,
+      industryId: data.industryId ?? null,
+      sourceImportId: data.sourceImportId ?? null,
+      promoterId: data.promoterId ?? null,
+      storeId: data.storeId ?? null,
+      uf: data.uf ?? null,
+      statuses: (data.statuses ?? null) as any,
+      search: data.search ?? null,
+      page: data.page ?? 1,
+      pageSize: data.pageSize ?? 50,
+    });
+  });
+
+export const reconcileDetail = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { getReconciliationDetail } = await import("./mk9-reconciliation/engine.server");
+    return getReconciliationDetail(data.id);
+  });
+
+export const reconcileFindCandidates = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ actualVisitId: z.string().uuid(), windowDays: z.number().int().min(1).max(60).nullish() }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { findPlannedCandidates } = await import("./mk9-reconciliation/engine.server");
+    return findPlannedCandidates({ actualVisitId: data.actualVisitId, windowDays: data.windowDays ?? 7 });
+  });
+
+export const reconcileAcceptDivergence = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ reconciliationId: z.string().uuid(), notes: z.string().nullish() }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { acceptDivergence } = await import("./mk9-reconciliation/engine.server");
+    return acceptDivergence({ reconciliationId: data.reconciliationId, notes: data.notes ?? null });
+  });
+
+export const reconcileSearchStores = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ query: z.string().default(""), uf: z.string().nullish(), limit: z.number().int().min(1).max(50).nullish() }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { searchStores } = await import("./mk9-reconciliation/engine.server");
+    return searchStores({ query: data.query, uf: data.uf ?? null, limit: data.limit ?? 20 });
+  });
+
+export const reconcileLinkStore = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ reconciliationId: z.string().uuid(), storeId: z.string().uuid(), notes: z.string().nullish() }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { linkStoreToReconciliation } = await import("./mk9-reconciliation/engine.server");
+    return linkStoreToReconciliation({
+      reconciliationId: data.reconciliationId,
+      storeId: data.storeId,
+      notes: data.notes ?? null,
+    });
+  });
+
+export const reconcileListImports = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({
+      operationYear: z.number().int().min(2020).max(2100),
+      operationMonth: z.number().int().min(1).max(12),
+      industryId: z.string().uuid().nullish(),
+    }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { listChecklistImportsInScope } = await import("./mk9-reconciliation/engine.server");
+    return listChecklistImportsInScope({
+      operationYear: data.operationYear,
+      operationMonth: data.operationMonth,
+      industryId: data.industryId ?? null,
+    });
+  });
