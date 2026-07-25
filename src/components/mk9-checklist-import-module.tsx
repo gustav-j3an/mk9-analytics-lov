@@ -272,6 +272,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                   setImportId(null);
                   setLastError(null);
                   setRejected(null);
+                  setAckNewStores(false);
                   if (!f) { setFile(null); return; }
                   const det = await detectMk9FileKind(f);
                   if (det.kind === "base") {
