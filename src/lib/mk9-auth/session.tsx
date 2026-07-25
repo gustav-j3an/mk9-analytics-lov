@@ -1,0 +1,107 @@
+/**
+ * MK9 — Hook de sessão + provider (client-side).
+ * Assina supabase.auth e expõe user, roles e profile para toda a app.
+ */
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import type { Session, User } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+
+export type Mk9Role = "ADMIN" | "SUPERVISOR" | "PROMOTOR" | "CLIENTE" | "AUDITOR";
+
+export type Mk9SessionValue = {
+  loading: boolean;
+  session: Session | null;
+  user: User | null;
+  roles: Mk9Role[];
+  profile: { name: string | null; email: string | null; avatarUrl: string | null; active: boolean } | null;
+  hasRole: (r: Mk9Role | Mk9Role[]) => boolean;
+  signOut: () => Promise<void>;
+  refresh: () => Promise<void>;
+};
+
+const Ctx = createContext<Mk9SessionValue | null>(null);
+
+async function loadRolesAndProfile(userId: string) {
+  const [{ data: roleRows }, { data: profile }] = await Promise.all([
+    supabase.from("mk9_user_roles").select("role").eq("user_id", userId),
+    supabase
+      .from("mk9_profiles")
+      .select("name, email, avatar_url, active")
+      .eq("user_id", userId)
+      .maybeSingle(),
+  ]);
+  return {
+    roles: ((roleRows ?? []) as any[]).map((r) => r.role as Mk9Role),
+    profile: profile
+      ? {
+          name: (profile as any).name ?? null,
+          email: (profile as any).email ?? null,
+          avatarUrl: (profile as any).avatar_url ?? null,
+          active: !!(profile as any).active,
+        }
+      : null,
+  };
+}
+
+export function Mk9SessionProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [roles, setRoles] = useState<Mk9Role[]>([]);
+  const [profile, setProfile] = useState<Mk9SessionValue["profile"]>(null);
+  const [loading, setLoading] = useState(true);
+
+  async function hydrate(s: Session | null) {
+    setSession(s);
+    if (s?.user) {
+      const { roles, profile } = await loadRolesAndProfile(s.user.id);
+      setRoles(roles);
+      setProfile(profile);
+    } else {
+      setRoles([]);
+      setProfile(null);
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      hydrate(data.session);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
+      if (!mounted) return;
+      hydrate(s);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const value: Mk9SessionValue = {
+    loading,
+    session,
+    user: session?.user ?? null,
+    roles,
+    profile,
+    hasRole: (r) => {
+      const need = Array.isArray(r) ? r : [r];
+      return roles.some((x) => need.includes(x));
+    },
+    signOut: async () => {
+      await supabase.auth.signOut();
+    },
+    refresh: async () => {
+      const { data } = await supabase.auth.getSession();
+      await hydrate(data.session);
+    },
+  };
+
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
+export function useMk9Session(): Mk9SessionValue {
+  const v = useContext(Ctx);
+  if (!v) throw new Error("useMk9Session deve ser usado dentro de <Mk9SessionProvider>.");
+  return v;
+}
