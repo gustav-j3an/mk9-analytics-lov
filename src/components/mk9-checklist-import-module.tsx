@@ -244,7 +244,11 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     [items, filter],
   );
 
-  const validItems = items.filter((i) => i.status === "found").length;
+  const validItems = items.filter(
+    (i) => i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store",
+  ).length;
+  const newStoresCount = preview?.counters.storesNew ?? 0;
+  const canConfirm = validItems > 0 && (newStoresCount === 0 || ackNewStores);
 
   return (
     <div className="space-y-6">
