@@ -101,7 +101,7 @@ export function createSupabaseRepository(): Mk9Repository {
         last_import_id: importId,
       }));
       const { data, error } = await supabaseAdmin
-        .from("mk9_industries").upsert(payload, { onConflict: "name_normalized" }).select();
+        .from("mk9_industries").upsert(payload, { onConflict: "name_normalized", defaultToNull: false }).select();
       if (error) throw error;
       return (data ?? []).map(mapIndustry);
     },
@@ -122,7 +122,7 @@ export function createSupabaseRepository(): Mk9Repository {
       const out: StoreRecord[] = [];
       if (withUf.length) {
         const { data, error } = await supabaseAdmin
-          .from("mk9_stores").upsert(withUf, { onConflict: "name_normalized,uf" }).select();
+          .from("mk9_stores").upsert(withUf, { onConflict: "name_normalized,uf", defaultToNull: false }).select();
         if (error) throw error;
         out.push(...(data ?? []).map(mapStore));
       }
@@ -249,7 +249,7 @@ export function createSupabaseRepository(): Mk9Repository {
           weekday: r.weekday, operation_month: r.operationMonth, operation_year: r.operationYear,
           source_sheet: r.sourceSheet, last_import_id: importId,
         })),
-        { onConflict: "promoter_id,store_id,industry_id,weekday,operation_month,operation_year" },
+        { onConflict: "promoter_id,store_id,industry_id,weekday,operation_month,operation_year", defaultToNull: false },
       ).select();
       if (error) throw error;
       return (data ?? []).map(mapRoute);
@@ -277,7 +277,7 @@ export function createSupabaseRepository(): Mk9Repository {
             route_id: r.routeId ?? null, scheduled_date: r.scheduledDate,
             status: r.status, source_sheet: r.sourceSheet, last_import_id: importId,
           })),
-          { onConflict: "promoter_id,store_id,industry_id,scheduled_date" },
+          { onConflict: "promoter_id,store_id,industry_id,scheduled_date", defaultToNull: false },
         ).select();
         if (error) throw error;
         out.push(...(data ?? []).map(mapVisit));
