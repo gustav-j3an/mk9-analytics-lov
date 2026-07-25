@@ -107,16 +107,18 @@ type ImportItem = {
   createdAt: string;
 };
 
-const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3 }> = [
-  { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-  { id: "operacoes", label: "Operações", icon: ClipboardCheck },
-  { id: "lojas", label: "Lojas", icon: Store },
-  { id: "promotores", label: "Promotores", icon: Users },
-  { id: "roteiros", label: "Roteiros", icon: Route },
-  { id: "visitas", label: "Visitas", icon: Calendar },
-  { id: "importacoes", label: "Importações", icon: Upload },
-  { id: "conciliacao", label: "Conciliação", icon: PackageCheck },
+type ModuleGroup = "Visão geral" | "Operação" | "Dados";
+const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; group: ModuleGroup }> = [
+  { id: "dashboard", label: "Dashboard", icon: BarChart3, group: "Visão geral" },
+  { id: "operacoes", label: "Operações", icon: ClipboardCheck, group: "Operação" },
+  { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação" },
+  { id: "visitas", label: "Visitas", icon: Calendar, group: "Operação" },
+  { id: "lojas", label: "Lojas", icon: Store, group: "Dados" },
+  { id: "promotores", label: "Promotores", icon: Users, group: "Dados" },
+  { id: "importacoes", label: "Importações", icon: Upload, group: "Dados" },
+  { id: "conciliacao", label: "Conciliação", icon: PackageCheck, group: "Dados" },
 ];
+const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Dados"];
 
 const initialOperations: Operation[] = [
   {
