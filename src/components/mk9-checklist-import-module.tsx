@@ -33,6 +33,7 @@ import {
   checklistDelete,
 } from "@/lib/mk9-checklist.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
+import { detectMk9FileKind } from "@/lib/mk9/detect-file-kind";
 import type { ChecklistPreview } from "@/lib/mk9-checklist/types";
 
 const MONTHS = [
