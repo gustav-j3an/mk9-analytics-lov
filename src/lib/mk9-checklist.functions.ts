@@ -24,6 +24,11 @@ const commitSchema = z.object({
   ),
 });
 
+async function validate<T>(step: string, fn: () => T): Promise<T> {
+  const { withRichErrors } = await import("./mk9-checklist/errors.server");
+  return withRichErrors({ step: "validate-input", function: step }, async () => fn());
+}
+
 function b64ToArrayBuffer(base64: string): ArrayBuffer {
   const bin = typeof atob === "function" ? atob(base64) : Buffer.from(base64, "base64").toString("binary");
   const bytes = new Uint8Array(bin.length);
@@ -40,8 +45,9 @@ function daysInMonth(year: number, month: number) {
 }
 
 export const checklistPreview = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => previewSchema.parse(data))
+  .inputValidator(async (data: unknown) => validate("checklistPreview", () => previewSchema.parse(data)))
   .handler(async ({ data }) => {
+    const { withRichErrors } = await import("./mk9-checklist/errors.server");
     const { parseChecklistWorkbook } = await import("./mk9-checklist/parser");
     const {
       loadIndustry,
@@ -51,16 +57,38 @@ export const checklistPreview = createServerFn({ method: "POST" })
       updateImportStatus,
     } = await import("./mk9-checklist/persistence.server");
 
-    const industry = await loadIndustry(data.industryId);
-    const parsed = parseChecklistWorkbook(b64ToArrayBuffer(data.base64), data.filename);
+    const industry = await withRichErrors(
+      { step: "load-industry", function: "checklistPreview", extra: { industryId: data.industryId } },
+      () => loadIndustry(data.industryId),
+    );
+
+    const parsed = await withRichErrors(
+      { step: "parse-workbook", function: "checklistPreview", extra: { filename: data.filename } },
+      async () => parseChecklistWorkbook(b64ToArrayBuffer(data.base64), data.filename),
+    );
 
     if (parsed.marks.length === 0 && parsed.stores.length === 0) {
-      throw new Error("Planilha vazia ou fora do modelo esperado (não achamos cabeçalho de lojas + dias).");
+      const { buildRichError } = await import("./mk9-checklist/errors.server");
+      const payload = buildRichError(
+        new Error(
+          "Planilha vazia ou fora do modelo esperado. Não foi possível localizar cabeçalho com coluna 'Loja' + colunas de dias (1..31).",
+        ),
+        {
+          step: "parse-workbook",
+          function: "checklistPreview",
+          parser: { sheet: parsed.sheetsAnalyzed[0] ?? "(nenhuma)" },
+          extra: { sheetsAnalyzed: parsed.sheetsAnalyzed, warnings: parsed.warnings },
+        },
+      );
+      throw new Error(JSON.stringify(payload));
     }
 
-    const stores = await loadStoresIndex();
-    const maxDay = daysInMonth(data.operationYear, data.operationMonth);
+    const stores = await withRichErrors(
+      { step: "load-stores", function: "checklistPreview" },
+      () => loadStoresIndex(),
+    );
 
+    const maxDay = daysInMonth(data.operationYear, data.operationMonth);
     const items: ChecklistItem[] = [];
     const storesSeen = new Set<string>();
     const storesFound = new Set<string>();
@@ -116,7 +144,6 @@ export const checklistPreview = createServerFn({ method: "POST" })
       });
     }
 
-    // Considera também as lojas listadas na planilha (mesmo sem marcações) para o contador
     for (const s of parsed.stores) {
       const key = `${s.storeNormalized}|${s.uf ?? ""}`;
       storesSeen.add(key);
@@ -146,28 +173,38 @@ export const checklistPreview = createServerFn({ method: "POST" })
       warnings: parsed.warnings,
     };
 
-    const { id: importId } = await createChecklistImport({
-      filename: data.filename,
-      industryId: industry.id,
-      operationMonth: data.operationMonth,
-      operationYear: data.operationYear,
-    });
-    await savePreviewSnapshot(importId, preview);
-    await updateImportStatus(importId, { status: "previewing", counters: { ...preview.counters } });
+    const { id: importId } = await withRichErrors(
+      { step: "create-import", function: "checklistPreview" },
+      () =>
+        createChecklistImport({
+          filename: data.filename,
+          industryId: industry.id,
+          operationMonth: data.operationMonth,
+          operationYear: data.operationYear,
+        }),
+    );
+    await withRichErrors(
+      { step: "save-preview", function: "checklistPreview", extra: { importId } },
+      () => savePreviewSnapshot(importId, preview),
+    );
+    await withRichErrors(
+      { step: "update-status-previewing", function: "checklistPreview", extra: { importId } },
+      () => updateImportStatus(importId, { status: "previewing", counters: { ...preview.counters } }),
+    );
 
     return { importId, preview };
   });
 
 export const checklistCommit = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => commitSchema.parse(data))
+  .inputValidator(async (data: unknown) => validate("checklistCommit", () => commitSchema.parse(data)))
   .handler(async ({ data }) => {
+    const { withRichErrors, buildRichError } = await import("./mk9-checklist/errors.server");
     const { persistActualVisits, updateImportStatus } = await import("./mk9-checklist/persistence.server");
     const startedAt = Date.now();
     try {
-      const { persisted, skipped } = await persistActualVisits(
-        data.importId,
-        data.industryId,
-        data.items,
+      const { persisted, skipped } = await withRichErrors(
+        { step: "persist-actual-visits", function: "checklistCommit", extra: { importId: data.importId, count: data.items.length } },
+        () => persistActualVisits(data.importId, data.industryId, data.items),
       );
       await updateImportStatus(data.importId, {
         status: "done",
@@ -175,7 +212,6 @@ export const checklistCommit = createServerFn({ method: "POST" })
         finishedAt: new Date(),
         durationMs: Date.now() - startedAt,
       });
-      // Executa conciliação automaticamente para o período/indústria
       let reconciliationError: string | null = null;
       try {
         const { reconcile } = await import("./mk9-reconciliation/engine.server");
@@ -190,12 +226,24 @@ export const checklistCommit = createServerFn({ method: "POST" })
       }
       return { importId: data.importId, persisted, skipped, total: data.items.length, reconciliationError };
     } catch (e: any) {
+      // Já vem estruturado (JSON string) do withRichErrors — persiste no histórico
+      let msg: string;
+      try {
+        msg = e?.message ?? String(e);
+      } catch {
+        msg = "Erro desconhecido";
+      }
       await updateImportStatus(data.importId, {
         status: "failed",
-        errorMessage: e?.message ?? String(e),
+        errorMessage: msg.slice(0, 4000),
         finishedAt: new Date(),
         durationMs: Date.now() - startedAt,
       });
+      // Se não veio estruturado, estruturar agora
+      if (!msg.startsWith("{")) {
+        const payload = buildRichError(e, { step: "commit-outer", function: "checklistCommit" });
+        throw new Error(JSON.stringify(payload));
+      }
       throw e;
     }
   });
@@ -206,7 +254,7 @@ export const checklistList = createServerFn({ method: "GET" }).handler(async () 
 });
 
 export const checklistDelete = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({ importId: z.string().uuid() }).parse(data))
+  .inputValidator(async (data: unknown) => validate("checklistDelete", () => z.object({ importId: z.string().uuid() }).parse(data)))
   .handler(async ({ data }) => {
     const { deleteChecklistImport } = await import("./mk9-checklist/persistence.server");
     await deleteChecklistImport(data.importId);
