@@ -137,8 +137,9 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const [industryId, setIndustryId] = useState<string>("");
   const [preview, setPreview] = useState<ChecklistPreview | null>(null);
   const [importId, setImportId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "found" | "store_not_found" | "invalid_date">("all");
+  const [filter, setFilter] = useState<"all" | "found" | "linked_by_similarity" | "new_store" | "invalid_date">("all");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [ackNewStores, setAckNewStores] = useState(false);
   const [lastError, setLastError] = useState<RichError | null>(null);
   const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
 
