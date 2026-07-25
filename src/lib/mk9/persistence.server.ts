@@ -320,24 +320,7 @@ export function createSupabaseRepository(): Mk9Repository {
         _import_id: importId,
       });
       if (error) throw error;
-
-      if (!list.length) return [];
-      const out: PlannedVisitRecord[] = [];
-      const CHUNK = 500;
-      for (let i = 0; i < list.length; i += CHUNK) {
-        const slice = list.slice(i, i + CHUNK);
-        let q = supabaseAdmin
-          .from("mk9_planned_visits")
-          .select("*")
-          .is("archived_at", null);
-        const or = slice
-          .map((r) => `and(promoter_id.eq.${r.promoterId},store_id.eq.${r.storeId},industry_id.eq.${r.industryId},scheduled_date.eq.${r.scheduledDate})`)
-          .join(",");
-        const { data, error: readErr } = await q.or(or);
-        if (readErr) throw readErr;
-        out.push(...(data ?? []).map(mapVisit));
-      }
-      return out;
+      return [];
     },
     async removeFuturePlannedVisits(ids) {
       if (!ids.length) return;
