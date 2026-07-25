@@ -145,44 +145,92 @@ export function createSupabaseRepository(): Mk9Repository {
     },
     async upsertPromoters(records, importId) {
       if (!records.length) return [];
-      const dedup = new Map<string, PromoterRecord>();
-      for (const r of records) dedup.set(r.id ?? `norm:${r.nameNormalized}`, { ...dedup.get(r.id ?? `norm:${r.nameNormalized}`), ...r });
-      const list = Array.from(dedup.values());
-      const withId = list.filter((r) => r.id);
-      const withoutId = list.filter((r) => !r.id);
-      const out: PromoterRecord[] = [];
-      if (withId.length) {
-        const { data, error } = await supabaseAdmin.from("mk9_promoters").upsert(
-          withId.map((r) => withOptionalId({
-            id: r.id, external_id: r.externalId, name: r.name,
-            name_normalized: r.nameNormalized, city: r.city,
-            contact: r.contact, contact_normalized: r.contactNormalized,
-            notes: r.notes, last_import_id: importId,
-          })), { onConflict: "id" },
-        ).select();
-        if (error) throw error;
-        out.push(...(data ?? []).map(mapPromoter));
+
+      // 1) Deduplica o lote: primeiro por external_id, depois por name_normalized.
+      const mergePromoter = (a: PromoterRecord | undefined, b: PromoterRecord): PromoterRecord => ({
+        id: b.id ?? a?.id,
+        externalId: b.externalId ?? a?.externalId ?? null,
+        name: b.name || a?.name || "",
+        nameNormalized: b.nameNormalized || a?.nameNormalized || "",
+        city: b.city ?? a?.city ?? null,
+        contact: b.contact ?? a?.contact ?? null,
+        contactNormalized: b.contactNormalized ?? a?.contactNormalized ?? null,
+        notes: b.notes ?? a?.notes ?? null,
+      });
+      const byExt = new Map<string, PromoterRecord>();
+      const byName = new Map<string, PromoterRecord>();
+      for (const r of records) {
+        if (r.externalId) {
+          byExt.set(r.externalId, mergePromoter(byExt.get(r.externalId), r));
+        } else if (r.nameNormalized) {
+          byName.set(r.nameNormalized, mergePromoter(byName.get(r.nameNormalized), r));
+        }
       }
-      for (const r of withoutId) {
-        // dedup por name_normalized (não há unique constraint no DB — evita duplicar em re-imports)
-        const { data: existing } = await supabaseAdmin.from("mk9_promoters")
-          .select("*").eq("name_normalized", r.nameNormalized).maybeSingle();
+      // se o mesmo nome também aparece com external_id, não duplica no bucket "sem id"
+      for (const rec of byExt.values()) {
+        if (rec.nameNormalized) byName.delete(rec.nameNormalized);
+      }
+      const list = [...byExt.values(), ...byName.values()];
+
+      // 2) Snapshot do banco para correspondência
+      const { data: dbAll, error: dbErr } = await supabaseAdmin
+        .from("mk9_promoters").select("id, external_id, name, name_normalized");
+      if (dbErr) throw dbErr;
+      const dbByExt = new Map<string, any>();
+      const dbByName = new Map<string, any>();
+      for (const row of dbAll ?? []) {
+        if (row.external_id) dbByExt.set(String(row.external_id), row);
+        if (row.name_normalized) dbByName.set(row.name_normalized, row);
+      }
+
+      const out: PromoterRecord[] = [];
+      for (const r of list) {
+        // 3) Correspondência: (a) external_id, (b) name_normalized
+        let existing: any | undefined = r.externalId ? dbByExt.get(r.externalId) : undefined;
+        let matchedBy: "ext" | "name" | null = existing ? "ext" : null;
+        if (!existing && r.nameNormalized) {
+          existing = dbByName.get(r.nameNormalized);
+          if (existing) matchedBy = "name";
+        }
+
+        // 4) Conflito de identidade: external_id da planilha pertence a outro registro.
+        //    Não sobrescreve; preserva o external_id atual do registro casado por nome.
+        let nextExternalId: string | null = r.externalId ?? existing?.external_id ?? null;
+        if (matchedBy === "name" && r.externalId) {
+          const owner = dbByExt.get(r.externalId);
+          if (owner && owner.id !== existing.id) {
+            nextExternalId = existing.external_id ?? null;
+            console.warn(
+              `[mk9] Conflito de identidade em promotor: external_id=${r.externalId} pertence a "${owner.name}", ignorado ao atualizar "${existing.name}"`,
+            );
+          }
+        }
+
         const payload = {
-          external_id: r.externalId, name: r.name,
-          name_normalized: r.nameNormalized, city: r.city,
-          contact: r.contact, contact_normalized: r.contactNormalized,
-          notes: r.notes, last_import_id: importId,
+          external_id: nextExternalId,
+          name: r.name,
+          name_normalized: r.nameNormalized,
+          city: r.city,
+          contact: r.contact,
+          contact_normalized: r.contactNormalized,
+          notes: r.notes,
+          last_import_id: importId,
         };
+
         if (existing) {
           const { data, error } = await supabaseAdmin.from("mk9_promoters")
             .update(payload).eq("id", existing.id).select().single();
           if (error) throw error;
           out.push(mapPromoter(data));
+          if (data.external_id) dbByExt.set(String(data.external_id), data);
+          if (data.name_normalized) dbByName.set(data.name_normalized, data);
         } else {
           const { data, error } = await supabaseAdmin.from("mk9_promoters")
             .insert(payload).select().single();
           if (error) throw error;
           out.push(mapPromoter(data));
+          if (data.external_id) dbByExt.set(String(data.external_id), data);
+          if (data.name_normalized) dbByName.set(data.name_normalized, data);
         }
       }
       return out;
