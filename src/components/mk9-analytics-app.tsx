@@ -9,13 +9,13 @@ import {
 import {
   AlertTriangle,
   BarChart3,
-  Building2,
+  Bell,
   Calendar,
   CheckCircle2,
+  ChevronsLeft,
+  ChevronsRight,
   ClipboardCheck,
-  Factory,
   FileSpreadsheet,
-  MapPinned,
   PackageCheck,
   Plus,
   Route,
@@ -107,16 +107,18 @@ type ImportItem = {
   createdAt: string;
 };
 
-const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3 }> = [
-  { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-  { id: "operacoes", label: "Operações", icon: ClipboardCheck },
-  { id: "lojas", label: "Lojas", icon: Store },
-  { id: "promotores", label: "Promotores", icon: Users },
-  { id: "roteiros", label: "Roteiros", icon: Route },
-  { id: "visitas", label: "Visitas", icon: Calendar },
-  { id: "importacoes", label: "Importações", icon: Upload },
-  { id: "conciliacao", label: "Conciliação", icon: PackageCheck },
+type ModuleGroup = "Visão geral" | "Operação" | "Dados";
+const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; group: ModuleGroup }> = [
+  { id: "dashboard", label: "Dashboard", icon: BarChart3, group: "Visão geral" },
+  { id: "operacoes", label: "Operações", icon: ClipboardCheck, group: "Operação" },
+  { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação" },
+  { id: "visitas", label: "Visitas", icon: Calendar, group: "Operação" },
+  { id: "lojas", label: "Lojas", icon: Store, group: "Dados" },
+  { id: "promotores", label: "Promotores", icon: Users, group: "Dados" },
+  { id: "importacoes", label: "Importações", icon: Upload, group: "Dados" },
+  { id: "conciliacao", label: "Conciliação", icon: PackageCheck, group: "Dados" },
 ];
+const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Dados"];
 
 const initialOperations: Operation[] = [
   {
@@ -200,6 +202,7 @@ export function Mk9AnalyticsApp() {
   const [visits, setVisits] = useState<Visit[]>(initialVisits);
   const [imports, setImports] = useState<ImportItem[]>(initialImports);
   const [query, setQuery] = useState("");
+  const [collapsed, setCollapsed] = useState(false);
 
   const activeOperation = operations.find((operation) => operation.status === "ATIVA") ?? operations[0];
 
@@ -226,83 +229,146 @@ export function Mk9AnalyticsApp() {
   }, [operations, promoters, query, stores]);
 
   const moduleTitle = modules.find((item) => item.id === activeModule)?.label ?? "Dashboard";
+  const sidebarWidth = collapsed ? "76px" : "264px";
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
-        <aside className="border-b bg-sidebar text-sidebar-foreground lg:border-b-0 lg:border-r">
-          <div className="flex h-full flex-col p-4">
-            <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+      <div
+        className="grid min-h-screen transition-[grid-template-columns] duration-300 lg:grid-cols-[var(--sb)_1fr]"
+        style={{ ["--sb" as string]: sidebarWidth }}
+      >
+        <aside className="border-b border-sidebar-border bg-sidebar text-sidebar-foreground lg:border-b-0 lg:border-r">
+          <div className="flex h-full flex-col gap-6 p-3 lg:p-4">
+            <div className={cn("flex items-center gap-3 px-1", collapsed && "lg:justify-center lg:px-0")}>
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-[0_8px_20px_-8px_var(--color-primary)]">
                 <BarChart3 className="h-5 w-5" />
               </div>
-              <div>
-                <p className="text-lg font-semibold leading-tight">MK9 Analytics</p>
-                <p className="text-xs text-muted-foreground">Trade marketing operacional</p>
-              </div>
+              {!collapsed && (
+                <div className="min-w-0">
+                  <p className="truncate text-[15px] font-semibold leading-tight tracking-tight">MK9 Analytics</p>
+                  <p className="truncate text-[11px] text-muted-foreground">Trade marketing operacional</p>
+                </div>
+              )}
             </div>
 
-            <nav className="grid gap-1" aria-label="Módulos principais">
-              {modules.map((item) => {
-                const Icon = item.icon;
+            <nav className="flex flex-col gap-4" aria-label="Módulos principais">
+              {moduleGroups.map((group) => {
+                const items = modules.filter((m) => m.group === group);
                 return (
-                  <Button
-                    key={item.id}
-                    variant={activeModule === item.id ? "secondary" : "ghost"}
-                    className="h-10 justify-start"
-                    onClick={() => setActiveModule(item.id)}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </Button>
+                  <div key={group} className="flex flex-col gap-1">
+                    {!collapsed && (
+                      <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
+                        {group}
+                      </p>
+                    )}
+                    {items.map((item) => {
+                      const Icon = item.icon;
+                      const active = activeModule === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => setActiveModule(item.id)}
+                          title={collapsed ? item.label : undefined}
+                          className={cn(
+                            "group relative flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all",
+                            active
+                              ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                              : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
+                            collapsed && "lg:justify-center lg:px-0",
+                          )}
+                        >
+                          {active && (
+                            <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
+                          )}
+                          <Icon className={cn("h-[18px] w-[18px] shrink-0", active ? "text-primary" : "")} />
+                          {!collapsed && <span className="truncate">{item.label}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
                 );
               })}
             </nav>
 
-            <div className="mt-auto hidden space-y-3 rounded-md border bg-background p-3 text-sm lg:block">
-              <p className="font-medium">Operação ativa</p>
-              <p className="text-muted-foreground">{activeOperation?.name ?? "Nenhuma operação"}</p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <span className="rounded-md bg-muted px-2 py-1">Cobertura {metrics.coverage}%</span>
-                <span className="rounded-md bg-muted px-2 py-1">Atrasos {metrics.delayed}</span>
-              </div>
+            <div className="mt-auto flex flex-col gap-3">
+              {!collapsed && (
+                <div className="glass-panel rounded-xl p-3 text-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Operação ativa</p>
+                  <p className="mt-1 truncate font-medium">{activeOperation?.name ?? "Nenhuma operação"}</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+                    <span className="rounded-md bg-[color-mix(in_oklab,var(--color-kpi-green)_14%,transparent)] px-2 py-1 text-center font-medium text-[color:var(--color-kpi-green)]">
+                      {metrics.coverage}% cob.
+                    </span>
+                    <span className="rounded-md bg-[color-mix(in_oklab,var(--color-kpi-amber)_18%,transparent)] px-2 py-1 text-center font-medium text-[color:var(--color-kpi-amber)]">
+                      {metrics.delayed} atrasos
+                    </span>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={() => setCollapsed((v) => !v)}
+                className="hidden h-9 items-center justify-center gap-2 rounded-lg border border-sidebar-border text-xs font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground lg:flex"
+              >
+                {collapsed ? <ChevronsRight className="h-4 w-4" /> : <><ChevronsLeft className="h-4 w-4" /> Recolher</>}
+              </button>
             </div>
           </div>
         </aside>
 
         <section className="min-w-0">
-          <header className="border-b bg-background/95 px-4 py-4 lg:px-6">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight">{moduleTitle}</h1>
-                <p className="text-sm text-muted-foreground">
-                  Gestão de operações, lojas, promotores, roteiros, importações e conciliação.
-                </p>
+          <header className="sticky top-0 z-20 border-b border-border/80 bg-background/80 backdrop-blur-xl">
+            <div className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between lg:px-8">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  <span>MK9</span>
+                  <span className="text-border">/</span>
+                  <span>{moduleTitle}</span>
+                </div>
+                <h1 className="mt-0.5 truncate text-[22px] font-semibold tracking-tight md:text-2xl">{moduleTitle}</h1>
               </div>
-              <div className="relative w-full md:max-w-sm">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Buscar no sistema…"
-                  className="pl-9"
-                  aria-label="Buscar no sistema"
-                />
-                {searchResults.length > 0 && (
-                  <div className="absolute right-0 top-11 z-10 w-full rounded-md border bg-popover p-2 shadow">
-                    {searchResults.map((result) => (
-                      <div key={`${result.type}-${result.label}`} className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm">
-                        <span>{result.label}</span>
-                        <Badge variant="outline">{result.type}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="relative w-full md:w-[320px]">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Buscar operações, lojas, promotores…"
+                    className="h-10 rounded-lg border-border/70 bg-muted/50 pl-9 pr-16 text-sm shadow-none transition-all focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/25"
+                    aria-label="Buscar no sistema"
+                  />
+                  <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-border/80 bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground md:inline-block">
+                    ⌘K
+                  </kbd>
+                  {searchResults.length > 0 && (
+                    <div className="animate-fade-up absolute right-0 top-12 z-10 w-full overflow-hidden rounded-xl border border-border/80 bg-popover p-1.5 shadow-[var(--shadow-elevated)]">
+                      {searchResults.map((result) => (
+                        <div key={`${result.type}-${result.label}`} className="flex items-center justify-between rounded-md px-2.5 py-2 text-sm hover:bg-accent">
+                          <span className="truncate">{result.label}</span>
+                          <Badge variant="outline" className="text-[10px]">{result.type}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <span className="hidden items-center gap-1.5 rounded-full border border-[color-mix(in_oklab,var(--color-kpi-green)_35%,transparent)] bg-[color-mix(in_oklab,var(--color-kpi-green)_10%,transparent)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--color-kpi-green)] md:inline-flex">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-kpi-green)]" />
+                  Produção
+                </span>
+                <button
+                  aria-label="Notificações"
+                  className="relative grid h-10 w-10 place-items-center rounded-lg border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                >
+                  <Bell className="h-[18px] w-[18px]" />
+                  <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[color:var(--color-kpi-amber)]" />
+                </button>
+                <button className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-sm font-semibold text-primary-foreground shadow-sm transition-transform hover:scale-[1.03]">
+                  MK
+                </button>
               </div>
             </div>
           </header>
 
-          <div className="p-4 lg:p-6">
+          <div key={activeModule} className="animate-fade-up mx-auto max-w-[1400px] px-4 py-6 lg:px-8 lg:py-8">
             {activeModule === "dashboard" && (
               <DashboardModule
                 metrics={metrics}
@@ -371,39 +437,57 @@ function DashboardModule({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard icon={Route} label="Visitas planejadas" value={metrics.planned} detail={`${metrics.completed} realizadas`} />
-        <KpiCard icon={CheckCircle2} label="Cobertura" value={`${metrics.coverage}%`} detail="execução do período" />
-        <KpiCard icon={AlertTriangle} label="Alertas críticos" value={metrics.delayed} detail="visitas atrasadas" />
-        <KpiCard icon={FileSpreadsheet} label="Importações" value={imports.length} detail="arquivos analisados" />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <KpiCard tone="blue" icon={Route} label="Visitas planejadas" value={metrics.planned} detail={`${metrics.completed} realizadas`} />
+        <KpiCard tone="green" icon={CheckCircle2} label="Cobertura" value={`${metrics.coverage}%`} detail="execução do período" />
+        <KpiCard tone="amber" icon={AlertTriangle} label="Alertas críticos" value={metrics.delayed} detail="visitas atrasadas" />
+        <KpiCard tone="violet" icon={FileSpreadsheet} label="Importações" value={imports.length} detail="arquivos analisados" />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Execução diária</CardTitle>
+      <div className="grid gap-5 xl:grid-cols-[1.4fr_0.8fr]">
+        <Card className="card-hover overflow-hidden border-border/70 shadow-[var(--shadow-soft)]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="text-base">Execução diária</CardTitle>
+              <p className="mt-0.5 text-xs text-muted-foreground">Planejadas x realizadas nos últimos 6 dias</p>
+            </div>
+            <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[color:var(--color-chart-1)]" />Planejadas</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[color:var(--color-chart-2)]" />Realizadas</span>
+            </div>
           </CardHeader>
           <CardContent className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={executionByDay} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
-                <CartesianGrid stroke="var(--color-border)" vertical={false} />
-                <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} />
-                <Area type="monotone" dataKey="planejadas" stroke="var(--color-chart-1)" fill="var(--color-chart-1)" fillOpacity={0.16} />
-                <Area type="monotone" dataKey="realizadas" stroke="var(--color-chart-2)" fill="var(--color-chart-2)" fillOpacity={0.24} />
+                <defs>
+                  <linearGradient id="gPlan" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gReal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--color-chart-2)" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="var(--color-chart-2)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} width={28} />
+                <Area type="monotone" dataKey="planejadas" stroke="var(--color-chart-1)" strokeWidth={2} fill="url(#gPlan)" />
+                <Area type="monotone" dataKey="realizadas" stroke="var(--color-chart-2)" strokeWidth={2} fill="url(#gReal)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-hover overflow-hidden border-border/70 shadow-[var(--shadow-soft)]">
           <CardHeader className="pb-2">
-            <CardTitle>Status das visitas</CardTitle>
+            <CardTitle className="text-base">Status das visitas</CardTitle>
+            <p className="mt-0.5 text-xs text-muted-foreground">Distribuição atual do período</p>
           </CardHeader>
           <CardContent className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={visitsByStatus} dataKey="value" nameKey="name" innerRadius={58} outerRadius={88} paddingAngle={4}>
+                <Pie data={visitsByStatus} dataKey="value" nameKey="name" innerRadius={62} outerRadius={92} paddingAngle={3} stroke="var(--color-card)" strokeWidth={3}>
                   {visitsByStatus.map((entry, index) => (
                     <Cell key={entry.name} fill={chartColors[index % chartColors.length]} />
                   ))}
@@ -414,23 +498,23 @@ function DashboardModule({
         </Card>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Ações rápidas</CardTitle>
+      <div className="grid gap-5 xl:grid-cols-3">
+        <Card className="card-hover border-border/70 shadow-[var(--shadow-soft)]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Ações rápidas</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
-            <Button className="justify-start" onClick={() => onOpenModule("importacoes")}><Upload className="h-4 w-4" />Importar planilha</Button>
-            <Button variant="secondary" className="justify-start" onClick={() => onOpenModule("roteiros")}><Route className="h-4 w-4" />Gerar roteiros</Button>
-            <Button variant="outline" className="justify-start" onClick={() => onOpenModule("conciliacao")}><PackageCheck className="h-4 w-4" />Conciliar evidências</Button>
+            <Button className="h-10 justify-start rounded-lg" onClick={() => onOpenModule("importacoes")}><Upload className="h-4 w-4" />Importar planilha</Button>
+            <Button variant="secondary" className="h-10 justify-start rounded-lg" onClick={() => onOpenModule("roteiros")}><Route className="h-4 w-4" />Gerar roteiros</Button>
+            <Button variant="outline" className="h-10 justify-start rounded-lg" onClick={() => onOpenModule("conciliacao")}><PackageCheck className="h-4 w-4" />Conciliar evidências</Button>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Cadastros</CardTitle>
+        <Card className="card-hover border-border/70 shadow-[var(--shadow-soft)]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Cadastros</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3 text-sm">
+          <CardContent className="grid gap-2 text-sm">
             <SummaryLine label="Operações" value={operations.length} icon={ClipboardCheck} />
             <SummaryLine label="Lojas" value={stores.length} icon={Store} />
             <SummaryLine label="Promotores ativos" value={promoters.filter((item) => item.active).length} icon={Users} />
@@ -438,22 +522,28 @@ function DashboardModule({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Ranking de promotores</CardTitle>
+        <Card className="card-hover border-border/70 shadow-[var(--shadow-soft)]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Ranking de promotores</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {promoterRanking.map(({ promoter, total, done }) => (
-              <div key={promoter.id}>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="font-medium">{promoter.name}</span>
-                  <span className="text-muted-foreground">{done}/{total}</span>
+          <CardContent className="space-y-4">
+            {promoterRanking.map(({ promoter, total, done }) => {
+              const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+              return (
+                <div key={promoter.id}>
+                  <div className="mb-1.5 flex items-center justify-between text-sm">
+                    <span className="font-medium">{promoter.name}</span>
+                    <span className="text-xs text-muted-foreground">{done}/{total} · {pct}%</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-primary to-[color:var(--color-kpi-green)] transition-all duration-700"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2 rounded-md bg-muted">
-                  <div className="h-2 rounded-md bg-primary" style={{ width: `${total > 0 ? Math.round((done / total) * 100) : 0}%` }} />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       </div>
@@ -461,17 +551,26 @@ function DashboardModule({
   );
 }
 
-function KpiCard({ icon: Icon, label, value, detail }: { icon: typeof BarChart3; label: string; value: string | number; detail: string }) {
+const kpiTones = {
+  blue: { text: "text-[color:var(--color-kpi-blue)]", bg: "bg-[color-mix(in_oklab,var(--color-kpi-blue)_12%,transparent)]", ring: "shadow-[0_8px_24px_-12px_var(--color-kpi-blue)]" },
+  green: { text: "text-[color:var(--color-kpi-green)]", bg: "bg-[color-mix(in_oklab,var(--color-kpi-green)_14%,transparent)]", ring: "shadow-[0_8px_24px_-12px_var(--color-kpi-green)]" },
+  amber: { text: "text-[color:var(--color-kpi-amber)]", bg: "bg-[color-mix(in_oklab,var(--color-kpi-amber)_18%,transparent)]", ring: "shadow-[0_8px_24px_-12px_var(--color-kpi-amber)]" },
+  violet: { text: "text-[color:var(--color-kpi-violet)]", bg: "bg-[color-mix(in_oklab,var(--color-kpi-violet)_14%,transparent)]", ring: "shadow-[0_8px_24px_-12px_var(--color-kpi-violet)]" },
+} as const;
+
+function KpiCard({ icon: Icon, label, value, detail, tone = "blue" }: { icon: typeof BarChart3; label: string; value: string | number; detail: string; tone?: keyof typeof kpiTones }) {
+  const t = kpiTones[tone];
   return (
-    <Card>
-      <CardContent className="flex items-center justify-between p-5">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-3xl font-semibold tracking-tight">{value}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
+    <Card className={cn("card-hover animate-fade-up group relative overflow-hidden border-border/70 shadow-[var(--shadow-soft)]", t.ring)}>
+      <div className={cn("absolute -right-8 -top-8 h-28 w-28 rounded-full opacity-70 blur-2xl transition-opacity group-hover:opacity-100", t.bg)} />
+      <CardContent className="relative flex items-start justify-between gap-4 p-5">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+          <p className="mt-2 text-[32px] font-semibold leading-none tracking-tight tabular-nums">{value}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{detail}</p>
         </div>
-        <div className="rounded-md bg-primary/10 p-3 text-primary">
-          <Icon className="h-5 w-5" />
+        <div className={cn("grid h-11 w-11 shrink-0 place-items-center rounded-xl", t.bg, t.text)}>
+          <Icon className="h-[18px] w-[18px]" />
         </div>
       </CardContent>
     </Card>
@@ -480,9 +579,9 @@ function KpiCard({ icon: Icon, label, value, detail }: { icon: typeof BarChart3;
 
 function SummaryLine({ label, value, icon: Icon }: { label: string; value: string | number; icon: typeof BarChart3 }) {
   return (
-    <div className="flex items-center justify-between rounded-md border p-3">
-      <span className="flex items-center gap-2 text-muted-foreground"><Icon className="h-4 w-4" />{label}</span>
-      <span className="font-semibold">{value}</span>
+    <div className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/30 px-3 py-2.5 transition-colors hover:bg-muted/60">
+      <span className="flex items-center gap-2 text-sm text-muted-foreground"><Icon className="h-4 w-4" />{label}</span>
+      <span className="text-sm font-semibold tabular-nums">{value}</span>
     </div>
   );
 }
