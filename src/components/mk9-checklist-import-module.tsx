@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
-  checklistPreview,
   checklistCommit,
   checklistList,
   checklistDelete,
@@ -49,17 +48,6 @@ const STATUS_LABEL: Record<string, { label: string; variant: "default" | "second
   failed: { label: "Falhou", variant: "destructive" },
   cancelled: { label: "Cancelada", variant: "secondary" },
 };
-
-async function fileToBase64(file: File): Promise<string> {
-  const buf = await file.arrayBuffer();
-  const bytes = new Uint8Array(buf);
-  let binary = "";
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)));
-  }
-  return btoa(binary);
-}
 
 function shortDate(value: string) {
   if (!value) return "—";
@@ -86,6 +74,20 @@ type RichError = {
   raw?: string;
 };
 
+type ChecklistDebugEvent = {
+  at: string;
+  level: "info" | "error";
+  step: string;
+  message: string;
+  data?: Record<string, unknown>;
+};
+
+type ChecklistPreviewResponse = {
+  importId: string;
+  preview: ChecklistPreview;
+  diagnostics?: ChecklistDebugEvent[];
+};
+
 function parseServerError(e: any): RichError {
   const raw = e?.message ?? String(e ?? "");
   try {
@@ -93,6 +95,37 @@ function parseServerError(e: any): RichError {
     if (parsed && typeof parsed === "object" && parsed.__mk9Error) return parsed as RichError;
   } catch {}
   return { message: raw || "Erro desconhecido", raw };
+}
+
+async function requestChecklistPreview(input: {
+  file: File;
+  industryId: string;
+  operationMonth: number;
+  operationYear: number;
+}): Promise<ChecklistPreviewResponse> {
+  const form = new FormData();
+  form.append("file", input.file, input.file.name);
+  form.append("industryId", input.industryId);
+  form.append("operationMonth", String(input.operationMonth));
+  form.append("operationYear", String(input.operationYear));
+
+  const response = await fetch("/api/checklists/preview", {
+    method: "POST",
+    body: form,
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const err = payload?.error ?? {
+      __mk9Error: true,
+      step: "http-response",
+      function: "requestChecklistPreview",
+      message: `HTTP ${response.status}: ${response.statusText}`,
+      extra: { diagnostics: payload?.diagnostics ?? [] },
+    };
+    throw new Error(JSON.stringify(err));
+  }
+  return payload as ChecklistPreviewResponse;
 }
 
 export function Mk9ChecklistImportModule() {
@@ -108,7 +141,6 @@ export function Mk9ChecklistImportModule() {
   const [lastError, setLastError] = useState<RichError | null>(null);
 
 
-  const previewFn = useServerFn(checklistPreview);
   const commitFn = useServerFn(checklistCommit);
   const listFn = useServerFn(checklistList);
   const deleteFn = useServerFn(checklistDelete);
@@ -122,12 +154,14 @@ export function Mk9ChecklistImportModule() {
     mutationFn: async () => {
       if (!file) throw new Error("Selecione a planilha do checklist");
       if (!industryId) throw new Error("Selecione a indústria");
-      const base64 = await fileToBase64(file);
-      return previewFn({
-        data: { filename: file.name, base64, industryId, operationMonth: month, operationYear: year },
+      return requestChecklistPreview({
+        file,
+        industryId,
+        operationMonth: month,
+        operationYear: year,
       });
     },
-    onSuccess: (res) => {
+    onSuccess: (res: ChecklistPreviewResponse) => {
       setPreview(res.preview);
       setImportId(res.importId);
       setLastError(null);
@@ -443,9 +477,15 @@ function Row({ k, v }: { k: string; v: unknown }) {
   );
 }
 
+function getDiagnostics(err: RichError): ChecklistDebugEvent[] {
+  const maybe = err.extra?.diagnostics;
+  return Array.isArray(maybe) ? (maybe as ChecklistDebugEvent[]) : [];
+}
+
 function ErrorPanel({ err, onDismiss }: { err: RichError; onDismiss: () => void }) {
   const [showStack, setShowStack] = useState(false);
   const isDev = typeof import.meta !== "undefined" && (import.meta as any).env?.DEV;
+  const diagnostics = getDiagnostics(err);
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(JSON.stringify(err, null, 2));
@@ -512,6 +552,28 @@ function ErrorPanel({ err, onDismiss }: { err: RichError; onDismiss: () => void 
           <div className="rounded-md border p-3 space-y-1">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contexto</p>
             {Object.entries(err.extra).map(([k, v]) => <Row key={k} k={k} v={v} />)}
+          </div>
+        )}
+
+        {diagnostics.length > 0 && (
+          <div className="rounded-md border p-3 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Trilha de execução</p>
+            <div className="max-h-72 overflow-auto space-y-2">
+              {diagnostics.map((event, i) => (
+                <div key={`${event.at}-${i}`} className="rounded-md bg-muted/30 p-2 text-xs">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant={event.level === "error" ? "destructive" : "secondary"}>{event.level}</Badge>
+                    <span className="font-mono font-medium">{event.step}</span>
+                    <span className="text-muted-foreground">{event.message}</span>
+                  </div>
+                  {event.data && Object.keys(event.data).length > 0 && (
+                    <pre className="mt-2 whitespace-pre-wrap break-all font-mono text-[11px] text-muted-foreground">
+                      {JSON.stringify(event.data, null, 2)}
+                    </pre>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

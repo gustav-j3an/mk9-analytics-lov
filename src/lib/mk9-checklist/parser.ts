@@ -19,6 +19,16 @@ export interface ParsedChecklist {
   }>;
 }
 
+export interface ChecklistParserDebugEvent {
+  step: string;
+  message: string;
+  data?: Record<string, unknown>;
+}
+
+interface ParseChecklistOptions {
+  onDebug?: (event: ChecklistParserDebugEvent) => void;
+}
+
 function headerMatch(cell: unknown, keywords: string[]): boolean {
   const t = normalizeText(String(cell ?? ""));
   return keywords.some((k) => t === k || t.includes(k));
@@ -45,8 +55,13 @@ function detectDayColumn(cell: unknown): number | null {
   return null;
 }
 
-export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string): ParsedChecklist {
+export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, options: ParseChecklistOptions = {}): ParsedChecklist {
+  const debug = (step: string, message: string, data?: Record<string, unknown>) => {
+    options.onDebug?.({ step, message, data });
+  };
+  debug("parser-open-workbook", "Abrindo workbook do checklist", { filename, byteLength: buffer.byteLength });
   const wb = XLSX.read(buffer, { type: "array" });
+  debug("parser-workbook-opened", "Workbook aberto", { sheets: wb.SheetNames, sheetCount: wb.SheetNames.length });
   const out: ParsedChecklist = {
     filename,
     sheetsAnalyzed: [],
@@ -58,9 +73,11 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string): P
   const seenStoreKeys = new Set<string>();
 
   for (const sheetName of wb.SheetNames) {
+    debug("sheet-found", "Sheet encontrada", { sheet: sheetName });
     const sheet = wb.Sheets[sheetName];
     if (!sheet) continue;
     const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1, defval: null, blankrows: false });
+    debug("rows-read", "Quantidade de linhas lidas", { sheet: sheetName, rows: rows.length });
     if (!rows.length) continue;
 
     // 1) Localiza a linha de cabeçalho: precisa ter "loja" e ao menos uma coluna de dia (1..31).
@@ -98,11 +115,21 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string): P
         weeklyCol = localWeeklyCol;
         monthlyCol = localMonthlyCol;
         dayCols.push(...localDayCols);
+        debug("header-identified", "Cabeçalho identificado", {
+          sheet: sheetName,
+          excelRow: r + 1,
+          storeColumn: localStoreCol + 1,
+          ufColumn: localUfCol >= 0 ? localUfCol + 1 : null,
+          weeklyColumn: localWeeklyCol >= 0 ? localWeeklyCol + 1 : null,
+          monthlyColumn: localMonthlyCol >= 0 ? localMonthlyCol + 1 : null,
+          dayColumns: localDayCols.map((d) => ({ excelColumn: d.col + 1, day: d.day })),
+        });
         break;
       }
     }
 
     if (headerRow < 0) {
+      debug("header-not-found", "Cabeçalho não identificado na sheet", { sheet: sheetName, checkedRows: Math.min(rows.length, 40) });
       out.warnings.push(`Aba "${sheetName}" ignorada: cabeçalho não encontrado.`);
       continue;
     }
@@ -152,6 +179,13 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string): P
       }
     }
   }
+
+  debug("parser-complete", "Parser de checklist finalizado", {
+    sheetsAnalyzed: out.sheetsAnalyzed,
+    stores: out.stores.length,
+    visits: out.marks.length,
+    warnings: out.warnings.length,
+  });
 
   return out;
 }
