@@ -156,9 +156,14 @@ export const reconcileAcceptDivergence = createServerFn({ method: "POST" })
     z.object({ reconciliationId: z.string().uuid(), notes: z.string().nullish() }).parse(d),
   )
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN", "SUPERVISOR"]);
     const { acceptDivergence } = await import("./mk9-reconciliation/engine.server");
-    return acceptDivergence({ reconciliationId: data.reconciliationId, notes: data.notes ?? null });
+    const result = await acceptDivergence({ reconciliationId: data.reconciliationId, notes: data.notes ?? null });
+    await logAudit(ctx, "mk9.reconcile.acceptDivergence", "mk9_visit_reconciliations", data.reconciliationId);
+    return result;
   });
+
 
 export const reconcileSearchStores = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
