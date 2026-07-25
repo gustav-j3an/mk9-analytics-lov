@@ -112,7 +112,7 @@ export function createSupabaseRepository(): Mk9Repository {
         const k = `${r.nameNormalized}::${r.uf ?? ""}`;
         dedup.set(k, { ...dedup.get(k), ...r });
       }
-      const payload = Array.from(dedup.values()).map((r) => ({
+      const payload = Array.from(dedup.values()).map((r) => withOptionalId({
         id: r.id, chain: r.chain, name: r.name,
         name_normalized: r.nameNormalized, uf: r.uf, last_import_id: importId,
       }));
