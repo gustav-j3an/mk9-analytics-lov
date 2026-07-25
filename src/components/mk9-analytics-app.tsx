@@ -347,7 +347,7 @@ export function Mk9AnalyticsApp() {
 function DashboardModule({
   metrics, industries, stores, promoters, routes, visits, onOpenModule, loading,
 }: {
-  metrics: { planned: number; completed: number; cancelled: number; delayed: number; coverage: number };
+  metrics: { planned: number; completed: number; cancelled: number; delayed: number; coverage: number; contratadas: number; executadas: number; validas: number; extras: number; pendencias: number };
   industries: any[]; stores: any[]; promoters: any[]; routes: any[]; visits: any[];
   onOpenModule: (module: ModuleId) => void; loading: boolean;
 }) {
