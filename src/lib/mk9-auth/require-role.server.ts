@@ -1,17 +1,12 @@
 /**
  * MK9 — Camada de autorização para server functions.
  *
- * Estratégia (Fase 3):
- * - Chamado no início do handler de qualquer ação sensível.
- * - Se NÃO houver Authorization header (estado atual do app: sem tela de login) →
- *   permite a execução, loga um aviso e marca contexto como "dev-bypass".
- *   Isso preserva o funcionamento atual e ativa a proteção real automaticamente
- *   assim que a Fase 4 introduzir a tela de login.
- * - Se houver Authorization header → valida o usuário via Supabase, checa se
- *   possui alguma das roles exigidas em mk9_user_roles, e bloqueia com mensagem
- *   clara caso contrário.
- *
- * Também expõe `logAudit()` para registrar ações administrativas críticas.
+ * Estratégia (Fase 4):
+ * - Em DESENVOLVIMENTO (NODE_ENV !== "production"): se não houver Authorization
+ *   header, mantém o dev-bypass antigo (loga warning) para permitir testes locais
+ *   sem login.
+ * - Em PRODUÇÃO: sem Authorization header → HTTP 401 imediato. Sem exceções.
+ * - Com header: valida token via Supabase e checa mk9_user_roles.
  */
 
 import { getRequest } from "@tanstack/react-start/server";
@@ -43,6 +38,10 @@ class Mk9UnauthenticatedError extends Error {
   }
 }
 
+function isProduction(): boolean {
+  return process.env.NODE_ENV === "production";
+}
+
 function opaqueFetch(key: string): typeof fetch {
   return (input, init) => {
     const headers = new Headers(init?.headers);
@@ -56,20 +55,18 @@ function opaqueFetch(key: string): typeof fetch {
 
 /**
  * Exige que o usuário autenticado possua pelo menos uma das roles indicadas.
- * Retorna o contexto de autenticação para uso pelo handler (audit, etc).
- *
- * @throws Mk9UnauthenticatedError (401) se sessão inválida
- * @throws Mk9AuthorizationError (403) se autenticado mas sem role
  */
 export async function requireMk9Role(required: Mk9Role[]): Promise<Mk9AuthContext> {
   const request = getRequest();
   const authHeader = request?.headers.get("authorization") ?? null;
 
-  // Sem header: dev bypass (nenhuma tela de login ainda no app).
   if (!authHeader) {
+    if (isProduction()) {
+      throw new Mk9UnauthenticatedError("Autenticação obrigatória. Faça login para continuar.");
+    }
     console.warn(
-      `[MK9-AUTH] dev-bypass: ação exige ${required.join("|")} mas nenhum Authorization header foi enviado. ` +
-        `Enforcement será ativado quando a tela de login for adicionada.`,
+      `[MK9-AUTH] dev-bypass: ação exige ${required.join("|")} — sem Authorization header. ` +
+        `Enforcement ativo apenas em produção (NODE_ENV=production).`,
     );
     return { userId: null, email: null, roles: [], devBypass: true };
   }
@@ -123,7 +120,6 @@ export async function requireMk9Role(required: Mk9Role[]): Promise<Mk9AuthContex
 
 /**
  * Registra uma ação administrativa em mk9_audit_logs.
- * Falhas de log NUNCA quebram o fluxo — apenas são reportadas no console.
  */
 export async function logAudit(
   ctx: Mk9AuthContext,

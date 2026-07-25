@@ -1,7 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Mk9AnalyticsApp } from "@/components/mk9-analytics-app";
+import { useMk9Session } from "@/lib/mk9-auth/session";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "MK9 Analytics — Gestão operacional" },
@@ -23,5 +27,19 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const { loading, session } = useMk9Session();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !session) navigate({ to: "/login", replace: true });
+  }, [loading, session, navigate]);
+
+  if (loading || !session) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
   return <Mk9AnalyticsApp />;
 }

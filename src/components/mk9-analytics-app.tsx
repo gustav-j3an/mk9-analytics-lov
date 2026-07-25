@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Mk9ImportModule } from "@/components/mk9-import-module";
 import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
 import { Mk9ReconciliationModule } from "@/components/mk9-reconciliation-module";
 import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
+import { Mk9UsersModule } from "@/components/mk9-users-module";
+import { useMk9Session, type Mk9Role } from "@/lib/mk9-auth/session";
 
 import {
   AlertTriangle,
@@ -18,12 +21,15 @@ import {
   FileSpreadsheet,
   Factory,
   Loader2,
+  LogOut,
   PackageCheck,
   Route,
   Search,
+  Shield,
   Store,
   Upload,
   Users,
+  UserCog,
 } from "lucide-react";
 import {
   Area,
@@ -62,22 +68,24 @@ type ModuleId =
   | "conciliacao"
   | "relatorio_industria"
   | "importacoes"
-  | "checklists";
+  | "checklists"
+  | "usuarios";
 
-type ModuleGroup = "Visão geral" | "Operação" | "Relatórios" | "Dados" | "Importações";
-const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; group: ModuleGroup }> = [
-  { id: "dashboard", label: "Dashboard", icon: BarChart3, group: "Visão geral" },
-  { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação" },
-  { id: "visitas", label: "Visitas", icon: Calendar, group: "Operação" },
-  { id: "conciliacao", label: "Conciliação", icon: CheckCircle2, group: "Operação" },
-  { id: "relatorio_industria", label: "Indústrias (PDF)", icon: PackageCheck, group: "Relatórios" },
-  { id: "industrias", label: "Indústrias", icon: Factory, group: "Dados" },
-  { id: "lojas", label: "Lojas", icon: Store, group: "Dados" },
-  { id: "promotores", label: "Promotores", icon: Users, group: "Dados" },
-  { id: "importacoes", label: "Base MK9", icon: Upload, group: "Importações" },
-  { id: "checklists", label: "Checklists", icon: ClipboardCheck, group: "Importações" },
+type ModuleGroup = "Visão geral" | "Operação" | "Relatórios" | "Dados" | "Importações" | "Administração";
+const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; group: ModuleGroup; roles: Mk9Role[] }> = [
+  { id: "dashboard", label: "Dashboard", icon: BarChart3, group: "Visão geral", roles: ["ADMIN", "SUPERVISOR", "AUDITOR"] },
+  { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação", roles: ["ADMIN", "SUPERVISOR", "PROMOTOR", "AUDITOR"] },
+  { id: "visitas", label: "Visitas", icon: Calendar, group: "Operação", roles: ["ADMIN", "SUPERVISOR", "PROMOTOR", "AUDITOR"] },
+  { id: "conciliacao", label: "Conciliação", icon: CheckCircle2, group: "Operação", roles: ["ADMIN", "SUPERVISOR"] },
+  { id: "relatorio_industria", label: "Indústrias (PDF)", icon: PackageCheck, group: "Relatórios", roles: ["ADMIN", "SUPERVISOR", "CLIENTE", "AUDITOR"] },
+  { id: "industrias", label: "Indústrias", icon: Factory, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
+  { id: "lojas", label: "Lojas", icon: Store, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
+  { id: "promotores", label: "Promotores", icon: Users, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
+  { id: "importacoes", label: "Base MK9", icon: Upload, group: "Importações", roles: ["ADMIN"] },
+  { id: "checklists", label: "Checklists", icon: ClipboardCheck, group: "Importações", roles: ["ADMIN"] },
+  { id: "usuarios", label: "Usuários", icon: UserCog, group: "Administração", roles: ["ADMIN"] },
 ];
-const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Relatórios", "Dados", "Importações"];
+const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Relatórios", "Dados", "Importações", "Administração"];
 
 const MONTHS_PT = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -119,11 +127,33 @@ function useMk9Data(month: number, year: number) {
 
 export function Mk9AnalyticsApp() {
   const now = new Date();
-  const [activeModule, setActiveModule] = useState<ModuleId>("dashboard");
+  const navigate = useNavigate();
+  const { user, roles, profile, signOut } = useMk9Session();
+  const effectiveRoles: Mk9Role[] = roles.length > 0 ? roles : ["ADMIN"]; // fallback local: sem role, tratamos como ADMIN até que um admin atribua papel
+  const visibleModules = useMemo(
+    () => modules.filter((m) => m.roles.some((r) => effectiveRoles.includes(r))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [effectiveRoles.join("|")],
+  );
+  const defaultModule: ModuleId = visibleModules[0]?.id ?? "dashboard";
+
+  const [activeModule, setActiveModule] = useState<ModuleId>(defaultModule);
   const [month, setMonth] = useState<number>(now.getMonth() + 1);
   const [year, setYear] = useState<number>(now.getFullYear());
   const [query, setQuery] = useState("");
   const [collapsed, setCollapsed] = useState(false);
+  const [userMenu, setUserMenu] = useState(false);
+
+  // Se o módulo ativo deixou de ser permitido (ex: role mudou), volta para o primeiro visível.
+  if (!visibleModules.some((m) => m.id === activeModule)) {
+    // não usar setState em render direto — enfileira via microtask
+    Promise.resolve().then(() => setActiveModule(defaultModule));
+  }
+
+  async function handleSignOut() {
+    await signOut();
+    navigate({ to: "/login", replace: true });
+  }
 
   const { industriesQ, storesQ, promotersQ, routesQ, visitsQ, contractMetricsQ } = useMk9Data(month, year);
 
@@ -211,7 +241,8 @@ export function Mk9AnalyticsApp() {
 
             <nav className="flex flex-col gap-4" aria-label="Módulos principais">
               {moduleGroups.map((group) => {
-                const items = modules.filter((m) => m.group === group);
+                const items = visibleModules.filter((m) => m.group === group);
+                if (items.length === 0) return null;
                 return (
                   <div key={group} className="flex flex-col gap-1">
                     {!collapsed && (
@@ -320,9 +351,41 @@ export function Mk9AnalyticsApp() {
                 >
                   <Bell className="h-[18px] w-[18px]" />
                 </button>
-                <button className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-sm font-semibold text-primary-foreground shadow-sm">
-                  MK
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setUserMenu((v) => !v)}
+                    className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-sm font-semibold text-primary-foreground shadow-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    aria-label="Conta"
+                  >
+                    {(profile?.name ?? user?.email ?? "MK").slice(0, 2).toUpperCase()}
+                  </button>
+                  {userMenu && (
+                    <div className="animate-fade-up absolute right-0 top-12 z-30 w-64 overflow-hidden rounded-xl border border-border/80 bg-popover p-2 shadow-[var(--shadow-elevated)]">
+                      <div className="px-3 py-2">
+                        <p className="truncate text-sm font-medium">{profile?.name ?? user?.email ?? "Usuário"}</p>
+                        <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {roles.length === 0 ? (
+                            <Badge variant="outline" className="text-[10px]">sem papel</Badge>
+                          ) : (
+                            roles.map((r) => (
+                              <Badge key={r} variant="secondary" className="gap-1 text-[10px]">
+                                <Shield className="h-3 w-3" /> {r}
+                              </Badge>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                      <div className="my-1 border-t border-border/60" />
+                      <button
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+                      >
+                        <LogOut className="h-4 w-4" /> Sair
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </header>
@@ -353,6 +416,7 @@ export function Mk9AnalyticsApp() {
             )}
             {activeModule === "conciliacao" && <Mk9ReconciliationModule />}
             {activeModule === "relatorio_industria" && <Mk9IndustryReportModule />}
+            {activeModule === "usuarios" && <Mk9UsersModule currentUserId={user?.id ?? null} />}
           </div>
         </section>
       </div>

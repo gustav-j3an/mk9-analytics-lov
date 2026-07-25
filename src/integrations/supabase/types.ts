@@ -570,28 +570,37 @@ export type Database = {
       mk9_profiles: {
         Row: {
           active: boolean
+          avatar_url: string | null
           created_at: string
           email: string | null
           id: string
+          last_login_at: string | null
           name: string | null
+          phone: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           active?: boolean
+          avatar_url?: string | null
           created_at?: string
           email?: string | null
           id?: string
+          last_login_at?: string | null
           name?: string | null
+          phone?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           active?: boolean
+          avatar_url?: string | null
           created_at?: string
           email?: string | null
           id?: string
+          last_login_at?: string | null
           name?: string | null
+          phone?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -709,6 +718,30 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["mk9_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mk9_user_scopes: {
+        Row: {
+          created_at: string
+          id: string
+          scope_type: string
+          scope_value: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          scope_type: string
+          scope_value: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          scope_type?: string
+          scope_value?: string
           user_id?: string
         }
         Relationships: []
