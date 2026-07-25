@@ -298,10 +298,10 @@ export async function buildIndustryReport(
           ? "FORA_ROTEIRO"
           : "SEM_ROTEIRO";
 
-    // status legado (usado no PDF antigo): combina os dois
+    // status legado (usado no PDF antigo): combina execução + roteiro
     let legacy: StoreStatus;
     if (routeStatus === "FORA_ROTEIRO") legacy = "FORA_ROTEIRO";
-    else if (b.actual > b.contratadasCompatShim(contratadas)) legacy = "ACIMA_FREQUENCIA";
+    else if (m.extras > 0) legacy = "ACIMA_FREQUENCIA";
     else if (executionStatus === "OK") legacy = "ATENDIDA_INTEGRAL";
     else if (executionStatus === "PARCIAL") legacy = "ATENDIDA_PARCIAL";
     else legacy = "NAO_ATENDIDA";
