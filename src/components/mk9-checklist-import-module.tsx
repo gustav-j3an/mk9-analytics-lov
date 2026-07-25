@@ -374,13 +374,20 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
               <MiniStat label="Total de lojas" value={preview.counters.totalStores} />
               <MiniStat label="Total de visitas" value={preview.counters.totalMarks} />
               <MiniStat label="Lojas encontradas" value={preview.counters.storesFound} tone="green" />
-              <MiniStat label="Lojas não encontradas" value={preview.counters.storesNotFound} tone="red" />
-              <MiniStat label="Datas válidas" value={preview.counters.validDates} tone="blue" />
-              <MiniStat label="Datas inválidas" value={preview.counters.invalidDates} tone="amber" />
+              <MiniStat label="Vinculadas por similaridade" value={preview.counters.storesLinkedBySimilarity} tone="blue" />
+              <MiniStat label="Novas lojas" value={preview.counters.storesNew} tone="amber" />
+              <MiniStat label="Datas inválidas" value={preview.counters.invalidDates} tone="red" />
             </div>
 
+            {preview.counters.storesNew > 0 && (
+              <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-300">
+                Esta importação poderá cadastrar automaticamente {preview.counters.storesNew} nova(s) loja(s) na Base MK9.
+                Os dados ausentes serão marcados como “Não informado” e poderão ser completados depois em Cadastros › Lojas.
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-2">
-              {(["all", "found", "store_not_found", "invalid_date"] as const).map((f) => (
+              {(["all", "found", "linked_by_similarity", "new_store", "invalid_date"] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
@@ -390,7 +397,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                 >
                   {f === "all" && "Todos"}
                   {f === "found" && "Encontradas"}
-                  {f === "store_not_found" && "Loja não encontrada"}
+                  {f === "linked_by_similarity" && "Vinculadas por similaridade"}
+                  {f === "new_store" && "Nova loja"}
                   {f === "invalid_date" && "Data inválida"}
                 </button>
               ))}
@@ -416,11 +424,21 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                       <td className="p-2 whitespace-nowrap">{shortDate(it.scheduledDate)}</td>
                       <td className="p-2">
                         {it.status === "found" && <Badge variant="default">Encontrada</Badge>}
+                        {it.status === "linked_by_similarity" && <Badge variant="secondary">Similaridade</Badge>}
+                        {it.status === "new_store" && (
+                          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/40">
+                            NOVA LOJA
+                          </Badge>
+                        )}
                         {it.status === "store_not_found" && <Badge variant="destructive">Loja não encontrada</Badge>}
                         {it.status === "invalid_date" && <Badge variant="secondary">Data inválida</Badge>}
                       </td>
                       <td className="p-2 text-muted-foreground">
-                        {it.status === "found" ? "Criar visita realizada" : it.message ?? "—"}
+                        {it.status === "found" && "Vincular à loja existente"}
+                        {it.status === "linked_by_similarity" &&
+                          `Vinculada por correspondência aproximada${it.matchedStoreName ? ` → ${it.matchedStoreName}` : ""}${it.similarityScore ? ` (${Math.round(it.similarityScore * 100)}%)` : ""}`}
+                        {it.status === "new_store" && "Criar nova loja automaticamente"}
+                        {(it.status === "store_not_found" || it.status === "invalid_date") && (it.message ?? "—")}
                       </td>
                     </tr>
                   ))}
