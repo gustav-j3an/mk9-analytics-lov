@@ -254,6 +254,10 @@ export function Mk9ChecklistImportModule() {
         </CardContent>
       </Card>
 
+      {lastError && <ErrorPanel err={lastError} onDismiss={() => setLastError(null)} />}
+
+
+
       {preview && (
         <Card className="glass-panel">
           <CardHeader>
