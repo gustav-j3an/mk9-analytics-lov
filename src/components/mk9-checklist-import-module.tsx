@@ -67,6 +67,34 @@ function shortDate(value: string) {
   return d && m && y ? `${d}/${m}/${y}` : value;
 }
 
+type RichError = {
+  __mk9Error?: true;
+  step?: string;
+  function?: string;
+  message?: string;
+  name?: string;
+  stack?: string;
+  file?: string;
+  line?: number;
+  validation?: { field: string; expected?: string; received?: unknown; issues: any[] };
+  database?: {
+    code?: string; message?: string; details?: string; hint?: string;
+    constraint?: string; table?: string; column?: string; value?: unknown;
+  };
+  parser?: { sheet?: string; row?: number; column?: string | number; value?: unknown };
+  extra?: Record<string, unknown>;
+  raw?: string;
+};
+
+function parseServerError(e: any): RichError {
+  const raw = e?.message ?? String(e ?? "");
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && parsed.__mk9Error) return parsed as RichError;
+  } catch {}
+  return { message: raw || "Erro desconhecido", raw };
+}
+
 export function Mk9ChecklistImportModule() {
   const now = new Date();
   const [file, setFile] = useState<File | null>(null);
@@ -77,6 +105,8 @@ export function Mk9ChecklistImportModule() {
   const [importId, setImportId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "found" | "store_not_found" | "invalid_date">("all");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [lastError, setLastError] = useState<RichError | null>(null);
+
 
   const previewFn = useServerFn(checklistPreview);
   const commitFn = useServerFn(checklistCommit);
@@ -100,10 +130,15 @@ export function Mk9ChecklistImportModule() {
     onSuccess: (res) => {
       setPreview(res.preview);
       setImportId(res.importId);
+      setLastError(null);
       toast.success("Prévia gerada");
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
     },
-    onError: (e: any) => toast.error(e?.message ?? "Falha ao gerar prévia"),
+    onError: (e: any) => {
+      const rich = parseServerError(e);
+      setLastError(rich);
+      toast.error(rich.message ?? "Falha ao gerar prévia", { duration: 10000 });
+    },
   });
 
   const commitMut = useMutation({
@@ -124,6 +159,7 @@ export function Mk9ChecklistImportModule() {
       });
     },
     onSuccess: (res: any) => {
+      setLastError(null);
       toast.success("Checklist importado", {
         description: `${res.persisted} novas · ${res.skipped} já existentes · ${res.total} avaliadas`,
         duration: 8000,
@@ -135,11 +171,14 @@ export function Mk9ChecklistImportModule() {
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
     },
     onError: (e: any) => {
-      toast.error(e?.message ?? "Falha ao confirmar", { duration: 8000 });
+      const rich = parseServerError(e);
+      setLastError(rich);
+      toast.error(rich.message ?? "Falha ao confirmar", { duration: 10000 });
       setConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
     },
   });
+
 
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteFn({ data: { importId: id } }),
@@ -214,6 +253,10 @@ export function Mk9ChecklistImportModule() {
           </div>
         </CardContent>
       </Card>
+
+      {lastError && <ErrorPanel err={lastError} onDismiss={() => setLastError(null)} />}
+
+
 
       {preview && (
         <Card className="glass-panel">
@@ -389,3 +432,111 @@ function ConfirmRow({ label, value }: { label: string; value: number | string })
     </>
   );
 }
+
+function Row({ k, v }: { k: string; v: unknown }) {
+  if (v === null || v === undefined || v === "") return null;
+  return (
+    <div className="grid grid-cols-[160px_1fr] gap-2 text-xs">
+      <span className="text-muted-foreground">{k}</span>
+      <span className="font-mono break-all">{typeof v === "string" ? v : JSON.stringify(v)}</span>
+    </div>
+  );
+}
+
+function ErrorPanel({ err, onDismiss }: { err: RichError; onDismiss: () => void }) {
+  const [showStack, setShowStack] = useState(false);
+  const isDev = typeof import.meta !== "undefined" && (import.meta as any).env?.DEV;
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(err, null, 2));
+      toast.success("Detalhes copiados");
+    } catch {
+      toast.error("Não foi possível copiar");
+    }
+  };
+  return (
+    <Card className="glass-panel border-destructive/50">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-destructive">
+          <AlertTriangle className="h-5 w-5" />
+          Erro na importação {err.step ? `— ${err.step}` : ""}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="rounded-md bg-destructive/5 border border-destructive/20 p-3 text-sm">
+          <p className="font-medium text-destructive">{err.message}</p>
+          {err.name && <p className="text-xs text-muted-foreground mt-1">{err.name}</p>}
+        </div>
+
+        <div className="space-y-1">
+          <Row k="Função" v={err.function} />
+          <Row k="Etapa" v={err.step} />
+          <Row k="Arquivo" v={err.file} />
+          <Row k="Linha" v={err.line} />
+        </div>
+
+        {err.validation && (
+          <div className="rounded-md border p-3 space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Validação</p>
+            <Row k="Campo" v={err.validation.field} />
+            <Row k="Esperado" v={err.validation.expected} />
+            <Row k="Recebido" v={err.validation.received} />
+            <Row k="Issues" v={err.validation.issues} />
+          </div>
+        )}
+
+        {err.database && (
+          <div className="rounded-md border p-3 space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Banco de dados</p>
+            <Row k="Código PG" v={err.database.code} />
+            <Row k="Tabela" v={err.database.table} />
+            <Row k="Coluna" v={err.database.column} />
+            <Row k="Constraint" v={err.database.constraint} />
+            <Row k="Valor" v={err.database.value} />
+            <Row k="Details" v={err.database.details} />
+            <Row k="Hint" v={err.database.hint} />
+          </div>
+        )}
+
+        {err.parser && (
+          <div className="rounded-md border p-3 space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Parser</p>
+            <Row k="Aba" v={err.parser.sheet} />
+            <Row k="Linha" v={err.parser.row} />
+            <Row k="Coluna" v={err.parser.column} />
+            <Row k="Valor" v={err.parser.value} />
+          </div>
+        )}
+
+        {err.extra && Object.keys(err.extra).length > 0 && (
+          <div className="rounded-md border p-3 space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contexto</p>
+            {Object.entries(err.extra).map(([k, v]) => <Row key={k} k={k} v={v} />)}
+          </div>
+        )}
+
+        {isDev && err.stack && (
+          <div className="rounded-md border p-3">
+            <button
+              onClick={() => setShowStack((s) => !s)}
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+            >
+              Stack trace {showStack ? "▾" : "▸"}
+            </button>
+            {showStack && (
+              <pre className="mt-2 max-h-64 overflow-auto text-[11px] font-mono whitespace-pre-wrap">
+                {err.stack}
+              </pre>
+            )}
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={copy}>Copiar detalhes técnicos</Button>
+          <Button size="sm" variant="ghost" onClick={onDismiss}>Fechar</Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
