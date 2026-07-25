@@ -394,8 +394,8 @@ function DashboardModule({
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard tone="blue" icon={Route} label="Visitas contratadas" value={metrics.contratadas} detail={`${metrics.executadas} executadas`} />
-        <KpiCard tone="green" icon={CheckCircle2} label="Cobertura" value={`${metrics.coverage}%`} detail={`${metrics.validas} válidas · ${metrics.extras} extras`} />
-        <KpiCard tone="amber" icon={AlertTriangle} label="Pendências" value={metrics.pendencias} detail={`${metrics.delayed} atrasadas`} />
+        <KpiCard tone="green" icon={CheckCircle2} label="Cobertura" value={`${metrics.coverage}%`} detail={`${metrics.executadas} realizadas · ${metrics.extras} extras`} />
+        <KpiCard tone="amber" icon={AlertTriangle} label="Pendentes" value={metrics.pendencias} detail={`${metrics.delayed} atrasadas`} />
         <KpiCard tone="violet" icon={FileSpreadsheet} label="Rotas ativas" value={routes.length} detail={`${promoters.length} promotores`} />
       </div>
 
