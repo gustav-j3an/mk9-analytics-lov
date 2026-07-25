@@ -122,7 +122,7 @@ export function createSupabaseRepository(): Mk9Repository {
       const out: StoreRecord[] = [];
       if (withUf.length) {
         const { data, error } = await supabaseAdmin
-          .from("mk9_stores").upsert(withUf, { onConflict: "name_normalized,uf" }).select();
+          .from("mk9_stores").upsert(withUf, { onConflict: "name_normalized,uf", defaultToNull: false }).select();
         if (error) throw error;
         out.push(...(data ?? []).map(mapStore));
       }
