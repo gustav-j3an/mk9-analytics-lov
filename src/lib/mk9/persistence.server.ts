@@ -206,7 +206,7 @@ export function createSupabaseRepository(): Mk9Repository {
           }
         }
 
-        const payload: Record<string, unknown> = {
+        const payload = {
           external_id: nextExternalId,
           name: r.name,
           name_normalized: r.nameNormalized,
