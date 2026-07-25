@@ -284,29 +284,49 @@ export function Mk9IndustryReportModule() {
               <table className="w-full text-sm">
                 <thead className="border-b text-left text-xs uppercase text-muted-foreground">
                   <tr>
-                    <th className="py-2">Loja</th><th>UF</th><th>Contr.</th><th>Real.</th><th>Vál.</th><th>Pend.</th><th>Extra</th><th>Cob.</th><th>Status</th><th>Datas realizadas</th>
+                    <th className="py-2">Loja</th>
+                    <th>UF</th>
+                    <th>Freq.</th>
+                    <th>Fonte</th>
+                    <th>Contr.</th>
+                    <th>Real.</th>
+                    <th>Vál.</th>
+                    <th>Pend.</th>
+                    <th>Extra</th>
+                    <th>Cob.</th>
+                    <th>Execução</th>
+                    <th>Roteiro</th>
+                    <th>Datas realizadas</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {report.stores.map((s) => (
-                    <tr key={s.storeId} className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="py-2">
-                        <div className="font-medium">{s.storeName}</div>
-                        {s.chain && <div className="text-xs text-muted-foreground">{s.chain}</div>}
-                      </td>
-                      <td>{s.uf ?? "—"}</td>
-                      <td>{s.expected}</td>
-                      <td>{s.actual}</td>
-                      <td>{s.validForCoverage}</td>
-                      <td>{s.pending}</td>
-                      <td>{s.extra}</td>
-                      <td>{s.coveragePct}%</td>
-                      <td><Badge variant="outline" className={STATUS_TONE[s.status]}>{STATUS_LABEL[s.status]}</Badge></td>
-                      <td className="max-w-[240px] text-xs text-muted-foreground">{s.actualDates.length ? s.actualDates.map(fmtBR).join(", ") : "—"}</td>
-                    </tr>
-                  ))}
+                  {report.stores.map((s: any) => {
+                    const freqLabel =
+                      s.weeklyFrequency ? `${s.weeklyFrequency}/sem` :
+                      s.monthlyFrequency ? `${s.monthlyFrequency}/mês` : "—";
+                    return (
+                      <tr key={s.storeId} className="border-b last:border-0 hover:bg-muted/30">
+                        <td className="py-2">
+                          <div className="font-medium">{s.storeName}</div>
+                          {s.chain && <div className="text-xs text-muted-foreground">{s.chain}</div>}
+                        </td>
+                        <td>{s.uf ?? "—"}</td>
+                        <td className="text-xs">{freqLabel}</td>
+                        <td className="text-xs text-muted-foreground">{SOURCE_LABEL[s.contractedSource] ?? s.contractedSource}</td>
+                        <td>{s.expected}</td>
+                        <td>{s.actual}</td>
+                        <td>{s.validForCoverage}</td>
+                        <td>{s.pending}</td>
+                        <td>{s.extra}</td>
+                        <td>{s.coveragePct}%</td>
+                        <td><Badge variant="outline" className={EXEC_TONE[s.executionStatus]}>{EXEC_LABEL[s.executionStatus]}</Badge></td>
+                        <td><Badge variant="outline" className={ROUTE_TONE[s.routeStatus]}>{ROUTE_LABEL[s.routeStatus]}</Badge></td>
+                        <td className="max-w-[240px] text-xs text-muted-foreground">{s.actualDates.length ? s.actualDates.map(fmtBR).join(", ") : "—"}</td>
+                      </tr>
+                    );
+                  })}
                   {report.stores.length === 0 && (
-                    <tr><td colSpan={10} className="py-6 text-center text-muted-foreground">Nenhuma loja no período com esses filtros.</td></tr>
+                    <tr><td colSpan={13} className="py-6 text-center text-muted-foreground">Nenhuma loja no período com esses filtros.</td></tr>
                   )}
                 </tbody>
               </table>
