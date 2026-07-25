@@ -68,20 +68,22 @@ type ModuleId =
   | "conciliacao"
   | "relatorio_industria"
   | "importacoes"
-  | "checklists";
+  | "checklists"
+  | "usuarios";
 
-type ModuleGroup = "Visão geral" | "Operação" | "Relatórios" | "Dados" | "Importações";
-const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; group: ModuleGroup }> = [
-  { id: "dashboard", label: "Dashboard", icon: BarChart3, group: "Visão geral" },
-  { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação" },
-  { id: "visitas", label: "Visitas", icon: Calendar, group: "Operação" },
-  { id: "conciliacao", label: "Conciliação", icon: CheckCircle2, group: "Operação" },
-  { id: "relatorio_industria", label: "Indústrias (PDF)", icon: PackageCheck, group: "Relatórios" },
-  { id: "industrias", label: "Indústrias", icon: Factory, group: "Dados" },
-  { id: "lojas", label: "Lojas", icon: Store, group: "Dados" },
-  { id: "promotores", label: "Promotores", icon: Users, group: "Dados" },
-  { id: "importacoes", label: "Base MK9", icon: Upload, group: "Importações" },
-  { id: "checklists", label: "Checklists", icon: ClipboardCheck, group: "Importações" },
+type ModuleGroup = "Visão geral" | "Operação" | "Relatórios" | "Dados" | "Importações" | "Administração";
+const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; group: ModuleGroup; roles: Mk9Role[] }> = [
+  { id: "dashboard", label: "Dashboard", icon: BarChart3, group: "Visão geral", roles: ["ADMIN", "SUPERVISOR", "AUDITOR"] },
+  { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação", roles: ["ADMIN", "SUPERVISOR", "PROMOTOR", "AUDITOR"] },
+  { id: "visitas", label: "Visitas", icon: Calendar, group: "Operação", roles: ["ADMIN", "SUPERVISOR", "PROMOTOR", "AUDITOR"] },
+  { id: "conciliacao", label: "Conciliação", icon: CheckCircle2, group: "Operação", roles: ["ADMIN", "SUPERVISOR"] },
+  { id: "relatorio_industria", label: "Indústrias (PDF)", icon: PackageCheck, group: "Relatórios", roles: ["ADMIN", "SUPERVISOR", "CLIENTE", "AUDITOR"] },
+  { id: "industrias", label: "Indústrias", icon: Factory, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
+  { id: "lojas", label: "Lojas", icon: Store, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
+  { id: "promotores", label: "Promotores", icon: Users, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
+  { id: "importacoes", label: "Base MK9", icon: Upload, group: "Importações", roles: ["ADMIN"] },
+  { id: "checklists", label: "Checklists", icon: ClipboardCheck, group: "Importações", roles: ["ADMIN"] },
+  { id: "usuarios", label: "Usuários", icon: UserCog, group: "Administração", roles: ["ADMIN"] },
 ];
 const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Relatórios", "Dados", "Importações"];
 
