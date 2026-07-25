@@ -6,6 +6,8 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
+import { Mk9ImportModule } from "@/components/mk9-import-module";
+
 import {
   AlertTriangle,
   BarChart3,
@@ -389,7 +391,7 @@ export function Mk9AnalyticsApp() {
             {activeModule === "visitas" && (
               <VisitsModule visits={visits} setVisits={setVisits} stores={stores} promoters={promoters} operations={operations} />
             )}
-            {activeModule === "importacoes" && <ImportsModule imports={imports} setImports={setImports} />}
+            {activeModule === "importacoes" && <Mk9ImportModule />}
             {activeModule === "conciliacao" && (
               <ReconciliationModule visits={visits} setVisits={setVisits} stores={stores} promoters={promoters} imports={imports} />
             )}
