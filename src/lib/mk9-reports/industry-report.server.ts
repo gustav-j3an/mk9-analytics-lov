@@ -119,15 +119,16 @@ export async function buildIndustryReport(
   if (eAc) throw new Error(eAc.message);
 
   // 4) Reconciliações no período (para contagem de divergentes/fora do roteiro)
-  const { data: recs, error: eRe } = await supabase
+  let recQ = supabase
     .from("mk9_visit_reconciliations")
     .select("status, store_id, planned_visit_id, actual_visit_id, source_import_id")
     .eq("industry_id", industryId)
     .eq("operation_year", input.year)
     .eq("operation_month", input.month)
     .limit(20000);
-  if (sourceImportId) recs.eq("source_import_id", sourceImportId);
-  if (storeId) recs.eq("store_id", storeId);
+  if (sourceImportId) recQ = recQ.eq("source_import_id", sourceImportId);
+  if (storeId) recQ = recQ.eq("store_id", storeId);
+  const { data: recs, error: eRe } = await recQ;
   if (eRe) throw new Error(eRe.message);
 
   // Agrega por loja
@@ -213,6 +214,8 @@ export async function buildIndustryReport(
     };
   });
   stores.sort((a, z) => a.storeName.localeCompare(z.storeName, "pt-BR"));
+  const storeIdsInReport = new Set(stores.map((s) => s.storeId));
+  const recRows = (recs ?? []).filter((r: any) => !r.store_id || storeIdsInReport.has(r.store_id as string));
 
   // Totais
   const contracted = stores.reduce((s, x) => s + x.expected, 0);
@@ -220,10 +223,10 @@ export async function buildIndustryReport(
   const validForContractCoverage = stores.reduce((s, x) => s + x.validForCoverage, 0);
   const extra = stores.reduce((s, x) => s + x.extra, 0);
   const pending = stores.reduce((s, x) => s + x.pending, 0);
-  const divergent = (recs ?? []).filter((r: any) => r.status === "DATE_DIVERGENCE").length;
-  const unplanned = (recs ?? []).filter((r: any) => r.status === "UNPLANNED_VISIT").length;
+  const divergent = recRows.filter((r: any) => r.status === "DATE_DIVERGENCE").length;
+  const unplanned = recRows.filter((r: any) => r.status === "UNPLANNED_VISIT").length;
   const reconciledPlannedIds = new Set<string>();
-  for (const r of recs ?? []) {
+  for (const r of recRows) {
     const plannedVisitId = r.planned_visit_id as string | null;
     const actualVisitId = r.actual_visit_id as string | null;
     const status = r.status as string;
