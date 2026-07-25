@@ -255,8 +255,8 @@ export async function buildIndustryReport(
   for (const p of planned ?? []) {
     if (!p.store_id) continue;
     if (uf && p.store?.uf !== uf) continue;
-    const b = touch(p.store_id, p.store);
-    b.plannedCount += 1;
+    const b = map.get(p.store_id);
+    if (b) b.plannedCount += 1;
   }
   for (const a of actuals ?? []) {
     if (!a.store_id) continue;
