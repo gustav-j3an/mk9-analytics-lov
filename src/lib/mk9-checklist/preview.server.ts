@@ -83,7 +83,7 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     storesByUf.set(key, list);
   }
 
-  // Resolve uma loja: exata → similaridade → nova. Memoiza por (normalized, uf).
+  // Resolve uma loja: exata → único por nome (ignorando UF) → similaridade → nova.
   type Resolution =
     | { kind: "found"; storeId: string; matchedName?: string }
     | { kind: "linked_by_similarity"; storeId: string; matchedName: string; score: number }
@@ -93,13 +93,22 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     const key = `${normalized}|${uf ?? ""}`;
     const cached = resolveCache.get(key);
     if (cached) return cached;
-    const exact = stores.byKey.get(key) ?? stores.byName.get(normalized);
+    // 1) Match exato por (nome_normalizado, uf)
+    const exact = stores.byKey.get(key);
     if (exact) {
       const r: Resolution = { kind: "found", storeId: exact.id, matchedName: exact.name };
       resolveCache.set(key, r);
       return r;
     }
-    // similaridade dentro da mesma UF (fallback: sem UF quando ausente)
+    // 2) Se existe apenas UMA loja com esse nome normalizado (qualquer UF),
+    //    usa ela. Cobre o caso comum de a UF vir divergente/errada do checklist.
+    const unique = stores.uniqueByName.get(normalized);
+    if (unique) {
+      const r: Resolution = { kind: "found", storeId: unique.id, matchedName: unique.name };
+      resolveCache.set(key, r);
+      return r;
+    }
+    // 3) Similaridade dentro da mesma UF (fallback: sem UF quando ausente)
     const pool = storesByUf.get(uf ?? "") ?? [];
     let best: { rec: (typeof pool)[number]; score: number } | null = null;
     let secondBest = 0;
