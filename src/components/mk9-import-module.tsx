@@ -217,22 +217,50 @@ export function Mk9ImportModule() {
             <p className="text-sm text-muted-foreground">Nenhuma importação registrada.</p>
           ) : (
             <div className="space-y-2">
-              {(historyQ.data ?? []).map((imp) => (
-                <div key={imp.id} className="flex items-center justify-between text-sm p-3 rounded-lg border">
-                  <div>
-                    <p className="font-medium">{imp.filename}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {MONTHS[imp.operationMonth - 1]} {imp.operationYear} · modo {imp.syncMode} · {imp.sheetsAnalyzed.length} abas
-                    </p>
+              {(historyQ.data ?? []).map((imp) => {
+                const st = STATUS_LABEL[imp.status] ?? { label: imp.status, variant: "secondary" as const };
+                const isOpen = !!expanded[imp.id];
+                const hasError = !!imp.errorMessage;
+                return (
+                  <div key={imp.id} className="text-sm rounded-lg border">
+                    <div className="flex items-center justify-between p-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{imp.filename}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {MONTHS[imp.operationMonth - 1]} {imp.operationYear} · modo {imp.syncMode} · {imp.sheetsAnalyzed.length} abas
+                          {imp.durationMs != null && ` · ${imp.durationMs}ms`}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge variant={st.variant}>{st.label}</Badge>
+                        {hasError && (
+                          <Button size="sm" variant="ghost" onClick={() => setExpanded((s) => ({ ...s, [imp.id]: !s[imp.id] }))}>
+                            {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            Ver erro
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" onClick={() => deleteMut.mutate(imp.id)} disabled={deleteMut.isPending}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                    {hasError && isOpen && (
+                      <div className="px-3 pb-3">
+                        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 space-y-1">
+                          <div className="flex items-center gap-2 text-destructive font-medium">
+                            <AlertTriangle className="h-4 w-4" /> Erro na importação
+                          </div>
+                          <p className="text-xs whitespace-pre-wrap break-words text-destructive/90 font-mono">{imp.errorMessage}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Iniciada em {new Date(imp.startedAt).toLocaleString("pt-BR")}
+                            {imp.finishedAt && ` · Falhou em ${new Date(imp.finishedAt).toLocaleString("pt-BR")}`}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={imp.status === "done" ? "default" : imp.status === "failed" ? "destructive" : "secondary"}>
-                      {imp.status}
-                    </Badge>
-                    {imp.errorMessage && <AlertTriangle className="h-4 w-4 text-destructive" />}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
