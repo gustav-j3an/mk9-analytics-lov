@@ -57,13 +57,21 @@ export function Mk9ImportModule() {
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [importId, setImportId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const previewFn = useServerFn(mk9PreviewImport);
   const commitFn = useServerFn(mk9CommitImport);
   const listFn = useServerFn(mk9ListImports);
+  const deleteFn = useServerFn(mk9DeleteImport);
   const qc = useQueryClient();
 
   const historyQ = useQuery({ queryKey: ["mk9-imports"], queryFn: () => listFn() });
+
+  const deleteMut = useMutation({
+    mutationFn: (importId: string) => deleteFn({ data: { importId } }),
+    onSuccess: () => { toast.success("Histórico removido"); qc.invalidateQueries({ queryKey: ["mk9-imports"] }); },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao remover"),
+  });
 
   const previewMut = useMutation({
     mutationFn: async () => {
