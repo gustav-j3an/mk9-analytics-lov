@@ -50,13 +50,17 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     sheetsAnalyzed: parsed.sheetsAnalyzed,
     stores: parsed.stores.length,
     visits: parsed.marks.length,
+    dateColumnCount: parsed.dateColumnCount,
+    firstDate: parsed.firstDate,
+    lastDate: parsed.lastDate,
+    realizadoSum: parsed.realizadoSum,
     warnings: parsed.warnings,
   });
 
   if (parsed.marks.length === 0 && parsed.stores.length === 0) {
     const payload = buildRichError(
       new Error(
-        "Planilha vazia ou fora do modelo esperado. Não foi possível localizar cabeçalho com coluna 'Loja' + colunas de dias (1..31).",
+        "Planilha vazia ou fora do modelo esperado. Não foi possível localizar cabeçalho com coluna 'Loja' + colunas de datas.",
       ),
       {
         step: "parse-workbook",
@@ -83,7 +87,6 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     marks: parsed.marks.length,
     storesInSheet: parsed.stores.length,
   });
-  const maxDay = daysInMonth(input.operationYear, input.operationMonth);
   const items: ChecklistItem[] = [];
   const storesSeen = new Set<string>();
   const storesFound = new Set<string>();
@@ -93,11 +96,7 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     const key = `${mark.storeNormalized}|${mark.uf ?? ""}`;
     storesSeen.add(key);
     const match = stores.byKey.get(key) ?? stores.byName.get(mark.storeNormalized);
-
-    const dateStr =
-      mark.day >= 1 && mark.day <= maxDay
-        ? `${input.operationYear}-${pad2(input.operationMonth)}-${pad2(mark.day)}`
-        : "";
+    const dateStr = mark.scheduledDate || "";
 
     if (!match) {
       storesNotFound.add(key);
@@ -122,7 +121,7 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
         storeId: match.id,
         scheduledDate: "",
         status: "invalid_date",
-        message: `Dia ${mark.day} inválido para ${pad2(input.operationMonth)}/${input.operationYear}`,
+        message: `Data inválida no cabeçalho (linha ${mark.excelRow})`,
       });
       continue;
     }
@@ -144,6 +143,7 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     if (match) storesFound.add(key);
     else storesNotFound.add(key);
   }
+
 
   const validDates = items.filter((i) => i.status === "found").length;
   const invalidDates = items.filter((i) => i.status === "invalid_date").length;
