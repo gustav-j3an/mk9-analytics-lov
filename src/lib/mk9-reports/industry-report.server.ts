@@ -121,20 +121,25 @@ function weeksInWindow(window: PeriodWindow): number {
   return Math.max(1, Math.round(window.totalDays / 7));
 }
 
-/** Contratadas por loja a partir da frequência cadastrada. Nunca negativo. */
+/**
+ * Contratadas por loja a partir da frequência cadastrada, escalada pelo
+ * período REAL da competência. Nunca negativo. Nunca usa roteiro.
+ */
 function contractedFromFrequency(
   weekly: number | null,
   monthly: number | null,
-  weeks: number,
+  totalDays: number,
 ): { contratadas: number; source: ContractedSource } {
+  const days = Math.max(1, totalDays);
   if (weekly != null && Number.isFinite(weekly) && weekly > 0) {
-    return { contratadas: Math.max(0, Math.round(weekly * weeks)), source: "WEEKLY_FREQUENCY" };
+    return { contratadas: Math.max(0, Math.round(weekly * (days / 7))), source: "WEEKLY_FREQUENCY" };
   }
   if (monthly != null && Number.isFinite(monthly) && monthly > 0) {
-    return { contratadas: Math.max(0, Math.round(monthly)), source: "MONTHLY_FREQUENCY" };
+    return { contratadas: Math.max(0, Math.round(monthly * (days / 30))), source: "MONTHLY_FREQUENCY" };
   }
   return { contratadas: 0, source: "NONE" };
 }
+
 
 export async function buildIndustryReport(
   supabase: any,
