@@ -92,8 +92,19 @@ export function createSupabaseRepository(): Mk9Repository {
       if (!records.length) return [];
       const dedup = new Map<string, IndustryRecord>();
       for (const r of records) dedup.set(r.nameNormalized, { ...dedup.get(r.nameNormalized), ...r });
-      const payload = Array.from(dedup.values()).map((r) => withOptionalId({
-        id: r.id, name: r.name, name_normalized: r.nameNormalized,
+      const list = Array.from(dedup.values());
+
+      // Pré-busca ids estáveis por name_normalized para NÃO trocar o id no UPDATE do ON CONFLICT.
+      // Sem isso, o PostgREST envia id=DEFAULT no upsert, gera novo UUID e quebra as FKs (industry_store_frequency, routes, visits).
+      const names = list.map((r) => r.nameNormalized);
+      const { data: existingRows, error: exErr } = await supabaseAdmin
+        .from("mk9_industries").select("id, name_normalized").in("name_normalized", names);
+      if (exErr) throw exErr;
+      const idByName = new Map<string, string>();
+      for (const row of existingRows ?? []) idByName.set(row.name_normalized as string, row.id as string);
+
+      const payload = list.map((r) => withOptionalId({
+        id: r.id ?? idByName.get(r.nameNormalized), name: r.name, name_normalized: r.nameNormalized,
         monthly_contracted_frequency: r.monthlyContractedFrequency,
         monthly_estimated_frequency: r.monthlyEstimatedFrequency,
         frequency_difference: r.frequencyDifference,
@@ -113,10 +124,27 @@ export function createSupabaseRepository(): Mk9Repository {
         const k = `${r.nameNormalized}::${r.uf ?? ""}`;
         dedup.set(k, { ...dedup.get(k), ...r });
       }
-      const payload = Array.from(dedup.values()).map((r) => withOptionalId({
-        id: r.id, chain: r.chain, name: r.name,
-        name_normalized: r.nameNormalized, uf: r.uf, last_import_id: importId,
-      }));
+      const list = Array.from(dedup.values());
+
+      // Pré-busca ids estáveis por (name_normalized, uf) para preservar o id existente no UPDATE do ON CONFLICT.
+      // Se enviássemos id ausente com defaultToNull:false, o UPDATE aplicaria id=DEFAULT (novo UUID), quebrando FKs
+      // em mk9_planned_routes, mk9_planned_visits, mk9_industry_store_frequency, mk9_actual_visits, reconciliations.
+      const names = Array.from(new Set(list.map((r) => r.nameNormalized)));
+      const { data: existingRows, error: exErr } = await supabaseAdmin
+        .from("mk9_stores").select("id, name_normalized, uf").in("name_normalized", names);
+      if (exErr) throw exErr;
+      const idByKey = new Map<string, string>();
+      for (const row of existingRows ?? []) {
+        idByKey.set(`${row.name_normalized}::${(row.uf as string | null) ?? ""}`, row.id as string);
+      }
+
+      const payload = list.map((r) => {
+        const key = `${r.nameNormalized}::${r.uf ?? ""}`;
+        return withOptionalId({
+          id: r.id ?? idByKey.get(key), chain: r.chain, name: r.name,
+          name_normalized: r.nameNormalized, uf: r.uf, last_import_id: importId,
+        });
+      });
       // (name_normalized, uf) unique treats NULL uf as distinct; split NULL-uf rows into insert-if-missing
       const withUf = payload.filter((p) => p.uf !== null && p.uf !== undefined);
       const withoutUf = payload.filter((p) => p.uf === null || p.uf === undefined);
