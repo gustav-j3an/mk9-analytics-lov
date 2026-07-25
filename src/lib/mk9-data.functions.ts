@@ -103,6 +103,7 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
       )
       .gte("scheduled_date", first)
       .lte("scheduled_date", last)
+      .is("archived_at", null)
       .order("scheduled_date", { ascending: true })
       .limit(5000);
     if (error) throw new Error(error.message);

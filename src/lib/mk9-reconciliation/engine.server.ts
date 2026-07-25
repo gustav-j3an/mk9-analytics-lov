@@ -46,6 +46,7 @@ async function loadScope(scope: ReconcileScope) {
   const plannedQ = supabaseAdmin
     .from("mk9_planned_visits")
     .select("id, industry_id, store_id, promoter_id, scheduled_date")
+    .is("archived_at", null)
     .gte("scheduled_date", `${scope.operationYear}-${String(scope.operationMonth).padStart(2, "0")}-01`)
     .lt(
       "scheduled_date",
@@ -408,6 +409,7 @@ export async function summarize(scope: ReconcileScope): Promise<ReconciliationSu
   const plannedQ = supabaseAdmin
     .from("mk9_planned_visits")
     .select("id", { count: "exact", head: true })
+    .is("archived_at", null)
     .gte("scheduled_date", `${scope.operationYear}-${String(scope.operationMonth).padStart(2, "0")}-01`)
     .lt(
       "scheduled_date",
@@ -679,6 +681,7 @@ export async function findPlannedCandidates(input: { actualVisitId: string; wind
     .from("mk9_planned_visits")
     .select("id, scheduled_date, industry_id, store_id, promoter:mk9_promoters(id,name), store:mk9_stores(id,name,uf), industry:mk9_industries(id,name)")
     .eq("industry_id", a.industry_id)
+    .is("archived_at", null)
     .gte("scheduled_date", from).lte("scheduled_date", to)
     .order("scheduled_date", { ascending: true }).limit(50);
   if (e2) throw new Error(e2.message);
@@ -759,6 +762,7 @@ export async function linkStoreToReconciliation(input: {
     .from("mk9_planned_visits")
     .select("id, scheduled_date, promoter_id")
     .eq("industry_id", r.industry_id).eq("store_id", input.storeId)
+    .is("archived_at", null)
     .gte("scheduled_date", from).lte("scheduled_date", to);
 
   await supabaseAdmin.from("mk9_visit_reconciliations").delete().eq("id", input.reconciliationId);
