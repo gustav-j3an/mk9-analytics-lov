@@ -158,6 +158,7 @@ export const checklistCommit = createServerFn({ method: "POST" })
         storesCreated,
         storesReused,
         unresolved: unresolved.length,
+        frequenciesUpserted,
       };
 
       await updateImportStatus(data.importId, {
