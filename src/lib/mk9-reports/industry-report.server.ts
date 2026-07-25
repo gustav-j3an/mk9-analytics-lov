@@ -278,15 +278,13 @@ export async function buildIndustryReport(
 
   // Monta linhas por loja
   const stores: StoreLine[] = Array.from(map.values()).map((b) => {
-    // Contratadas: frequência > rota planejada > 0
-    const fromFreq = contractedFromFrequency(b.weekly, b.monthly, weeks);
-    let contratadas = fromFreq.contratadas;
-    let source: ContractedSource = fromFreq.source;
-    if (contratadas === 0 && b.plannedCount > 0) {
-      contratadas = b.plannedCount;
-      source = "PLANNED_ROUTE";
-    }
+    // Contratadas: SEMPRE da frequência cadastrada, escalada pelo período real.
+    // Roteiro planejado é auditoria (routeStatus) — nunca substitui contrato.
+    const fromFreq = contractedFromFrequency(b.weekly, b.monthly, window.totalDays);
+    const contratadas = fromFreq.contratadas;
+    const source: ContractedSource = fromFreq.source;
     const m = computeVisitMetrics({ contratadas, executadas: b.actual });
+
 
     // status_execucao (independe de roteiro)
     const executionStatus: ExecutionStatus =
