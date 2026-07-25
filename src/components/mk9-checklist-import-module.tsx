@@ -128,7 +128,7 @@ async function requestChecklistPreview(input: {
   return payload as ChecklistPreviewResponse;
 }
 
-export function Mk9ChecklistImportModule() {
+export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: () => void } = {}) {
   const now = new Date();
   const [file, setFile] = useState<File | null>(null);
   const [month, setMonth] = useState<number>(now.getMonth() + 1);
@@ -139,6 +139,7 @@ export function Mk9ChecklistImportModule() {
   const [filter, setFilter] = useState<"all" | "found" | "store_not_found" | "invalid_date">("all");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [lastError, setLastError] = useState<RichError | null>(null);
+  const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
 
 
   const commitFn = useServerFn(checklistCommit);
