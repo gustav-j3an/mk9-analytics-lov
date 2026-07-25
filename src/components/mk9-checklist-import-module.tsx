@@ -320,7 +320,10 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
               Gerar prévia
             </Button>
             {preview && (
-              <Button onClick={() => setConfirmOpen(true)} disabled={commitMut.isPending || validItems === 0}>
+              <Button
+                onClick={() => setConfirmOpen(true)}
+                disabled={commitMut.isPending || !canConfirm}
+              >
                 {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                 Confirmar importação
               </Button>
