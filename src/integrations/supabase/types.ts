@@ -761,7 +761,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      mk9_merge_stores: {
+        Args: { canonical: string; other: string }
+        Returns: undefined
+      }
+      mk9_normalize_store_name: { Args: { input: string }; Returns: string }
     }
     Enums: {
       mk9_actual_visit_origin: "CHECKLIST"
