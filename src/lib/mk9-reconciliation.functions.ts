@@ -12,14 +12,23 @@ const scopeSchema = z.object({
 export const reconcileRun = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => scopeSchema.parse(data))
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { reconcile } = await import("./mk9-reconciliation/engine.server");
-    return reconcile({
+    const result = await reconcile({
       operationYear: data.operationYear,
       operationMonth: data.operationMonth,
       industryId: data.industryId ?? null,
       sourceImportId: data.sourceImportId ?? null,
     });
+    await logAudit(ctx, "mk9.reconcile.run", "mk9_visit_reconciliations", data.sourceImportId ?? null, {
+      operationYear: data.operationYear,
+      operationMonth: data.operationMonth,
+      industryId: data.industryId ?? null,
+    });
+    return result;
   });
+
 
 export const reconcileSummary = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => scopeSchema.parse(data))
