@@ -99,7 +99,11 @@ export function Mk9ImportModule() {
       setPreview(null); setImportId(null); setFile(null);
       qc.invalidateQueries({ queryKey: ["mk9-imports"] });
     },
-    onError: (e: any) => toast.error(e?.message ?? "Falha ao confirmar"),
+    onError: (e: any) => {
+      const msg = e?.message ?? "Falha ao confirmar";
+      toast.error(msg, { description: msg.length > 80 ? msg.slice(0, 200) : undefined, duration: 8000 });
+      qc.invalidateQueries({ queryKey: ["mk9-imports"] });
+    },
   });
 
   const items = preview?.items ?? [];
