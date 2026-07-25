@@ -56,9 +56,10 @@ type ModuleId =
   | "promotores"
   | "roteiros"
   | "visitas"
-  | "importacoes";
+  | "importacoes"
+  | "checklists";
 
-type ModuleGroup = "Visão geral" | "Operação" | "Dados";
+type ModuleGroup = "Visão geral" | "Operação" | "Dados" | "Importações";
 const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; group: ModuleGroup }> = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3, group: "Visão geral" },
   { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação" },
@@ -66,9 +67,10 @@ const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; grou
   { id: "industrias", label: "Indústrias", icon: Factory, group: "Dados" },
   { id: "lojas", label: "Lojas", icon: Store, group: "Dados" },
   { id: "promotores", label: "Promotores", icon: Users, group: "Dados" },
-  { id: "importacoes", label: "Importações", icon: Upload, group: "Dados" },
+  { id: "importacoes", label: "Base MK9", icon: Upload, group: "Importações" },
+  { id: "checklists", label: "Checklists", icon: ClipboardCheck, group: "Importações" },
 ];
-const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Dados"];
+const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Dados", "Importações"];
 
 const MONTHS_PT = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
