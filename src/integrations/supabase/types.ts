@@ -514,6 +514,130 @@ export type Database = {
         }
         Relationships: []
       }
+      mk9_visit_reconciliations: {
+        Row: {
+          actual_date: string | null
+          actual_visit_id: string | null
+          candidates: Json
+          created_at: string
+          date_diff_days: number | null
+          id: string
+          industry_id: string
+          match_score: number
+          match_type: Database["public"]["Enums"]["mk9_reconciliation_match_type"]
+          notes: string | null
+          operation_month: number
+          operation_year: number
+          planned_date: string | null
+          planned_visit_id: string | null
+          promoter_id: string | null
+          raw_store_name: string | null
+          raw_store_uf: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewed_manually: boolean
+          source_import_id: string | null
+          status: Database["public"]["Enums"]["mk9_reconciliation_status"]
+          store_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_date?: string | null
+          actual_visit_id?: string | null
+          candidates?: Json
+          created_at?: string
+          date_diff_days?: number | null
+          id?: string
+          industry_id: string
+          match_score?: number
+          match_type?: Database["public"]["Enums"]["mk9_reconciliation_match_type"]
+          notes?: string | null
+          operation_month: number
+          operation_year: number
+          planned_date?: string | null
+          planned_visit_id?: string | null
+          promoter_id?: string | null
+          raw_store_name?: string | null
+          raw_store_uf?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewed_manually?: boolean
+          source_import_id?: string | null
+          status: Database["public"]["Enums"]["mk9_reconciliation_status"]
+          store_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_date?: string | null
+          actual_visit_id?: string | null
+          candidates?: Json
+          created_at?: string
+          date_diff_days?: number | null
+          id?: string
+          industry_id?: string
+          match_score?: number
+          match_type?: Database["public"]["Enums"]["mk9_reconciliation_match_type"]
+          notes?: string | null
+          operation_month?: number
+          operation_year?: number
+          planned_date?: string | null
+          planned_visit_id?: string | null
+          promoter_id?: string | null
+          raw_store_name?: string | null
+          raw_store_uf?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewed_manually?: boolean
+          source_import_id?: string | null
+          status?: Database["public"]["Enums"]["mk9_reconciliation_status"]
+          store_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_visit_reconciliations_actual_visit_id_fkey"
+            columns: ["actual_visit_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_actual_visits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_visit_reconciliations_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_visit_reconciliations_planned_visit_id_fkey"
+            columns: ["planned_visit_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_planned_visits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_visit_reconciliations_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_promoters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_visit_reconciliations_source_import_id_fkey"
+            columns: ["source_import_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_visit_reconciliations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -537,6 +661,17 @@ export type Database = {
         | "ABAIXO DA META"
         | "SEM META"
         | "OK"
+      mk9_reconciliation_match_type: "EXACT" | "NEAR_DATE" | "MANUAL" | "NONE"
+      mk9_reconciliation_status:
+        | "MATCHED"
+        | "DATE_DIVERGENCE"
+        | "UNPLANNED_VISIT"
+        | "NOT_COMPLETED"
+        | "STORE_NOT_FOUND"
+        | "AMBIGUOUS"
+        | "DUPLICATE_ACTUAL"
+        | "MANUALLY_MATCHED"
+        | "IGNORED"
       mk9_sync_mode: "full" | "add_only" | "registry_only" | "routes_only"
       mk9_visit_status: "planned" | "completed" | "cancelled" | "skipped"
     }
@@ -682,6 +817,18 @@ export const Constants = {
         "ABAIXO DA META",
         "SEM META",
         "OK",
+      ],
+      mk9_reconciliation_match_type: ["EXACT", "NEAR_DATE", "MANUAL", "NONE"],
+      mk9_reconciliation_status: [
+        "MATCHED",
+        "DATE_DIVERGENCE",
+        "UNPLANNED_VISIT",
+        "NOT_COMPLETED",
+        "STORE_NOT_FOUND",
+        "AMBIGUOUS",
+        "DUPLICATE_ACTUAL",
+        "MANUALLY_MATCHED",
+        "IGNORED",
       ],
       mk9_sync_mode: ["full", "add_only", "registry_only", "routes_only"],
       mk9_visit_status: ["planned", "completed", "cancelled", "skipped"],
