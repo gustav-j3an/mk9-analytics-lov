@@ -306,8 +306,12 @@ export function Mk9AnalyticsApp() {
             {activeModule === "promotores" && <PromotersModule promoters={promoters} routes={routes} visits={visits} loading={promotersQ.isLoading} />}
             {activeModule === "roteiros" && <RoutesModule routes={routes} loading={routesQ.isLoading} month={month} year={year} />}
             {activeModule === "visitas" && <VisitsModule visits={visits} loading={visitsQ.isLoading} />}
-            {activeModule === "importacoes" && <Mk9ImportModule />}
-            {activeModule === "checklists" && <Mk9ChecklistImportModule />}
+            {activeModule === "importacoes" && (
+              <Mk9ImportModule onSwitchToChecklists={() => setActiveModule("checklists")} />
+            )}
+            {activeModule === "checklists" && (
+              <Mk9ChecklistImportModule onSwitchToBase={() => setActiveModule("importacoes")} />
+            )}
             {activeModule === "conciliacao" && <Mk9ReconciliationModule />}
           </div>
         </section>
