@@ -26,19 +26,31 @@ const MONTHS_PT = [
   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
 
-const STATUS_TONE: Record<string, string> = {
-  ATENDIDA_INTEGRAL: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
-  ACIMA_FREQUENCIA: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
-  ATENDIDA_PARCIAL: "bg-amber-500/15 text-amber-700 border-amber-500/30",
-  NAO_ATENDIDA: "bg-rose-500/15 text-rose-700 border-rose-500/30",
-  FORA_ROTEIRO: "bg-orange-500/15 text-orange-700 border-orange-500/30",
+const EXEC_TONE: Record<string, string> = {
+  OK: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+  PARCIAL: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+  NAO_REALIZADA: "bg-rose-500/15 text-rose-700 border-rose-500/30",
 };
-const STATUS_LABEL: Record<string, string> = {
-  ATENDIDA_INTEGRAL: "Atendida",
-  ACIMA_FREQUENCIA: "Acima freq.",
-  ATENDIDA_PARCIAL: "Parcial",
-  NAO_ATENDIDA: "Não atendida",
+const EXEC_LABEL: Record<string, string> = {
+  OK: "OK",
+  PARCIAL: "Parcial",
+  NAO_REALIZADA: "Não realizada",
+};
+const ROUTE_TONE: Record<string, string> = {
+  DENTRO_ROTEIRO: "bg-sky-500/15 text-sky-700 border-sky-500/30",
+  FORA_ROTEIRO: "bg-orange-500/15 text-orange-700 border-orange-500/30",
+  SEM_ROTEIRO: "bg-muted text-muted-foreground border-border",
+};
+const ROUTE_LABEL: Record<string, string> = {
+  DENTRO_ROTEIRO: "Dentro do roteiro",
   FORA_ROTEIRO: "Fora do roteiro",
+  SEM_ROTEIRO: "Sem roteiro",
+};
+const SOURCE_LABEL: Record<string, string> = {
+  WEEKLY_FREQUENCY: "Freq. semanal",
+  MONTHLY_FREQUENCY: "Freq. mensal",
+  PLANNED_ROUTE: "Roteiro planejado",
+  NONE: "Sem contrato",
 };
 
 function fmtBR(iso?: string | null) {
@@ -272,29 +284,49 @@ export function Mk9IndustryReportModule() {
               <table className="w-full text-sm">
                 <thead className="border-b text-left text-xs uppercase text-muted-foreground">
                   <tr>
-                    <th className="py-2">Loja</th><th>UF</th><th>Contr.</th><th>Real.</th><th>Vál.</th><th>Pend.</th><th>Extra</th><th>Cob.</th><th>Status</th><th>Datas realizadas</th>
+                    <th className="py-2">Loja</th>
+                    <th>UF</th>
+                    <th>Freq.</th>
+                    <th>Fonte</th>
+                    <th>Contr.</th>
+                    <th>Real.</th>
+                    <th>Vál.</th>
+                    <th>Pend.</th>
+                    <th>Extra</th>
+                    <th>Cob.</th>
+                    <th>Execução</th>
+                    <th>Roteiro</th>
+                    <th>Datas realizadas</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {report.stores.map((s) => (
-                    <tr key={s.storeId} className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="py-2">
-                        <div className="font-medium">{s.storeName}</div>
-                        {s.chain && <div className="text-xs text-muted-foreground">{s.chain}</div>}
-                      </td>
-                      <td>{s.uf ?? "—"}</td>
-                      <td>{s.expected}</td>
-                      <td>{s.actual}</td>
-                      <td>{s.validForCoverage}</td>
-                      <td>{s.pending}</td>
-                      <td>{s.extra}</td>
-                      <td>{s.coveragePct}%</td>
-                      <td><Badge variant="outline" className={STATUS_TONE[s.status]}>{STATUS_LABEL[s.status]}</Badge></td>
-                      <td className="max-w-[240px] text-xs text-muted-foreground">{s.actualDates.length ? s.actualDates.map(fmtBR).join(", ") : "—"}</td>
-                    </tr>
-                  ))}
+                  {report.stores.map((s: any) => {
+                    const freqLabel =
+                      s.weeklyFrequency ? `${s.weeklyFrequency}/sem` :
+                      s.monthlyFrequency ? `${s.monthlyFrequency}/mês` : "—";
+                    return (
+                      <tr key={s.storeId} className="border-b last:border-0 hover:bg-muted/30">
+                        <td className="py-2">
+                          <div className="font-medium">{s.storeName}</div>
+                          {s.chain && <div className="text-xs text-muted-foreground">{s.chain}</div>}
+                        </td>
+                        <td>{s.uf ?? "—"}</td>
+                        <td className="text-xs">{freqLabel}</td>
+                        <td className="text-xs text-muted-foreground">{SOURCE_LABEL[s.contractedSource] ?? s.contractedSource}</td>
+                        <td>{s.expected}</td>
+                        <td>{s.actual}</td>
+                        <td>{s.validForCoverage}</td>
+                        <td>{s.pending}</td>
+                        <td>{s.extra}</td>
+                        <td>{s.coveragePct}%</td>
+                        <td><Badge variant="outline" className={EXEC_TONE[s.executionStatus]}>{EXEC_LABEL[s.executionStatus]}</Badge></td>
+                        <td><Badge variant="outline" className={ROUTE_TONE[s.routeStatus]}>{ROUTE_LABEL[s.routeStatus]}</Badge></td>
+                        <td className="max-w-[240px] text-xs text-muted-foreground">{s.actualDates.length ? s.actualDates.map(fmtBR).join(", ") : "—"}</td>
+                      </tr>
+                    );
+                  })}
                   {report.stores.length === 0 && (
-                    <tr><td colSpan={10} className="py-6 text-center text-muted-foreground">Nenhuma loja no período com esses filtros.</td></tr>
+                    <tr><td colSpan={13} className="py-6 text-center text-muted-foreground">Nenhuma loja no período com esses filtros.</td></tr>
                   )}
                 </tbody>
               </table>

@@ -211,6 +211,16 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
   const validDates = items.filter((i) => i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store").length;
   const invalidDates = items.filter((i) => i.status === "invalid_date").length;
 
+  // Frequências por loja (fonte: checklist parseado). Guardadas no snapshot
+  // para que o commit consiga persistir em mk9_industry_store_frequency.
+  const storeFrequencies = parsed.stores.map((s) => ({
+    storeName: s.storeName,
+    storeNormalized: s.storeNormalized,
+    uf: s.uf,
+    weeklyFrequency: s.weeklyFrequency,
+    monthlyFrequency: s.monthlyFrequency,
+  }));
+
   const preview: ChecklistPreview = {
     filename: input.filename,
     industryId: industry.id,
@@ -228,6 +238,7 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
       invalidDates,
     },
     items,
+    storeFrequencies,
     warnings: [
       ...(parsed.firstDate && parsed.lastDate
         ? [`Período detectado: ${parsed.firstDate.split("-").reverse().join("/")} a ${parsed.lastDate.split("-").reverse().join("/")} (${parsed.dateColumnCount} colunas de data). Soma REALIZADO: ${parsed.realizadoSum}.`]

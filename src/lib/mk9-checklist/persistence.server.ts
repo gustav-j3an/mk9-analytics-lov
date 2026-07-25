@@ -264,3 +264,48 @@ export async function deleteChecklistImport(importId: string) {
   const { error } = await supabaseAdmin.from("mk9_checklist_imports").delete().eq("id", importId);
   if (error) throw new Error(error.message);
 }
+
+export async function loadPreviewSnapshot(importId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("mk9_checklist_imports")
+    .select("preview")
+    .eq("id", importId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data?.preview ?? null) as ChecklistPreview | null;
+}
+
+// Upsert de frequência contratada por loja em uma indústria.
+// Idempotente por (industry_id, store_id). Usa NULL quando o valor não veio no checklist.
+export async function upsertIndustryStoreFrequencies(
+  industryId: string,
+  importId: string,
+  rows: Array<{ storeId: string; weeklyFrequency: number | null; monthlyFrequency: number | null }>,
+) {
+  if (!rows.length) return { upserted: 0 };
+  // Dedup por storeId (mantém a última entrada não-nula).
+  const dedup = new Map<string, { storeId: string; weekly: number | null; monthly: number | null }>();
+  for (const r of rows) {
+    const prev = dedup.get(r.storeId);
+    dedup.set(r.storeId, {
+      storeId: r.storeId,
+      weekly: r.weeklyFrequency ?? prev?.weekly ?? null,
+      monthly: r.monthlyFrequency ?? prev?.monthly ?? null,
+    });
+  }
+  const payload = Array.from(dedup.values()).map((r) => ({
+    industry_id: industryId,
+    store_id: r.storeId,
+    weekly_frequency: r.weekly,
+    monthly_frequency: r.monthly,
+    last_import_id: importId,
+  }));
+  const CHUNK = 500;
+  for (let i = 0; i < payload.length; i += CHUNK) {
+    const { error } = await supabaseAdmin
+      .from("mk9_industry_store_frequency")
+      .upsert(payload.slice(i, i + CHUNK) as any, { onConflict: "industry_id,store_id" });
+    if (error) throw new Error(error.message);
+  }
+  return { upserted: payload.length };
+}

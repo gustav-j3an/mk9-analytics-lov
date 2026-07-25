@@ -43,6 +43,14 @@ export interface ChecklistPreviewCounters {
   invalidDates: number;
 }
 
+export interface ChecklistStoreFrequency {
+  storeName: string;
+  storeNormalized: string;
+  uf: string | null;
+  weeklyFrequency: number | null;
+  monthlyFrequency: number | null;
+}
+
 export interface ChecklistPreview {
   filename: string;
   industryId: string;
@@ -51,6 +59,7 @@ export interface ChecklistPreview {
   operationYear: number;
   counters: ChecklistPreviewCounters;
   items: ChecklistItem[];
+  storeFrequencies: ChecklistStoreFrequency[];
   warnings: string[];
 }
 
