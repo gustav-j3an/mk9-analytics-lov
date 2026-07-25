@@ -47,7 +47,6 @@ const ROUTE_LABEL: Record<string, string> = {
 const SOURCE_LABEL: Record<string, string> = {
   WEEKLY_FREQUENCY: "Freq. semanal",
   MONTHLY_FREQUENCY: "Freq. mensal",
-  PLANNED_ROUTE: "Roteiro planejado",
   NONE: "Sem contrato",
 };
 

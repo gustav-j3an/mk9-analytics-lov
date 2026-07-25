@@ -2,6 +2,7 @@
 // Server functions públicas (uso interno do painel — sem auth por design).
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { resolveWindow } from "@/lib/mk9-reports/period.server";
 
 const monthYearSchema = z.object({
   month: z.number().int().min(1).max(12),
@@ -122,23 +123,49 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => monthYearSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const first = new Date(Date.UTC(data.year, data.month - 1, 1)).toISOString().slice(0, 10);
-    const last = new Date(Date.UTC(data.year, data.month, 0)).toISOString().slice(0, 10);
 
-    const [{ data: freqs, error: freqError }, { data: actuals, error: actualError }] = await Promise.all([
+    const [
+      { data: freqs, error: freqError },
+      { data: configs, error: configError },
+    ] = await Promise.all([
       supabaseAdmin
         .from("mk9_industry_store_frequency")
         .select("industry_id, store_id, monthly_frequency, weekly_frequency")
         .limit(20000),
       supabaseAdmin
-        .from("mk9_actual_visits")
-        .select("industry_id, store_id, scheduled_date")
-        .gte("scheduled_date", first)
-        .lte("scheduled_date", last)
+        .from("mk9_industry_period_config")
+        .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping")
+        .eq("active", true)
         .limit(20000),
     ]);
     if (freqError) throw new Error(freqError.message);
-    if (actualError) throw new Error(actualError.message);
+    if (configError) throw new Error(configError.message);
+
+    const configByIndustry = new Map<string, any>();
+    for (const cfg of configs ?? []) configByIndustry.set(cfg.industry_id as string, cfg);
+    const windows = new Map<string, { startDate: string; endDate: string }>();
+    for (const f of freqs ?? []) {
+      const industryId = f.industry_id as string;
+      if (windows.has(industryId)) continue;
+      const cfg = configByIndustry.get(industryId) ?? null;
+      windows.set(industryId, resolveWindow(cfg, data.year, data.month));
+    }
+
+    const actualQueries = Array.from(windows.entries()).map(([industryId, window]) =>
+      supabaseAdmin
+        .from("mk9_actual_visits")
+        .select("industry_id, store_id, scheduled_date")
+        .eq("industry_id", industryId)
+        .gte("scheduled_date", window.startDate)
+        .lte("scheduled_date", window.endDate)
+        .limit(20000),
+    );
+    const actualResults = await Promise.all(actualQueries);
+    const actuals: any[] = [];
+    for (const result of actualResults) {
+      if (result.error) throw new Error(result.error.message);
+      actuals.push(...(result.data ?? []));
+    }
 
     const perStore = new Map<string, { contratadas: number; executadas: number }>();
     for (const f of freqs ?? []) {
