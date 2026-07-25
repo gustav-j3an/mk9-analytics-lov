@@ -202,6 +202,7 @@ export function Mk9AnalyticsApp() {
   const [visits, setVisits] = useState<Visit[]>(initialVisits);
   const [imports, setImports] = useState<ImportItem[]>(initialImports);
   const [query, setQuery] = useState("");
+  const [collapsed, setCollapsed] = useState(false);
 
   const activeOperation = operations.find((operation) => operation.status === "ATIVA") ?? operations[0];
 
@@ -228,83 +229,146 @@ export function Mk9AnalyticsApp() {
   }, [operations, promoters, query, stores]);
 
   const moduleTitle = modules.find((item) => item.id === activeModule)?.label ?? "Dashboard";
+  const sidebarWidth = collapsed ? "76px" : "264px";
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
-        <aside className="border-b bg-sidebar text-sidebar-foreground lg:border-b-0 lg:border-r">
-          <div className="flex h-full flex-col p-4">
-            <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+      <div
+        className="grid min-h-screen transition-[grid-template-columns] duration-300 lg:grid-cols-[var(--sb)_1fr]"
+        style={{ ["--sb" as string]: sidebarWidth }}
+      >
+        <aside className="border-b border-sidebar-border bg-sidebar text-sidebar-foreground lg:border-b-0 lg:border-r">
+          <div className="flex h-full flex-col gap-6 p-3 lg:p-4">
+            <div className={cn("flex items-center gap-3 px-1", collapsed && "lg:justify-center lg:px-0")}>
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-[0_8px_20px_-8px_var(--color-primary)]">
                 <BarChart3 className="h-5 w-5" />
               </div>
-              <div>
-                <p className="text-lg font-semibold leading-tight">MK9 Analytics</p>
-                <p className="text-xs text-muted-foreground">Trade marketing operacional</p>
-              </div>
+              {!collapsed && (
+                <div className="min-w-0">
+                  <p className="truncate text-[15px] font-semibold leading-tight tracking-tight">MK9 Analytics</p>
+                  <p className="truncate text-[11px] text-muted-foreground">Trade marketing operacional</p>
+                </div>
+              )}
             </div>
 
-            <nav className="grid gap-1" aria-label="Módulos principais">
-              {modules.map((item) => {
-                const Icon = item.icon;
+            <nav className="flex flex-col gap-4" aria-label="Módulos principais">
+              {moduleGroups.map((group) => {
+                const items = modules.filter((m) => m.group === group);
                 return (
-                  <Button
-                    key={item.id}
-                    variant={activeModule === item.id ? "secondary" : "ghost"}
-                    className="h-10 justify-start"
-                    onClick={() => setActiveModule(item.id)}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </Button>
+                  <div key={group} className="flex flex-col gap-1">
+                    {!collapsed && (
+                      <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
+                        {group}
+                      </p>
+                    )}
+                    {items.map((item) => {
+                      const Icon = item.icon;
+                      const active = activeModule === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => setActiveModule(item.id)}
+                          title={collapsed ? item.label : undefined}
+                          className={cn(
+                            "group relative flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all",
+                            active
+                              ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                              : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
+                            collapsed && "lg:justify-center lg:px-0",
+                          )}
+                        >
+                          {active && (
+                            <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
+                          )}
+                          <Icon className={cn("h-[18px] w-[18px] shrink-0", active ? "text-primary" : "")} />
+                          {!collapsed && <span className="truncate">{item.label}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
                 );
               })}
             </nav>
 
-            <div className="mt-auto hidden space-y-3 rounded-md border bg-background p-3 text-sm lg:block">
-              <p className="font-medium">Operação ativa</p>
-              <p className="text-muted-foreground">{activeOperation?.name ?? "Nenhuma operação"}</p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <span className="rounded-md bg-muted px-2 py-1">Cobertura {metrics.coverage}%</span>
-                <span className="rounded-md bg-muted px-2 py-1">Atrasos {metrics.delayed}</span>
-              </div>
+            <div className="mt-auto flex flex-col gap-3">
+              {!collapsed && (
+                <div className="glass-panel rounded-xl p-3 text-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Operação ativa</p>
+                  <p className="mt-1 truncate font-medium">{activeOperation?.name ?? "Nenhuma operação"}</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+                    <span className="rounded-md bg-[color-mix(in_oklab,var(--color-kpi-green)_14%,transparent)] px-2 py-1 text-center font-medium text-[color:var(--color-kpi-green)]">
+                      {metrics.coverage}% cob.
+                    </span>
+                    <span className="rounded-md bg-[color-mix(in_oklab,var(--color-kpi-amber)_18%,transparent)] px-2 py-1 text-center font-medium text-[color:var(--color-kpi-amber)]">
+                      {metrics.delayed} atrasos
+                    </span>
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={() => setCollapsed((v) => !v)}
+                className="hidden h-9 items-center justify-center gap-2 rounded-lg border border-sidebar-border text-xs font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground lg:flex"
+              >
+                {collapsed ? <ChevronsRight className="h-4 w-4" /> : <><ChevronsLeft className="h-4 w-4" /> Recolher</>}
+              </button>
             </div>
           </div>
         </aside>
 
         <section className="min-w-0">
-          <header className="border-b bg-background/95 px-4 py-4 lg:px-6">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight">{moduleTitle}</h1>
-                <p className="text-sm text-muted-foreground">
-                  Gestão de operações, lojas, promotores, roteiros, importações e conciliação.
-                </p>
+          <header className="sticky top-0 z-20 border-b border-border/80 bg-background/80 backdrop-blur-xl">
+            <div className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between lg:px-8">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  <span>MK9</span>
+                  <span className="text-border">/</span>
+                  <span>{moduleTitle}</span>
+                </div>
+                <h1 className="mt-0.5 truncate text-[22px] font-semibold tracking-tight md:text-2xl">{moduleTitle}</h1>
               </div>
-              <div className="relative w-full md:max-w-sm">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Buscar no sistema…"
-                  className="pl-9"
-                  aria-label="Buscar no sistema"
-                />
-                {searchResults.length > 0 && (
-                  <div className="absolute right-0 top-11 z-10 w-full rounded-md border bg-popover p-2 shadow">
-                    {searchResults.map((result) => (
-                      <div key={`${result.type}-${result.label}`} className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm">
-                        <span>{result.label}</span>
-                        <Badge variant="outline">{result.type}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="relative w-full md:w-[320px]">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Buscar operações, lojas, promotores…"
+                    className="h-10 rounded-lg border-border/70 bg-muted/50 pl-9 pr-16 text-sm shadow-none transition-all focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/25"
+                    aria-label="Buscar no sistema"
+                  />
+                  <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-border/80 bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground md:inline-block">
+                    ⌘K
+                  </kbd>
+                  {searchResults.length > 0 && (
+                    <div className="animate-fade-up absolute right-0 top-12 z-10 w-full overflow-hidden rounded-xl border border-border/80 bg-popover p-1.5 shadow-[var(--shadow-elevated)]">
+                      {searchResults.map((result) => (
+                        <div key={`${result.type}-${result.label}`} className="flex items-center justify-between rounded-md px-2.5 py-2 text-sm hover:bg-accent">
+                          <span className="truncate">{result.label}</span>
+                          <Badge variant="outline" className="text-[10px]">{result.type}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <span className="hidden items-center gap-1.5 rounded-full border border-[color-mix(in_oklab,var(--color-kpi-green)_35%,transparent)] bg-[color-mix(in_oklab,var(--color-kpi-green)_10%,transparent)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--color-kpi-green)] md:inline-flex">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-kpi-green)]" />
+                  Produção
+                </span>
+                <button
+                  aria-label="Notificações"
+                  className="relative grid h-10 w-10 place-items-center rounded-lg border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                >
+                  <Bell className="h-[18px] w-[18px]" />
+                  <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[color:var(--color-kpi-amber)]" />
+                </button>
+                <button className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-primary to-primary/70 text-sm font-semibold text-primary-foreground shadow-sm transition-transform hover:scale-[1.03]">
+                  MK
+                </button>
               </div>
             </div>
           </header>
 
-          <div className="p-4 lg:p-6">
+          <div key={activeModule} className="animate-fade-up mx-auto max-w-[1400px] px-4 py-6 lg:px-8 lg:py-8">
             {activeModule === "dashboard" && (
               <DashboardModule
                 metrics={metrics}
