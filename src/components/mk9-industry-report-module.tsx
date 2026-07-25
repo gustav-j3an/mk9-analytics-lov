@@ -2,7 +2,8 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, FileText, Loader2, Settings2, AlertCircle } from "lucide-react";
+import { Download, Loader2, Settings2, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -88,11 +89,14 @@ export function Mk9IndustryReportModule() {
 
   async function downloadPdf() {
     if (!industryId) return;
+    if (typeof window === "undefined") return;
     setDownloading(true); setPdfError(null);
+    const toastId = toast.loading("Gerando PDF...");
     try {
       const res = await fetch("/api/reports/industry-pdf", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify({
           industryId, year, month,
           uf: uf || null,
@@ -100,19 +104,27 @@ export function Mk9IndustryReportModule() {
         }),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-        throw new Error(err.error ?? `HTTP ${res.status}`);
+        let msg = `HTTP ${res.status}`;
+        try { const j = await res.json(); msg = j?.error ?? msg; } catch { /* ignore */ }
+        throw new Error(msg);
       }
+      const ct = res.headers.get("content-type") ?? "";
+      if (!ct.includes("application/pdf")) throw new Error(`Resposta inesperada: ${ct}`);
       const cd = res.headers.get("content-disposition") ?? "";
       const match = /filename="([^"]+)"/.exec(cd);
       const filename = match?.[1] ?? "relatorio.pdf";
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url; a.download = filename; a.click();
-      URL.revokeObjectURL(url);
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success("PDF gerado", { id: toastId });
     } catch (e: any) {
-      setPdfError(e?.message ?? String(e));
+      const msg = e?.message ?? String(e);
+      console.error("[INDUSTRY PDF]", e);
+      setPdfError(msg);
+      toast.error(msg, { id: toastId });
     } finally {
       setDownloading(false);
     }
