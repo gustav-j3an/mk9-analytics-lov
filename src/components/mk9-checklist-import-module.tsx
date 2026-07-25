@@ -212,6 +212,14 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
           isNew: i.status === "new_store",
         }));
       if (!items.length) throw new Error("Nenhuma visita válida para importar");
+      // Fases visuais (client-side): não refletem o servidor 1:1, mas dão feedback claro.
+      clearPhaseTimers();
+      setPhase("confirming");
+      phaseTimersRef.current.push(
+        window.setTimeout(() => setPhase("stores"), 400),
+        window.setTimeout(() => setPhase("visits"), 1500),
+        window.setTimeout(() => setPhase("reconcile"), 3000),
+      );
       return commitFn({
         data: {
           importId,
@@ -223,6 +231,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
       });
     },
     onSuccess: (res: any) => {
+      clearPhaseTimers();
+      setPhase("done");
       setLastError(null);
       toast.success("Checklist importado", {
         description: `${res.persisted} novas · ${res.skipped} já existentes · ${res.storesCreated ?? 0} lojas criadas · ${res.storesReused ?? 0} lojas reaproveitadas`,
@@ -234,13 +244,17 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
       setAckNewStores(false);
       setConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
+      window.setTimeout(() => setPhase("idle"), 1200);
     },
     onError: (e: any) => {
+      clearPhaseTimers();
+      setPhase("failed");
       const rich = parseServerError(e);
       setLastError(rich);
       toast.error(rich.message ?? "Falha ao confirmar", { duration: 10000 });
       setConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
+      window.setTimeout(() => setPhase("idle"), 1500);
     },
   });
 
@@ -254,6 +268,21 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     onError: (e: any) => toast.error(e?.message ?? "Falha ao remover"),
   });
 
+  const discardMut = useMutation({
+    mutationFn: async () => {
+      if (importId) await cancelFn({ data: { importId } });
+    },
+    onSuccess: () => {
+      toast.success("Prévia descartada");
+      setPreview(null);
+      setImportId(null);
+      setAckNewStores(false);
+      setLastError(null);
+      qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao descartar prévia"),
+  });
+
   const items = preview?.items ?? [];
   const filtered = useMemo(
     () => (filter === "all" ? items : items.filter((i) => i.status === filter)),
@@ -265,6 +294,20 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   ).length;
   const newStoresCount = preview?.counters.storesNew ?? 0;
   const canConfirm = validItems > 0 && (newStoresCount === 0 || ackNewStores);
+
+  const periodLabel = useMemo(() => {
+    if (!items.length) return null;
+    const dates = items.map((i) => i.scheduledDate).filter(Boolean).sort();
+    if (!dates.length) return null;
+    return `${shortDate(dates[0])} a ${shortDate(dates[dates.length - 1])}`;
+  }, [items]);
+
+  const flashAck = () => {
+    setHighlightAck(true);
+    ackRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => setHighlightAck(false), 1600);
+  };
+
 
   return (
     <div className="space-y-6">
