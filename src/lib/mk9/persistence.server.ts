@@ -43,6 +43,17 @@ const mapVisit = (r: any): PlannedVisitRecord => ({
   sourceSheet: r.source_sheet,
 });
 
+// Strip `id` when null/undefined/empty so Postgres DEFAULT gen_random_uuid() fires.
+// Sending `id: null` explicitly overrides the DEFAULT and causes 23502 NOT NULL violation.
+function withOptionalId<T extends Record<string, any>>(row: T): T {
+  const v = row.id;
+  if (v === null || v === undefined || v === "") {
+    const { id: _omit, ...rest } = row;
+    return rest as T;
+  }
+  return row;
+}
+
 export function createSupabaseRepository(): Mk9Repository {
   return {
     async listIndustries() {
