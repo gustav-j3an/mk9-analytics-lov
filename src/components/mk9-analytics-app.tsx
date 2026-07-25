@@ -308,6 +308,7 @@ export function Mk9AnalyticsApp() {
             {activeModule === "visitas" && <VisitsModule visits={visits} loading={visitsQ.isLoading} />}
             {activeModule === "importacoes" && <Mk9ImportModule />}
             {activeModule === "checklists" && <Mk9ChecklistImportModule />}
+            {activeModule === "conciliacao" && <Mk9ReconciliationModule />}
           </div>
         </section>
       </div>
