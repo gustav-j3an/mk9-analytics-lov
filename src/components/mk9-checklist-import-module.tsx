@@ -130,10 +130,15 @@ export function Mk9ChecklistImportModule() {
     onSuccess: (res) => {
       setPreview(res.preview);
       setImportId(res.importId);
+      setLastError(null);
       toast.success("Prévia gerada");
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
     },
-    onError: (e: any) => toast.error(e?.message ?? "Falha ao gerar prévia"),
+    onError: (e: any) => {
+      const rich = parseServerError(e);
+      setLastError(rich);
+      toast.error(rich.message ?? "Falha ao gerar prévia", { duration: 10000 });
+    },
   });
 
   const commitMut = useMutation({
@@ -154,6 +159,7 @@ export function Mk9ChecklistImportModule() {
       });
     },
     onSuccess: (res: any) => {
+      setLastError(null);
       toast.success("Checklist importado", {
         description: `${res.persisted} novas · ${res.skipped} já existentes · ${res.total} avaliadas`,
         duration: 8000,
@@ -165,11 +171,14 @@ export function Mk9ChecklistImportModule() {
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
     },
     onError: (e: any) => {
-      toast.error(e?.message ?? "Falha ao confirmar", { duration: 8000 });
+      const rich = parseServerError(e);
+      setLastError(rich);
+      toast.error(rich.message ?? "Falha ao confirmar", { duration: 10000 });
       setConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
     },
   });
+
 
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteFn({ data: { importId: id } }),
