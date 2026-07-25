@@ -85,7 +85,7 @@ const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; grou
   { id: "checklists", label: "Checklists", icon: ClipboardCheck, group: "Importações", roles: ["ADMIN"] },
   { id: "usuarios", label: "Usuários", icon: UserCog, group: "Administração", roles: ["ADMIN"] },
 ];
-const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Relatórios", "Dados", "Importações"];
+const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Relatórios", "Dados", "Importações", "Administração"];
 
 const MONTHS_PT = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
