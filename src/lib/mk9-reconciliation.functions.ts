@@ -65,12 +65,16 @@ export const reconcileManualMatch = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN", "SUPERVISOR"]);
     const { manualMatch } = await import("./mk9-reconciliation/engine.server");
-    return manualMatch({
+    const result = await manualMatch({
       actualVisitId: data.actualVisitId,
       plannedVisitId: data.plannedVisitId,
       notes: data.notes ?? null,
     });
+    await logAudit(ctx, "mk9.reconcile.manualMatch", "mk9_visit_reconciliations", data.actualVisitId);
+    return result;
   });
 
 export const reconcileIgnore = createServerFn({ method: "POST" })
@@ -78,16 +82,25 @@ export const reconcileIgnore = createServerFn({ method: "POST" })
     z.object({ reconciliationId: z.string().uuid(), notes: z.string().nullish() }).parse(data),
   )
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN", "SUPERVISOR"]);
     const { markIgnored } = await import("./mk9-reconciliation/engine.server");
-    return markIgnored({ reconciliationId: data.reconciliationId, notes: data.notes ?? null });
+    const result = await markIgnored({ reconciliationId: data.reconciliationId, notes: data.notes ?? null });
+    await logAudit(ctx, "mk9.reconcile.ignore", "mk9_visit_reconciliations", data.reconciliationId);
+    return result;
   });
 
 export const reconcileUndoReview = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ reconciliationId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN", "SUPERVISOR"]);
     const { undoReview } = await import("./mk9-reconciliation/engine.server");
-    return undoReview(data.reconciliationId);
+    const result = await undoReview(data.reconciliationId);
+    await logAudit(ctx, "mk9.reconcile.undoReview", "mk9_visit_reconciliations", data.reconciliationId);
+    return result;
   });
+
 
 const pagedSchema = z.object({
   operationYear: z.number().int().min(2020).max(2100),
