@@ -101,7 +101,7 @@ export function createSupabaseRepository(): Mk9Repository {
         last_import_id: importId,
       }));
       const { data, error } = await supabaseAdmin
-        .from("mk9_industries").upsert(payload, { onConflict: "name_normalized" }).select();
+        .from("mk9_industries").upsert(payload, { onConflict: "name_normalized", defaultToNull: false }).select();
       if (error) throw error;
       return (data ?? []).map(mapIndustry);
     },
