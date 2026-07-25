@@ -29,8 +29,8 @@ export const Route = createFileRoute("/api/reports/industry-pdf")({
           }, window);
           const bytes = await renderIndustryReportPdf(report);
           const filename = pdfFileName(report, body.year, body.month);
-          const body = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
-          return new Response(body, {
+          const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+          return new Response(ab, {
             status: 200,
             headers: {
               "content-type": "application/pdf",
