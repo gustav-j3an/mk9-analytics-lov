@@ -254,7 +254,7 @@ export function Mk9IndustryReportModule() {
               <CardContent>
                 <table className="w-full text-sm">
                   <thead className="border-b text-left text-xs uppercase text-muted-foreground">
-                    <tr><th className="py-2">UF</th><th>Lojas</th><th>Contratadas</th><th>Realizadas</th><th>Válidas</th><th>Pendentes</th><th>Extras</th><th>Cobertura</th></tr>
+                    <tr><th className="py-2">UF</th><th>Lojas</th><th>Contratadas</th><th>Realizadas</th><th>Pendentes</th><th>Extras</th><th>Cobertura</th></tr>
                   </thead>
                   <tbody>
                     {report.ufs.map((u) => (
@@ -263,7 +263,6 @@ export function Mk9IndustryReportModule() {
                         <td>{u.stores}</td>
                         <td>{u.expected}</td>
                         <td>{u.actual}</td>
-                        <td>{u.validForCoverage}</td>
                         <td>{u.pending}</td>
                         <td>{u.extra}</td>
                         <td>{u.coveragePct}%</td>
