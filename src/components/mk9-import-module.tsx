@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, Loader2, Clock } from "lucide-react";
+import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, Loader2, Clock, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,8 +12,19 @@ import {
   mk9PreviewImport,
   mk9CommitImport,
   mk9ListImports,
+  mk9DeleteImport,
 } from "@/lib/mk9-import.functions";
 import type { ImportPreview, SyncMode } from "@/lib/mk9/types";
+
+const STATUS_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+  pending: { label: "Pendente", variant: "secondary" },
+  previewing: { label: "Prévia gerada", variant: "secondary" },
+  confirmed: { label: "Confirmada", variant: "secondary" },
+  committing: { label: "Processando", variant: "secondary" },
+  done: { label: "Concluído", variant: "default" },
+  failed: { label: "Falhou", variant: "destructive" },
+  cancelled: { label: "Cancelada", variant: "secondary" },
+};
 
 const MONTHS = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
