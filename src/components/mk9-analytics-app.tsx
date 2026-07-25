@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Mk9ImportModule } from "@/components/mk9-import-module";
 import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
 import { Mk9ReconciliationModule } from "@/components/mk9-reconciliation-module";
 import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
+import { Mk9UsersModule } from "@/components/mk9-users-module";
+import { useMk9Session, type Mk9Role } from "@/lib/mk9-auth/session";
 
 import {
   AlertTriangle,
@@ -18,12 +21,15 @@ import {
   FileSpreadsheet,
   Factory,
   Loader2,
+  LogOut,
   PackageCheck,
   Route,
   Search,
+  Shield,
   Store,
   Upload,
   Users,
+  UserCog,
 } from "lucide-react";
 import {
   Area,
