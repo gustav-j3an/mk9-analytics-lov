@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Mk9ImportModule } from "@/components/mk9-import-module";
 import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
-import { Mk9ReconciliationModule } from "@/components/mk9-reconciliation-module";
+import { Mk9AuditModule } from "@/components/mk9-audit-module";
 import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
 import { Mk9UsersModule } from "@/components/mk9-users-module";
 import { useMk9Session, type Mk9Role } from "@/lib/mk9-auth/session";
@@ -76,7 +76,7 @@ const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; grou
   { id: "dashboard", label: "Dashboard", icon: BarChart3, group: "Visão geral", roles: ["ADMIN", "SUPERVISOR", "AUDITOR"] },
   { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação", roles: ["ADMIN", "SUPERVISOR", "PROMOTOR", "AUDITOR"] },
   { id: "visitas", label: "Visitas", icon: Calendar, group: "Operação", roles: ["ADMIN", "SUPERVISOR", "PROMOTOR", "AUDITOR"] },
-  { id: "conciliacao", label: "Conciliação", icon: CheckCircle2, group: "Operação", roles: ["ADMIN", "SUPERVISOR"] },
+  { id: "conciliacao", label: "Auditoria de Execução", icon: CheckCircle2, group: "Operação", roles: ["ADMIN", "SUPERVISOR"] },
   { id: "relatorio_industria", label: "Indústrias (PDF)", icon: PackageCheck, group: "Relatórios", roles: ["ADMIN", "SUPERVISOR", "CLIENTE", "AUDITOR"] },
   { id: "industrias", label: "Indústrias", icon: Factory, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
   { id: "lojas", label: "Lojas", icon: Store, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
@@ -414,7 +414,7 @@ export function Mk9AnalyticsApp() {
             {activeModule === "checklists" && (
               <Mk9ChecklistImportModule onSwitchToBase={() => setActiveModule("importacoes")} />
             )}
-            {activeModule === "conciliacao" && <Mk9ReconciliationModule />}
+            {activeModule === "conciliacao" && <Mk9AuditModule />}
             {activeModule === "relatorio_industria" && <Mk9IndustryReportModule />}
             {activeModule === "usuarios" && <Mk9UsersModule currentUserId={user?.id ?? null} />}
           </div>
