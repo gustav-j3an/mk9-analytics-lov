@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { buildRichError } from "@/lib/mk9-checklist/errors.server";
 import { createChecklistDiagnostics } from "@/lib/mk9-checklist/diagnostics";
-import { runChecklistPreview } from "@/lib/mk9-checklist/preview.server";
 
 const formSchema = z.object({
   industryId: z.string().uuid(),
@@ -10,7 +8,7 @@ const formSchema = z.object({
   operationYear: z.coerce.number().int().min(2020).max(2100),
 });
 
-function parseStructuredError(error: unknown, step: string, diagnostics: ReturnType<typeof createChecklistDiagnostics>) {
+async function parseStructuredError(error: unknown, step: string, diagnostics: ReturnType<typeof createChecklistDiagnostics>) {
   if (error instanceof Error) {
     try {
       const parsed = JSON.parse(error.message);
@@ -24,6 +22,7 @@ function parseStructuredError(error: unknown, step: string, diagnostics: ReturnT
       }
     } catch {}
   }
+  const { buildRichError } = await import("@/lib/mk9-checklist/errors.server");
   return buildRichError(error, {
     step,
     function: "checklistPreviewMultipart",
@@ -77,6 +76,7 @@ export const Route = createFileRoute("/api/checklists/preview")({
           const buffer = await filePart.arrayBuffer();
           diagnostics.info("file-buffer-ready", "Arquivo disponível para o parser", { byteLength: buffer.byteLength });
 
+          const { runChecklistPreview } = await import("@/lib/mk9-checklist/preview.server");
           const result = await runChecklistPreview(
             {
               buffer,
@@ -97,7 +97,7 @@ export const Route = createFileRoute("/api/checklists/preview")({
             message: error instanceof Error ? error.message : String(error),
             name: error instanceof Error ? error.name : typeof error,
           });
-          const payload = parseStructuredError(error, step, diagnostics);
+          const payload = await parseStructuredError(error, step, diagnostics);
           return Response.json({ error: payload, diagnostics: diagnostics.events }, { status: 500 });
         }
       },

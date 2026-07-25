@@ -477,9 +477,15 @@ function Row({ k, v }: { k: string; v: unknown }) {
   );
 }
 
+function getDiagnostics(err: RichError): ChecklistDebugEvent[] {
+  const maybe = err.extra?.diagnostics;
+  return Array.isArray(maybe) ? (maybe as ChecklistDebugEvent[]) : [];
+}
+
 function ErrorPanel({ err, onDismiss }: { err: RichError; onDismiss: () => void }) {
   const [showStack, setShowStack] = useState(false);
   const isDev = typeof import.meta !== "undefined" && (import.meta as any).env?.DEV;
+  const diagnostics = getDiagnostics(err);
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(JSON.stringify(err, null, 2));
@@ -546,6 +552,28 @@ function ErrorPanel({ err, onDismiss }: { err: RichError; onDismiss: () => void 
           <div className="rounded-md border p-3 space-y-1">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contexto</p>
             {Object.entries(err.extra).map(([k, v]) => <Row key={k} k={k} v={v} />)}
+          </div>
+        )}
+
+        {diagnostics.length > 0 && (
+          <div className="rounded-md border p-3 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Trilha de execução</p>
+            <div className="max-h-72 overflow-auto space-y-2">
+              {diagnostics.map((event, i) => (
+                <div key={`${event.at}-${i}`} className="rounded-md bg-muted/30 p-2 text-xs">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant={event.level === "error" ? "destructive" : "secondary"}>{event.level}</Badge>
+                    <span className="font-mono font-medium">{event.step}</span>
+                    <span className="text-muted-foreground">{event.message}</span>
+                  </div>
+                  {event.data && Object.keys(event.data).length > 0 && (
+                    <pre className="mt-2 whitespace-pre-wrap break-all font-mono text-[11px] text-muted-foreground">
+                      {JSON.stringify(event.data, null, 2)}
+                    </pre>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
