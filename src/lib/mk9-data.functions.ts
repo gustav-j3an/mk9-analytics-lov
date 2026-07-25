@@ -2,7 +2,6 @@
 // Server functions públicas (uso interno do painel — sem auth por design).
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { resolveWindow } from "@/lib/mk9-reports/period.server";
 
 const monthYearSchema = z.object({
   month: z.number().int().min(1).max(12),
@@ -66,6 +65,7 @@ export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => monthYearSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { resolveWindow } = await import("@/lib/mk9-reports/period.server");
     const { data: rows, error } = await supabaseAdmin
       .from("mk9_planned_routes")
       .select(
