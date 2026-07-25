@@ -153,7 +153,7 @@ export function createSupabaseRepository(): Mk9Repository {
       const out: PromoterRecord[] = [];
       if (withId.length) {
         const { data, error } = await supabaseAdmin.from("mk9_promoters").upsert(
-          withId.map((r) => ({
+          withId.map((r) => withOptionalId({
             id: r.id, external_id: r.externalId, name: r.name,
             name_normalized: r.nameNormalized, city: r.city,
             contact: r.contact, contact_normalized: r.contactNormalized,
