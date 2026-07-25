@@ -1,12 +1,32 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Upload, FileSpreadsheet, CheckCircle2, AlertTriangle, Loader2, Clock, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  Upload,
+  FileSpreadsheet,
+  CheckCircle2,
+  AlertTriangle,
+  Loader2,
+  Clock,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   mk9PreviewImport,
@@ -24,6 +44,35 @@ const STATUS_LABEL: Record<string, { label: string; variant: "default" | "second
   done: { label: "Concluído", variant: "default" },
   failed: { label: "Falhou", variant: "destructive" },
   cancelled: { label: "Cancelada", variant: "secondary" },
+};
+
+const SYNC_MODE_LABEL: Record<string, string> = {
+  full: "Atualização completa",
+  add_only: "Somente novos",
+  registry_only: "Somente cadastros",
+  routes_only: "Somente roteiro",
+};
+
+const ACTION_LABEL: Record<string, string> = {
+  all: "Todos",
+  create: "Criar",
+  update: "Atualizar",
+  keep: "Manter",
+  remove: "Remover",
+  duplicate: "Duplicados",
+  ambiguous: "Ambíguos",
+  invalid: "Inválidos",
+  preserved: "Preservados",
+  conflict: "Conflitos",
+};
+
+const ENTITY_LABEL: Record<string, string> = {
+  industry: "Indústria",
+  store: "Loja",
+  promoter: "Promotor",
+  frequency: "Frequência",
+  route: "Rota",
+  visit: "Visita",
 };
 
 const MONTHS = [
@@ -48,6 +97,21 @@ async function fileToBase64(file: File): Promise<string> {
   return btoa(binary);
 }
 
+// Invalida todas as consultas MK9 (dashboards e telas operacionais).
+function invalidateMk9(qc: ReturnType<typeof useQueryClient>) {
+  for (const key of [
+    "mk9-imports",
+    "mk9-industries",
+    "mk9-stores",
+    "mk9-promoters",
+    "mk9-routes",
+    "mk9-visits",
+    "mk9-overview",
+  ]) {
+    qc.invalidateQueries({ queryKey: [key] });
+  }
+}
+
 export function Mk9ImportModule() {
   const now = new Date();
   const [file, setFile] = useState<File | null>(null);
@@ -58,6 +122,7 @@ export function Mk9ImportModule() {
   const [importId, setImportId] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const previewFn = useServerFn(mk9PreviewImport);
   const commitFn = useServerFn(mk9CommitImport);
@@ -69,7 +134,7 @@ export function Mk9ImportModule() {
 
   const deleteMut = useMutation({
     mutationFn: (importId: string) => deleteFn({ data: { importId } }),
-    onSuccess: () => { toast.success("Histórico removido"); qc.invalidateQueries({ queryKey: ["mk9-imports"] }); },
+    onSuccess: () => { toast.success("Histórico removido"); invalidateMk9(qc); },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao remover"),
   });
 
@@ -94,14 +159,20 @@ export function Mk9ImportModule() {
       const base64 = await fileToBase64(file);
       return commitFn({ data: { importId, filename: file.name, base64, operationMonth: month, operationYear: year, syncMode } });
     },
-    onSuccess: () => {
-      toast.success("Base MK9 atualizada");
+    onSuccess: (res: any) => {
+      const c = res?.counters ?? {};
+      toast.success("Base MK9 atualizada com sucesso", {
+        description: `Indústrias +${c.industriesCreated ?? 0}/~${c.industriesUpdated ?? 0} · Lojas +${c.storesCreated ?? 0}/~${c.storesUpdated ?? 0} · Promotores +${c.promotersCreated ?? 0}/~${c.promotersUpdated ?? 0} · Rotas +${c.routesCreated ?? 0} · Visitas +${c.visitsCreated ?? 0} (${c.visitsPreserved ?? 0} preservadas)`,
+        duration: 8000,
+      });
       setPreview(null); setImportId(null); setFile(null);
-      qc.invalidateQueries({ queryKey: ["mk9-imports"] });
+      setConfirmOpen(false);
+      invalidateMk9(qc);
     },
     onError: (e: any) => {
       const msg = e?.message ?? "Falha ao confirmar";
       toast.error(msg, { description: msg.length > 80 ? msg.slice(0, 200) : undefined, duration: 8000 });
+      setConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ["mk9-imports"] });
     },
   });
@@ -151,7 +222,7 @@ export function Mk9ImportModule() {
               Gerar prévia
             </Button>
             {preview && (
-              <Button variant="default" onClick={() => commitMut.mutate()} disabled={commitMut.isPending}>
+              <Button variant="default" onClick={() => setConfirmOpen(true)} disabled={commitMut.isPending}>
                 {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                 Atualizar base MK9
               </Button>
@@ -164,18 +235,35 @@ export function Mk9ImportModule() {
         <Card className="glass-panel">
           <CardHeader><CardTitle>Prévia — {preview.filename}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-              <Stat label="Indústrias" created={c.industriesCreated} updated={c.industriesUpdated} />
-              <Stat label="Lojas" created={c.storesCreated} updated={c.storesUpdated} />
-              <Stat label="Promotores" created={c.promotersCreated} updated={c.promotersUpdated} />
-              <Stat label="Rotas" created={c.routesCreated} updated={c.routesUpdated} extra={`${c.routesKept} mantidas / ${c.routesRemoved} removidas`} />
-              <Stat label="Visitas" created={c.visitsCreated} updated={c.visitsUpdated} extra={`${c.visitsPreserved} preservadas`} />
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <SummaryCard label="Indústrias" rows={[
+                { k: "Novas", v: c.industriesCreated ?? 0, tone: "green" },
+                { k: "Atualizadas", v: c.industriesUpdated ?? 0, tone: "blue" },
+              ]} />
+              <SummaryCard label="Lojas" rows={[
+                { k: "Novas", v: c.storesCreated ?? 0, tone: "green" },
+                { k: "Atualizadas", v: c.storesUpdated ?? 0, tone: "blue" },
+              ]} />
+              <SummaryCard label="Promotores" rows={[
+                { k: "Novos", v: c.promotersCreated ?? 0, tone: "green" },
+                { k: "Atualizados", v: c.promotersUpdated ?? 0, tone: "blue" },
+              ]} />
+              <SummaryCard label="Rotas" rows={[
+                { k: "Novas", v: c.routesCreated ?? 0, tone: "green" },
+                { k: "Atualizadas", v: c.routesUpdated ?? 0, tone: "blue" },
+                { k: "Mantidas", v: c.routesKept ?? 0, tone: "muted" },
+                { k: "Removidas", v: c.routesRemoved ?? 0, tone: "red" },
+              ]} />
+              <SummaryCard label="Visitas" rows={[
+                { k: "Novas", v: c.visitsCreated ?? 0, tone: "green" },
+                { k: "Preservadas", v: c.visitsPreserved ?? 0, tone: "violet" },
+              ]} />
             </div>
             <div className="flex flex-wrap gap-2">
-              {["all","create","update","keep","remove","duplicate","ambiguous","invalid","preserved"].map((f) => (
+              {(["all","create","update","keep","remove","duplicate","ambiguous","invalid","preserved"] as const).map((f) => (
                 <button key={f} onClick={() => setFilter(f)}
-                  className={`text-xs px-3 py-1 rounded-full border ${filter===f?"bg-primary text-primary-foreground":"bg-transparent"}`}>
-                  {f}
+                  className={`text-xs px-3 py-1 rounded-full border transition-colors ${filter===f?"bg-primary text-primary-foreground border-primary":"bg-transparent hover:bg-accent"}`}>
+                  {ACTION_LABEL[f] ?? f}
                 </button>
               ))}
               <Badge variant="secondary">{filtered.length} linhas</Badge>
@@ -184,17 +272,24 @@ export function Mk9ImportModule() {
               <table className="w-full text-xs">
                 <thead className="bg-muted/40 sticky top-0">
                   <tr>
-                    <th className="text-left p-2">Aba</th><th className="text-left p-2">Linha</th>
-                    <th className="text-left p-2">Entidade</th><th className="text-left p-2">Ação</th>
-                    <th className="text-left p-2">Detalhes</th><th className="text-left p-2">Alertas</th>
+                    <th className="text-left p-2">Aba</th>
+                    <th className="text-left p-2">Linha</th>
+                    <th className="text-left p-2">Tipo</th>
+                    <th className="text-left p-2">Registro</th>
+                    <th className="text-left p-2">Ação</th>
+                    <th className="text-left p-2">Detalhes</th>
+                    <th className="text-left p-2">Alertas</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.slice(0, 500).map((it, i) => (
                     <tr key={i} className="border-t">
-                      <td className="p-2">{it.sheet}</td>
+                      <td className="p-2 whitespace-nowrap">{it.sheet}</td>
                       <td className="p-2">{it.excelRow ?? "-"}</td>
-                      <td className="p-2">{it.entityType}</td>
+                      <td className="p-2">{ENTITY_LABEL[it.entityType] ?? it.entityType}</td>
+                      <td className="p-2 max-w-[220px] truncate" title={String(it.payload?.name ?? recordLabel(it.payload))}>
+                        {recordLabel(it.payload)}
+                      </td>
                       <td className="p-2"><ActionBadge action={it.action} /></td>
                       <td className="p-2 max-w-md truncate" title={JSON.stringify(it.payload)}>{summarize(it.payload)}</td>
                       <td className="p-2 text-amber-600">{(it.warnings ?? []).join(", ")}</td>
@@ -227,7 +322,7 @@ export function Mk9ImportModule() {
                       <div className="min-w-0 flex-1">
                         <p className="font-medium truncate">{imp.filename}</p>
                         <p className="text-xs text-muted-foreground">
-                          {MONTHS[imp.operationMonth - 1]} {imp.operationYear} · modo {imp.syncMode} · {imp.sheetsAnalyzed.length} abas
+                          {MONTHS[imp.operationMonth - 1]} {imp.operationYear} · {SYNC_MODE_LABEL[imp.syncMode] ?? imp.syncMode} · {imp.sheetsAnalyzed.length} abas
                           {imp.durationMs != null && ` · ${imp.durationMs}ms`}
                         </p>
                       </div>
@@ -265,19 +360,77 @@ export function Mk9ImportModule() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={confirmOpen} onOpenChange={(o) => !commitMut.isPending && setConfirmOpen(o)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar atualização da base MK9</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta operação vai atualizar cadastros, roteiros e visitas planejadas no banco de dados.
+              Visitas já realizadas serão preservadas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {c && (
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <ConfirmRow label="Indústrias novas" value={c.industriesCreated ?? 0} />
+              <ConfirmRow label="Indústrias atualizadas" value={c.industriesUpdated ?? 0} />
+              <ConfirmRow label="Lojas novas" value={c.storesCreated ?? 0} />
+              <ConfirmRow label="Lojas atualizadas" value={c.storesUpdated ?? 0} />
+              <ConfirmRow label="Promotores novos" value={c.promotersCreated ?? 0} />
+              <ConfirmRow label="Promotores atualizados" value={c.promotersUpdated ?? 0} />
+              <ConfirmRow label="Rotas novas" value={c.routesCreated ?? 0} />
+              <ConfirmRow label="Rotas removidas" value={c.routesRemoved ?? 0} />
+              <ConfirmRow label="Visitas planejadas" value={c.visitsCreated ?? 0} />
+              <ConfirmRow label="Visitas preservadas" value={c.visitsPreserved ?? 0} />
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={commitMut.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={commitMut.isPending}
+              onClick={(e) => { e.preventDefault(); commitMut.mutate(); }}
+            >
+              {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Confirmar atualização
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
-function Stat({ label, created, updated, extra }: { label: string; created?: number; updated?: number; extra?: string }) {
+function ConfirmRow({ label, value }: { label: string; value: number }) {
   return (
-    <div className="p-3 rounded-lg border bg-card/50">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-lg font-semibold">+{created ?? 0} / ~{updated ?? 0}</p>
-      {extra && <p className="text-xs text-muted-foreground">{extra}</p>}
+    <div className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-semibold tabular-nums">{value}</span>
     </div>
   );
 }
+
+const TONE_CLASS: Record<string, string> = {
+  green: "text-emerald-600",
+  blue: "text-blue-600",
+  red: "text-red-600",
+  muted: "text-muted-foreground",
+  violet: "text-violet-600",
+};
+
+function SummaryCard({ label, rows }: { label: string; rows: Array<{ k: string; v: number; tone: string }> }) {
+  return (
+    <div className="p-3 rounded-lg border bg-card/50 space-y-1.5">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      {rows.map((r) => (
+        <div key={r.k} className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">{r.k}</span>
+          <span className={`font-semibold tabular-nums ${TONE_CLASS[r.tone] ?? ""}`}>{r.v}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ActionBadge({ action }: { action: string }) {
   const map: Record<string, string> = {
     create: "bg-emerald-500/15 text-emerald-600",
@@ -290,13 +443,23 @@ function ActionBadge({ action }: { action: string }) {
     preserved: "bg-purple-500/15 text-purple-600",
     conflict: "bg-pink-500/15 text-pink-600",
   };
-  return <span className={`px-2 py-0.5 rounded-full text-xs ${map[action] ?? ""}`}>{action}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-xs ${map[action] ?? ""}`}>{ACTION_LABEL[action] ?? action}</span>;
 }
+
+function recordLabel(payload: any): string {
+  if (!payload) return "";
+  if (payload.name) return String(payload.name);
+  const bits = [payload.promoter, payload.store, payload.industry].filter(Boolean);
+  if (bits.length) return bits.join(" → ");
+  if (payload.date) return String(payload.date);
+  return "";
+}
+
 function summarize(payload: any): string {
   if (!payload) return "";
   const parts: string[] = [];
-  for (const k of ["name","industry","store","promoter","weekday","date"]) {
-    if (payload[k] !== undefined) parts.push(`${k}: ${payload[k]}`);
+  for (const k of ["chain","city","uf","weekday","date","status","contracted","estimated"]) {
+    if (payload[k] !== undefined && payload[k] !== null && payload[k] !== "") parts.push(`${k}: ${payload[k]}`);
   }
-  return parts.join(" · ") || JSON.stringify(payload).slice(0, 80);
+  return parts.join(" · ");
 }
