@@ -109,8 +109,19 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
       resolveCache.set(key, r);
       return r;
     }
-    // 3) Similaridade dentro da mesma UF (fallback: sem UF quando ausente)
-    const pool = storesByUf.get(uf ?? "") ?? [];
+    // 2.1) Chave compacta (sem espaços): casa "T-63" com "T63" e afins.
+    const ufKey = uf ?? "";
+    const compactMatch = stores.pickUnique(stores.compactByUf, (stores as any).compactByUf && (stores as any).compactCountByUf ? (stores as any).compactCountByUf : new Map(), ufKey, storeCompactKey(normalized));
+    // 2.2) Chave por conjunto de tokens (ignora ordem e stopwords):
+    //      casa "ATACADÃO AV. RIO VERDE APARECIDA DE GOIANIA" com
+    //      "ATACADÃO - APARECIDA DE GOIANIA AV. RIO VERDE".
+    const tokenMatch = stores.pickUnique(stores.tokenSetByUf, (stores as any).tokenSetCountByUf ?? new Map(), ufKey, storeTokenSetKey(normalized));
+    const fuzzyExact = compactMatch ?? tokenMatch;
+    if (fuzzyExact) {
+      const r: Resolution = { kind: "found", storeId: fuzzyExact.id, matchedName: fuzzyExact.name };
+      resolveCache.set(key, r);
+      return r;
+    }
     let best: { rec: (typeof pool)[number]; score: number } | null = null;
     let secondBest = 0;
     for (const rec of pool) {
