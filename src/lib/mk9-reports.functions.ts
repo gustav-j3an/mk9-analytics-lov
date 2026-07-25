@@ -71,8 +71,12 @@ export const reportUpsertPeriodConfig = createServerFn({ method: "POST" })
         { onConflict: "industry_id" },
       );
     if (error) throw new Error(error.message);
+    await logAudit(ctx, "mk9.report.upsertPeriodConfig", "mk9_industry_period_config", data.industryId, {
+      periodType: data.periodType,
+    });
     return { ok: true };
   });
+
 
 export const reportListChecklistImports = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
