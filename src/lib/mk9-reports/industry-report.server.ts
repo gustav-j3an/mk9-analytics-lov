@@ -174,6 +174,7 @@ export async function buildIndustryReport(
     .eq("industry_id", industryId)
     .gte("scheduled_date", window.startDate)
     .lte("scheduled_date", window.endDate)
+    .is("archived_at", null)
     .limit(20000);
   if (storeId) plannedQ = plannedQ.eq("store_id", storeId);
   const { data: planned, error: ePl } = await plannedQ;
