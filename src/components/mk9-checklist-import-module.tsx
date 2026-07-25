@@ -67,6 +67,34 @@ function shortDate(value: string) {
   return d && m && y ? `${d}/${m}/${y}` : value;
 }
 
+type RichError = {
+  __mk9Error?: true;
+  step?: string;
+  function?: string;
+  message?: string;
+  name?: string;
+  stack?: string;
+  file?: string;
+  line?: number;
+  validation?: { field: string; expected?: string; received?: unknown; issues: any[] };
+  database?: {
+    code?: string; message?: string; details?: string; hint?: string;
+    constraint?: string; table?: string; column?: string; value?: unknown;
+  };
+  parser?: { sheet?: string; row?: number; column?: string | number; value?: unknown };
+  extra?: Record<string, unknown>;
+  raw?: string;
+};
+
+function parseServerError(e: any): RichError {
+  const raw = e?.message ?? String(e ?? "");
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && parsed.__mk9Error) return parsed as RichError;
+  } catch {}
+  return { message: raw || "Erro desconhecido", raw };
+}
+
 export function Mk9ChecklistImportModule() {
   const now = new Date();
   const [file, setFile] = useState<File | null>(null);
@@ -77,6 +105,8 @@ export function Mk9ChecklistImportModule() {
   const [importId, setImportId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "found" | "store_not_found" | "invalid_date">("all");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [lastError, setLastError] = useState<RichError | null>(null);
+
 
   const previewFn = useServerFn(checklistPreview);
   const commitFn = useServerFn(checklistCommit);
