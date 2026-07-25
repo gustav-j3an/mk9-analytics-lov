@@ -43,7 +43,7 @@ export const ROUTE_STATUS_LABEL: Record<RouteStatus, string> = {
   SEM_ROTEIRO: "Sem roteiro",
 };
 
-export type ContractedSource = "WEEKLY_FREQUENCY" | "MONTHLY_FREQUENCY" | "PLANNED_ROUTE" | "NONE";
+export type ContractedSource = "WEEKLY_FREQUENCY" | "MONTHLY_FREQUENCY" | "NONE";
 
 export interface StoreLine {
   storeId: string;
