@@ -26,25 +26,36 @@ function b64ToArrayBuffer(base64: string): ArrayBuffer {
 export const mk9PreviewImport = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => previewSchema.parse(data))
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { createSupabaseRepository } = await import("./mk9/persistence.server");
     const { generatePreview } = await import("./mk9/orchestrator.server");
     const repo = createSupabaseRepository();
-    return generatePreview(repo, {
+    const result = await generatePreview(repo, {
       buffer: b64ToArrayBuffer(data.base64),
       filename: data.filename,
       operationMonth: data.operationMonth,
       operationYear: data.operationYear,
       syncMode: data.syncMode,
     });
+    await logAudit(ctx, "mk9.import.preview", "mk9_imports", (result as any)?.importId ?? null, {
+      filename: data.filename,
+      operationMonth: data.operationMonth,
+      operationYear: data.operationYear,
+      syncMode: data.syncMode,
+    });
+    return result;
   });
 
 export const mk9CommitImport = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => commitSchema.parse(data))
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { createSupabaseRepository } = await import("./mk9/persistence.server");
     const { commitImport } = await import("./mk9/orchestrator.server");
     const repo = createSupabaseRepository();
-    return commitImport(repo, {
+    const result = await commitImport(repo, {
       importId: data.importId,
       buffer: b64ToArrayBuffer(data.base64),
       filename: data.filename,
@@ -52,6 +63,13 @@ export const mk9CommitImport = createServerFn({ method: "POST" })
       operationYear: data.operationYear,
       syncMode: data.syncMode,
     });
+    await logAudit(ctx, "mk9.import.commit", "mk9_imports", data.importId, {
+      filename: data.filename,
+      operationMonth: data.operationMonth,
+      operationYear: data.operationYear,
+      syncMode: data.syncMode,
+    });
+    return result;
   });
 
 export const mk9ListImports = createServerFn({ method: "GET" }).handler(async () => {
@@ -62,12 +80,16 @@ export const mk9ListImports = createServerFn({ method: "GET" }).handler(async ()
 export const mk9DeleteImport = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ importId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("mk9_import_items").delete().eq("import_id", data.importId);
     const { error } = await supabaseAdmin.from("mk9_imports").delete().eq("id", data.importId);
     if (error) throw new Error(error.message);
+    await logAudit(ctx, "mk9.import.delete", "mk9_imports", data.importId);
     return { ok: true };
   });
+
 
 export const mk9OverviewCounts = createServerFn({ method: "GET" }).handler(async () => {
   const { createSupabaseRepository } = await import("./mk9/persistence.server");
