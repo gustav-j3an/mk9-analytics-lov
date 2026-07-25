@@ -239,14 +239,36 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5" />
-            Importar checklist da indústria
+            Importar checklist mensal
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground">Arquivo .xlsx</label>
-              <Input type="file" accept=".xlsx,.xls" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              <label className="text-sm text-muted-foreground">Arquivo .xlsx (checklist mensal da indústria)</label>
+              <Input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  setPreview(null);
+                  setImportId(null);
+                  setLastError(null);
+                  setRejected(null);
+                  if (!f) { setFile(null); return; }
+                  const det = await detectMk9FileKind(f);
+                  if (det.kind === "base") {
+                    setFile(null);
+                    setRejected({
+                      reason: det.reason,
+                      sheets: det.sheets,
+                    });
+                    e.target.value = "";
+                    return;
+                  }
+                  setFile(f);
+                }}
+              />
             </div>
             <div>
               <label className="text-sm text-muted-foreground">Mês</label>
