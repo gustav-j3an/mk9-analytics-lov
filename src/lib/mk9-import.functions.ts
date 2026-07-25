@@ -59,6 +59,16 @@ export const mk9ListImports = createServerFn({ method: "GET" }).handler(async ()
   return createSupabaseRepository().listImports(30);
 });
 
+export const mk9DeleteImport = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({ importId: z.string().uuid() }).parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("mk9_import_items").delete().eq("import_id", data.importId);
+    const { error } = await supabaseAdmin.from("mk9_imports").delete().eq("id", data.importId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const mk9OverviewCounts = createServerFn({ method: "GET" }).handler(async () => {
   const { createSupabaseRepository } = await import("./mk9/persistence.server");
   const repo = createSupabaseRepository();
