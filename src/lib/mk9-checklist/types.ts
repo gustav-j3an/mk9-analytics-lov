@@ -1,0 +1,52 @@
+// Tipos do módulo Importador de Checklists das Indústrias.
+// Camada pura, sem dependências de banco.
+
+export type ChecklistRowStatus = "found" | "store_not_found" | "invalid_date";
+
+export interface ChecklistMark {
+  storeName: string;
+  storeNormalized: string;
+  uf: string | null;
+  weeklyFrequency: number | null;
+  monthlyFrequency: number | null;
+  day: number;
+  excelRow: number;
+}
+
+export interface ChecklistItem {
+  excelRow: number;
+  storeName: string;
+  uf: string | null;
+  storeId: string | null;
+  scheduledDate: string; // yyyy-mm-dd
+  status: ChecklistRowStatus;
+  message?: string;
+}
+
+export interface ChecklistPreviewCounters {
+  totalStores: number;
+  totalMarks: number;
+  storesFound: number;
+  storesNotFound: number;
+  validDates: number;
+  invalidDates: number;
+}
+
+export interface ChecklistPreview {
+  filename: string;
+  industryId: string;
+  industryName: string;
+  operationMonth: number;
+  operationYear: number;
+  counters: ChecklistPreviewCounters;
+  items: ChecklistItem[];
+  warnings: string[];
+}
+
+export interface ChecklistCommitResult {
+  importId: string;
+  visitsPersisted: number;
+  visitsSkipped: number; // já existiam
+  storesNotFound: number;
+  invalidDates: number;
+}

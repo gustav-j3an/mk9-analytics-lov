@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Mk9ImportModule } from "@/components/mk9-import-module";
+import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
 
 import {
   AlertTriangle,
@@ -55,9 +56,10 @@ type ModuleId =
   | "promotores"
   | "roteiros"
   | "visitas"
-  | "importacoes";
+  | "importacoes"
+  | "checklists";
 
-type ModuleGroup = "Visão geral" | "Operação" | "Dados";
+type ModuleGroup = "Visão geral" | "Operação" | "Dados" | "Importações";
 const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; group: ModuleGroup }> = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3, group: "Visão geral" },
   { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação" },
@@ -65,9 +67,10 @@ const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; grou
   { id: "industrias", label: "Indústrias", icon: Factory, group: "Dados" },
   { id: "lojas", label: "Lojas", icon: Store, group: "Dados" },
   { id: "promotores", label: "Promotores", icon: Users, group: "Dados" },
-  { id: "importacoes", label: "Importações", icon: Upload, group: "Dados" },
+  { id: "importacoes", label: "Base MK9", icon: Upload, group: "Importações" },
+  { id: "checklists", label: "Checklists", icon: ClipboardCheck, group: "Importações" },
 ];
-const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Dados"];
+const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Dados", "Importações"];
 
 const MONTHS_PT = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -301,6 +304,7 @@ export function Mk9AnalyticsApp() {
             {activeModule === "roteiros" && <RoutesModule routes={routes} loading={routesQ.isLoading} month={month} year={year} />}
             {activeModule === "visitas" && <VisitsModule visits={visits} loading={visitsQ.isLoading} />}
             {activeModule === "importacoes" && <Mk9ImportModule />}
+            {activeModule === "checklists" && <Mk9ChecklistImportModule />}
           </div>
         </section>
       </div>

@@ -14,6 +14,132 @@ export type Database = {
   }
   public: {
     Tables: {
+      mk9_actual_visits: {
+        Row: {
+          created_at: string
+          id: string
+          industry_id: string
+          notes: string | null
+          origin: Database["public"]["Enums"]["mk9_actual_visit_origin"]
+          scheduled_date: string
+          source_import_id: string | null
+          status: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          industry_id: string
+          notes?: string | null
+          origin?: Database["public"]["Enums"]["mk9_actual_visit_origin"]
+          scheduled_date: string
+          source_import_id?: string | null
+          status?: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          industry_id?: string
+          notes?: string | null
+          origin?: Database["public"]["Enums"]["mk9_actual_visit_origin"]
+          scheduled_date?: string
+          source_import_id?: string | null
+          status?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_actual_visits_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_actual_visits_source_import_id_fkey"
+            columns: ["source_import_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_actual_visits_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mk9_checklist_imports: {
+        Row: {
+          counters: Json
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          file_hash: string | null
+          filename: string
+          finished_at: string | null
+          id: string
+          industry_id: string
+          operation_month: number
+          operation_year: number
+          preview: Json | null
+          started_at: string
+          status: Database["public"]["Enums"]["mk9_import_status"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          counters?: Json
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          file_hash?: string | null
+          filename: string
+          finished_at?: string | null
+          id?: string
+          industry_id: string
+          operation_month: number
+          operation_year: number
+          preview?: Json | null
+          started_at?: string
+          status?: Database["public"]["Enums"]["mk9_import_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          counters?: Json
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          file_hash?: string | null
+          filename?: string
+          finished_at?: string | null
+          id?: string
+          industry_id?: string
+          operation_month?: number
+          operation_year?: number
+          preview?: Json | null
+          started_at?: string
+          status?: Database["public"]["Enums"]["mk9_import_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_checklist_imports_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mk9_import_items: {
         Row: {
           action: string
@@ -396,6 +522,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      mk9_actual_visit_origin: "CHECKLIST"
       mk9_import_status:
         | "pending"
         | "previewing"
@@ -539,6 +666,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      mk9_actual_visit_origin: ["CHECKLIST"],
       mk9_import_status: [
         "pending",
         "previewing",
