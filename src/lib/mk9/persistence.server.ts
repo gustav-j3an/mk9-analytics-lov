@@ -224,7 +224,7 @@ export function createSupabaseRepository(): Mk9Repository {
       for (let i = 0; i < list.length; i += CHUNK) {
         const slice = list.slice(i, i + CHUNK);
         const { data, error } = await supabaseAdmin.from("mk9_planned_visits").upsert(
-          slice.map((r) => ({
+          slice.map((r) => withOptionalId({
             id: r.id, promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
             route_id: r.routeId ?? null, scheduled_date: r.scheduledDate,
             status: r.status, source_sheet: r.sourceSheet, last_import_id: importId,
