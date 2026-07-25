@@ -310,5 +310,12 @@ export async function upsertIndustryStoreFrequencies(
       .upsert(payload.slice(i, i + CHUNK) as any, { onConflict: "industry_id,store_id" });
     if (error) throw new Error(error.message);
   }
+  const storeIds = payload.map((r) => r.store_id);
+  const { error: deleteError } = await supabaseAdmin
+    .from("mk9_industry_store_frequency")
+    .delete()
+    .eq("industry_id", industryId)
+    .not("store_id", "in", `(${storeIds.join(",")})`);
+  if (deleteError) throw new Error(deleteError.message);
   return { upserted: payload.length };
 }

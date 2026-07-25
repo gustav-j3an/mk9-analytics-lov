@@ -65,7 +65,6 @@ export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => monthYearSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { resolveWindow } = await import("@/lib/mk9-reports/period.server");
     const { data: rows, error } = await supabaseAdmin
       .from("mk9_planned_routes")
       .select(
@@ -94,6 +93,7 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => monthYearSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { resolveWindow } = await import("@/lib/mk9-reports/period.server");
     const first = new Date(Date.UTC(data.year, data.month - 1, 1)).toISOString().slice(0, 10);
     const last = new Date(Date.UTC(data.year, data.month, 0)).toISOString().slice(0, 10);
     const { data: rows, error } = await supabaseAdmin
@@ -147,7 +147,15 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
     for (const f of freqs ?? []) {
       const industryId = f.industry_id as string;
       if (windows.has(industryId)) continue;
-      const cfg = configByIndustry.get(industryId) ?? null;
+      const cfg = configByIndustry.get(industryId) ?? {
+        industryId,
+        periodType: "CALENDAR_MONTH",
+        startDay: 1,
+        endDay: 31,
+        usesPreviousMonth: false,
+        weekGrouping: "CALENDAR_WEEK",
+        active: true,
+      };
       windows.set(industryId, resolveWindow(cfg, data.year, data.month));
     }
 
