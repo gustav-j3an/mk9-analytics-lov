@@ -35,15 +35,18 @@ export function normalizeExternalId(input: string | number | null | undefined): 
   return value.length ? value : null;
 }
 
-// Reconhece marcações de dia (✓, ✔, X, x, SIM, 1, TRUE).
+// Reconhece marcações de dia (✓, ✔, ✅, X, x, SIM, 1, TRUE).
 const TRUTHY_MARKS = new Set([
-  "✓", "✔", "x", "sim", "s", "1", "true", "verdadeiro", "y", "yes",
+  "✓", "✔", "✅", "☑", "☒", "x", "sim", "s", "1", "true", "verdadeiro", "y", "yes", "ok", "feito",
 ]);
 export function isDayMarked(value: unknown): boolean {
   if (value === true) return true;
   if (typeof value === "number") return value === 1;
   if (value === null || value === undefined) return false;
-  const norm = normalizeText(String(value));
+  const raw = String(value).replace(/\uFE0F/g, "").trim();
+  if (!raw) return false;
+  if (TRUTHY_MARKS.has(raw)) return true;
+  const norm = normalizeText(raw);
   return TRUTHY_MARKS.has(norm);
 }
 
