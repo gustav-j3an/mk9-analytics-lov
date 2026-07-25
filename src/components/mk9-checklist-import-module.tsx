@@ -381,14 +381,16 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
             </Button>
             {preview && (
               <Button
-                onClick={() => setConfirmOpen(true)}
-                disabled={commitMut.isPending || !canConfirm}
+                variant="outline"
+                onClick={() => discardMut.mutate()}
+                disabled={discardMut.isPending || commitMut.isPending}
               >
-                {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                Confirmar importação
+                {discardMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                Descartar prévia
               </Button>
             )}
           </div>
+
         </CardContent>
       </Card>
 
