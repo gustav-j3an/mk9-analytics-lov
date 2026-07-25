@@ -164,13 +164,13 @@ function drawKpis(ctx: PdfCtx) {
 
 function drawCoverageExplanation(ctx: PdfCtx) {
   ensure(ctx, 58);
-  ctx.page.drawText("Critério de cobertura", { x: MARGIN, y: ctx.y - 12, size: 10, font: ctx.fontB, color: COLOR_TEXT });
+  ctx.page.drawText("Critério de cálculo", { x: MARGIN, y: ctx.y - 12, size: 10, font: ctx.fontB, color: COLOR_TEXT });
   ctx.y -= 18;
   const lines = [
-    "Contratadas = soma da coluna VISITA MENSAL do checklist por loja; roteiro é auditoria separada.",
-    "Cobertura contratual = soma por loja de min(realizadas válidas, visitas contratadas) / visitas contratadas.",
-    "Visitas extras em uma loja são destacadas separadamente e não compensam pendências de outra loja.",
-    "Cobertura operacional = visitas planejadas conciliadas / visitas planejadas no roteiro.",
+    "Contratadas = soma da coluna VISITA MENSAL do checklist por loja.",
+    "Realizadas = TODAS as visitas confirmadas no checklist (nunca reduzido, mesmo acima do contrato).",
+    "Pendentes = max(0, contratadas - realizadas) por loja. Extras = max(0, realizadas - contratadas) por loja.",
+    "Cobertura = realizadas / contratadas, limitada a 100 %. Roteiro é auditoria separada.",
   ];
   for (const line of lines) {
     ctx.page.drawText(sanitizePdfText(line), { x: MARGIN, y: ctx.y - 10, size: 8.5, font: ctx.font, color: COLOR_MUTED });
