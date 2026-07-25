@@ -11,17 +11,21 @@ const previewSchema = z.object({
   operationYear: z.number().int().min(2020).max(2100),
 });
 
+const commitItemSchema = z.object({
+  storeId: z.string().uuid().nullable().optional(),
+  storeName: z.string().min(1),
+  storeNormalized: z.string().min(1),
+  uf: z.string().length(2).nullable().optional(),
+  scheduledDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  isNew: z.boolean().optional(),
+});
+
 const commitSchema = z.object({
   importId: z.string().uuid(),
   industryId: z.string().uuid(),
   operationMonth: z.number().int().min(1).max(12),
   operationYear: z.number().int().min(2020).max(2100),
-  items: z.array(
-    z.object({
-      storeId: z.string().uuid(),
-      scheduledDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    }),
-  ),
+  items: z.array(commitItemSchema),
 });
 
 async function validate<T>(step: string, fn: () => T): Promise<T> {
@@ -42,11 +46,6 @@ export const checklistPreview = createServerFn({ method: "POST" })
     const { createChecklistDiagnostics } = await import("./mk9-checklist/diagnostics");
     const { runChecklistPreview } = await import("./mk9-checklist/preview.server");
     const diagnostics = createChecklistDiagnostics("preview-server-fn");
-    diagnostics.info("request-received", "Requisição recebida via server function legado", {
-      filename: data.filename,
-      base64Length: data.base64.length,
-      parser: "parseChecklistWorkbook",
-    });
     const result = await runChecklistPreview(
       {
         buffer: b64ToArrayBuffer(data.base64),
@@ -66,19 +65,71 @@ export const checklistCommit = createServerFn({ method: "POST" })
   .inputValidator(async (data: unknown) => validate("checklistCommit", () => commitSchema.parse(data)))
   .handler(async ({ data }) => {
     const { withRichErrors, buildRichError } = await import("./mk9-checklist/errors.server");
-    const { persistActualVisits, updateImportStatus } = await import("./mk9-checklist/persistence.server");
+    const { persistActualVisits, updateImportStatus, ensureChecklistStores } = await import(
+      "./mk9-checklist/persistence.server"
+    );
     const startedAt = Date.now();
     try {
-      const { persisted, skipped } = await withRichErrors(
-        { step: "persist-actual-visits", function: "checklistCommit", extra: { importId: data.importId, count: data.items.length } },
-        () => persistActualVisits(data.importId, data.industryId, data.items),
+      // 1) Cria/reaproveita lojas ausentes (isNew=true). Lojas já resolvidas passam direto.
+      const newCandidates = data.items
+        .filter((i) => i.isNew || !i.storeId)
+        .map((i) => ({ storeName: i.storeName, storeNormalized: i.storeNormalized, uf: i.uf ?? null }));
+
+      const createdMap = await withRichErrors(
+        { step: "ensure-checklist-stores", function: "checklistCommit", extra: { candidates: newCandidates.length } },
+        () => ensureChecklistStores(data.importId, newCandidates),
       );
+
+      let storesCreated = 0;
+      let storesReused = 0;
+      for (const v of createdMap.values()) {
+        if (v.created) storesCreated++;
+        else storesReused++;
+      }
+
+      // 2) Resolve storeId final por item.
+      const resolvedItems: Array<{ storeId: string; scheduledDate: string }> = [];
+      const unresolved: Array<{ storeName: string; uf: string | null }> = [];
+      for (const it of data.items) {
+        if (it.storeId) {
+          resolvedItems.push({ storeId: it.storeId, scheduledDate: it.scheduledDate });
+          continue;
+        }
+        const key = `${it.storeNormalized}|${it.uf ?? ""}`;
+        const found = createdMap.get(key);
+        if (found) {
+          resolvedItems.push({ storeId: found.storeId, scheduledDate: it.scheduledDate });
+        } else {
+          unresolved.push({ storeName: it.storeName, uf: it.uf ?? null });
+        }
+      }
+
+      // 3) Persiste visitas realizadas.
+      const { persisted, skipped } = await withRichErrors(
+        {
+          step: "persist-actual-visits",
+          function: "checklistCommit",
+          extra: { importId: data.importId, count: resolvedItems.length },
+        },
+        () => persistActualVisits(data.importId, data.industryId, resolvedItems),
+      );
+
+      const counters = {
+        persisted,
+        skipped,
+        total: data.items.length,
+        storesCreated,
+        storesReused,
+        unresolved: unresolved.length,
+      };
+
       await updateImportStatus(data.importId, {
         status: "done",
-        counters: { persisted, skipped, total: data.items.length },
+        counters,
         finishedAt: new Date(),
         durationMs: Date.now() - startedAt,
       });
+
       let reconciliationError: string | null = null;
       try {
         const { reconcile } = await import("./mk9-reconciliation/engine.server");
@@ -91,9 +142,18 @@ export const checklistCommit = createServerFn({ method: "POST" })
       } catch (recErr: any) {
         reconciliationError = String(recErr?.message ?? recErr);
       }
-      return { importId: data.importId, persisted, skipped, total: data.items.length, reconciliationError };
+
+      return {
+        importId: data.importId,
+        persisted,
+        skipped,
+        total: data.items.length,
+        storesCreated,
+        storesReused,
+        unresolved: unresolved.length,
+        reconciliationError,
+      };
     } catch (e: any) {
-      // Já vem estruturado (JSON string) do withRichErrors — persiste no histórico
       let msg: string;
       try {
         msg = e?.message ?? String(e);
@@ -106,7 +166,6 @@ export const checklistCommit = createServerFn({ method: "POST" })
         finishedAt: new Date(),
         durationMs: Date.now() - startedAt,
       });
-      // Se não veio estruturado, estruturar agora
       if (!msg.startsWith("{")) {
         const payload = buildRichError(e, { step: "commit-outer", function: "checklistCommit" });
         throw new Error(JSON.stringify(payload));

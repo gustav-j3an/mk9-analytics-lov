@@ -2,21 +2,103 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { ChecklistPreview } from "./types";
 
+export interface StoreIndexRecord {
+  id: string;
+  name: string;
+  nameNormalized: string;
+  uf: string | null;
+}
+
 export async function loadStoresIndex() {
   const { data, error } = await supabaseAdmin
     .from("mk9_stores")
     .select("id, name, name_normalized, uf");
   if (error) throw new Error(error.message);
-  const byKey = new Map<string, { id: string; name: string; uf: string | null }>();
-  const byName = new Map<string, { id: string; name: string; uf: string | null }>();
+  const byKey = new Map<string, StoreIndexRecord>();
+  const byName = new Map<string, StoreIndexRecord>();
+  const all: StoreIndexRecord[] = [];
   for (const row of data ?? []) {
     const uf = (row.uf as string | null) ?? null;
-    const rec = { id: row.id as string, name: row.name as string, uf };
-    byKey.set(`${row.name_normalized}|${uf ?? ""}`, rec);
-    // Fallback por nome quando UF não bate
-    if (!byName.has(row.name_normalized as string)) byName.set(row.name_normalized as string, rec);
+    const rec: StoreIndexRecord = {
+      id: row.id as string,
+      name: row.name as string,
+      nameNormalized: row.name_normalized as string,
+      uf,
+    };
+    all.push(rec);
+    byKey.set(`${rec.nameNormalized}|${uf ?? ""}`, rec);
+    if (!byName.has(rec.nameNormalized)) byName.set(rec.nameNormalized, rec);
   }
-  return { byKey, byName };
+  return { byKey, byName, all };
+}
+
+// Cria (ou reaproveita) lojas para o checklist. Retorna mapa (normalized|uf) -> storeId.
+// Idempotente: revalida por (name_normalized, uf) antes de inserir e ignora conflitos.
+export async function ensureChecklistStores(
+  importId: string,
+  candidates: Array<{ storeName: string; storeNormalized: string; uf: string | null }>,
+) {
+  const result = new Map<string, { storeId: string; created: boolean }>();
+  if (!candidates.length) return result;
+
+  // Dedup interno por (normalized, uf); mantém a primeira grafia.
+  const dedup = new Map<string, { storeName: string; storeNormalized: string; uf: string | null }>();
+  for (const c of candidates) {
+    const key = `${c.storeNormalized}|${c.uf ?? ""}`;
+    if (!dedup.has(key)) dedup.set(key, c);
+  }
+
+  // Revalida: quem já existe agora não precisa ser criado.
+  const normalized = Array.from(new Set(Array.from(dedup.values()).map((c) => c.storeNormalized)));
+  const { data: existing, error: exErr } = await supabaseAdmin
+    .from("mk9_stores")
+    .select("id, name_normalized, uf")
+    .in("name_normalized", normalized);
+  if (exErr) throw new Error(exErr.message);
+  const existingMap = new Map<string, string>();
+  for (const row of existing ?? []) {
+    existingMap.set(`${row.name_normalized}|${(row.uf as string | null) ?? ""}`, row.id as string);
+  }
+
+  for (const [key, c] of dedup) {
+    const already = existingMap.get(key);
+    if (already) {
+      result.set(key, { storeId: already, created: false });
+      continue;
+    }
+    // Insert individual para tolerar conflitos concorrentes por (name_normalized, uf) sem parar o lote.
+    const insertPayload: Record<string, unknown> = {
+      name: c.storeName,
+      name_normalized: c.storeNormalized,
+      uf: c.uf,
+      origin: "CHECKLIST_IMPORT",
+      is_incomplete: true,
+      created_by_checklist_import_id: importId,
+      notes: "Loja criada automaticamente pela importação do checklist",
+      last_import_id: null,
+    };
+    const { data: inserted, error: insErr } = await supabaseAdmin
+      .from("mk9_stores")
+      .insert(insertPayload as any)
+      .select("id")
+      .single();
+    if (insErr) {
+      // Provável conflito por unique(name_normalized, uf): busca a linha existente.
+      const query = supabaseAdmin
+        .from("mk9_stores")
+        .select("id")
+        .eq("name_normalized", c.storeNormalized);
+      const { data: after, error: afterErr } = c.uf === null
+        ? await query.is("uf", null).maybeSingle()
+        : await query.eq("uf", c.uf).maybeSingle();
+      if (afterErr || !after) throw new Error(insErr.message);
+      result.set(key, { storeId: after.id as string, created: false });
+      continue;
+    }
+    result.set(key, { storeId: inserted.id as string, created: true });
+  }
+
+  return result;
 }
 
 export async function loadIndustry(industryId: string) {

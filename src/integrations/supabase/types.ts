@@ -485,34 +485,54 @@ export type Database = {
         Row: {
           chain: string | null
           created_at: string
+          created_by_checklist_import_id: string | null
           id: string
+          is_incomplete: boolean
           last_import_id: string | null
           name: string
           name_normalized: string
+          notes: string | null
+          origin: string | null
           uf: string | null
           updated_at: string
         }
         Insert: {
           chain?: string | null
           created_at?: string
+          created_by_checklist_import_id?: string | null
           id?: string
+          is_incomplete?: boolean
           last_import_id?: string | null
           name: string
           name_normalized: string
+          notes?: string | null
+          origin?: string | null
           uf?: string | null
           updated_at?: string
         }
         Update: {
           chain?: string | null
           created_at?: string
+          created_by_checklist_import_id?: string | null
           id?: string
+          is_incomplete?: boolean
           last_import_id?: string | null
           name?: string
           name_normalized?: string
+          notes?: string | null
+          origin?: string | null
           uf?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mk9_stores_created_by_checklist_import_id_fkey"
+            columns: ["created_by_checklist_import_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_imports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mk9_visit_reconciliations: {
         Row: {

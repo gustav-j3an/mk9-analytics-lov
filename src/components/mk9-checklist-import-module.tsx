@@ -137,8 +137,9 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const [industryId, setIndustryId] = useState<string>("");
   const [preview, setPreview] = useState<ChecklistPreview | null>(null);
   const [importId, setImportId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "found" | "store_not_found" | "invalid_date">("all");
+  const [filter, setFilter] = useState<"all" | "found" | "linked_by_similarity" | "new_store" | "invalid_date">("all");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [ackNewStores, setAckNewStores] = useState(false);
   const [lastError, setLastError] = useState<RichError | null>(null);
   const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
 
@@ -181,8 +182,19 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     mutationFn: async () => {
       if (!preview || !importId) throw new Error("Gere a prévia antes");
       const items = preview.items
-        .filter((i) => i.status === "found" && i.storeId && i.scheduledDate)
-        .map((i) => ({ storeId: i.storeId!, scheduledDate: i.scheduledDate }));
+        .filter(
+          (i) =>
+            (i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store") &&
+            i.scheduledDate,
+        )
+        .map((i) => ({
+          storeId: i.storeId,
+          storeName: i.storeName,
+          storeNormalized: i.storeNormalized,
+          uf: i.uf,
+          scheduledDate: i.scheduledDate,
+          isNew: i.status === "new_store",
+        }));
       if (!items.length) throw new Error("Nenhuma visita válida para importar");
       return commitFn({
         data: {
@@ -197,12 +209,13 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     onSuccess: (res: any) => {
       setLastError(null);
       toast.success("Checklist importado", {
-        description: `${res.persisted} novas · ${res.skipped} já existentes · ${res.total} avaliadas`,
+        description: `${res.persisted} novas · ${res.skipped} já existentes · ${res.storesCreated ?? 0} lojas criadas · ${res.storesReused ?? 0} lojas reaproveitadas`,
         duration: 8000,
       });
       setPreview(null);
       setImportId(null);
       setFile(null);
+      setAckNewStores(false);
       setConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
     },
@@ -231,7 +244,11 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     [items, filter],
   );
 
-  const validItems = items.filter((i) => i.status === "found").length;
+  const validItems = items.filter(
+    (i) => i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store",
+  ).length;
+  const newStoresCount = preview?.counters.storesNew ?? 0;
+  const canConfirm = validItems > 0 && (newStoresCount === 0 || ackNewStores);
 
   return (
     <div className="space-y-6">
@@ -255,6 +272,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                   setImportId(null);
                   setLastError(null);
                   setRejected(null);
+                  setAckNewStores(false);
                   if (!f) { setFile(null); return; }
                   const det = await detectMk9FileKind(f);
                   if (det.kind === "base") {
@@ -303,7 +321,10 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
               Gerar prévia
             </Button>
             {preview && (
-              <Button onClick={() => setConfirmOpen(true)} disabled={commitMut.isPending || validItems === 0}>
+              <Button
+                onClick={() => setConfirmOpen(true)}
+                disabled={commitMut.isPending || !canConfirm}
+              >
                 {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                 Confirmar importação
               </Button>
@@ -357,13 +378,20 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
               <MiniStat label="Total de lojas" value={preview.counters.totalStores} />
               <MiniStat label="Total de visitas" value={preview.counters.totalMarks} />
               <MiniStat label="Lojas encontradas" value={preview.counters.storesFound} tone="green" />
-              <MiniStat label="Lojas não encontradas" value={preview.counters.storesNotFound} tone="red" />
-              <MiniStat label="Datas válidas" value={preview.counters.validDates} tone="blue" />
-              <MiniStat label="Datas inválidas" value={preview.counters.invalidDates} tone="amber" />
+              <MiniStat label="Vinculadas por similaridade" value={preview.counters.storesLinkedBySimilarity} tone="blue" />
+              <MiniStat label="Novas lojas" value={preview.counters.storesNew} tone="amber" />
+              <MiniStat label="Datas inválidas" value={preview.counters.invalidDates} tone="red" />
             </div>
 
+            {preview.counters.storesNew > 0 && (
+              <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-300">
+                Esta importação poderá cadastrar automaticamente {preview.counters.storesNew} nova(s) loja(s) na Base MK9.
+                Os dados ausentes serão marcados como “Não informado” e poderão ser completados depois em Cadastros › Lojas.
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-2">
-              {(["all", "found", "store_not_found", "invalid_date"] as const).map((f) => (
+              {(["all", "found", "linked_by_similarity", "new_store", "invalid_date"] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
@@ -373,7 +401,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                 >
                   {f === "all" && "Todos"}
                   {f === "found" && "Encontradas"}
-                  {f === "store_not_found" && "Loja não encontrada"}
+                  {f === "linked_by_similarity" && "Vinculadas por similaridade"}
+                  {f === "new_store" && "Nova loja"}
                   {f === "invalid_date" && "Data inválida"}
                 </button>
               ))}
@@ -399,11 +428,21 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                       <td className="p-2 whitespace-nowrap">{shortDate(it.scheduledDate)}</td>
                       <td className="p-2">
                         {it.status === "found" && <Badge variant="default">Encontrada</Badge>}
+                        {it.status === "linked_by_similarity" && <Badge variant="secondary">Similaridade</Badge>}
+                        {it.status === "new_store" && (
+                          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/40">
+                            NOVA LOJA
+                          </Badge>
+                        )}
                         {it.status === "store_not_found" && <Badge variant="destructive">Loja não encontrada</Badge>}
                         {it.status === "invalid_date" && <Badge variant="secondary">Data inválida</Badge>}
                       </td>
                       <td className="p-2 text-muted-foreground">
-                        {it.status === "found" ? "Criar visita realizada" : it.message ?? "—"}
+                        {it.status === "found" && "Vincular à loja existente"}
+                        {it.status === "linked_by_similarity" &&
+                          `Vinculada por correspondência aproximada${it.matchedStoreName ? ` → ${it.matchedStoreName}` : ""}${it.similarityScore ? ` (${Math.round(it.similarityScore * 100)}%)` : ""}`}
+                        {it.status === "new_store" && "Criar nova loja automaticamente"}
+                        {(it.status === "store_not_found" || it.status === "invalid_date") && (it.message ?? "—")}
                       </td>
                     </tr>
                   ))}
@@ -473,17 +512,34 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
             </AlertDialogDescription>
           </AlertDialogHeader>
           {preview && (
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <ConfirmRow label="Indústria" value={preview.industryName} />
-              <ConfirmRow label="Período" value={`${MONTHS[preview.operationMonth - 1]}/${preview.operationYear}`} />
-              <ConfirmRow label="Visitas válidas" value={validItems} />
-              <ConfirmRow label="Datas inválidas" value={preview.counters.invalidDates} />
-              <ConfirmRow label="Lojas não encontradas" value={preview.counters.storesNotFound} />
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <ConfirmRow label="Indústria" value={preview.industryName} />
+                <ConfirmRow label="Período" value={`${MONTHS[preview.operationMonth - 1]}/${preview.operationYear}`} />
+                <ConfirmRow label="Visitas a persistir" value={validItems} />
+                <ConfirmRow label="Lojas encontradas" value={preview.counters.storesFound} />
+                <ConfirmRow label="Vinculadas por similaridade" value={preview.counters.storesLinkedBySimilarity} />
+                <ConfirmRow label="Novas lojas a cadastrar" value={preview.counters.storesNew} />
+              </div>
+              {newStoresCount > 0 && (
+                <label className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={ackNewStores}
+                    onChange={(e) => setAckNewStores(e.target.checked)}
+                  />
+                  <span>Estou ciente de que {newStoresCount} nova(s) loja(s) serão cadastradas automaticamente na Base MK9.</span>
+                </label>
+              )}
             </div>
           )}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={commitMut.isPending}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={(e) => { e.preventDefault(); commitMut.mutate(); }} disabled={commitMut.isPending}>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); commitMut.mutate(); }}
+              disabled={commitMut.isPending || !canConfirm}
+            >
               {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Confirmar importação
             </AlertDialogAction>
