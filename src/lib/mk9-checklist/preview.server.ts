@@ -4,12 +4,14 @@ import { buildRichError } from "./errors.server";
 import { parseChecklistWorkbook } from "./parser";
 import { diceCoefficient } from "./similarity";
 import {
+  cancelPreviousPreviews,
   createChecklistImport,
   loadIndustry,
   loadStoresIndex,
   savePreviewSnapshot,
   updateImportStatus,
 } from "./persistence.server";
+
 
 interface ChecklistPreviewInput {
   buffer: ArrayBuffer;
