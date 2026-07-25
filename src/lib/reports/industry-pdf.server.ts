@@ -233,17 +233,16 @@ function drawStoreTable(ctx: PdfCtx) {
   ctx.page.drawText("Resultado por loja", { x: MARGIN, y: ctx.y - 12, size: 11, font: ctx.fontB, color: COLOR_TEXT });
   ctx.y -= 20;
   const cols: Column[] = [
-    { label: "Loja", w: 122 },
-    { label: "UF", w: 24 },
-    { label: "Contr.", w: 36 },
-    { label: "Real.", w: 34 },
-    { label: "Vál.", w: 30 },
-    { label: "Pend.", w: 34 },
-    { label: "Extra", w: 34 },
-    { label: "Cob.", w: 34 },
-    { label: "Exec.", w: 54 },
-    { label: "Roteiro", w: 58 },
-    { label: "Datas realizadas", w: CONTENT_W - 460 },
+    { label: "Loja", w: 132 },
+    { label: "UF", w: 26 },
+    { label: "Contr.", w: 38 },
+    { label: "Real.", w: 36 },
+    { label: "Pend.", w: 36 },
+    { label: "Extra", w: 36 },
+    { label: "Cob.", w: 36 },
+    { label: "Execução", w: 60 },
+    { label: "Roteiro", w: 62 },
+    { label: "Datas realizadas", w: CONTENT_W - 462 },
   ];
   const drawHeader = () => drawTableHeader(ctx, cols);
   drawHeader();
@@ -260,18 +259,17 @@ function drawStoreTable(ctx: PdfCtx) {
       s.uf ?? "—",
       String(s.expected),
       String(s.actual),
-      String(s.validForCoverage),
       String(s.pending),
       String(s.extra),
       pct(s.coveragePct),
-      truncate(ctx.font, EXECUTION_STATUS_LABEL[s.executionStatus], 8, cols[8].w - 8),
-      truncate(ctx.font, ROUTE_STATUS_LABEL[s.routeStatus], 8, cols[9].w - 8),
-      truncate(ctx.font, dateList(s), 8, cols[10].w - 8),
+      truncate(ctx.font, EXECUTION_STATUS_LABEL[s.executionStatus], 8, cols[7].w - 8),
+      truncate(ctx.font, ROUTE_STATUS_LABEL[s.routeStatus], 8, cols[8].w - 8),
+      truncate(ctx.font, dateList(s), 8, cols[9].w - 8),
     ];
     let x = MARGIN + 5;
     vals.forEach((v, idx) => {
-      const color = idx === 8 ? executionColor(s.executionStatus) : idx === 9 ? routeColor(s.routeStatus) : COLOR_TEXT;
-      ctx.page.drawText(sanitizePdfText(v), { x, y, size: 8, font: idx === 8 || idx === 9 ? ctx.fontB : ctx.font, color });
+      const color = idx === 7 ? executionColor(s.executionStatus) : idx === 8 ? routeColor(s.routeStatus) : COLOR_TEXT;
+      ctx.page.drawText(sanitizePdfText(v), { x, y, size: 8, font: idx === 7 || idx === 8 ? ctx.fontB : ctx.font, color });
       x += cols[idx].w;
     });
     ctx.y -= 18;
