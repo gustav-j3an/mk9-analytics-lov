@@ -69,17 +69,15 @@ export async function loadStoresIndex() {
     }
   }
   // Só aceita match por compact/tokenSet quando é ÚNICO na UF (evita ambiguidade).
-  function pickUnique(
-    mapByUf: Map<string, Map<string, StoreIndexRecord>>,
-    cntByUf: Map<string, Map<string, number>>,
-    uf: string,
-    key: string,
-  ): StoreIndexRecord | null {
+  function pickUnique(kind: "compact" | "tokenSet", uf: string, key: string): StoreIndexRecord | null {
+    if (!key) return null;
+    const mapByUf = kind === "compact" ? compactByUf : tokenSetByUf;
+    const cntByUf = kind === "compact" ? compactCountByUf : tokenSetCountByUf;
     const cnt = cntByUf.get(uf)?.get(key) ?? 0;
     if (cnt !== 1) return null;
     return mapByUf.get(uf)?.get(key) ?? null;
   }
-  return { byKey, byName, uniqueByName, all, compactByUf, tokenSetByUf, pickUnique };
+  return { byKey, byName, uniqueByName, all, pickUnique };
 }
 
 // Cria (ou reaproveita) lojas para o checklist. Retorna mapa (normalized|uf) -> storeId.
