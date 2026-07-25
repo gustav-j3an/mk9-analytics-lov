@@ -51,7 +51,10 @@ const upsertConfigSchema = z.object({
 export const reportUpsertPeriodConfig = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => upsertConfigSchema.parse(d))
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const { error } = await supabaseAdmin
       .from("mk9_industry_period_config")
       .upsert(
