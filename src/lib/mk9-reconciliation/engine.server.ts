@@ -436,12 +436,16 @@ export async function summarize(scope: ReconcileScope): Promise<ReconciliationSu
   const dateDiv = counts["DATE_DIVERGENCE"] ?? 0;
   const manual = counts["MANUALLY_MATCHED"] ?? 0;
   const planned = plannedCount ?? 0;
+  const actualTotal = actualCount ?? 0;
   const covered = matched + dateDiv + manual;
   const coveragePct = planned > 0 ? Math.round((covered / planned) * 1000) / 10 : 0;
+  const validas = Math.min(covered, planned);
+  const extras = Math.max(0, actualTotal - planned);
+  const pendencias = Math.max(0, planned - validas);
 
   return {
     planned,
-    actual: actualCount ?? 0,
+    actual: actualTotal,
     matched,
     dateDivergence: dateDiv,
     unplanned: counts["UNPLANNED_VISIT"] ?? 0,
@@ -452,6 +456,14 @@ export async function summarize(scope: ReconcileScope): Promise<ReconciliationSu
     manuallyMatched: manual,
     ignored: counts["IGNORED"] ?? 0,
     coveragePct,
+    metrics: {
+      contratadas: planned,
+      executadas: actualTotal,
+      validas,
+      extras,
+      pendencias,
+      coberturaPct: planned > 0 ? Math.round((validas / planned) * 100) : 0,
+    },
   };
 }
 
