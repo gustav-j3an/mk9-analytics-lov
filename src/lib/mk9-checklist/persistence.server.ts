@@ -16,6 +16,7 @@ export async function loadStoresIndex() {
   if (error) throw new Error(error.message);
   const byKey = new Map<string, StoreIndexRecord>();
   const byName = new Map<string, StoreIndexRecord>();
+  const countByName = new Map<string, number>();
   const all: StoreIndexRecord[] = [];
   for (const row of data ?? []) {
     const uf = (row.uf as string | null) ?? null;
@@ -27,9 +28,20 @@ export async function loadStoresIndex() {
     };
     all.push(rec);
     byKey.set(`${rec.nameNormalized}|${uf ?? ""}`, rec);
+    countByName.set(rec.nameNormalized, (countByName.get(rec.nameNormalized) ?? 0) + 1);
     if (!byName.has(rec.nameNormalized)) byName.set(rec.nameNormalized, rec);
   }
-  return { byKey, byName, all };
+  // uniqueByName: só devolve record quando existe UMA única loja com aquele
+  // nome normalizado, independentemente da UF. Serve para reconciliar casos
+  // em que o checklist trouxe a UF errada (ex.: TATICO AGUAS LINDAS DF vs GO).
+  const uniqueByName = new Map<string, StoreIndexRecord>();
+  for (const [k, count] of countByName) {
+    if (count === 1) {
+      const rec = byName.get(k);
+      if (rec) uniqueByName.set(k, rec);
+    }
+  }
+  return { byKey, byName, uniqueByName, all };
 }
 
 // Cria (ou reaproveita) lojas para o checklist. Retorna mapa (normalized|uf) -> storeId.
