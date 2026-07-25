@@ -93,7 +93,6 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => monthYearSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { resolveWindow } = await import("@/lib/mk9-reports/period.server");
     const first = new Date(Date.UTC(data.year, data.month - 1, 1)).toISOString().slice(0, 10);
     const last = new Date(Date.UTC(data.year, data.month, 0)).toISOString().slice(0, 10);
     const { data: rows, error } = await supabaseAdmin
