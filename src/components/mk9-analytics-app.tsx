@@ -437,39 +437,57 @@ function DashboardModule({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard icon={Route} label="Visitas planejadas" value={metrics.planned} detail={`${metrics.completed} realizadas`} />
-        <KpiCard icon={CheckCircle2} label="Cobertura" value={`${metrics.coverage}%`} detail="execução do período" />
-        <KpiCard icon={AlertTriangle} label="Alertas críticos" value={metrics.delayed} detail="visitas atrasadas" />
-        <KpiCard icon={FileSpreadsheet} label="Importações" value={imports.length} detail="arquivos analisados" />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <KpiCard tone="blue" icon={Route} label="Visitas planejadas" value={metrics.planned} detail={`${metrics.completed} realizadas`} />
+        <KpiCard tone="green" icon={CheckCircle2} label="Cobertura" value={`${metrics.coverage}%`} detail="execução do período" />
+        <KpiCard tone="amber" icon={AlertTriangle} label="Alertas críticos" value={metrics.delayed} detail="visitas atrasadas" />
+        <KpiCard tone="violet" icon={FileSpreadsheet} label="Importações" value={imports.length} detail="arquivos analisados" />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Execução diária</CardTitle>
+      <div className="grid gap-5 xl:grid-cols-[1.4fr_0.8fr]">
+        <Card className="card-hover overflow-hidden border-border/70 shadow-[var(--shadow-soft)]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="text-base">Execução diária</CardTitle>
+              <p className="mt-0.5 text-xs text-muted-foreground">Planejadas x realizadas nos últimos 6 dias</p>
+            </div>
+            <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[color:var(--color-chart-1)]" />Planejadas</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[color:var(--color-chart-2)]" />Realizadas</span>
+            </div>
           </CardHeader>
           <CardContent className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={executionByDay} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
-                <CartesianGrid stroke="var(--color-border)" vertical={false} />
-                <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} />
-                <Area type="monotone" dataKey="planejadas" stroke="var(--color-chart-1)" fill="var(--color-chart-1)" fillOpacity={0.16} />
-                <Area type="monotone" dataKey="realizadas" stroke="var(--color-chart-2)" fill="var(--color-chart-2)" fillOpacity={0.24} />
+                <defs>
+                  <linearGradient id="gPlan" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gReal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--color-chart-2)" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="var(--color-chart-2)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }} width={28} />
+                <Area type="monotone" dataKey="planejadas" stroke="var(--color-chart-1)" strokeWidth={2} fill="url(#gPlan)" />
+                <Area type="monotone" dataKey="realizadas" stroke="var(--color-chart-2)" strokeWidth={2} fill="url(#gReal)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-hover overflow-hidden border-border/70 shadow-[var(--shadow-soft)]">
           <CardHeader className="pb-2">
-            <CardTitle>Status das visitas</CardTitle>
+            <CardTitle className="text-base">Status das visitas</CardTitle>
+            <p className="mt-0.5 text-xs text-muted-foreground">Distribuição atual do período</p>
           </CardHeader>
           <CardContent className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={visitsByStatus} dataKey="value" nameKey="name" innerRadius={58} outerRadius={88} paddingAngle={4}>
+                <Pie data={visitsByStatus} dataKey="value" nameKey="name" innerRadius={62} outerRadius={92} paddingAngle={3} stroke="var(--color-card)" strokeWidth={3}>
                   {visitsByStatus.map((entry, index) => (
                     <Cell key={entry.name} fill={chartColors[index % chartColors.length]} />
                   ))}
@@ -480,23 +498,23 @@ function DashboardModule({
         </Card>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Ações rápidas</CardTitle>
+      <div className="grid gap-5 xl:grid-cols-3">
+        <Card className="card-hover border-border/70 shadow-[var(--shadow-soft)]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Ações rápidas</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2">
-            <Button className="justify-start" onClick={() => onOpenModule("importacoes")}><Upload className="h-4 w-4" />Importar planilha</Button>
-            <Button variant="secondary" className="justify-start" onClick={() => onOpenModule("roteiros")}><Route className="h-4 w-4" />Gerar roteiros</Button>
-            <Button variant="outline" className="justify-start" onClick={() => onOpenModule("conciliacao")}><PackageCheck className="h-4 w-4" />Conciliar evidências</Button>
+            <Button className="h-10 justify-start rounded-lg" onClick={() => onOpenModule("importacoes")}><Upload className="h-4 w-4" />Importar planilha</Button>
+            <Button variant="secondary" className="h-10 justify-start rounded-lg" onClick={() => onOpenModule("roteiros")}><Route className="h-4 w-4" />Gerar roteiros</Button>
+            <Button variant="outline" className="h-10 justify-start rounded-lg" onClick={() => onOpenModule("conciliacao")}><PackageCheck className="h-4 w-4" />Conciliar evidências</Button>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Cadastros</CardTitle>
+        <Card className="card-hover border-border/70 shadow-[var(--shadow-soft)]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Cadastros</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-3 text-sm">
+          <CardContent className="grid gap-2 text-sm">
             <SummaryLine label="Operações" value={operations.length} icon={ClipboardCheck} />
             <SummaryLine label="Lojas" value={stores.length} icon={Store} />
             <SummaryLine label="Promotores ativos" value={promoters.filter((item) => item.active).length} icon={Users} />
@@ -504,22 +522,28 @@ function DashboardModule({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Ranking de promotores</CardTitle>
+        <Card className="card-hover border-border/70 shadow-[var(--shadow-soft)]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Ranking de promotores</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {promoterRanking.map(({ promoter, total, done }) => (
-              <div key={promoter.id}>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="font-medium">{promoter.name}</span>
-                  <span className="text-muted-foreground">{done}/{total}</span>
+          <CardContent className="space-y-4">
+            {promoterRanking.map(({ promoter, total, done }) => {
+              const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+              return (
+                <div key={promoter.id}>
+                  <div className="mb-1.5 flex items-center justify-between text-sm">
+                    <span className="font-medium">{promoter.name}</span>
+                    <span className="text-xs text-muted-foreground">{done}/{total} · {pct}%</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-primary to-[color:var(--color-kpi-green)] transition-all duration-700"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2 rounded-md bg-muted">
-                  <div className="h-2 rounded-md bg-primary" style={{ width: `${total > 0 ? Math.round((done / total) * 100) : 0}%` }} />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       </div>
@@ -527,17 +551,26 @@ function DashboardModule({
   );
 }
 
-function KpiCard({ icon: Icon, label, value, detail }: { icon: typeof BarChart3; label: string; value: string | number; detail: string }) {
+const kpiTones = {
+  blue: { text: "text-[color:var(--color-kpi-blue)]", bg: "bg-[color-mix(in_oklab,var(--color-kpi-blue)_12%,transparent)]", ring: "shadow-[0_8px_24px_-12px_var(--color-kpi-blue)]" },
+  green: { text: "text-[color:var(--color-kpi-green)]", bg: "bg-[color-mix(in_oklab,var(--color-kpi-green)_14%,transparent)]", ring: "shadow-[0_8px_24px_-12px_var(--color-kpi-green)]" },
+  amber: { text: "text-[color:var(--color-kpi-amber)]", bg: "bg-[color-mix(in_oklab,var(--color-kpi-amber)_18%,transparent)]", ring: "shadow-[0_8px_24px_-12px_var(--color-kpi-amber)]" },
+  violet: { text: "text-[color:var(--color-kpi-violet)]", bg: "bg-[color-mix(in_oklab,var(--color-kpi-violet)_14%,transparent)]", ring: "shadow-[0_8px_24px_-12px_var(--color-kpi-violet)]" },
+} as const;
+
+function KpiCard({ icon: Icon, label, value, detail, tone = "blue" }: { icon: typeof BarChart3; label: string; value: string | number; detail: string; tone?: keyof typeof kpiTones }) {
+  const t = kpiTones[tone];
   return (
-    <Card>
-      <CardContent className="flex items-center justify-between p-5">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-3xl font-semibold tracking-tight">{value}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
+    <Card className={cn("card-hover animate-fade-up group relative overflow-hidden border-border/70 shadow-[var(--shadow-soft)]", t.ring)}>
+      <div className={cn("absolute -right-8 -top-8 h-28 w-28 rounded-full opacity-70 blur-2xl transition-opacity group-hover:opacity-100", t.bg)} />
+      <CardContent className="relative flex items-start justify-between gap-4 p-5">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+          <p className="mt-2 text-[32px] font-semibold leading-none tracking-tight tabular-nums">{value}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{detail}</p>
         </div>
-        <div className="rounded-md bg-primary/10 p-3 text-primary">
-          <Icon className="h-5 w-5" />
+        <div className={cn("grid h-11 w-11 shrink-0 place-items-center rounded-xl", t.bg, t.text)}>
+          <Icon className="h-[18px] w-[18px]" />
         </div>
       </CardContent>
     </Card>
@@ -546,9 +579,9 @@ function KpiCard({ icon: Icon, label, value, detail }: { icon: typeof BarChart3;
 
 function SummaryLine({ label, value, icon: Icon }: { label: string; value: string | number; icon: typeof BarChart3 }) {
   return (
-    <div className="flex items-center justify-between rounded-md border p-3">
-      <span className="flex items-center gap-2 text-muted-foreground"><Icon className="h-4 w-4" />{label}</span>
-      <span className="font-semibold">{value}</span>
+    <div className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/30 px-3 py-2.5 transition-colors hover:bg-muted/60">
+      <span className="flex items-center gap-2 text-sm text-muted-foreground"><Icon className="h-4 w-4" />{label}</span>
+      <span className="text-sm font-semibold tabular-nums">{value}</span>
     </div>
   );
 }
