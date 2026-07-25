@@ -19,7 +19,15 @@ export interface ParsedChecklist {
     monthlyFrequency: number | null;
     realizado: number | null;
   }>;
+  duplicateStores: Array<{
+    storeName: string;
+    storeNormalized: string;
+    uf: string | null;
+    excelRow: number;
+    firstExcelRow: number;
+  }>;
   realizadoSum: number;
+  monthlyFrequencySum: number;
   firstDate: string | null; // ISO yyyy-mm-dd
   lastDate: string | null;
   dateColumnCount: number;
@@ -94,13 +102,15 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
     marks: [],
     warnings: [],
     stores: [],
+    duplicateStores: [],
     realizadoSum: 0,
+    monthlyFrequencySum: 0,
     firstDate: null,
     lastDate: null,
     dateColumnCount: 0,
   };
 
-  const seenStoreKeys = new Set<string>();
+  const seenStoreKeys = new Map<string, number>();
   const allDates: string[] = [];
 
   for (const sheetName of wb.SheetNames) {
@@ -200,10 +210,12 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
       const monthly = monthlyCol >= 0 ? parseNumber(row[monthlyCol]) : null;
       const realizado = realizadoCol >= 0 ? parseNumber(row[realizadoCol]) : null;
       if (realizado !== null && Number.isFinite(realizado)) sheetRealizadoSum += realizado;
+      if (monthly !== null && Number.isFinite(monthly)) out.monthlyFrequencySum += monthly;
 
       const storeKey = `${storeNormalized}|${uf ?? ""}`;
-      if (!seenStoreKeys.has(storeKey)) {
-        seenStoreKeys.add(storeKey);
+      const firstExcelRow = seenStoreKeys.get(storeKey);
+      if (firstExcelRow === undefined) {
+        seenStoreKeys.set(storeKey, r + 1);
         out.stores.push({
           storeName,
           storeNormalized,
@@ -212,6 +224,14 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
           weeklyFrequency: weekly,
           monthlyFrequency: monthly,
           realizado,
+        });
+      } else {
+        out.duplicateStores.push({
+          storeName,
+          storeNormalized,
+          uf,
+          excelRow: r + 1,
+          firstExcelRow,
         });
       }
 
@@ -260,6 +280,8 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
     firstDate: out.firstDate,
     lastDate: out.lastDate,
     realizadoSum: out.realizadoSum,
+    monthlyFrequencySum: out.monthlyFrequencySum,
+    duplicateStores: out.duplicateStores.length,
     warnings: out.warnings.length,
   });
 

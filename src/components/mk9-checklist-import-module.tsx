@@ -451,10 +451,24 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
               <MiniStat label="Total de lojas" value={preview.counters.totalStores} />
               <MiniStat label="Total de visitas" value={preview.counters.totalMarks} />
+              <MiniStat label="Visita mensal" value={preview.counters.totalContractedFrequency ?? 0} tone="blue" />
               <MiniStat label="Lojas encontradas" value={preview.counters.storesFound} tone="green" />
               <MiniStat label="Vinculadas por similaridade" value={preview.counters.storesLinkedBySimilarity} tone="blue" />
               <MiniStat label="Novas lojas" value={preview.counters.storesNew} tone="amber" />
-              <MiniStat label="Datas inválidas" value={preview.counters.invalidDates} tone="red" />
+            </div>
+
+            <div className="rounded-lg border bg-card/60 p-3">
+              <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+                <AlertTriangle className="h-4 w-4 text-[color:var(--color-kpi-amber)]" />
+                Relatório de divergência da importação
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-5">
+                <AuditStat label="Lojas criadas" value={preview.counters.storesNew} />
+                <AuditStat label="Lojas vinculadas" value={(preview.counters.storesFound ?? 0) + (preview.counters.storesLinkedBySimilarity ?? 0)} />
+                <AuditStat label="Não encontradas" value={preview.counters.storesNotFound ?? 0} />
+                <AuditStat label="Freq. não importadas" value={preview.counters.frequenciesNotImported ?? 0} />
+                <AuditStat label="Duplicidades" value={preview.counters.duplicateStoreNames ?? 0} />
+              </div>
             </div>
 
             {preview.counters.storesNew > 0 && (
@@ -644,6 +658,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                 <ConfirmRow label="Competência" value={`${MONTHS[preview.operationMonth - 1]}/${preview.operationYear}`} />
                 {periodLabel && <ConfirmRow label="Período detectado" value={periodLabel} />}
                 <ConfirmRow label="Visitas a persistir" value={validItems} />
+                <ConfirmRow label="Lojas do Excel" value={preview.counters.totalStores} />
+                <ConfirmRow label="Visita mensal total" value={preview.counters.totalContractedFrequency ?? 0} />
                 <ConfirmRow label="Lojas existentes" value={preview.counters.storesFound} />
                 <ConfirmRow label="Vínculos por similaridade" value={preview.counters.storesLinkedBySimilarity} />
                 <ConfirmRow label="Novas lojas a cadastrar" value={preview.counters.storesNew} />
@@ -713,6 +729,15 @@ function MiniStat({ label, value, tone }: { label: string; value: number; tone?:
     <div className="rounded-lg border p-3">
       <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className={`mt-1 text-2xl font-semibold ${toneClass}`}>{value}</p>
+    </div>
+  );
+}
+
+function AuditStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-md border bg-background/40 p-2">
+      <p className="text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-lg font-semibold">{value}</p>
     </div>
   );
 }

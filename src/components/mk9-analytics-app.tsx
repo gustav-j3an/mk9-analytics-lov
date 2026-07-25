@@ -49,6 +49,7 @@ import {
   mk9ListPromoters,
   mk9ListRoutesDetailed,
   mk9ListVisitsDetailed,
+  mk9DashboardContractMetrics,
 } from "@/lib/mk9-data.functions";
 
 type ModuleId =
@@ -104,14 +105,16 @@ function useMk9Data(month: number, year: number) {
   const promotersFn = useServerFn(mk9ListPromoters);
   const routesFn = useServerFn(mk9ListRoutesDetailed);
   const visitsFn = useServerFn(mk9ListVisitsDetailed);
+  const contractMetricsFn = useServerFn(mk9DashboardContractMetrics);
 
   const industriesQ = useQuery({ queryKey: ["mk9-industries"], queryFn: () => industriesFn() });
   const storesQ = useQuery({ queryKey: ["mk9-stores"], queryFn: () => storesFn() });
   const promotersQ = useQuery({ queryKey: ["mk9-promoters"], queryFn: () => promotersFn() });
   const routesQ = useQuery({ queryKey: ["mk9-routes", month, year], queryFn: () => routesFn({ data: { month, year } }) });
   const visitsQ = useQuery({ queryKey: ["mk9-visits", month, year], queryFn: () => visitsFn({ data: { month, year } }) });
+  const contractMetricsQ = useQuery({ queryKey: ["mk9-contract-metrics", month, year], queryFn: () => contractMetricsFn({ data: { month, year } }) });
 
-  return { industriesQ, storesQ, promotersQ, routesQ, visitsQ };
+  return { industriesQ, storesQ, promotersQ, routesQ, visitsQ, contractMetricsQ };
 }
 
 export function Mk9AnalyticsApp() {
@@ -122,17 +125,31 @@ export function Mk9AnalyticsApp() {
   const [query, setQuery] = useState("");
   const [collapsed, setCollapsed] = useState(false);
 
-  const { industriesQ, storesQ, promotersQ, routesQ, visitsQ } = useMk9Data(month, year);
+  const { industriesQ, storesQ, promotersQ, routesQ, visitsQ, contractMetricsQ } = useMk9Data(month, year);
 
   const industries = industriesQ.data ?? [];
   const stores = storesQ.data ?? [];
   const promoters = promotersQ.data ?? [];
   const routes = routesQ.data ?? [];
   const visits = visitsQ.data ?? [];
+  const contractMetrics = contractMetricsQ.data;
 
   const metrics = useMemo(() => {
-    // Camada canônica de métricas — sempre por loja.
-    // Aqui, no dashboard global, planejadas = contratadas e completed = executadas.
+    if (contractMetrics) {
+      return {
+        planned: contractMetrics.contratadas,
+        completed: contractMetrics.executadas,
+        cancelled: visits.filter((v) => v.status === "cancelled").length,
+        delayed: visits.filter((v) => v.status === "planned" && v.scheduledDate < new Date().toISOString().slice(0, 10)).length,
+        coverage: contractMetrics.coverage,
+        contratadas: contractMetrics.contratadas,
+        executadas: contractMetrics.executadas,
+        validas: contractMetrics.validas,
+        extras: contractMetrics.extras,
+        pendencias: contractMetrics.pendencias,
+      };
+    }
+    // Fallback enquanto o backend calcula: mantém a tela estável.
     const perStoreMap = new Map<string, { contratadas: number; executadas: number }>();
     for (const v of visits) {
       const key = (v as any).storeId ?? (v as any).storeName ?? v.id;
@@ -157,7 +174,7 @@ export function Mk9AnalyticsApp() {
     const delayed = visits.filter((v) => v.status === "planned" && v.scheduledDate < today).length;
     const coverage = contratadas > 0 ? Math.round((validas / contratadas) * 100) : 0;
     return { planned, completed, cancelled, delayed, coverage, contratadas, executadas, validas, extras, pendencias };
-  }, [visits]);
+  }, [contractMetrics, visits]);
 
   const searchResults = useMemo(() => {
     if (!query.trim()) return [];

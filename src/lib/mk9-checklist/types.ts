@@ -35,20 +35,28 @@ export interface ChecklistItem {
 export interface ChecklistPreviewCounters {
   totalStores: number;
   totalMarks: number;
+  totalContractedFrequency: number;
   storesFound: number;
   storesLinkedBySimilarity: number;
   storesNew: number;
   storesNotFound: number;
   validDates: number;
   invalidDates: number;
+  frequenciesNotImported: number;
+  duplicateStoreNames: number;
 }
 
 export interface ChecklistStoreFrequency {
   storeName: string;
   storeNormalized: string;
   uf: string | null;
+  storeId: string | null;
+  status: ChecklistRowStatus;
+  matchedStoreName?: string;
+  similarityScore?: number;
   weeklyFrequency: number | null;
   monthlyFrequency: number | null;
+  excelRow?: number;
 }
 
 export interface ChecklistPreview {

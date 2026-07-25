@@ -7,8 +7,8 @@ import {
   type PDFPage,
   type PDFFont,
 } from "pdf-lib/dist/pdf-lib.esm.js";
-import type { IndustryReport, StoreLine, StoreStatus } from "@/lib/mk9-reports/industry-report.server";
-import { STORE_STATUS_LABEL } from "@/lib/mk9-reports/industry-report.server";
+import type { ExecutionStatus, IndustryReport, RouteStatus, StoreLine } from "@/lib/mk9-reports/industry-report.server";
+import { EXECUTION_STATUS_LABEL, ROUTE_STATUS_LABEL } from "@/lib/mk9-reports/industry-report.server";
 
 const MONTHS_PT = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -38,10 +38,14 @@ function pct(value: number): string {
   return `${Math.max(0, Math.min(100, value))}%`;
 }
 
-function statusColor(s: StoreStatus) {
-  if (s === "ATENDIDA_INTEGRAL" || s === "ACIMA_FREQUENCIA") return COLOR_GOOD;
-  if (s === "ATENDIDA_PARCIAL") return COLOR_WARN;
+function executionColor(s: ExecutionStatus) {
+  if (s === "INTEGRAL") return COLOR_GOOD;
+  if (s === "PARCIAL") return COLOR_WARN;
   return COLOR_BAD;
+}
+
+function routeColor(s: RouteStatus) {
+  return s === "DENTRO_ROTEIRO" ? COLOR_GOOD : COLOR_WARN;
 }
 
 function sanitizePdfText(s: string): string {
@@ -164,7 +168,8 @@ function drawCoverageExplanation(ctx: PdfCtx) {
   ctx.page.drawText("Critério de cobertura", { x: MARGIN, y: ctx.y - 12, size: 10, font: ctx.fontB, color: COLOR_TEXT });
   ctx.y -= 18;
   const lines = [
-    "Cobertura contratual = soma por loja de min(realizadas válidas, visitas esperadas) / visitas contratadas.",
+    "Contratadas = soma da coluna VISITA MENSAL do checklist por loja; roteiro é auditoria separada.",
+    "Cobertura contratual = soma por loja de min(realizadas válidas, visitas contratadas) / visitas contratadas.",
     "Visitas extras em uma loja são destacadas separadamente e não compensam pendências de outra loja.",
     "Cobertura operacional = visitas planejadas conciliadas / visitas planejadas no roteiro.",
   ];
@@ -238,8 +243,9 @@ function drawStoreTable(ctx: PdfCtx) {
     { label: "Pend.", w: 34 },
     { label: "Extra", w: 34 },
     { label: "Cob.", w: 34 },
-    { label: "Status", w: 80 },
-    { label: "Datas realizadas", w: CONTENT_W - 428 },
+    { label: "Exec.", w: 54 },
+    { label: "Roteiro", w: 58 },
+    { label: "Datas realizadas", w: CONTENT_W - 460 },
   ];
   const drawHeader = () => drawTableHeader(ctx, cols);
   drawHeader();
@@ -260,13 +266,14 @@ function drawStoreTable(ctx: PdfCtx) {
       String(s.pending),
       String(s.extra),
       pct(s.coveragePct),
-      truncate(ctx.font, STORE_STATUS_LABEL[s.status], 8, cols[8].w - 8),
-      truncate(ctx.font, dateList(s), 8, cols[9].w - 8),
+      truncate(ctx.font, EXECUTION_STATUS_LABEL[s.executionStatus], 8, cols[8].w - 8),
+      truncate(ctx.font, ROUTE_STATUS_LABEL[s.routeStatus], 8, cols[9].w - 8),
+      truncate(ctx.font, dateList(s), 8, cols[10].w - 8),
     ];
     let x = MARGIN + 5;
     vals.forEach((v, idx) => {
-      const color = idx === 8 ? statusColor(s.status) : COLOR_TEXT;
-      ctx.page.drawText(sanitizePdfText(v), { x, y, size: 8, font: idx === 8 ? ctx.fontB : ctx.font, color });
+      const color = idx === 8 ? executionColor(s.executionStatus) : idx === 9 ? routeColor(s.routeStatus) : COLOR_TEXT;
+      ctx.page.drawText(sanitizePdfText(v), { x, y, size: 8, font: idx === 8 || idx === 9 ? ctx.fontB : ctx.font, color });
       x += cols[idx].w;
     });
     ctx.y -= 18;
@@ -278,11 +285,18 @@ function drawLegend(ctx: PdfCtx) {
   ctx.y -= 8;
   ctx.page.drawText("Legenda", { x: MARGIN, y: ctx.y - 12, size: 10, font: ctx.fontB, color: COLOR_TEXT });
   ctx.y -= 20;
-  const statuses: StoreStatus[] = ["ATENDIDA_INTEGRAL", "ATENDIDA_PARCIAL", "NAO_ATENDIDA", "ACIMA_FREQUENCIA", "FORA_ROTEIRO"];
-  for (const st of statuses) {
+  const executionStatuses: ExecutionStatus[] = ["INTEGRAL", "PARCIAL", "NAO_ATENDIDA"];
+  for (const st of executionStatuses) {
     ensure(ctx, 14);
-    ctx.page.drawRectangle({ x: MARGIN, y: ctx.y - 10, width: 9, height: 9, color: statusColor(st) });
-    ctx.page.drawText(sanitizePdfText(STORE_STATUS_LABEL[st]), { x: MARGIN + 15, y: ctx.y - 9, size: 8.5, font: ctx.font, color: COLOR_TEXT });
+    ctx.page.drawRectangle({ x: MARGIN, y: ctx.y - 10, width: 9, height: 9, color: executionColor(st) });
+    ctx.page.drawText(sanitizePdfText(`Execução: ${EXECUTION_STATUS_LABEL[st]}`), { x: MARGIN + 15, y: ctx.y - 9, size: 8.5, font: ctx.font, color: COLOR_TEXT });
+    ctx.y -= 13;
+  }
+  const routeStatuses: RouteStatus[] = ["DENTRO_ROTEIRO", "FORA_ROTEIRO"];
+  for (const st of routeStatuses) {
+    ensure(ctx, 14);
+    ctx.page.drawRectangle({ x: MARGIN, y: ctx.y - 10, width: 9, height: 9, color: routeColor(st) });
+    ctx.page.drawText(sanitizePdfText(`Roteiro: ${ROUTE_STATUS_LABEL[st]}`), { x: MARGIN + 15, y: ctx.y - 9, size: 8.5, font: ctx.font, color: COLOR_TEXT });
     ctx.y -= 13;
   }
 }

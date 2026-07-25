@@ -3,11 +3,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const monthYearSchema = z.object({
-  month: z.number().int().min(1).max(12),
-  year: z.number().int().min(2020).max(2100),
-});
-
 export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
@@ -62,7 +57,10 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
 });
 
 export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => monthYearSchema.parse(data))
+  .inputValidator((data: unknown) => z.object({
+    month: z.number().int().min(1).max(12),
+    year: z.number().int().min(2020).max(2100),
+  }).parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
@@ -90,7 +88,10 @@ export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
   });
 
 export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => monthYearSchema.parse(data))
+  .inputValidator((data: unknown) => z.object({
+    month: z.number().int().min(1).max(12),
+    year: z.number().int().min(2020).max(2100),
+  }).parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const first = new Date(Date.UTC(data.year, data.month - 1, 1)).toISOString().slice(0, 10);
@@ -116,4 +117,98 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
       storeUf: r.store?.uf ?? null,
       industryName: r.industry?.name ?? "—",
     }));
+  });
+
+export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({
+    month: z.number().int().min(1).max(12),
+    year: z.number().int().min(2020).max(2100),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { resolveWindow } = await import("@/lib/mk9-reports/period.server");
+
+    const [
+      { data: freqs, error: freqError },
+      { data: configs, error: configError },
+    ] = await Promise.all([
+      supabaseAdmin
+        .from("mk9_industry_store_frequency")
+        .select("industry_id, store_id, monthly_frequency, weekly_frequency")
+        .limit(20000),
+      supabaseAdmin
+        .from("mk9_industry_period_config")
+        .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping")
+        .eq("active", true)
+        .limit(20000),
+    ]);
+    if (freqError) throw new Error(freqError.message);
+    if (configError) throw new Error(configError.message);
+
+    const configByIndustry = new Map<string, any>();
+    for (const cfg of configs ?? []) configByIndustry.set(cfg.industry_id as string, cfg);
+    const windows = new Map<string, { startDate: string; endDate: string }>();
+    for (const f of freqs ?? []) {
+      const industryId = f.industry_id as string;
+      if (windows.has(industryId)) continue;
+      const cfg = configByIndustry.get(industryId) ?? {
+        industryId,
+        periodType: "CALENDAR_MONTH",
+        startDay: 1,
+        endDay: 31,
+        usesPreviousMonth: false,
+        weekGrouping: "CALENDAR_WEEK",
+        active: true,
+      };
+      windows.set(industryId, resolveWindow(cfg, data.year, data.month));
+    }
+
+    const actualQueries = Array.from(windows.entries()).map(([industryId, window]) =>
+      supabaseAdmin
+        .from("mk9_actual_visits")
+        .select("industry_id, store_id, scheduled_date")
+        .eq("industry_id", industryId)
+        .gte("scheduled_date", window.startDate)
+        .lte("scheduled_date", window.endDate)
+        .limit(20000),
+    );
+    const actualResults = await Promise.all(actualQueries);
+    const actuals: any[] = [];
+    for (const result of actualResults) {
+      if (result.error) throw new Error(result.error.message);
+      actuals.push(...(result.data ?? []));
+    }
+
+    const perStore = new Map<string, { contratadas: number; executadas: number }>();
+    for (const f of freqs ?? []) {
+      const key = `${f.industry_id}|${f.store_id}`;
+      const monthly = Number(f.monthly_frequency ?? 0);
+      const weekly = Number(f.weekly_frequency ?? 0);
+      perStore.set(key, {
+        contratadas: monthly > 0 ? Math.round(monthly) : Math.round(weekly * 4),
+        executadas: 0,
+      });
+    }
+    for (const a of actuals ?? []) {
+      const key = `${a.industry_id}|${a.store_id}`;
+      const cur = perStore.get(key) ?? { contratadas: 0, executadas: 0 };
+      cur.executadas += 1;
+      perStore.set(key, cur);
+    }
+
+    let contratadas = 0;
+    let executadas = 0;
+    let validas = 0;
+    let extras = 0;
+    let pendencias = 0;
+    for (const s of perStore.values()) {
+      contratadas += s.contratadas;
+      executadas += s.executadas;
+      const v = Math.min(s.contratadas, s.executadas);
+      validas += v;
+      extras += Math.max(0, s.executadas - s.contratadas);
+      pendencias += Math.max(0, s.contratadas - v);
+    }
+    const coverage = contratadas > 0 ? Math.round((validas / contratadas) * 100) : 0;
+    return { contratadas, executadas, validas, extras, pendencias, coverage };
   });

@@ -132,6 +132,7 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
   const storesFound = new Set<string>();
   const storesLinked = new Set<string>();
   const storesNew = new Set<string>();
+  const storeFrequencyByKey = new Map<string, ChecklistPreview["storeFrequencies"][number]>();
 
   for (const mark of parsed.marks) {
     const key = `${mark.storeNormalized}|${mark.uf ?? ""}`;
@@ -200,12 +201,24 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
   // Garante que lojas listadas sem marcações também apareçam nos contadores
   for (const s of parsed.stores) {
     const key = `${s.storeNormalized}|${s.uf ?? ""}`;
-    if (storesSeen.has(key)) continue;
-    storesSeen.add(key);
     const r = resolve(s.storeNormalized, s.uf);
+    if (!storesSeen.has(key)) storesSeen.add(key);
     if (r.kind === "found") storesFound.add(key);
     else if (r.kind === "linked_by_similarity") storesLinked.add(key);
     else storesNew.add(key);
+
+    storeFrequencyByKey.set(key, {
+      storeName: s.storeName,
+      storeNormalized: s.storeNormalized,
+      uf: s.uf,
+      storeId: r.kind === "new_store" ? null : r.storeId,
+      status: r.kind,
+      matchedStoreName: r.kind === "linked_by_similarity" || r.kind === "found" ? r.matchedName : undefined,
+      similarityScore: r.kind === "linked_by_similarity" ? r.score : undefined,
+      weeklyFrequency: s.weeklyFrequency,
+      monthlyFrequency: s.monthlyFrequency,
+      excelRow: s.excelRow,
+    });
   }
 
   const validDates = items.filter((i) => i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store").length;
@@ -213,13 +226,8 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
 
   // Frequências por loja (fonte: checklist parseado). Guardadas no snapshot
   // para que o commit consiga persistir em mk9_industry_store_frequency.
-  const storeFrequencies = parsed.stores.map((s) => ({
-    storeName: s.storeName,
-    storeNormalized: s.storeNormalized,
-    uf: s.uf,
-    weeklyFrequency: s.weeklyFrequency,
-    monthlyFrequency: s.monthlyFrequency,
-  }));
+  const storeFrequencies = Array.from(storeFrequencyByKey.values());
+  const frequenciesNotImported = storeFrequencies.filter((s) => s.monthlyFrequency === null).length;
 
   const preview: ChecklistPreview = {
     filename: input.filename,
@@ -230,18 +238,24 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     counters: {
       totalStores: storesSeen.size,
       totalMarks: parsed.marks.length,
+      totalContractedFrequency: parsed.monthlyFrequencySum,
       storesFound: storesFound.size,
       storesLinkedBySimilarity: storesLinked.size,
       storesNew: storesNew.size,
       storesNotFound: 0,
       validDates,
       invalidDates,
+      frequenciesNotImported,
+      duplicateStoreNames: parsed.duplicateStores.length,
     },
     items,
     storeFrequencies,
     warnings: [
       ...(parsed.firstDate && parsed.lastDate
-        ? [`Período detectado: ${parsed.firstDate.split("-").reverse().join("/")} a ${parsed.lastDate.split("-").reverse().join("/")} (${parsed.dateColumnCount} colunas de data). Soma REALIZADO: ${parsed.realizadoSum}.`]
+        ? [`Período detectado: ${parsed.firstDate.split("-").reverse().join("/")} a ${parsed.lastDate.split("-").reverse().join("/")} (${parsed.dateColumnCount} colunas de data). Soma REALIZADO: ${parsed.realizadoSum}. Soma VISITA MENSAL: ${parsed.monthlyFrequencySum}.`]
+        : []),
+      ...(parsed.duplicateStores.length
+        ? [`Duplicidades de loja detectadas: ${parsed.duplicateStores.length}. Verifique linhas: ${parsed.duplicateStores.slice(0, 10).map((d) => `${d.storeName} (${d.uf ?? "—"}) linha ${d.excelRow}`).join(", ")}${parsed.duplicateStores.length > 10 ? "…" : ""}.`]
         : []),
       ...parsed.warnings,
     ],
@@ -271,6 +285,8 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     storesFound: preview.counters.storesFound,
     storesLinkedBySimilarity: preview.counters.storesLinkedBySimilarity,
     storesNew: preview.counters.storesNew,
+    totalContractedFrequency: preview.counters.totalContractedFrequency,
+    frequenciesNotImported: preview.counters.frequenciesNotImported,
   });
 
   return { importId, preview, diagnostics: diagnostics.events };
