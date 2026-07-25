@@ -134,15 +134,14 @@ function drawKpis(ctx: PdfCtx) {
   const cards = [
     ["Lojas", String(t.totalStores), "brand"],
     ["Visitas contratadas", String(m.contratadas), "brand"],
-    ["Visitas executadas", String(m.executadas), "good"],
-    ["Visitas válidas", String(m.validas), "good"],
-    ["Pendências", String(m.pendencias), "bad"],
+    ["Visitas realizadas", String(m.executadas), "good"],
+    ["Visitas pendentes", String(m.pendencias), "bad"],
     ["Extras", String(m.extras), "warn"],
     ["Fora do roteiro", String(t.unplanned), "warn"],
-    ["Cob. contratual", pct(m.coberturaPct), m.coberturaPct >= 90 ? "good" : m.coberturaPct >= 70 ? "warn" : "bad"],
+    ["Cobertura", pct(m.coberturaPct), m.coberturaPct >= 90 ? "good" : m.coberturaPct >= 70 ? "warn" : "bad"],
     ["Cob. operacional", pct(t.operationalCoveragePct), t.operationalCoveragePct >= 90 ? "good" : t.operationalCoveragePct >= 70 ? "warn" : "bad"],
   ] as const;
-  const cols = 5;
+  const cols = 4;
   const gap = 8;
   const cardW = (CONTENT_W - gap * (cols - 1)) / cols;
   const cardH = 48;
