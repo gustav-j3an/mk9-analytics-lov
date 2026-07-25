@@ -176,19 +176,19 @@ export const checklistCommit = createServerFn({ method: "POST" })
         durationMs: Date.now() - startedAt,
       });
       // Executa conciliação automaticamente para o período/indústria
-      let reconciliation: Record<string, unknown> | null = null;
+      let reconciliationError: string | null = null;
       try {
         const { reconcile } = await import("./mk9-reconciliation/engine.server");
-        reconciliation = (await reconcile({
+        await reconcile({
           operationYear: data.operationYear,
           operationMonth: data.operationMonth,
           industryId: data.industryId,
           sourceImportId: data.importId,
-        })) as unknown as Record<string, unknown>;
+        });
       } catch (recErr: any) {
-        reconciliation = { error: String(recErr?.message ?? recErr) };
+        reconciliationError = String(recErr?.message ?? recErr);
       }
-      return { importId: data.importId, persisted, skipped, total: data.items.length, reconciliation };
+      return { importId: data.importId, persisted, skipped, total: data.items.length, reconciliationError };
     } catch (e: any) {
       await updateImportStatus(data.importId, {
         status: "failed",
