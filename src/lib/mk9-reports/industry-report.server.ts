@@ -6,9 +6,9 @@
 // auditoria (routeStatus). Extras de uma loja não compensam pendências de
 // outra.
 //
-// Escala pelo período REAL da competência (não pelo mês fixo):
-//   weekly  → round(weekly  * totalDays / 7)
-//   monthly → round(monthly * totalDays / 30)
+// A coluna VISITA MENSAL do checklist é a fonte oficial de contrato:
+//   monthly → valor direto da planilha, sem escala por roteiro ou calendário.
+//   weekly  → fallback apenas quando a mensal não veio, escalado pelo período.
 // Cobertura é limitada a 100 % (já garantido por validas = min(contr., exec.)).
 import type { PeriodWindow } from "./period.server";
 import { aggregateVisitMetrics, computeVisitMetrics, type VisitMetrics } from "./metrics";
@@ -29,18 +29,17 @@ export const STORE_STATUS_LABEL: Record<StoreStatus, string> = {
   FORA_ROTEIRO: "Fora do roteiro",
 };
 
-export type ExecutionStatus = "OK" | "PARCIAL" | "NAO_REALIZADA";
+export type ExecutionStatus = "INTEGRAL" | "PARCIAL" | "NAO_ATENDIDA";
 export const EXECUTION_STATUS_LABEL: Record<ExecutionStatus, string> = {
-  OK: "OK",
+  INTEGRAL: "Integral",
   PARCIAL: "Parcial",
-  NAO_REALIZADA: "Não realizada",
+  NAO_ATENDIDA: "Não atendida",
 };
 
-export type RouteStatus = "DENTRO_ROTEIRO" | "FORA_ROTEIRO" | "SEM_ROTEIRO";
+export type RouteStatus = "DENTRO_ROTEIRO" | "FORA_ROTEIRO";
 export const ROUTE_STATUS_LABEL: Record<RouteStatus, string> = {
   DENTRO_ROTEIRO: "Dentro do roteiro",
   FORA_ROTEIRO: "Fora do roteiro",
-  SEM_ROTEIRO: "Sem roteiro",
 };
 
 export type ContractedSource = "WEEKLY_FREQUENCY" | "MONTHLY_FREQUENCY" | "NONE";
@@ -135,7 +134,7 @@ function contractedFromFrequency(
     return { contratadas: Math.max(0, Math.round(weekly * (days / 7))), source: "WEEKLY_FREQUENCY" };
   }
   if (monthly != null && Number.isFinite(monthly) && monthly > 0) {
-    return { contratadas: Math.max(0, Math.round(monthly * (days / 30))), source: "MONTHLY_FREQUENCY" };
+    return { contratadas: Math.max(0, Math.round(monthly)), source: "MONTHLY_FREQUENCY" };
   }
   return { contratadas: 0, source: "NONE" };
 }
@@ -289,26 +288,21 @@ export async function buildIndustryReport(
     // status_execucao (independe de roteiro)
     const executionStatus: ExecutionStatus =
       contratadas === 0 && b.actual === 0
-        ? "NAO_REALIZADA"
+        ? "NAO_ATENDIDA"
         : m.executadas === 0
-          ? "NAO_REALIZADA"
+          ? "NAO_ATENDIDA"
           : m.executadas >= m.contratadas && m.contratadas > 0
-            ? "OK"
+            ? "INTEGRAL"
             : "PARCIAL";
 
     // status_roteiro (fonte separada)
     const routeStatus: RouteStatus =
-      b.plannedCount > 0
-        ? "DENTRO_ROTEIRO"
-        : b.actual > 0
-          ? "FORA_ROTEIRO"
-          : "SEM_ROTEIRO";
+      b.plannedCount > 0 ? "DENTRO_ROTEIRO" : "FORA_ROTEIRO";
 
-    // status legado (usado no PDF antigo): combina execução + roteiro
+    // status legado: somente execução/contrato. Roteiro fica em routeStatus.
     let legacy: StoreStatus;
-    if (routeStatus === "FORA_ROTEIRO") legacy = "FORA_ROTEIRO";
-    else if (m.extras > 0) legacy = "ACIMA_FREQUENCIA";
-    else if (executionStatus === "OK") legacy = "ATENDIDA_INTEGRAL";
+    if (m.extras > 0) legacy = "ACIMA_FREQUENCIA";
+    else if (executionStatus === "INTEGRAL") legacy = "ATENDIDA_INTEGRAL";
     else if (executionStatus === "PARCIAL") legacy = "ATENDIDA_PARCIAL";
     else legacy = "NAO_ATENDIDA";
 
@@ -400,12 +394,11 @@ export async function buildIndustryReport(
   const execCounts = { ok: 0, parcial: 0, naoRealizada: 0 };
   const routeCounts = { dentro: 0, fora: 0, sem: 0 };
   for (const s of stores) {
-    if (s.executionStatus === "OK") execCounts.ok += 1;
+    if (s.executionStatus === "INTEGRAL") execCounts.ok += 1;
     else if (s.executionStatus === "PARCIAL") execCounts.parcial += 1;
     else execCounts.naoRealizada += 1;
     if (s.routeStatus === "DENTRO_ROTEIRO") routeCounts.dentro += 1;
-    else if (s.routeStatus === "FORA_ROTEIRO") routeCounts.fora += 1;
-    else routeCounts.sem += 1;
+    else routeCounts.fora += 1;
   }
 
   const actualDatesByStore: Record<string, string[]> = {};

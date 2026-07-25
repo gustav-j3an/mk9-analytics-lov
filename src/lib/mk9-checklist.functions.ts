@@ -76,16 +76,38 @@ export const checklistCommit = createServerFn({ method: "POST" })
     // Marca committing logo no início para que o histórico saia de "previewing".
     await updateImportStatus(data.importId, { status: "committing" }).catch(() => undefined);
     try {
-      // 1) Cria/reaproveita lojas ausentes (isNew=true). Lojas já resolvidas passam direto.
-      const newCandidates = data.items
-        .filter((i) => i.isNew || !i.storeId)
+      const snapshot = await withRichErrors(
+        { step: "load-preview-snapshot", function: "checklistCommit", extra: { importId: data.importId } },
+        () => loadPreviewSnapshot(data.importId),
+      );
+      const freqs = snapshot?.storeFrequencies ?? [];
+      const storeIdByKey = new Map<string, string>();
+      for (const f of freqs) {
+        if (f.storeId) storeIdByKey.set(`${f.storeNormalized}|${f.uf ?? ""}`, f.storeId);
+      }
+      for (const it of data.items) {
+        if (it.storeId) storeIdByKey.set(`${it.storeNormalized}|${it.uf ?? ""}`, it.storeId);
+      }
+
+      // 1) Garante cadastro para TODAS as lojas do Excel, inclusive as que não
+      // tiveram nenhuma data marcada. O relatório contratual depende disso.
+      const allCandidates = freqs
+        .filter((f) => !storeIdByKey.has(`${f.storeNormalized}|${f.uf ?? ""}`))
+        .map((f) => ({ storeName: f.storeName, storeNormalized: f.storeNormalized, uf: f.uf ?? null }));
+      const fallbackCandidates = data.items
+        .filter((i) => !storeIdByKey.has(`${i.storeNormalized}|${i.uf ?? ""}`))
         .map((i) => ({ storeName: i.storeName, storeNormalized: i.storeNormalized, uf: i.uf ?? null }));
+      const candidatesByKey = new Map<string, { storeName: string; storeNormalized: string; uf: string | null }>();
+      for (const c of [...allCandidates, ...fallbackCandidates]) {
+        candidatesByKey.set(`${c.storeNormalized}|${c.uf ?? ""}`, c);
+      }
 
 
       const createdMap = await withRichErrors(
-        { step: "ensure-checklist-stores", function: "checklistCommit", extra: { candidates: newCandidates.length } },
-        () => ensureChecklistStores(data.importId, newCandidates),
+        { step: "ensure-checklist-stores", function: "checklistCommit", extra: { candidates: candidatesByKey.size } },
+        () => ensureChecklistStores(data.importId, Array.from(candidatesByKey.values())),
       );
+      for (const [key, v] of createdMap) storeIdByKey.set(key, v.storeId);
 
       let storesCreated = 0;
       let storesReused = 0;
@@ -103,9 +125,9 @@ export const checklistCommit = createServerFn({ method: "POST" })
           continue;
         }
         const key = `${it.storeNormalized}|${it.uf ?? ""}`;
-        const found = createdMap.get(key);
+        const found = storeIdByKey.get(key);
         if (found) {
-          resolvedItems.push({ storeId: found.storeId, scheduledDate: it.scheduledDate });
+          resolvedItems.push({ storeId: found, scheduledDate: it.scheduledDate });
         } else {
           unresolved.push({ storeName: it.storeName, uf: it.uf ?? null });
         }
@@ -125,30 +147,21 @@ export const checklistCommit = createServerFn({ method: "POST" })
       //    salvo em mk9_checklist_imports.preview). Fonte oficial da métrica
       //    "visitas contratadas" no relatório da indústria.
       let frequenciesUpserted = 0;
-      try {
-        const snapshot = await loadPreviewSnapshot(data.importId);
-        const freqs = snapshot?.storeFrequencies ?? [];
-        if (freqs.length) {
-          // Resolve storeId por (normalized|uf) — usa createdMap para lojas novas
-          // e o próprio item da prévia para lojas já resolvidas.
-          const storeIdByKey = new Map<string, string>();
-          for (const it of data.items) {
-            if (it.storeId) storeIdByKey.set(`${it.storeNormalized}|${it.uf ?? ""}`, it.storeId);
-          }
-          for (const [key, v] of createdMap) storeIdByKey.set(key, v.storeId);
-          const rows = freqs
-            .map((f) => ({
-              storeId: storeIdByKey.get(`${f.storeNormalized}|${f.uf ?? ""}`) ?? null,
-              weeklyFrequency: f.weeklyFrequency,
-              monthlyFrequency: f.monthlyFrequency,
-            }))
-            .filter((r): r is { storeId: string; weeklyFrequency: number | null; monthlyFrequency: number | null } => !!r.storeId);
-          const { upserted } = await upsertIndustryStoreFrequencies(data.industryId, data.importId, rows);
-          frequenciesUpserted = upserted;
-        }
-      } catch (freqErr) {
-        // Falha na frequência não deve derrubar o commit; apenas registra em counters.
-        console.error("[checklistCommit] upsert frequencies failed", freqErr);
+      let frequenciesNotImported = 0;
+      if (freqs.length) {
+        const rows = freqs
+          .map((f) => ({
+            storeId: storeIdByKey.get(`${f.storeNormalized}|${f.uf ?? ""}`) ?? null,
+            weeklyFrequency: f.weeklyFrequency,
+            monthlyFrequency: f.monthlyFrequency,
+          }))
+          .filter((r): r is { storeId: string; weeklyFrequency: number | null; monthlyFrequency: number | null } => !!r.storeId);
+        frequenciesNotImported = freqs.length - rows.length;
+        const { upserted } = await withRichErrors(
+          { step: "upsert-industry-store-frequencies", function: "checklistCommit", extra: { rows: rows.length, frequenciesNotImported } },
+          () => upsertIndustryStoreFrequencies(data.industryId, data.importId, rows),
+        );
+        frequenciesUpserted = upserted;
       }
 
       const counters = {
@@ -159,6 +172,9 @@ export const checklistCommit = createServerFn({ method: "POST" })
         storesReused,
         unresolved: unresolved.length,
         frequenciesUpserted,
+        frequenciesNotImported,
+        totalStoresInExcel: snapshot?.counters.totalStores ?? freqs.length,
+        totalContractedFrequency: snapshot?.counters.totalContractedFrequency ?? null,
       };
 
       await updateImportStatus(data.importId, {
@@ -189,6 +205,8 @@ export const checklistCommit = createServerFn({ method: "POST" })
         storesCreated,
         storesReused,
         unresolved: unresolved.length,
+        frequenciesUpserted,
+        frequenciesNotImported,
         reconciliationError,
       };
     } catch (e: any) {

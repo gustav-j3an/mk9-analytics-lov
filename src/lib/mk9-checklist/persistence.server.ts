@@ -283,14 +283,17 @@ export async function upsertIndustryStoreFrequencies(
   rows: Array<{ storeId: string; weeklyFrequency: number | null; monthlyFrequency: number | null }>,
 ) {
   if (!rows.length) return { upserted: 0 };
-  // Dedup por storeId (mantém a última entrada não-nula).
+  // Dedup por storeId. Quando linhas distintas do Excel apontam para a mesma
+  // loja, soma a VISITA MENSAL para preservar o total contratado da planilha.
   const dedup = new Map<string, { storeId: string; weekly: number | null; monthly: number | null }>();
   for (const r of rows) {
     const prev = dedup.get(r.storeId);
+    const monthly = r.monthlyFrequency ?? null;
+    const weekly = r.weeklyFrequency ?? null;
     dedup.set(r.storeId, {
       storeId: r.storeId,
-      weekly: r.weeklyFrequency ?? prev?.weekly ?? null,
-      monthly: r.monthlyFrequency ?? prev?.monthly ?? null,
+      weekly: weekly != null || prev?.weekly != null ? (prev?.weekly ?? 0) + (weekly ?? 0) : null,
+      monthly: monthly != null || prev?.monthly != null ? (prev?.monthly ?? 0) + (monthly ?? 0) : null,
     });
   }
   const payload = Array.from(dedup.values()).map((r) => ({

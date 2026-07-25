@@ -27,24 +27,22 @@ const MONTHS_PT = [
 ];
 
 const EXEC_TONE: Record<string, string> = {
-  OK: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+  INTEGRAL: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
   PARCIAL: "bg-amber-500/15 text-amber-700 border-amber-500/30",
-  NAO_REALIZADA: "bg-rose-500/15 text-rose-700 border-rose-500/30",
+  NAO_ATENDIDA: "bg-rose-500/15 text-rose-700 border-rose-500/30",
 };
 const EXEC_LABEL: Record<string, string> = {
-  OK: "OK",
+  INTEGRAL: "Integral",
   PARCIAL: "Parcial",
-  NAO_REALIZADA: "Não realizada",
+  NAO_ATENDIDA: "Não atendida",
 };
 const ROUTE_TONE: Record<string, string> = {
   DENTRO_ROTEIRO: "bg-sky-500/15 text-sky-700 border-sky-500/30",
   FORA_ROTEIRO: "bg-orange-500/15 text-orange-700 border-orange-500/30",
-  SEM_ROTEIRO: "bg-muted text-muted-foreground border-border",
 };
 const ROUTE_LABEL: Record<string, string> = {
   DENTRO_ROTEIRO: "Dentro do roteiro",
   FORA_ROTEIRO: "Fora do roteiro",
-  SEM_ROTEIRO: "Sem roteiro",
 };
 const SOURCE_LABEL: Record<string, string> = {
   WEEKLY_FREQUENCY: "Freq. semanal",
@@ -247,7 +245,7 @@ export function Mk9IndustryReportModule() {
           <div className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
             <p className="font-medium text-foreground">Critério de cobertura</p>
             <p className="mt-1">
-              <strong>Contratadas</strong> = roteiro planejado no ciclo. <strong>Executadas</strong> = visitas do checklist. <strong>Válidas</strong> = mín(contratadas, executadas) por loja. <strong>Extras</strong> = execução acima do contrato (não compensa pendências de outras lojas). <strong>Pendências</strong> = contratadas − válidas.
+              <strong>Contratadas</strong> = soma da coluna VISITA MENSAL por loja. <strong>Executadas</strong> = visitas do checklist. <strong>Válidas</strong> = mín(contratadas, executadas) por loja. <strong>Extras</strong> = execução acima do contrato (não compensa pendências de outras lojas). <strong>Pendências</strong> = contratadas − válidas. <strong>Roteiro</strong> é auditoria separada.
             </p>
           </div>
 
