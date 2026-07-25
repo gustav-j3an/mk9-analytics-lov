@@ -254,6 +254,32 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
         </CardContent>
       </Card>
 
+      {rejected && (
+        <Card className="glass-panel border-destructive/40">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div className="space-y-1 flex-1 min-w-0">
+                <p className="font-medium text-destructive">
+                  Este arquivo parece ser um checklist mensal. Importe-o em Importações › Checklists.
+                </p>
+                <p className="text-xs text-muted-foreground">{rejected.reason}</p>
+                {rejected.sheets.length > 0 && (
+                  <p className="text-xs text-muted-foreground">Abas encontradas: {rejected.sheets.join(", ")}</p>
+                )}
+              </div>
+            </div>
+            {onSwitchToChecklists && (
+              <div>
+                <Button size="sm" onClick={() => { setRejected(null); onSwitchToChecklists(); }}>
+                  Ir para Checklists
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {preview && c && (
         <Card className="glass-panel">
           <CardHeader><CardTitle>Prévia — {preview.filename}</CardTitle></CardHeader>
