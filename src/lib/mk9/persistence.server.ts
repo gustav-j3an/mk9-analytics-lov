@@ -43,6 +43,17 @@ const mapVisit = (r: any): PlannedVisitRecord => ({
   sourceSheet: r.source_sheet,
 });
 
+// Strip `id` when null/undefined/empty so Postgres DEFAULT gen_random_uuid() fires.
+// Sending `id: null` explicitly overrides the DEFAULT and causes 23502 NOT NULL violation.
+function withOptionalId<T extends Record<string, any>>(row: T): T {
+  const v = row.id;
+  if (v === null || v === undefined || v === "") {
+    const { id: _omit, ...rest } = row;
+    return rest as T;
+  }
+  return row;
+}
+
 export function createSupabaseRepository(): Mk9Repository {
   return {
     async listIndustries() {
@@ -80,7 +91,7 @@ export function createSupabaseRepository(): Mk9Repository {
       if (!records.length) return [];
       const dedup = new Map<string, IndustryRecord>();
       for (const r of records) dedup.set(r.nameNormalized, { ...dedup.get(r.nameNormalized), ...r });
-      const payload = Array.from(dedup.values()).map((r) => ({
+      const payload = Array.from(dedup.values()).map((r) => withOptionalId({
         id: r.id, name: r.name, name_normalized: r.nameNormalized,
         monthly_contracted_frequency: r.monthlyContractedFrequency,
         monthly_estimated_frequency: r.monthlyEstimatedFrequency,
@@ -101,7 +112,7 @@ export function createSupabaseRepository(): Mk9Repository {
         const k = `${r.nameNormalized}::${r.uf ?? ""}`;
         dedup.set(k, { ...dedup.get(k), ...r });
       }
-      const payload = Array.from(dedup.values()).map((r) => ({
+      const payload = Array.from(dedup.values()).map((r) => withOptionalId({
         id: r.id, chain: r.chain, name: r.name,
         name_normalized: r.nameNormalized, uf: r.uf, last_import_id: importId,
       }));
@@ -142,7 +153,7 @@ export function createSupabaseRepository(): Mk9Repository {
       const out: PromoterRecord[] = [];
       if (withId.length) {
         const { data, error } = await supabaseAdmin.from("mk9_promoters").upsert(
-          withId.map((r) => ({
+          withId.map((r) => withOptionalId({
             id: r.id, external_id: r.externalId, name: r.name,
             name_normalized: r.nameNormalized, city: r.city,
             contact: r.contact, contact_normalized: r.contactNormalized,
@@ -185,7 +196,7 @@ export function createSupabaseRepository(): Mk9Repository {
       }
       const list = Array.from(dedup.values());
       const { data, error } = await supabaseAdmin.from("mk9_planned_routes").upsert(
-        list.map((r) => ({
+        list.map((r) => withOptionalId({
           id: r.id, promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
           weekday: r.weekday, operation_month: r.operationMonth, operation_year: r.operationYear,
           source_sheet: r.sourceSheet, last_import_id: importId,
@@ -213,7 +224,7 @@ export function createSupabaseRepository(): Mk9Repository {
       for (let i = 0; i < list.length; i += CHUNK) {
         const slice = list.slice(i, i + CHUNK);
         const { data, error } = await supabaseAdmin.from("mk9_planned_visits").upsert(
-          slice.map((r) => ({
+          slice.map((r) => withOptionalId({
             id: r.id, promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
             route_id: r.routeId ?? null, scheduled_date: r.scheduledDate,
             status: r.status, source_sheet: r.sourceSheet, last_import_id: importId,
