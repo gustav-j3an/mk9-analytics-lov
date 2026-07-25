@@ -24,6 +24,15 @@ export interface ReconciliationSummary {
   manuallyMatched: number;
   ignored: number;
   coveragePct: number;
+  /** Camada canônica de métricas (contratadas/executadas/válidas/extras/pendências). */
+  metrics: {
+    contratadas: number;
+    executadas: number;
+    validas: number;
+    extras: number;
+    pendencias: number;
+    coberturaPct: number;
+  };
 }
 
 export const STATUS_LABELS_PT: Record<ReconciliationStatus, string> = {
