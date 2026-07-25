@@ -117,14 +117,30 @@ export async function commitImport(repo: Mk9Repository, input: CommitInput) {
     });
     return { ok: true, counters: plan.preview.counters };
   } catch (err) {
+    const msg = serializeError(err);
+    console.error("[mk9 commit] failed:", msg, err);
     await repo.updateImportStatus(input.importId, {
       status: "failed",
-      errorMessage: err instanceof Error ? err.message : String(err),
+      errorMessage: msg,
       finishedAt: new Date(),
       durationMs: Date.now() - start,
     });
-    throw err;
+    throw new Error(msg);
   }
+}
+
+function serializeError(err: unknown): string {
+  if (!err) return "Erro desconhecido";
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  if (typeof err === "object") {
+    const e = err as Record<string, unknown>;
+    const parts = [e.message, e.details, e.hint, e.code ? `code=${e.code}` : null]
+      .filter(Boolean).map(String);
+    if (parts.length) return parts.join(" · ");
+    try { return JSON.stringify(err); } catch { return String(err); }
+  }
+  return String(err);
 }
 
 // helpers
