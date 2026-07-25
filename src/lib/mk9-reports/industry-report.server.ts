@@ -24,6 +24,8 @@ export interface StoreLine {
   uf: string | null;
   expected: number;
   actual: number;
+  validForCoverage: number;
+  extra: number;
   pending: number;
   coveragePct: number;
   actualDates: string[];
@@ -35,6 +37,9 @@ export interface UfLine {
   stores: number;
   expected: number;
   actual: number;
+  validForCoverage: number;
+  extra: number;
+  pending: number;
   coveragePct: number;
 }
 
@@ -55,11 +60,16 @@ export interface IndustryReport {
   totals: {
     totalStores: number;
     contracted: number; // = planejadas no roteiro dentro do período
+    planned: number; // mesma fonte da contratada: roteiro planejado
     actual: number;
+    validForContractCoverage: number;
+    extra: number;
     pending: number;
     divergent: number;
     unplanned: number;
-    coveragePct: number;
+    contractualCoveragePct: number;
+    operationalCoveragePct: number;
+    coveragePct: number; // alias para compatibilidade visual = cobertura contratual
   };
   stores: StoreLine[];
   ufs: UfLine[];
@@ -109,13 +119,16 @@ export async function buildIndustryReport(
   if (eAc) throw new Error(eAc.message);
 
   // 4) Reconciliações no período (para contagem de divergentes/fora do roteiro)
-  const { data: recs, error: eRe } = await supabase
+  let recQ = supabase
     .from("mk9_visit_reconciliations")
-    .select("status, store_id")
+    .select("status, store_id, planned_visit_id, actual_visit_id, source_import_id")
     .eq("industry_id", industryId)
     .eq("operation_year", input.year)
     .eq("operation_month", input.month)
     .limit(20000);
+  if (sourceImportId) recQ = recQ.eq("source_import_id", sourceImportId);
+  if (storeId) recQ = recQ.eq("store_id", storeId);
+  const { data: recs, error: eRe } = await recQ;
   if (eRe) throw new Error(eRe.message);
 
   // Agrega por loja
@@ -165,9 +178,19 @@ export async function buildIndustryReport(
   }
 
   // Monta linhas
+  const plannedIdsInReport = new Set<string>();
+  for (const p of planned ?? []) {
+    if (!p.id) continue;
+    if (storeId && p.store_id !== storeId) continue;
+    if (uf && p.store?.uf !== uf) continue;
+    plannedIdsInReport.add(p.id as string);
+  }
+
   const stores: StoreLine[] = Array.from(map.values()).map((b) => {
-    const pending = Math.max(0, b.expected - b.actual);
-    const coveragePct = b.expected > 0 ? Math.round((Math.min(b.actual, b.expected) / b.expected) * 100) : b.actual > 0 ? 100 : 0;
+    const validForCoverage = Math.min(b.actual, b.expected);
+    const extra = Math.max(0, b.actual - b.expected);
+    const pending = Math.max(0, b.expected - validForCoverage);
+    const coveragePct = b.expected > 0 ? Math.round((validForCoverage / b.expected) * 100) : 0;
     let status: StoreStatus;
     if (b.expected === 0 && b.actual > 0) status = "FORA_ROTEIRO";
     else if (b.expected === 0 && b.actual === 0) status = "NAO_ATENDIDA";
@@ -182,6 +205,8 @@ export async function buildIndustryReport(
       uf: b.uf,
       expected: b.expected,
       actual: b.actual,
+      validForCoverage,
+      extra,
       pending,
       coveragePct,
       actualDates: Array.from(b.actualDates).sort(),
@@ -189,27 +214,46 @@ export async function buildIndustryReport(
     };
   });
   stores.sort((a, z) => a.storeName.localeCompare(z.storeName, "pt-BR"));
+  const storeIdsInReport = new Set(stores.map((s) => s.storeId));
+  const recRows = (recs ?? []).filter((r: any) => !r.store_id || storeIdsInReport.has(r.store_id as string));
 
   // Totais
   const contracted = stores.reduce((s, x) => s + x.expected, 0);
   const actual = stores.reduce((s, x) => s + x.actual, 0);
+  const validForContractCoverage = stores.reduce((s, x) => s + x.validForCoverage, 0);
+  const extra = stores.reduce((s, x) => s + x.extra, 0);
   const pending = stores.reduce((s, x) => s + x.pending, 0);
-  const divergent = (recs ?? []).filter((r: any) => r.status === "DATE_DIVERGENCE").length;
-  const unplanned = (recs ?? []).filter((r: any) => r.status === "UNPLANNED_VISIT").length;
-  const coveragePct = contracted > 0 ? Math.round((Math.min(actual, contracted) / contracted) * 100) : 0;
+  const divergent = recRows.filter((r: any) => r.status === "DATE_DIVERGENCE").length;
+  const unplanned = recRows.filter((r: any) => r.status === "UNPLANNED_VISIT").length;
+  const reconciledPlannedIds = new Set<string>();
+  for (const r of recRows) {
+    const plannedVisitId = r.planned_visit_id as string | null;
+    const actualVisitId = r.actual_visit_id as string | null;
+    const status = r.status as string;
+    if (!plannedVisitId || !actualVisitId) continue;
+    if (!plannedIdsInReport.has(plannedVisitId)) continue;
+    if (status === "IGNORED" || status === "NOT_COMPLETED" || status === "DUPLICATE_ACTUAL") continue;
+    reconciledPlannedIds.add(plannedVisitId);
+  }
+  const contractualCoveragePct = contracted > 0 ? Math.round((validForContractCoverage / contracted) * 100) : 0;
+  const operationalCoveragePct = contracted > 0 ? Math.round((reconciledPlannedIds.size / contracted) * 100) : 0;
+  const coveragePct = contractualCoveragePct;
 
   // Por UF
   const ufMap = new Map<string, UfLine>();
   for (const s of stores) {
     const key = s.uf ?? "—";
-    const cur = ufMap.get(key) ?? { uf: key, stores: 0, expected: 0, actual: 0, coveragePct: 0 };
+    const cur = ufMap.get(key) ?? { uf: key, stores: 0, expected: 0, actual: 0, validForCoverage: 0, extra: 0, pending: 0, coveragePct: 0 };
     cur.stores += 1;
     cur.expected += s.expected;
     cur.actual += s.actual;
+    cur.validForCoverage += s.validForCoverage;
+    cur.extra += s.extra;
+    cur.pending += s.pending;
     ufMap.set(key, cur);
   }
   const ufs: UfLine[] = Array.from(ufMap.values())
-    .map((u) => ({ ...u, coveragePct: u.expected > 0 ? Math.round((Math.min(u.actual, u.expected) / u.expected) * 100) : 0 }))
+    .map((u) => ({ ...u, coveragePct: u.expected > 0 ? Math.round((u.validForCoverage / u.expected) * 100) : 0 }))
     .sort((a, b) => a.uf.localeCompare(b.uf));
 
   const actualDatesByStore: Record<string, string[]> = {};
@@ -222,10 +266,15 @@ export async function buildIndustryReport(
     totals: {
       totalStores: stores.length,
       contracted,
+      planned: contracted,
       actual,
+      validForContractCoverage,
+      extra,
       pending,
       divergent,
       unplanned,
+      contractualCoveragePct,
+      operationalCoveragePct,
       coveragePct,
     },
     stores,

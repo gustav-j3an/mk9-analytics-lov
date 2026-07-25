@@ -100,12 +100,15 @@ export function Mk9IndustryReportModule() {
         body: JSON.stringify({
           industryId, year, month,
           uf: uf || null,
-          sourceImportId: sourceImportId || null,
+          checklistImportId: sourceImportId || null,
         }),
       });
       if (!res.ok) {
         let msg = `HTTP ${res.status}`;
-        try { const j = await res.json(); msg = j?.error ?? msg; } catch { /* ignore */ }
+        try {
+          const j = await res.json();
+          msg = j?.message ?? j?.error ?? msg;
+        } catch { /* ignore */ }
         throw new Error(msg);
       }
       const ct = res.headers.get("content-type") ?? "";
@@ -220,10 +223,20 @@ export function Mk9IndustryReportModule() {
           <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
             <Kpi label="Lojas" value={report.totals.totalStores} />
             <Kpi label="Contratadas" value={report.totals.contracted} />
+            <Kpi label="Válidas" value={report.totals.validForContractCoverage} tone="good" />
             <Kpi label="Realizadas" value={report.totals.actual} tone="good" />
             <Kpi label="Pendentes" value={report.totals.pending} tone="bad" />
-            <Kpi label="Cobertura" value={`${report.totals.coveragePct}%`} tone={report.totals.coveragePct >= 90 ? "good" : report.totals.coveragePct >= 70 ? "warn" : "bad"} />
+            <Kpi label="Extras" value={report.totals.extra} tone="warn" />
+            <Kpi label="Cobertura contratual" value={`${report.totals.contractualCoveragePct}%`} tone={report.totals.contractualCoveragePct >= 90 ? "good" : report.totals.contractualCoveragePct >= 70 ? "warn" : "bad"} />
+            <Kpi label="Cobertura operacional" value={`${report.totals.operationalCoveragePct}%`} tone={report.totals.operationalCoveragePct >= 90 ? "good" : report.totals.operationalCoveragePct >= 70 ? "warn" : "bad"} />
             <Kpi label="Fora do roteiro" value={report.totals.unplanned} tone="warn" />
+          </div>
+
+          <div className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Critério de cobertura</p>
+            <p className="mt-1">
+              A cobertura contratual soma, loja a loja, apenas as visitas válidas até o limite esperado. Visitas extras ficam separadas e não compensam pendências de outras lojas.
+            </p>
           </div>
 
           {report.ufs.length > 0 && (
@@ -232,7 +245,7 @@ export function Mk9IndustryReportModule() {
               <CardContent>
                 <table className="w-full text-sm">
                   <thead className="border-b text-left text-xs uppercase text-muted-foreground">
-                    <tr><th className="py-2">UF</th><th>Lojas</th><th>Contratadas</th><th>Realizadas</th><th>Cobertura</th></tr>
+                    <tr><th className="py-2">UF</th><th>Lojas</th><th>Contratadas</th><th>Realizadas</th><th>Válidas</th><th>Pendentes</th><th>Extras</th><th>Cobertura</th></tr>
                   </thead>
                   <tbody>
                     {report.ufs.map((u) => (
@@ -241,6 +254,9 @@ export function Mk9IndustryReportModule() {
                         <td>{u.stores}</td>
                         <td>{u.expected}</td>
                         <td>{u.actual}</td>
+                        <td>{u.validForCoverage}</td>
+                        <td>{u.pending}</td>
+                        <td>{u.extra}</td>
                         <td>{u.coveragePct}%</td>
                       </tr>
                     ))}
@@ -256,7 +272,7 @@ export function Mk9IndustryReportModule() {
               <table className="w-full text-sm">
                 <thead className="border-b text-left text-xs uppercase text-muted-foreground">
                   <tr>
-                    <th className="py-2">Loja</th><th>UF</th><th>Contr.</th><th>Real.</th><th>Pend.</th><th>Cob.</th><th>Status</th><th>Datas realizadas</th>
+                    <th className="py-2">Loja</th><th>UF</th><th>Contr.</th><th>Real.</th><th>Vál.</th><th>Pend.</th><th>Extra</th><th>Cob.</th><th>Status</th><th>Datas realizadas</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -269,14 +285,16 @@ export function Mk9IndustryReportModule() {
                       <td>{s.uf ?? "—"}</td>
                       <td>{s.expected}</td>
                       <td>{s.actual}</td>
+                      <td>{s.validForCoverage}</td>
                       <td>{s.pending}</td>
+                      <td>{s.extra}</td>
                       <td>{s.coveragePct}%</td>
                       <td><Badge variant="outline" className={STATUS_TONE[s.status]}>{STATUS_LABEL[s.status]}</Badge></td>
                       <td className="max-w-[240px] text-xs text-muted-foreground">{s.actualDates.length ? s.actualDates.map(fmtBR).join(", ") : "—"}</td>
                     </tr>
                   ))}
                   {report.stores.length === 0 && (
-                    <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">Nenhuma loja no período com esses filtros.</td></tr>
+                    <tr><td colSpan={10} className="py-6 text-center text-muted-foreground">Nenhuma loja no período com esses filtros.</td></tr>
                   )}
                 </tbody>
               </table>
