@@ -930,6 +930,10 @@ export type Database = {
         Returns: undefined
       }
       mk9_normalize_store_name: { Args: { input: string }; Returns: string }
+      mk9_sync_planned_visits: {
+        Args: { _archive_ids: string[]; _import_id: string; _rows: Json }
+        Returns: Json
+      }
       mk9_visible_industry: { Args: { _industry_id: string }; Returns: boolean }
       mk9_visible_store: { Args: { _store_uf: string }; Returns: boolean }
       user_has_mk9_scope: {

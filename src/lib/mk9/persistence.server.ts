@@ -272,12 +272,30 @@ export function createSupabaseRepository(): Mk9Repository {
         dedup.set(k, r);
       }
       const list = Array.from(dedup.values());
+      const months = Array.from(new Set(list.map((r) => r.operationMonth)));
+      const years = Array.from(new Set(list.map((r) => r.operationYear)));
+      const { data: existingRows, error: exErr } = await supabaseAdmin
+        .from("mk9_planned_routes")
+        .select("id, promoter_id, store_id, industry_id, weekday, operation_month, operation_year")
+        .in("operation_month", months)
+        .in("operation_year", years);
+      if (exErr) throw exErr;
+      const routeIdByKey = new Map<string, string>();
+      for (const row of existingRows ?? []) {
+        routeIdByKey.set(
+          `${row.promoter_id}|${row.store_id}|${row.industry_id}|${row.weekday}|${row.operation_month}|${row.operation_year}`,
+          row.id as string,
+        );
+      }
       const { data, error } = await supabaseAdmin.from("mk9_planned_routes").upsert(
-        list.map((r) => withOptionalId({
-          id: r.id, promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
+        list.map((r) => {
+          const key = `${r.promoterId}|${r.storeId}|${r.industryId}|${r.weekday}|${r.operationMonth}|${r.operationYear}`;
+          return withOptionalId({
+          id: r.id ?? routeIdByKey.get(key), promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
           weekday: r.weekday, operation_month: r.operationMonth, operation_year: r.operationYear,
           source_sheet: r.sourceSheet, last_import_id: importId,
-        })),
+        });
+        }),
         { onConflict: "promoter_id,store_id,industry_id,weekday,operation_month,operation_year", defaultToNull: false },
       ).select();
       if (error) throw error;
@@ -288,34 +306,49 @@ export function createSupabaseRepository(): Mk9Repository {
       const { error } = await supabaseAdmin.from("mk9_planned_routes").delete().in("id", ids);
       if (error) throw error;
     },
-    async upsertPlannedVisits(records, importId) {
-      if (!records.length) return [];
+    async upsertPlannedVisits(records, importId, archiveIds = []) {
       const dedup = new Map<string, PlannedVisitRecord>();
       for (const r of records) {
         const k = `${r.promoterId}|${r.storeId}|${r.industryId}|${r.scheduledDate}`;
         dedup.set(k, r);
       }
       const list = Array.from(dedup.values());
-      const CHUNK = 500;
-      const out: PlannedVisitRecord[] = [];
-      for (let i = 0; i < list.length; i += CHUNK) {
-        const slice = list.slice(i, i + CHUNK);
-        const { data, error } = await supabaseAdmin.from("mk9_planned_visits").upsert(
-          slice.map((r) => withOptionalId({
-            id: r.id, promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
-            route_id: r.routeId ?? null, scheduled_date: r.scheduledDate,
-            status: r.status, source_sheet: r.sourceSheet, last_import_id: importId,
-            archived_at: null,
-          })),
-          { onConflict: "promoter_id,store_id,industry_id,scheduled_date", defaultToNull: false },
-        ).select();
-        if (error) throw error;
-        out.push(...(data ?? []).map(mapVisit));
-      }
-      return out;
+      const archiveSample = archiveIds.slice(0, 25);
+      console.info("[ARCHIVE PLANNED VISITS]", {
+        scope: "mk9 roteiro full sync",
+        quantidade: archiveIds.length,
+        ids: archiveSample,
+        truncated: archiveIds.length > archiveSample.length,
+      });
+
+      // Transação no banco: atualiza existentes sem tocar no id, insere novos
+      // sem enviar id (DEFAULT gen_random_uuid()) e arquiva ausentes.
+      const payload = list.map((r) => ({
+        promoter_id: r.promoterId,
+        store_id: r.storeId,
+        industry_id: r.industryId,
+        route_id: r.routeId ?? null,
+        scheduled_date: r.scheduledDate,
+        status: r.status,
+        source_sheet: r.sourceSheet ?? null,
+      }));
+      const { error } = await (supabaseAdmin as any).rpc("mk9_sync_planned_visits", {
+        _rows: payload,
+        _archive_ids: archiveIds,
+        _import_id: importId,
+      });
+      if (error) throw error;
+      return [];
     },
     async removeFuturePlannedVisits(ids) {
       if (!ids.length) return;
+      const archiveSample = ids.slice(0, 25);
+      console.info("[ARCHIVE PLANNED VISITS]", {
+        scope: "legacy removeFuturePlannedVisits",
+        quantidade: ids.length,
+        ids: archiveSample,
+        truncated: ids.length > archiveSample.length,
+      });
       // Arquivamento lógico: preserva o id e as reconciliações vinculadas.
       // Apenas visitas ainda planejadas são arquivadas; realizadas/canceladas ficam intactas.
       const { error } = await supabaseAdmin.from("mk9_planned_visits")

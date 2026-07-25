@@ -25,7 +25,7 @@ export interface Mk9Repository {
   upsertPromoters(records: PromoterRecord[], importId: string): Promise<PromoterRecord[]>;
   upsertPlannedRoutes(records: PlannedRouteRecord[], importId: string): Promise<PlannedRouteRecord[]>;
   removePlannedRoutes(ids: string[]): Promise<void>;
-  upsertPlannedVisits(records: PlannedVisitRecord[], importId: string): Promise<PlannedVisitRecord[]>;
+  upsertPlannedVisits(records: PlannedVisitRecord[], importId: string, archiveIds?: string[]): Promise<PlannedVisitRecord[]>;
   removeFuturePlannedVisits(ids: string[]): Promise<void>;
 
   // imports
