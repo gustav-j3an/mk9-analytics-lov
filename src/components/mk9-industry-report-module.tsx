@@ -26,19 +26,31 @@ const MONTHS_PT = [
   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
 
-const STATUS_TONE: Record<string, string> = {
-  ATENDIDA_INTEGRAL: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
-  ACIMA_FREQUENCIA: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
-  ATENDIDA_PARCIAL: "bg-amber-500/15 text-amber-700 border-amber-500/30",
-  NAO_ATENDIDA: "bg-rose-500/15 text-rose-700 border-rose-500/30",
-  FORA_ROTEIRO: "bg-orange-500/15 text-orange-700 border-orange-500/30",
+const EXEC_TONE: Record<string, string> = {
+  OK: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+  PARCIAL: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+  NAO_REALIZADA: "bg-rose-500/15 text-rose-700 border-rose-500/30",
 };
-const STATUS_LABEL: Record<string, string> = {
-  ATENDIDA_INTEGRAL: "Atendida",
-  ACIMA_FREQUENCIA: "Acima freq.",
-  ATENDIDA_PARCIAL: "Parcial",
-  NAO_ATENDIDA: "Não atendida",
+const EXEC_LABEL: Record<string, string> = {
+  OK: "OK",
+  PARCIAL: "Parcial",
+  NAO_REALIZADA: "Não realizada",
+};
+const ROUTE_TONE: Record<string, string> = {
+  DENTRO_ROTEIRO: "bg-sky-500/15 text-sky-700 border-sky-500/30",
+  FORA_ROTEIRO: "bg-orange-500/15 text-orange-700 border-orange-500/30",
+  SEM_ROTEIRO: "bg-muted text-muted-foreground border-border",
+};
+const ROUTE_LABEL: Record<string, string> = {
+  DENTRO_ROTEIRO: "Dentro do roteiro",
   FORA_ROTEIRO: "Fora do roteiro",
+  SEM_ROTEIRO: "Sem roteiro",
+};
+const SOURCE_LABEL: Record<string, string> = {
+  WEEKLY_FREQUENCY: "Freq. semanal",
+  MONTHLY_FREQUENCY: "Freq. mensal",
+  PLANNED_ROUTE: "Roteiro planejado",
+  NONE: "Sem contrato",
 };
 
 function fmtBR(iso?: string | null) {
