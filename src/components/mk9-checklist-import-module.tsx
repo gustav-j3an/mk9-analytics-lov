@@ -511,17 +511,34 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
             </AlertDialogDescription>
           </AlertDialogHeader>
           {preview && (
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <ConfirmRow label="Indústria" value={preview.industryName} />
-              <ConfirmRow label="Período" value={`${MONTHS[preview.operationMonth - 1]}/${preview.operationYear}`} />
-              <ConfirmRow label="Visitas válidas" value={validItems} />
-              <ConfirmRow label="Datas inválidas" value={preview.counters.invalidDates} />
-              <ConfirmRow label="Lojas não encontradas" value={preview.counters.storesNotFound} />
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <ConfirmRow label="Indústria" value={preview.industryName} />
+                <ConfirmRow label="Período" value={`${MONTHS[preview.operationMonth - 1]}/${preview.operationYear}`} />
+                <ConfirmRow label="Visitas a persistir" value={validItems} />
+                <ConfirmRow label="Lojas encontradas" value={preview.counters.storesFound} />
+                <ConfirmRow label="Vinculadas por similaridade" value={preview.counters.storesLinkedBySimilarity} />
+                <ConfirmRow label="Novas lojas a cadastrar" value={preview.counters.storesNew} />
+              </div>
+              {newStoresCount > 0 && (
+                <label className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={ackNewStores}
+                    onChange={(e) => setAckNewStores(e.target.checked)}
+                  />
+                  <span>Estou ciente de que {newStoresCount} nova(s) loja(s) serão cadastradas automaticamente na Base MK9.</span>
+                </label>
+              )}
             </div>
           )}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={commitMut.isPending}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={(e) => { e.preventDefault(); commitMut.mutate(); }} disabled={commitMut.isPending}>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); commitMut.mutate(); }}
+              disabled={commitMut.isPending || !canConfirm}
+            >
               {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Confirmar importação
             </AlertDialogAction>
