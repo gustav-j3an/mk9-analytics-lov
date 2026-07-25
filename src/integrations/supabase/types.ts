@@ -348,6 +348,39 @@ export type Database = {
           },
         ]
       }
+      mk9_industry_store_frequency: {
+        Row: {
+          created_at: string
+          id: string
+          industry_id: string
+          last_import_id: string | null
+          monthly_frequency: number | null
+          store_id: string
+          updated_at: string
+          weekly_frequency: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          industry_id: string
+          last_import_id?: string | null
+          monthly_frequency?: number | null
+          store_id: string
+          updated_at?: string
+          weekly_frequency?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          industry_id?: string
+          last_import_id?: string | null
+          monthly_frequency?: number | null
+          store_id?: string
+          updated_at?: string
+          weekly_frequency?: number | null
+        }
+        Relationships: []
+      }
       mk9_planned_routes: {
         Row: {
           created_at: string
