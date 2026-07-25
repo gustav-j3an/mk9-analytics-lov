@@ -127,11 +127,33 @@ function useMk9Data(month: number, year: number) {
 
 export function Mk9AnalyticsApp() {
   const now = new Date();
-  const [activeModule, setActiveModule] = useState<ModuleId>("dashboard");
+  const navigate = useNavigate();
+  const { user, roles, profile, signOut } = useMk9Session();
+  const effectiveRoles: Mk9Role[] = roles.length > 0 ? roles : ["ADMIN"]; // fallback local: sem role, tratamos como ADMIN até que um admin atribua papel
+  const visibleModules = useMemo(
+    () => modules.filter((m) => m.roles.some((r) => effectiveRoles.includes(r))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [effectiveRoles.join("|")],
+  );
+  const defaultModule: ModuleId = visibleModules[0]?.id ?? "dashboard";
+
+  const [activeModule, setActiveModule] = useState<ModuleId>(defaultModule);
   const [month, setMonth] = useState<number>(now.getMonth() + 1);
   const [year, setYear] = useState<number>(now.getFullYear());
   const [query, setQuery] = useState("");
   const [collapsed, setCollapsed] = useState(false);
+  const [userMenu, setUserMenu] = useState(false);
+
+  // Se o módulo ativo deixou de ser permitido (ex: role mudou), volta para o primeiro visível.
+  if (!visibleModules.some((m) => m.id === activeModule)) {
+    // não usar setState em render direto — enfileira via microtask
+    Promise.resolve().then(() => setActiveModule(defaultModule));
+  }
+
+  async function handleSignOut() {
+    await signOut();
+    navigate({ to: "/login", replace: true });
+  }
 
   const { industriesQ, storesQ, promotersQ, routesQ, visitsQ, contractMetricsQ } = useMk9Data(month, year);
 
