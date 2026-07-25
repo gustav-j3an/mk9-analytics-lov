@@ -379,7 +379,22 @@ export type Database = {
           updated_at?: string
           weekly_frequency?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mk9_industry_store_frequency_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_industry_store_frequency_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mk9_planned_routes: {
         Row: {
