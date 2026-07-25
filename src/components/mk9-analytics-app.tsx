@@ -304,6 +304,7 @@ export function Mk9AnalyticsApp() {
             {activeModule === "roteiros" && <RoutesModule routes={routes} loading={routesQ.isLoading} month={month} year={year} />}
             {activeModule === "visitas" && <VisitsModule visits={visits} loading={visitsQ.isLoading} />}
             {activeModule === "importacoes" && <Mk9ImportModule />}
+            {activeModule === "checklists" && <Mk9ChecklistImportModule />}
           </div>
         </section>
       </div>
