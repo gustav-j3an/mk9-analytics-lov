@@ -262,8 +262,12 @@ export function Mk9ReconciliationModule() {
 
           {s && (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              <SummaryCell label="Planejadas" value={s.planned} />
-              <SummaryCell label="Realizadas" value={s.actual} />
+              <SummaryCell label="Contratadas" value={s.metrics.contratadas} tone="text-primary" />
+              <SummaryCell label="Executadas" value={s.metrics.executadas} />
+              <SummaryCell label="Válidas" value={s.metrics.validas} tone="text-emerald-300" />
+              <SummaryCell label="Pendências" value={s.metrics.pendencias} tone="text-rose-300" />
+              <SummaryCell label="Extras" value={s.metrics.extras} tone="text-amber-300" />
+              <SummaryCell label="Cobertura" value={`${s.metrics.coberturaPct}%`} tone="text-primary" />
               <SummaryCell label="Conciliadas" value={s.matched} tone="text-emerald-300" />
               <SummaryCell label="Data divergente" value={s.dateDivergence} tone="text-amber-300" />
               <SummaryCell label="Fora do roteiro" value={s.unplanned} tone="text-sky-300" />
@@ -273,7 +277,6 @@ export function Mk9ReconciliationModule() {
               <SummaryCell label="Duplicadas" value={s.duplicate} tone="text-yellow-300" />
               <SummaryCell label="Manuais" value={s.manuallyMatched} tone="text-teal-300" />
               <SummaryCell label="Ignoradas" value={s.ignored} />
-              <SummaryCell label="Cobertura" value={`${s.coveragePct}%`} tone="text-primary" />
             </div>
           )}
         </CardContent>
