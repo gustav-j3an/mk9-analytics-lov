@@ -241,7 +241,8 @@ export function Mk9AnalyticsApp() {
 
             <nav className="flex flex-col gap-4" aria-label="Módulos principais">
               {moduleGroups.map((group) => {
-                const items = modules.filter((m) => m.group === group);
+                const items = visibleModules.filter((m) => m.group === group);
+                if (items.length === 0) return null;
                 return (
                   <div key={group} className="flex flex-col gap-1">
                     {!collapsed && (
