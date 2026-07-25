@@ -69,11 +69,14 @@ export const checklistCommit = createServerFn({ method: "POST" })
       "./mk9-checklist/persistence.server"
     );
     const startedAt = Date.now();
+    // Marca committing logo no início para que o histórico saia de "previewing".
+    await updateImportStatus(data.importId, { status: "committing" }).catch(() => undefined);
     try {
       // 1) Cria/reaproveita lojas ausentes (isNew=true). Lojas já resolvidas passam direto.
       const newCandidates = data.items
         .filter((i) => i.isNew || !i.storeId)
         .map((i) => ({ storeName: i.storeName, storeNormalized: i.storeNormalized, uf: i.uf ?? null }));
+
 
       const createdMap = await withRichErrors(
         { step: "ensure-checklist-stores", function: "checklistCommit", extra: { candidates: newCandidates.length } },
@@ -186,3 +189,17 @@ export const checklistDelete = createServerFn({ method: "POST" })
     await deleteChecklistImport(data.importId);
     return { ok: true };
   });
+
+// Marca a prévia como descartada sem apagar o registro do histórico.
+export const checklistCancel = createServerFn({ method: "POST" })
+  .inputValidator(async (data: unknown) => validate("checklistCancel", () => z.object({ importId: z.string().uuid() }).parse(data)))
+  .handler(async ({ data }) => {
+    const { updateImportStatus } = await import("./mk9-checklist/persistence.server");
+    await updateImportStatus(data.importId, {
+      status: "cancelled",
+      errorMessage: "Prévia descartada pelo usuário",
+      finishedAt: new Date(),
+    });
+    return { ok: true };
+  });
+

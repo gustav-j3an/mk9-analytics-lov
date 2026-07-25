@@ -4,12 +4,14 @@ import { buildRichError } from "./errors.server";
 import { parseChecklistWorkbook } from "./parser";
 import { diceCoefficient } from "./similarity";
 import {
+  cancelPreviousPreviews,
   createChecklistImport,
   loadIndustry,
   loadStoresIndex,
   savePreviewSnapshot,
   updateImportStatus,
 } from "./persistence.server";
+
 
 interface ChecklistPreviewInput {
   buffer: ArrayBuffer;
@@ -234,6 +236,13 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     ],
   };
 
+  // Encerra prévias anteriores presas para a mesma indústria/competência antes de criar a nova.
+  await cancelPreviousPreviews({
+    industryId: industry.id,
+    operationMonth: input.operationMonth,
+    operationYear: input.operationYear,
+  });
+
   const { id: importId } = await createChecklistImport({
     filename: input.filename,
     industryId: industry.id,
@@ -243,6 +252,7 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
 
   await savePreviewSnapshot(importId, preview);
   await updateImportStatus(importId, { status: "previewing", counters: { ...preview.counters } });
+
 
   diagnostics.info("preview-complete", "Prévia finalizada com sucesso", {
     importId,

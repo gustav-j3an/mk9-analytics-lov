@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -10,6 +10,7 @@ import {
   Clock,
   Trash2,
   ClipboardCheck,
+  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,10 +32,12 @@ import {
   checklistCommit,
   checklistList,
   checklistDelete,
+  checklistCancel,
 } from "@/lib/mk9-checklist.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 import { detectMk9FileKind } from "@/lib/mk9/detect-file-kind";
 import type { ChecklistPreview } from "@/lib/mk9-checklist/types";
+
 
 const MONTHS = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -142,13 +145,26 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const [ackNewStores, setAckNewStores] = useState(false);
   const [lastError, setLastError] = useState<RichError | null>(null);
   const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
-
+  const [highlightAck, setHighlightAck] = useState(false);
+  const [phase, setPhase] = useState<
+    "idle" | "confirming" | "stores" | "visits" | "reconcile" | "done" | "failed"
+  >("idle");
+  const phaseTimersRef = useRef<number[]>([]);
+  const ackRef = useRef<HTMLLabelElement | null>(null);
 
   const commitFn = useServerFn(checklistCommit);
   const listFn = useServerFn(checklistList);
   const deleteFn = useServerFn(checklistDelete);
+  const cancelFn = useServerFn(checklistCancel);
   const industriesFn = useServerFn(mk9ListIndustries);
   const qc = useQueryClient();
+
+  const clearPhaseTimers = () => {
+    for (const t of phaseTimersRef.current) window.clearTimeout(t);
+    phaseTimersRef.current = [];
+  };
+  useEffect(() => () => clearPhaseTimers(), []);
+
 
   const industriesQ = useQuery({ queryKey: ["mk9-industries"], queryFn: () => industriesFn() });
   const historyQ = useQuery({ queryKey: ["mk9-checklist-imports"], queryFn: () => listFn() });
@@ -196,6 +212,14 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
           isNew: i.status === "new_store",
         }));
       if (!items.length) throw new Error("Nenhuma visita válida para importar");
+      // Fases visuais (client-side): não refletem o servidor 1:1, mas dão feedback claro.
+      clearPhaseTimers();
+      setPhase("confirming");
+      phaseTimersRef.current.push(
+        window.setTimeout(() => setPhase("stores"), 400),
+        window.setTimeout(() => setPhase("visits"), 1500),
+        window.setTimeout(() => setPhase("reconcile"), 3000),
+      );
       return commitFn({
         data: {
           importId,
@@ -207,6 +231,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
       });
     },
     onSuccess: (res: any) => {
+      clearPhaseTimers();
+      setPhase("done");
       setLastError(null);
       toast.success("Checklist importado", {
         description: `${res.persisted} novas · ${res.skipped} já existentes · ${res.storesCreated ?? 0} lojas criadas · ${res.storesReused ?? 0} lojas reaproveitadas`,
@@ -218,13 +244,17 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
       setAckNewStores(false);
       setConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
+      window.setTimeout(() => setPhase("idle"), 1200);
     },
     onError: (e: any) => {
+      clearPhaseTimers();
+      setPhase("failed");
       const rich = parseServerError(e);
       setLastError(rich);
       toast.error(rich.message ?? "Falha ao confirmar", { duration: 10000 });
       setConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
+      window.setTimeout(() => setPhase("idle"), 1500);
     },
   });
 
@@ -238,6 +268,21 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     onError: (e: any) => toast.error(e?.message ?? "Falha ao remover"),
   });
 
+  const discardMut = useMutation({
+    mutationFn: async () => {
+      if (importId) await cancelFn({ data: { importId } });
+    },
+    onSuccess: () => {
+      toast.success("Prévia descartada");
+      setPreview(null);
+      setImportId(null);
+      setAckNewStores(false);
+      setLastError(null);
+      qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Falha ao descartar prévia"),
+  });
+
   const items = preview?.items ?? [];
   const filtered = useMemo(
     () => (filter === "all" ? items : items.filter((i) => i.status === filter)),
@@ -249,6 +294,20 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   ).length;
   const newStoresCount = preview?.counters.storesNew ?? 0;
   const canConfirm = validItems > 0 && (newStoresCount === 0 || ackNewStores);
+
+  const periodLabel = useMemo(() => {
+    if (!items.length) return null;
+    const dates = items.map((i) => i.scheduledDate).filter(Boolean).sort();
+    if (!dates.length) return null;
+    return `${shortDate(dates[0])} a ${shortDate(dates[dates.length - 1])}`;
+  }, [items]);
+
+  const flashAck = () => {
+    setHighlightAck(true);
+    ackRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => setHighlightAck(false), 1600);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -322,14 +381,16 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
             </Button>
             {preview && (
               <Button
-                onClick={() => setConfirmOpen(true)}
-                disabled={commitMut.isPending || !canConfirm}
+                variant="outline"
+                onClick={() => discardMut.mutate()}
+                disabled={discardMut.isPending || commitMut.isPending}
               >
-                {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                Confirmar importação
+                {discardMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                Descartar prévia
               </Button>
             )}
           </div>
+
         </CardContent>
       </Card>
 
@@ -461,9 +522,64 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                 </ul>
               </div>
             )}
+
+            {/* Checkbox de ciência + botão Confirmar (regra 1, 2 e 3) */}
+            <div className="space-y-3 border-t pt-4">
+              {newStoresCount > 0 && (
+                <label
+                  ref={ackRef}
+                  className={`flex items-start gap-2 rounded-md border p-3 text-xs cursor-pointer transition-all ${
+                    highlightAck
+                      ? "border-amber-500 bg-amber-500/15 ring-2 ring-amber-500/60 animate-pulse"
+                      : "border-amber-500/40 bg-amber-500/5"
+                  } text-amber-800 dark:text-amber-300`}
+                >
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={ackNewStores}
+                    onChange={(e) => setAckNewStores(e.target.checked)}
+                  />
+                  <span>
+                    Estou ciente de que <strong>{newStoresCount}</strong> nova(s) loja(s) serão cadastradas
+                    automaticamente na Base MK9. Os dados ausentes serão marcados como “Não informado” e
+                    poderão ser completados depois.
+                  </span>
+                </label>
+              )}
+              <div className="flex items-center gap-3">
+                <div
+                  onClick={() => {
+                    if (!canConfirm && newStoresCount > 0 && !ackNewStores) flashAck();
+                  }}
+                >
+                  <Button
+                    size="lg"
+                    onClick={() => setConfirmOpen(true)}
+                    disabled={commitMut.isPending || !canConfirm}
+                  >
+                    {commitMut.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4" />
+                    )}
+                    Confirmar importação
+                  </Button>
+                </div>
+                {!canConfirm && newStoresCount > 0 && !ackNewStores && (
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    Marque a confirmação acima para habilitar a importação.
+                  </p>
+                )}
+                {validItems === 0 && (
+                  <p className="text-xs text-destructive">Nenhuma visita válida para importar.</p>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
+
 
       <Card className="glass-panel">
         <CardHeader>
@@ -515,22 +631,27 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <ConfirmRow label="Indústria" value={preview.industryName} />
-                <ConfirmRow label="Período" value={`${MONTHS[preview.operationMonth - 1]}/${preview.operationYear}`} />
+                <ConfirmRow label="Competência" value={`${MONTHS[preview.operationMonth - 1]}/${preview.operationYear}`} />
+                {periodLabel && <ConfirmRow label="Período detectado" value={periodLabel} />}
                 <ConfirmRow label="Visitas a persistir" value={validItems} />
-                <ConfirmRow label="Lojas encontradas" value={preview.counters.storesFound} />
-                <ConfirmRow label="Vinculadas por similaridade" value={preview.counters.storesLinkedBySimilarity} />
+                <ConfirmRow label="Lojas existentes" value={preview.counters.storesFound} />
+                <ConfirmRow label="Vínculos por similaridade" value={preview.counters.storesLinkedBySimilarity} />
                 <ConfirmRow label="Novas lojas a cadastrar" value={preview.counters.storesNew} />
               </div>
-              {newStoresCount > 0 && (
-                <label className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={ackNewStores}
-                    onChange={(e) => setAckNewStores(e.target.checked)}
-                  />
-                  <span>Estou ciente de que {newStoresCount} nova(s) loja(s) serão cadastradas automaticamente na Base MK9.</span>
-                </label>
+
+              {commitMut.isPending && (
+                <div className="rounded-md border p-3 space-y-2 bg-muted/30">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Progresso
+                  </p>
+                  <PhaseRow active={phase === "confirming"} done={["stores","visits","reconcile","done"].includes(phase)} label="Confirmando importação…" />
+                  <PhaseRow active={phase === "stores"} done={["visits","reconcile","done"].includes(phase)} label="Criando lojas…" />
+                  <PhaseRow active={phase === "visits"} done={["reconcile","done"].includes(phase)} label="Persistindo visitas…" />
+                  <PhaseRow active={phase === "reconcile"} done={phase === "done"} label="Executando conciliação…" />
+                  {phase === "done" && (
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Concluído.</p>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -549,6 +670,24 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     </div>
   );
 }
+
+function PhaseRow({ active, done, label }: { active: boolean; done: boolean; label: string }) {
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      {done ? (
+        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+      ) : active ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+      ) : (
+        <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/30" />
+      )}
+      <span className={done ? "text-muted-foreground line-through" : active ? "font-medium" : "text-muted-foreground"}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
 
 function MiniStat({ label, value, tone }: { label: string; value: number; tone?: "green" | "red" | "blue" | "amber" }) {
   const toneClass =
