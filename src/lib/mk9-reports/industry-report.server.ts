@@ -293,6 +293,7 @@ export async function buildIndustryReport(
       contractualCoveragePct,
       operationalCoveragePct,
       coveragePct,
+      metrics: totalsMetrics,
     },
     stores,
     ufs,
