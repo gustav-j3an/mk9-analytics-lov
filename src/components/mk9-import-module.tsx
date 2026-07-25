@@ -34,6 +34,7 @@ import {
   mk9ListImports,
   mk9DeleteImport,
 } from "@/lib/mk9-import.functions";
+import { detectMk9FileKind } from "@/lib/mk9/detect-file-kind";
 import type { ImportPreview, SyncMode } from "@/lib/mk9/types";
 
 const STATUS_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
