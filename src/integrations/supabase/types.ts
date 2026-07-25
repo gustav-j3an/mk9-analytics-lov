@@ -648,6 +648,45 @@ export type Database = {
         }
         Relationships: []
       }
+      mk9_rls_policy_backup: {
+        Row: {
+          captured_at: string
+          cmd: string | null
+          id: string
+          permissive: string | null
+          policyname: string | null
+          qual: string | null
+          roles: unknown[] | null
+          schemaname: string | null
+          tablename: string | null
+          with_check: string | null
+        }
+        Insert: {
+          captured_at?: string
+          cmd?: string | null
+          id?: string
+          permissive?: string | null
+          policyname?: string | null
+          qual?: string | null
+          roles?: unknown[] | null
+          schemaname?: string | null
+          tablename?: string | null
+          with_check?: string | null
+        }
+        Update: {
+          captured_at?: string
+          cmd?: string | null
+          id?: string
+          permissive?: string | null
+          policyname?: string | null
+          qual?: string | null
+          roles?: unknown[] | null
+          schemaname?: string | null
+          tablename?: string | null
+          with_check?: string | null
+        }
+        Relationships: []
+      }
       mk9_stores: {
         Row: {
           chain: string | null
@@ -882,11 +921,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_mk9_admin: { Args: never; Returns: boolean }
       mk9_merge_stores: {
         Args: { canonical: string; other: string }
         Returns: undefined
       }
       mk9_normalize_store_name: { Args: { input: string }; Returns: string }
+      mk9_visible_industry: { Args: { _industry_id: string }; Returns: boolean }
+      mk9_visible_store: { Args: { _store_uf: string }; Returns: boolean }
+      user_has_mk9_scope: {
+        Args: { _scope_type: string; _scope_value: string }
+        Returns: boolean
+      }
     }
     Enums: {
       mk9_actual_visit_origin: "CHECKLIST"
