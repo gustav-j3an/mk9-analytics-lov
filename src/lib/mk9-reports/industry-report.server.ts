@@ -438,11 +438,3 @@ export async function buildIndustryReport(
   };
 }
 
-// Shim para tornar a comparação "actual > contratadas" segura sem depender do
-// TS entender `b` no closure — usado apenas para o rótulo legado ACIMA_FREQUENCIA.
-declare global {
-  interface Object {
-    contratadasCompatShim?(v: number): number;
-  }
-}
-(Object.prototype as any).contratadasCompatShim = function (v: number) { return v; };
