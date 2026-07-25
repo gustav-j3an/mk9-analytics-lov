@@ -1,6 +1,7 @@
 // Engine de agregação do Relatório da Indústria.
 // Fonte de "visitas contratadas" = roteiro planejado dentro do período (regra escolhida).
 import type { PeriodWindow } from "./period.server";
+import { aggregateVisitMetrics, computeVisitMetrics, type VisitMetrics } from "./metrics";
 
 export type StoreStatus =
   | "ATENDIDA_INTEGRAL"
