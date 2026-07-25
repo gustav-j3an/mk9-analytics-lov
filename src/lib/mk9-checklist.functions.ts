@@ -203,6 +203,14 @@ export const checklistCommit = createServerFn({ method: "POST" })
         reconciliationError = String(recErr?.message ?? recErr);
       }
 
+      await logAudit(ctx, "mk9.checklist.commit", "mk9_checklist_imports", data.importId, {
+        industryId: data.industryId,
+        operationMonth: data.operationMonth,
+        operationYear: data.operationYear,
+        persisted,
+        storesCreated,
+      });
+
       return {
         importId: data.importId,
         persisted,
@@ -215,6 +223,7 @@ export const checklistCommit = createServerFn({ method: "POST" })
         frequenciesNotImported,
         reconciliationError,
       };
+
     } catch (e: any) {
       let msg: string;
       try {
