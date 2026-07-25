@@ -10,6 +10,7 @@ export interface ChecklistMark {
   weeklyFrequency: number | null;
   monthlyFrequency: number | null;
   day: number;
+  scheduledDate: string; // ISO yyyy-mm-dd, extraída direto do cabeçalho
   excelRow: number;
 }
 
