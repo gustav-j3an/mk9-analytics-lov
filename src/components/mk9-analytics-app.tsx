@@ -57,6 +57,7 @@ type ModuleId =
   | "promotores"
   | "roteiros"
   | "visitas"
+  | "conciliacao"
   | "importacoes"
   | "checklists";
 
@@ -65,6 +66,7 @@ const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; grou
   { id: "dashboard", label: "Dashboard", icon: BarChart3, group: "Visão geral" },
   { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação" },
   { id: "visitas", label: "Visitas", icon: Calendar, group: "Operação" },
+  { id: "conciliacao", label: "Conciliação", icon: CheckCircle2, group: "Operação" },
   { id: "industrias", label: "Indústrias", icon: Factory, group: "Dados" },
   { id: "lojas", label: "Lojas", icon: Store, group: "Dados" },
   { id: "promotores", label: "Promotores", icon: Users, group: "Dados" },
