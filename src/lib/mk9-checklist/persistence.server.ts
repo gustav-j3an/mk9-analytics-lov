@@ -1,5 +1,6 @@
 // Persistência do módulo Checklists. SERVER-ONLY.
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { storeCompactKey, storeTokenSetKey } from "@/lib/mk9/normalization";
 import type { ChecklistPreview } from "./types";
 
 export interface StoreIndexRecord {
@@ -17,6 +18,13 @@ export async function loadStoresIndex() {
   const byKey = new Map<string, StoreIndexRecord>();
   const byName = new Map<string, StoreIndexRecord>();
   const countByName = new Map<string, number>();
+  // Índices auxiliares para casar variantes tipográficas do mesmo estabelecimento.
+  // compactByUf: nome normalizado sem espaços (T-63 == T63) por UF.
+  // tokenSetByUf: conjunto ordenado de tokens (ignora ordem e stopwords) por UF.
+  const compactByUf = new Map<string, Map<string, StoreIndexRecord>>();
+  const tokenSetByUf = new Map<string, Map<string, StoreIndexRecord>>();
+  const compactCountByUf = new Map<string, Map<string, number>>();
+  const tokenSetCountByUf = new Map<string, Map<string, number>>();
   const all: StoreIndexRecord[] = [];
   for (const row of data ?? []) {
     const uf = (row.uf as string | null) ?? null;
@@ -30,10 +38,29 @@ export async function loadStoresIndex() {
     byKey.set(`${rec.nameNormalized}|${uf ?? ""}`, rec);
     countByName.set(rec.nameNormalized, (countByName.get(rec.nameNormalized) ?? 0) + 1);
     if (!byName.has(rec.nameNormalized)) byName.set(rec.nameNormalized, rec);
+
+    const ufKey = uf ?? "";
+    const ck = storeCompactKey(rec.nameNormalized);
+    const tk = storeTokenSetKey(rec.nameNormalized);
+    if (ck) {
+      const map = compactByUf.get(ufKey) ?? new Map();
+      const cnt = compactCountByUf.get(ufKey) ?? new Map();
+      cnt.set(ck, (cnt.get(ck) ?? 0) + 1);
+      if (!map.has(ck)) map.set(ck, rec);
+      compactByUf.set(ufKey, map);
+      compactCountByUf.set(ufKey, cnt);
+    }
+    if (tk) {
+      const map = tokenSetByUf.get(ufKey) ?? new Map();
+      const cnt = tokenSetCountByUf.get(ufKey) ?? new Map();
+      cnt.set(tk, (cnt.get(tk) ?? 0) + 1);
+      if (!map.has(tk)) map.set(tk, rec);
+      tokenSetByUf.set(ufKey, map);
+      tokenSetCountByUf.set(ufKey, cnt);
+    }
   }
   // uniqueByName: só devolve record quando existe UMA única loja com aquele
-  // nome normalizado, independentemente da UF. Serve para reconciliar casos
-  // em que o checklist trouxe a UF errada (ex.: TATICO AGUAS LINDAS DF vs GO).
+  // nome normalizado, independentemente da UF.
   const uniqueByName = new Map<string, StoreIndexRecord>();
   for (const [k, count] of countByName) {
     if (count === 1) {
@@ -41,7 +68,18 @@ export async function loadStoresIndex() {
       if (rec) uniqueByName.set(k, rec);
     }
   }
-  return { byKey, byName, uniqueByName, all };
+  // Só aceita match por compact/tokenSet quando é ÚNICO na UF (evita ambiguidade).
+  function pickUnique(
+    mapByUf: Map<string, Map<string, StoreIndexRecord>>,
+    cntByUf: Map<string, Map<string, number>>,
+    uf: string,
+    key: string,
+  ): StoreIndexRecord | null {
+    const cnt = cntByUf.get(uf)?.get(key) ?? 0;
+    if (cnt !== 1) return null;
+    return mapByUf.get(uf)?.get(key) ?? null;
+  }
+  return { byKey, byName, uniqueByName, all, compactByUf, tokenSetByUf, pickUnique };
 }
 
 // Cria (ou reaproveita) lojas para o checklist. Retorna mapa (normalized|uf) -> storeId.
