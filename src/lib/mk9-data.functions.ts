@@ -3,11 +3,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const monthYearSchema = z.object({
-  month: z.number().int().min(1).max(12),
-  year: z.number().int().min(2020).max(2100),
-});
-
 export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
@@ -62,7 +57,10 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
 });
 
 export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => monthYearSchema.parse(data))
+  .inputValidator((data: unknown) => z.object({
+    month: z.number().int().min(1).max(12),
+    year: z.number().int().min(2020).max(2100),
+  }).parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
@@ -90,7 +88,10 @@ export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
   });
 
 export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => monthYearSchema.parse(data))
+  .inputValidator((data: unknown) => z.object({
+    month: z.number().int().min(1).max(12),
+    year: z.number().int().min(2020).max(2100),
+  }).parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const first = new Date(Date.UTC(data.year, data.month - 1, 1)).toISOString().slice(0, 10);
@@ -119,7 +120,10 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
   });
 
 export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => monthYearSchema.parse(data))
+  .inputValidator((data: unknown) => z.object({
+    month: z.number().int().min(1).max(12),
+    year: z.number().int().min(2020).max(2100),
+  }).parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveWindow } = await import("@/lib/mk9-reports/period.server");
