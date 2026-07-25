@@ -43,6 +43,9 @@ function b64ToArrayBuffer(base64: string): ArrayBuffer {
 export const checklistPreview = createServerFn({ method: "POST" })
   .inputValidator(async (data: unknown) => validate("checklistPreview", () => previewSchema.parse(data)))
   .handler(async ({ data }) => {
+    const { requireMk9Role } = await import("./mk9-auth/require-role.server");
+    await requireMk9Role(["ADMIN"]);
+
     const { createChecklistDiagnostics } = await import("./mk9-checklist/diagnostics");
     const { runChecklistPreview } = await import("./mk9-checklist/preview.server");
     const diagnostics = createChecklistDiagnostics("preview-server-fn");
