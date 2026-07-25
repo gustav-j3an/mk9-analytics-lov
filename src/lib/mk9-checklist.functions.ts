@@ -121,6 +121,36 @@ export const checklistCommit = createServerFn({ method: "POST" })
         () => persistActualVisits(data.importId, data.industryId, resolvedItems),
       );
 
+      // 4) Persiste frequência contratada por loja (usa o snapshot da prévia
+      //    salvo em mk9_checklist_imports.preview). Fonte oficial da métrica
+      //    "visitas contratadas" no relatório da indústria.
+      let frequenciesUpserted = 0;
+      try {
+        const snapshot = await loadPreviewSnapshot(data.importId);
+        const freqs = snapshot?.storeFrequencies ?? [];
+        if (freqs.length) {
+          // Resolve storeId por (normalized|uf) — usa createdMap para lojas novas
+          // e o próprio item da prévia para lojas já resolvidas.
+          const storeIdByKey = new Map<string, string>();
+          for (const it of data.items) {
+            if (it.storeId) storeIdByKey.set(`${it.storeNormalized}|${it.uf ?? ""}`, it.storeId);
+          }
+          for (const [key, v] of createdMap) storeIdByKey.set(key, v.storeId);
+          const rows = freqs
+            .map((f) => ({
+              storeId: storeIdByKey.get(`${f.storeNormalized}|${f.uf ?? ""}`) ?? null,
+              weeklyFrequency: f.weeklyFrequency,
+              monthlyFrequency: f.monthlyFrequency,
+            }))
+            .filter((r): r is { storeId: string; weeklyFrequency: number | null; monthlyFrequency: number | null } => !!r.storeId);
+          const { upserted } = await upsertIndustryStoreFrequencies(data.industryId, data.importId, rows);
+          frequenciesUpserted = upserted;
+        }
+      } catch (freqErr) {
+        // Falha na frequência não deve derrubar o commit; apenas registra em counters.
+        console.error("[checklistCommit] upsert frequencies failed", freqErr);
+      }
+
       const counters = {
         persisted,
         skipped,
