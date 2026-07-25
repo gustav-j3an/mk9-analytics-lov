@@ -182,8 +182,19 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     mutationFn: async () => {
       if (!preview || !importId) throw new Error("Gere a prévia antes");
       const items = preview.items
-        .filter((i) => i.status === "found" && i.storeId && i.scheduledDate)
-        .map((i) => ({ storeId: i.storeId!, scheduledDate: i.scheduledDate }));
+        .filter(
+          (i) =>
+            (i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store") &&
+            i.scheduledDate,
+        )
+        .map((i) => ({
+          storeId: i.storeId,
+          storeName: i.storeName,
+          storeNormalized: i.storeNormalized,
+          uf: i.uf,
+          scheduledDate: i.scheduledDate,
+          isNew: i.status === "new_store",
+        }));
       if (!items.length) throw new Error("Nenhuma visita válida para importar");
       return commitFn({
         data: {
@@ -198,12 +209,13 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     onSuccess: (res: any) => {
       setLastError(null);
       toast.success("Checklist importado", {
-        description: `${res.persisted} novas · ${res.skipped} já existentes · ${res.total} avaliadas`,
+        description: `${res.persisted} novas · ${res.skipped} já existentes · ${res.storesCreated ?? 0} lojas criadas · ${res.storesReused ?? 0} lojas reaproveitadas`,
         duration: 8000,
       });
       setPreview(null);
       setImportId(null);
       setFile(null);
+      setAckNewStores(false);
       setConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
     },
