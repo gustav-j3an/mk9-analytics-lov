@@ -131,13 +131,32 @@ export function Mk9AnalyticsApp() {
   const visits = visitsQ.data ?? [];
 
   const metrics = useMemo(() => {
-    const planned = visits.length;
-    const completed = visits.filter((v) => v.status === "completed").length;
+    // Camada canônica de métricas — sempre por loja.
+    // Aqui, no dashboard global, planejadas = contratadas e completed = executadas.
+    const perStoreMap = new Map<string, { contratadas: number; executadas: number }>();
+    for (const v of visits) {
+      const key = v.storeId ?? v.id;
+      const cur = perStoreMap.get(key) ?? { contratadas: 0, executadas: 0 };
+      cur.contratadas += 1;
+      if (v.status === "completed") cur.executadas += 1;
+      perStoreMap.set(key, cur);
+    }
+    let contratadas = 0, executadas = 0, validas = 0, extras = 0, pendencias = 0;
+    for (const s of perStoreMap.values()) {
+      contratadas += s.contratadas;
+      executadas += s.executadas;
+      const v = Math.min(s.contratadas, s.executadas);
+      validas += v;
+      extras += Math.max(0, s.executadas - s.contratadas);
+      pendencias += Math.max(0, s.contratadas - v);
+    }
+    const planned = contratadas;
+    const completed = executadas;
     const cancelled = visits.filter((v) => v.status === "cancelled").length;
     const today = new Date().toISOString().slice(0, 10);
     const delayed = visits.filter((v) => v.status === "planned" && v.scheduledDate < today).length;
-    const coverage = planned > 0 ? Math.round((completed / planned) * 100) : 0;
-    return { planned, completed, cancelled, delayed, coverage };
+    const coverage = contratadas > 0 ? Math.round((validas / contratadas) * 100) : 0;
+    return { planned, completed, cancelled, delayed, coverage, contratadas, executadas, validas, extras, pendencias };
   }, [visits]);
 
   const searchResults = useMemo(() => {
