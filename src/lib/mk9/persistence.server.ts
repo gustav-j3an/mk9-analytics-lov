@@ -249,7 +249,7 @@ export function createSupabaseRepository(): Mk9Repository {
           weekday: r.weekday, operation_month: r.operationMonth, operation_year: r.operationYear,
           source_sheet: r.sourceSheet, last_import_id: importId,
         })),
-        { onConflict: "promoter_id,store_id,industry_id,weekday,operation_month,operation_year" },
+        { onConflict: "promoter_id,store_id,industry_id,weekday,operation_month,operation_year", defaultToNull: false },
       ).select();
       if (error) throw error;
       return (data ?? []).map(mapRoute);
