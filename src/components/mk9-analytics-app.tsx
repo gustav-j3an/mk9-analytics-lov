@@ -416,6 +416,7 @@ export function Mk9AnalyticsApp() {
             )}
             {activeModule === "conciliacao" && <Mk9ReconciliationModule />}
             {activeModule === "relatorio_industria" && <Mk9IndustryReportModule />}
+            {activeModule === "usuarios" && <Mk9UsersModule currentUserId={user?.id ?? null} />}
           </div>
         </section>
       </div>
