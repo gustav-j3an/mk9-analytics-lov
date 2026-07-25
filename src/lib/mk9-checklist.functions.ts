@@ -253,8 +253,11 @@ export const checklistList = createServerFn({ method: "GET" }).handler(async () 
 export const checklistDelete = createServerFn({ method: "POST" })
   .inputValidator(async (data: unknown) => validate("checklistDelete", () => z.object({ importId: z.string().uuid() }).parse(data)))
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { deleteChecklistImport } = await import("./mk9-checklist/persistence.server");
     await deleteChecklistImport(data.importId);
+    await logAudit(ctx, "mk9.checklist.delete", "mk9_checklist_imports", data.importId);
     return { ok: true };
   });
 
@@ -262,12 +265,16 @@ export const checklistDelete = createServerFn({ method: "POST" })
 export const checklistCancel = createServerFn({ method: "POST" })
   .inputValidator(async (data: unknown) => validate("checklistCancel", () => z.object({ importId: z.string().uuid() }).parse(data)))
   .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { updateImportStatus } = await import("./mk9-checklist/persistence.server");
     await updateImportStatus(data.importId, {
       status: "cancelled",
       errorMessage: "Prévia descartada pelo usuário",
       finishedAt: new Date(),
     });
+    await logAudit(ctx, "mk9.checklist.cancel", "mk9_checklist_imports", data.importId);
     return { ok: true };
   });
+
 
