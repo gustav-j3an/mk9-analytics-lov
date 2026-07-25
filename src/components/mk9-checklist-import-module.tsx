@@ -631,22 +631,27 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <ConfirmRow label="Indústria" value={preview.industryName} />
-                <ConfirmRow label="Período" value={`${MONTHS[preview.operationMonth - 1]}/${preview.operationYear}`} />
+                <ConfirmRow label="Competência" value={`${MONTHS[preview.operationMonth - 1]}/${preview.operationYear}`} />
+                {periodLabel && <ConfirmRow label="Período detectado" value={periodLabel} />}
                 <ConfirmRow label="Visitas a persistir" value={validItems} />
-                <ConfirmRow label="Lojas encontradas" value={preview.counters.storesFound} />
-                <ConfirmRow label="Vinculadas por similaridade" value={preview.counters.storesLinkedBySimilarity} />
+                <ConfirmRow label="Lojas existentes" value={preview.counters.storesFound} />
+                <ConfirmRow label="Vínculos por similaridade" value={preview.counters.storesLinkedBySimilarity} />
                 <ConfirmRow label="Novas lojas a cadastrar" value={preview.counters.storesNew} />
               </div>
-              {newStoresCount > 0 && (
-                <label className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={ackNewStores}
-                    onChange={(e) => setAckNewStores(e.target.checked)}
-                  />
-                  <span>Estou ciente de que {newStoresCount} nova(s) loja(s) serão cadastradas automaticamente na Base MK9.</span>
-                </label>
+
+              {commitMut.isPending && (
+                <div className="rounded-md border p-3 space-y-2 bg-muted/30">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Progresso
+                  </p>
+                  <PhaseRow active={phase === "confirming"} done={["stores","visits","reconcile","done"].includes(phase)} label="Confirmando importação…" />
+                  <PhaseRow active={phase === "stores"} done={["visits","reconcile","done"].includes(phase)} label="Criando lojas…" />
+                  <PhaseRow active={phase === "visits"} done={["reconcile","done"].includes(phase)} label="Persistindo visitas…" />
+                  <PhaseRow active={phase === "reconcile"} done={phase === "done"} label="Executando conciliação…" />
+                  {phase === "done" && (
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Concluído.</p>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -665,6 +670,24 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     </div>
   );
 }
+
+function PhaseRow({ active, done, label }: { active: boolean; done: boolean; label: string }) {
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      {done ? (
+        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+      ) : active ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+      ) : (
+        <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/30" />
+      )}
+      <span className={done ? "text-muted-foreground line-through" : active ? "font-medium" : "text-muted-foreground"}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
 
 function MiniStat({ label, value, tone }: { label: string; value: number; tone?: "green" | "red" | "blue" | "amber" }) {
   const toneClass =
