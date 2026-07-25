@@ -1,15 +1,18 @@
 // Engine de agregação do Relatório da Indústria.
 //
-// Fonte das "visitas contratadas" (nesta ordem, por loja):
-//   1) frequência semanal cadastrada na indústria/loja  →  weekly * períodoEmSemanas
-//   2) frequência mensal cadastrada na indústria/loja   →  monthly (arredondado)
-//   3) roteiro planejado dentro do período (fallback histórico quando não há
-//      frequência cadastrada nem checklist prévio para aquela loja).
+// Fonte ÚNICA das "visitas contratadas" por loja: cadastro de frequência da
+// indústria (mk9_industry_store_frequency). A existência ou ausência de
+// roteiro planejado NÃO altera o valor contratado — o roteiro é somente
+// auditoria (routeStatus). Extras de uma loja não compensam pendências de
+// outra.
 //
-// A ausência de roteiro NUNCA significa "zero contratado" quando existe
-// frequência cadastrada. Extras de uma loja não compensam pendências de outra.
+// Escala pelo período REAL da competência (não pelo mês fixo):
+//   weekly  → round(weekly  * totalDays / 7)
+//   monthly → round(monthly * totalDays / 30)
+// Cobertura é limitada a 100 % (já garantido por validas = min(contr., exec.)).
 import type { PeriodWindow } from "./period.server";
 import { aggregateVisitMetrics, computeVisitMetrics, type VisitMetrics } from "./metrics";
+
 
 export type StoreStatus =
   | "ATENDIDA_INTEGRAL"
