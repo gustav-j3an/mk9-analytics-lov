@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiReportsIndustryPdfRouteImport } from './routes/api/reports/industry-pdf'
 import { Route as ApiChecklistsPreviewRouteImport } from './routes/api/checklists/preview'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiReportsIndustryPdfRoute = ApiReportsIndustryPdfRouteImport.update({
+  id: '/api/reports/industry-pdf',
+  path: '/api/reports/industry-pdf',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChecklistsPreviewRoute = ApiChecklistsPreviewRouteImport.update({
@@ -26,27 +32,31 @@ const ApiChecklistsPreviewRoute = ApiChecklistsPreviewRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
+  '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
+  '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
+  '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/checklists/preview'
+  fullPaths: '/' | '/api/checklists/preview' | '/api/reports/industry-pdf'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/checklists/preview'
-  id: '__root__' | '/' | '/api/checklists/preview'
+  to: '/' | '/api/checklists/preview' | '/api/reports/industry-pdf'
+  id: '__root__' | '/' | '/api/checklists/preview' | '/api/reports/industry-pdf'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiChecklistsPreviewRoute: typeof ApiChecklistsPreviewRoute
+  ApiReportsIndustryPdfRoute: typeof ApiReportsIndustryPdfRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/reports/industry-pdf': {
+      id: '/api/reports/industry-pdf'
+      path: '/api/reports/industry-pdf'
+      fullPath: '/api/reports/industry-pdf'
+      preLoaderRoute: typeof ApiReportsIndustryPdfRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/checklists/preview': {
@@ -71,17 +88,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiChecklistsPreviewRoute: ApiChecklistsPreviewRoute,
+  ApiReportsIndustryPdfRoute: ApiReportsIndustryPdfRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

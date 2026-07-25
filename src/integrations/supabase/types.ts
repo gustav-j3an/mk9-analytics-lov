@@ -298,6 +298,56 @@ export type Database = {
         }
         Relationships: []
       }
+      mk9_industry_period_config: {
+        Row: {
+          active: boolean
+          created_at: string
+          end_day: number
+          id: string
+          industry_id: string
+          notes: string | null
+          period_type: Database["public"]["Enums"]["mk9_period_type"]
+          start_day: number
+          updated_at: string
+          uses_previous_month: boolean
+          week_grouping: Database["public"]["Enums"]["mk9_week_grouping"]
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          end_day?: number
+          id?: string
+          industry_id: string
+          notes?: string | null
+          period_type?: Database["public"]["Enums"]["mk9_period_type"]
+          start_day?: number
+          updated_at?: string
+          uses_previous_month?: boolean
+          week_grouping?: Database["public"]["Enums"]["mk9_week_grouping"]
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          end_day?: number
+          id?: string
+          industry_id?: string
+          notes?: string | null
+          period_type?: Database["public"]["Enums"]["mk9_period_type"]
+          start_day?: number
+          updated_at?: string
+          uses_previous_month?: boolean
+          week_grouping?: Database["public"]["Enums"]["mk9_week_grouping"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_industry_period_config_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: true
+            referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mk9_planned_routes: {
         Row: {
           created_at: string
@@ -681,6 +731,7 @@ export type Database = {
         | "ABAIXO DA META"
         | "SEM META"
         | "OK"
+      mk9_period_type: "CALENDAR_MONTH" | "CUSTOM_CYCLE"
       mk9_reconciliation_match_type: "EXACT" | "NEAR_DATE" | "MANUAL" | "NONE"
       mk9_reconciliation_status:
         | "MATCHED"
@@ -694,6 +745,7 @@ export type Database = {
         | "IGNORED"
       mk9_sync_mode: "full" | "add_only" | "registry_only" | "routes_only"
       mk9_visit_status: "planned" | "completed" | "cancelled" | "skipped"
+      mk9_week_grouping: "CALENDAR_WEEK" | "CYCLE_WEEK"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -838,6 +890,7 @@ export const Constants = {
         "SEM META",
         "OK",
       ],
+      mk9_period_type: ["CALENDAR_MONTH", "CUSTOM_CYCLE"],
       mk9_reconciliation_match_type: ["EXACT", "NEAR_DATE", "MANUAL", "NONE"],
       mk9_reconciliation_status: [
         "MATCHED",
@@ -852,6 +905,7 @@ export const Constants = {
       ],
       mk9_sync_mode: ["full", "add_only", "registry_only", "routes_only"],
       mk9_visit_status: ["planned", "completed", "cancelled", "skipped"],
+      mk9_week_grouping: ["CALENDAR_WEEK", "CYCLE_WEEK"],
     },
   },
 } as const

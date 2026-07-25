@@ -1,0 +1,375 @@
+// Tela: Relatórios › Indústrias
+import { useMemo, useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Download, FileText, Loader2, Settings2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { mk9ListIndustries } from "@/lib/mk9-data.functions";
+import {
+  reportIndustry,
+  reportIndustryPeriodConfig,
+  reportUpsertPeriodConfig,
+  reportListChecklistImports,
+} from "@/lib/mk9-reports.functions";
+
+const MONTHS_PT = [
+  "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+  "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
+];
+
+const STATUS_TONE: Record<string, string> = {
+  ATENDIDA_INTEGRAL: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+  ACIMA_FREQUENCIA: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+  ATENDIDA_PARCIAL: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+  NAO_ATENDIDA: "bg-rose-500/15 text-rose-700 border-rose-500/30",
+  FORA_ROTEIRO: "bg-orange-500/15 text-orange-700 border-orange-500/30",
+};
+const STATUS_LABEL: Record<string, string> = {
+  ATENDIDA_INTEGRAL: "Atendida",
+  ACIMA_FREQUENCIA: "Acima freq.",
+  ATENDIDA_PARCIAL: "Parcial",
+  NAO_ATENDIDA: "Não atendida",
+  FORA_ROTEIRO: "Fora do roteiro",
+};
+
+function fmtBR(iso?: string | null) {
+  if (!iso) return "—";
+  const [y, m, d] = iso.split("-");
+  return d && m && y ? `${d}/${m}/${y}` : iso;
+}
+
+export function Mk9IndustryReportModule() {
+  const now = new Date();
+  const [industryId, setIndustryId] = useState<string>("");
+  const [month, setMonth] = useState<number>(now.getMonth() + 1);
+  const [year, setYear] = useState<number>(now.getFullYear());
+  const [uf, setUf] = useState<string>("");
+  const [sourceImportId, setSourceImportId] = useState<string>("");
+
+  const industriesFn = useServerFn(mk9ListIndustries);
+  const reportFn = useServerFn(reportIndustry);
+  const importsFn = useServerFn(reportListChecklistImports);
+
+  const industriesQ = useQuery({ queryKey: ["mk9-industries"], queryFn: () => industriesFn() });
+
+  const reportQ = useQuery({
+    enabled: !!industryId,
+    queryKey: ["report-industry", industryId, year, month, uf, sourceImportId],
+    queryFn: () => reportFn({ data: {
+      industryId, year, month,
+      uf: uf || null,
+      sourceImportId: sourceImportId || null,
+    } }),
+  });
+
+  const importsQ = useQuery({
+    enabled: !!industryId,
+    queryKey: ["report-imports", industryId, year, month],
+    queryFn: () => importsFn({ data: { industryId, year, month } }),
+  });
+
+  const report = reportQ.data;
+  const ufOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of report?.stores ?? []) if (s.uf) set.add(s.uf);
+    return Array.from(set).sort();
+  }, [report]);
+
+  const [downloading, setDownloading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+
+  async function downloadPdf() {
+    if (!industryId) return;
+    setDownloading(true); setPdfError(null);
+    try {
+      const res = await fetch("/api/reports/industry-pdf", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          industryId, year, month,
+          uf: uf || null,
+          sourceImportId: sourceImportId || null,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        throw new Error(err.error ?? `HTTP ${res.status}`);
+      }
+      const cd = res.headers.get("content-disposition") ?? "";
+      const match = /filename="([^"]+)"/.exec(cd);
+      const filename = match?.[1] ?? "relatorio.pdf";
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      setPdfError(e?.message ?? String(e));
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Relatório da Indústria</h2>
+          <p className="text-sm text-muted-foreground">Documento consolidado para envio ao cliente. Números calculados a partir das visitas planejadas e realizadas.</p>
+        </div>
+        <PeriodConfigDialog industryId={industryId} />
+      </div>
+
+      <Card>
+        <CardContent className="grid grid-cols-2 gap-3 pt-6 md:grid-cols-6">
+          <div className="col-span-2">
+            <Label className="text-xs">Indústria</Label>
+            <Select value={industryId} onValueChange={setIndustryId}>
+              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+              <SelectContent>
+                {(industriesQ.data ?? []).map((i) => (
+                  <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Mês</Label>
+            <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {MONTHS_PT.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Ano</Label>
+            <Input type="number" value={year} onChange={(e) => setYear(Number(e.target.value) || year)} />
+          </div>
+          <div>
+            <Label className="text-xs">UF</Label>
+            <Select value={uf || "__all"} onValueChange={(v) => setUf(v === "__all" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">Todas</SelectItem>
+                {ufOptions.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Checklist</Label>
+            <Select value={sourceImportId || "__all"} onValueChange={(v) => setSourceImportId(v === "__all" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">Todos</SelectItem>
+                {(importsQ.data ?? []).map((imp: any) => (
+                  <SelectItem key={imp.id} value={imp.id}>{imp.filename}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {!industryId && (
+        <Card><CardContent className="py-10 text-center text-sm text-muted-foreground">Selecione uma indústria para gerar o relatório.</CardContent></Card>
+      )}
+
+      {industryId && reportQ.isLoading && (
+        <Card><CardContent className="flex items-center justify-center gap-3 py-10 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Calculando indicadores...</CardContent></Card>
+      )}
+
+      {reportQ.isError && (
+        <Card><CardContent className="py-6 text-sm text-rose-600"><AlertCircle className="mr-2 inline h-4 w-4" />{(reportQ.error as any)?.message ?? "Falha ao carregar relatório"}</CardContent></Card>
+      )}
+
+      {report && (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4">
+            <div className="text-sm">
+              <div className="text-muted-foreground">Período analisado</div>
+              <div className="font-semibold">{fmtBR(report.window.startDate)} a {fmtBR(report.window.endDate)} · {report.window.totalDays} dias</div>
+            </div>
+            <Button onClick={downloadPdf} disabled={downloading}>
+              {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+              Gerar PDF para o cliente
+            </Button>
+          </div>
+          {pdfError && <div className="rounded-md border border-rose-500/40 bg-rose-500/10 p-3 text-sm text-rose-700">{pdfError}</div>}
+
+          <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+            <Kpi label="Lojas" value={report.totals.totalStores} />
+            <Kpi label="Contratadas" value={report.totals.contracted} />
+            <Kpi label="Realizadas" value={report.totals.actual} tone="good" />
+            <Kpi label="Pendentes" value={report.totals.pending} tone="bad" />
+            <Kpi label="Cobertura" value={`${report.totals.coveragePct}%`} tone={report.totals.coveragePct >= 90 ? "good" : report.totals.coveragePct >= 70 ? "warn" : "bad"} />
+            <Kpi label="Fora do roteiro" value={report.totals.unplanned} tone="warn" />
+          </div>
+
+          {report.ufs.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Resumo por UF</CardTitle></CardHeader>
+              <CardContent>
+                <table className="w-full text-sm">
+                  <thead className="border-b text-left text-xs uppercase text-muted-foreground">
+                    <tr><th className="py-2">UF</th><th>Lojas</th><th>Contratadas</th><th>Realizadas</th><th>Cobertura</th></tr>
+                  </thead>
+                  <tbody>
+                    {report.ufs.map((u) => (
+                      <tr key={u.uf} className="border-b last:border-0">
+                        <td className="py-2 font-medium">{u.uf}</td>
+                        <td>{u.stores}</td>
+                        <td>{u.expected}</td>
+                        <td>{u.actual}</td>
+                        <td>{u.coveragePct}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader><CardTitle className="text-base">Resultado por loja</CardTitle></CardHeader>
+            <CardContent className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b text-left text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="py-2">Loja</th><th>UF</th><th>Contr.</th><th>Real.</th><th>Pend.</th><th>Cob.</th><th>Status</th><th>Datas realizadas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {report.stores.map((s) => (
+                    <tr key={s.storeId} className="border-b last:border-0 hover:bg-muted/30">
+                      <td className="py-2">
+                        <div className="font-medium">{s.storeName}</div>
+                        {s.chain && <div className="text-xs text-muted-foreground">{s.chain}</div>}
+                      </td>
+                      <td>{s.uf ?? "—"}</td>
+                      <td>{s.expected}</td>
+                      <td>{s.actual}</td>
+                      <td>{s.pending}</td>
+                      <td>{s.coveragePct}%</td>
+                      <td><Badge variant="outline" className={STATUS_TONE[s.status]}>{STATUS_LABEL[s.status]}</Badge></td>
+                      <td className="max-w-[240px] text-xs text-muted-foreground">{s.actualDates.length ? s.actualDates.map(fmtBR).join(", ") : "—"}</td>
+                    </tr>
+                  ))}
+                  {report.stores.length === 0 && (
+                    <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">Nenhuma loja no período com esses filtros.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+}
+
+function Kpi({ label, value, tone }: { label: string; value: number | string; tone?: "good" | "warn" | "bad" }) {
+  const toneCls =
+    tone === "good" ? "border-emerald-500/40" :
+    tone === "warn" ? "border-amber-500/40" :
+    tone === "bad"  ? "border-rose-500/40" :
+    "border-border";
+  return (
+    <div className={`rounded-lg border bg-card p-4 ${toneCls}`}>
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-1 text-2xl font-semibold">{value}</div>
+    </div>
+  );
+}
+
+function PeriodConfigDialog({ industryId }: { industryId: string }) {
+  const [open, setOpen] = useState(false);
+  const loadFn = useServerFn(reportIndustryPeriodConfig);
+  const saveFn = useServerFn(reportUpsertPeriodConfig);
+  const q = useQuery({ enabled: open && !!industryId, queryKey: ["period-config", industryId], queryFn: () => loadFn({ data: { industryId } }) });
+  const [form, setForm] = useState<any>(null);
+  const mut = useMutation({
+    mutationFn: (v: any) => saveFn({ data: v }),
+    onSuccess: () => setOpen(false),
+  });
+
+  const current = form ?? q.data;
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setForm(null); }}>
+      <DialogTrigger asChild>
+        <Button variant="outline" disabled={!industryId}><Settings2 className="mr-2 h-4 w-4" /> Configurar período</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Configuração de competência</DialogTitle></DialogHeader>
+        {!current ? (
+          <div className="py-6 text-center text-sm text-muted-foreground"><Loader2 className="inline h-4 w-4 animate-spin" /> Carregando...</div>
+        ) : (
+          <div className="grid gap-3">
+            <div>
+              <Label className="text-xs">Tipo de período</Label>
+              <Select value={current.periodType} onValueChange={(v) => setForm({ ...current, periodType: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CALENDAR_MONTH">Mês calendário (dia 1 ao último)</SelectItem>
+                  <SelectItem value="CUSTOM_CYCLE">Ciclo personalizado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Dia inicial</Label>
+                <Input type="number" min={1} max={31} value={current.startDay} onChange={(e) => setForm({ ...current, startDay: Number(e.target.value) || 1 })} />
+              </div>
+              <div>
+                <Label className="text-xs">Dia final</Label>
+                <Input type="number" min={1} max={31} value={current.endDay} onChange={(e) => setForm({ ...current, endDay: Number(e.target.value) || 31 })} />
+              </div>
+            </div>
+            <label className="flex items-center gap-3 text-sm">
+              <Switch checked={current.usesPreviousMonth} onCheckedChange={(v) => setForm({ ...current, usesPreviousMonth: v })} />
+              Ciclo começa no mês anterior (ex.: KING = dia 23 do mês anterior ao 22 do mês selecionado)
+            </label>
+            <div>
+              <Label className="text-xs">Agrupamento semanal</Label>
+              <Select value={current.weekGrouping} onValueChange={(v) => setForm({ ...current, weekGrouping: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CALENDAR_WEEK">Segunda a domingo</SelectItem>
+                  <SelectItem value="CYCLE_WEEK">Blocos de 7 dias a partir do início do ciclo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {mut.isError && <div className="text-sm text-rose-600">{(mut.error as any)?.message ?? "Erro ao salvar"}</div>}
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button
+            onClick={() => mut.mutate({
+              industryId,
+              periodType: current.periodType,
+              startDay: current.startDay,
+              endDay: current.endDay,
+              usesPreviousMonth: current.usesPreviousMonth,
+              weekGrouping: current.weekGrouping,
+              active: true,
+              notes: null,
+            })}
+            disabled={!current || mut.isPending}
+          >
+            {mut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Salvar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
