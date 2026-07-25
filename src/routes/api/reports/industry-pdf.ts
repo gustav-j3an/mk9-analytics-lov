@@ -1,34 +1,59 @@
-// Rota HTTP que devolve o PDF do Relatório da Indústria.
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+
+const payloadSchema = z.object({
+  industryId: z.string().uuid(),
+  year: z.number().int().min(2020).max(2100),
+  month: z.number().int().min(1).max(12),
+  uf: z.string().trim().min(1).max(2).nullish(),
+  storeId: z.string().uuid().nullish(),
+  checklistImportId: z.string().uuid().nullish(),
+  sourceImportId: z.string().uuid().nullish(),
+});
+
+function errorResponse(
+  status: number,
+  payload: { stage: string; message: string; stack?: string; industryId?: string | null; period?: unknown },
+) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { "content-type": "application/json", "cache-control": "no-store" },
+  });
+}
 
 export const Route = createFileRoute("/api/reports/industry-pdf")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        let stage = "parse-payload";
+        let industryId: string | null = null;
+        let period: { month?: number; year?: number } = {};
         try {
-          const body = await request.json() as {
-            industryId: string;
-            year: number;
-            month: number;
-            uf?: string | null;
-            storeId?: string | null;
-            sourceImportId?: string | null;
-          };
-          if (!body?.industryId || !body?.year || !body?.month) {
-            return new Response(JSON.stringify({ error: "Parâmetros obrigatórios ausentes" }), { status: 400, headers: { "content-type": "application/json" } });
-          }
+          const raw = await request.json();
+          const body = payloadSchema.parse(raw);
+          industryId = body.industryId;
+          period = { month: body.month, year: body.year };
+
+          stage = "load-server-modules";
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { loadPeriodConfig, resolveWindow } = await import("@/lib/mk9-reports/period.server");
           const { buildIndustryReport } = await import("@/lib/mk9-reports/industry-report.server");
-          const { renderIndustryReportPdf, pdfFileName } = await import("@/lib/mk9-reports/pdf.server");
+          const { renderIndustryReportPdf, industryPdfFileName } = await import("@/lib/reports/industry-pdf.server");
+
+          stage = "resolve-period";
           const cfg = await loadPeriodConfig(supabaseAdmin, body.industryId);
           const window = resolveWindow(cfg, body.year, body.month);
+
+          stage = "build-report-data";
+          const sourceImportId = body.checklistImportId ?? body.sourceImportId ?? null;
           const report = await buildIndustryReport(supabaseAdmin, {
             industryId: body.industryId, year: body.year, month: body.month,
-            uf: body.uf ?? null, storeId: body.storeId ?? null, sourceImportId: body.sourceImportId ?? null,
+            uf: body.uf ?? null, storeId: body.storeId ?? null, sourceImportId,
           }, window);
-          const bytes = await renderIndustryReportPdf(report);
-          const filename = pdfFileName(report, body.year, body.month);
+
+          stage = "render-pdf";
+          const bytes = await renderIndustryReportPdf(report, body.year, body.month);
+          const filename = industryPdfFileName(report, body.year, body.month);
           const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
           return new Response(ab, {
             status: 200,
@@ -38,9 +63,16 @@ export const Route = createFileRoute("/api/reports/industry-pdf")({
               "cache-control": "no-store",
             },
           });
-        } catch (e: any) {
-          const msg = e?.message ?? String(e);
-          return new Response(JSON.stringify({ error: msg, stack: e?.stack }), { status: 500, headers: { "content-type": "application/json" } });
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error));
+          console.error("[industry-pdf]", { stage, industryId, period, error: err });
+          return errorResponse(stage === "parse-payload" ? 400 : 500, {
+            stage,
+            message: err.message,
+            stack: process.env.NODE_ENV !== "production" ? err.stack : undefined,
+            industryId,
+            period,
+          });
         }
       },
     },
