@@ -117,3 +117,59 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
       industryName: r.industry?.name ?? "—",
     }));
   });
+
+export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => monthYearSchema.parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const first = new Date(Date.UTC(data.year, data.month - 1, 1)).toISOString().slice(0, 10);
+    const last = new Date(Date.UTC(data.year, data.month, 0)).toISOString().slice(0, 10);
+
+    const [{ data: freqs, error: freqError }, { data: actuals, error: actualError }] = await Promise.all([
+      supabaseAdmin
+        .from("mk9_industry_store_frequency")
+        .select("industry_id, store_id, monthly_frequency, weekly_frequency")
+        .limit(20000),
+      supabaseAdmin
+        .from("mk9_actual_visits")
+        .select("industry_id, store_id, scheduled_date")
+        .gte("scheduled_date", first)
+        .lte("scheduled_date", last)
+        .limit(20000),
+    ]);
+    if (freqError) throw new Error(freqError.message);
+    if (actualError) throw new Error(actualError.message);
+
+    const perStore = new Map<string, { contratadas: number; executadas: number }>();
+    for (const f of freqs ?? []) {
+      const key = `${f.industry_id}|${f.store_id}`;
+      const monthly = Number(f.monthly_frequency ?? 0);
+      const weekly = Number(f.weekly_frequency ?? 0);
+      perStore.set(key, {
+        contratadas: monthly > 0 ? Math.round(monthly) : Math.round(weekly * 4),
+        executadas: 0,
+      });
+    }
+    for (const a of actuals ?? []) {
+      const key = `${a.industry_id}|${a.store_id}`;
+      const cur = perStore.get(key) ?? { contratadas: 0, executadas: 0 };
+      cur.executadas += 1;
+      perStore.set(key, cur);
+    }
+
+    let contratadas = 0;
+    let executadas = 0;
+    let validas = 0;
+    let extras = 0;
+    let pendencias = 0;
+    for (const s of perStore.values()) {
+      contratadas += s.contratadas;
+      executadas += s.executadas;
+      const v = Math.min(s.contratadas, s.executadas);
+      validas += v;
+      extras += Math.max(0, s.executadas - s.contratadas);
+      pendencias += Math.max(0, s.contratadas - v);
+    }
+    const coverage = contratadas > 0 ? Math.round((validas / contratadas) * 100) : 0;
+    return { contratadas, executadas, validas, extras, pendencias, coverage };
+  });

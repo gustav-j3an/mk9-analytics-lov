@@ -57,8 +57,8 @@ export interface StoreLine {
   coveragePct: number;       // alias legado, limitado a 100
   actualDates: string[];
   status: StoreStatus;                 // status legado (execução + roteiro combinados)
-  executionStatus: ExecutionStatus;    // novo: OK / Parcial / Não realizada
-  routeStatus: RouteStatus;            // novo: Dentro / Fora / Sem roteiro
+  executionStatus: ExecutionStatus;    // Integral / Parcial / Não atendida
+  routeStatus: RouteStatus;            // Dentro / Fora
   contractedSource: ContractedSource;  // origem da métrica contratada
   weeklyFrequency: number | null;
   monthlyFrequency: number | null;
@@ -107,7 +107,7 @@ export interface IndustryReport {
     coveragePct: number;
     metrics: VisitMetrics;
     execution: { ok: number; parcial: number; naoRealizada: number };
-    route: { dentro: number; fora: number; sem: number };
+  route: { dentro: number; fora: number; sem: number };
   };
   stores: StoreLine[];
   ufs: UfLine[];
@@ -121,8 +121,8 @@ function weeksInWindow(window: PeriodWindow): number {
 }
 
 /**
- * Contratadas por loja a partir da frequência cadastrada, escalada pelo
- * período REAL da competência. Nunca negativo. Nunca usa roteiro.
+ * Contratadas por loja a partir da frequência cadastrada. VISITA MENSAL tem
+ * prioridade e entra como valor direto do Excel. Nunca usa roteiro.
  */
 function contractedFromFrequency(
   weekly: number | null,
@@ -130,11 +130,11 @@ function contractedFromFrequency(
   totalDays: number,
 ): { contratadas: number; source: ContractedSource } {
   const days = Math.max(1, totalDays);
-  if (weekly != null && Number.isFinite(weekly) && weekly > 0) {
-    return { contratadas: Math.max(0, Math.round(weekly * (days / 7))), source: "WEEKLY_FREQUENCY" };
-  }
   if (monthly != null && Number.isFinite(monthly) && monthly > 0) {
     return { contratadas: Math.max(0, Math.round(monthly)), source: "MONTHLY_FREQUENCY" };
+  }
+  if (weekly != null && Number.isFinite(weekly) && weekly > 0) {
+    return { contratadas: Math.max(0, Math.round(weekly * (days / 7))), source: "WEEKLY_FREQUENCY" };
   }
   return { contratadas: 0, source: "NONE" };
 }
@@ -167,7 +167,7 @@ export async function buildIndustryReport(
   const { data: freqs, error: eFq } = await freqQ;
   if (eFq) throw new Error(eFq.message);
 
-  // 3) Roteiro planejado (usado para status_roteiro e como fallback de contratadas)
+  // 3) Roteiro planejado (usado só para status_roteiro; nunca altera contrato)
   let plannedQ = supabase
     .from("mk9_planned_visits")
     .select("id, scheduled_date, store_id, store:mk9_stores(id,name,chain,uf)")
@@ -277,7 +277,7 @@ export async function buildIndustryReport(
 
   // Monta linhas por loja
   const stores: StoreLine[] = Array.from(map.values()).map((b) => {
-    // Contratadas: SEMPRE da frequência cadastrada, escalada pelo período real.
+    // Contratadas: SEMPRE da frequência cadastrada. VISITA MENSAL entra direto.
     // Roteiro planejado é auditoria (routeStatus) — nunca substitui contrato.
     const fromFreq = contractedFromFrequency(b.weekly, b.monthly, window.totalDays);
     const contratadas = fromFreq.contratadas;
