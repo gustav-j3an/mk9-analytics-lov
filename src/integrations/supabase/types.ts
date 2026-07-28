@@ -444,10 +444,13 @@ export type Database = {
           industry_id: string
           is_active: boolean
           last_import_id: string | null
+          last_manual_edit_at: string | null
           operation_month: number
           operation_year: number
           promoter_id: string
+          source_import_id: string | null
           source_sheet: string | null
+          source_type: string
           store_id: string
           updated_at: string
           updated_by: string | null
@@ -463,10 +466,13 @@ export type Database = {
           industry_id: string
           is_active?: boolean
           last_import_id?: string | null
+          last_manual_edit_at?: string | null
           operation_month: number
           operation_year: number
           promoter_id: string
+          source_import_id?: string | null
           source_sheet?: string | null
+          source_type?: string
           store_id: string
           updated_at?: string
           updated_by?: string | null
@@ -482,10 +488,13 @@ export type Database = {
           industry_id?: string
           is_active?: boolean
           last_import_id?: string | null
+          last_manual_edit_at?: string | null
           operation_month?: number
           operation_year?: number
           promoter_id?: string
+          source_import_id?: string | null
           source_sheet?: string | null
+          source_type?: string
           store_id?: string
           updated_at?: string
           updated_by?: string | null
@@ -952,6 +961,10 @@ export type Database = {
         Returns: boolean
       }
       is_mk9_admin: { Args: never; Returns: boolean }
+      mk9_apply_route_diff: {
+        Args: { _decisions: Json; _force?: boolean; _import_id: string }
+        Returns: Json
+      }
       mk9_merge_stores: {
         Args: { canonical: string; other: string }
         Returns: undefined
