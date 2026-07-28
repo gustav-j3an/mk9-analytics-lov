@@ -128,7 +128,7 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
     let weeklyCol = -1;
     let monthlyCol = -1;
     let realizadoCol = -1;
-    const dateCols: Array<{ col: number; iso: string }> = [];
+    const dateCols: Array<{ col: number; iso: string; recovered?: boolean; original?: string }> = [];
 
     for (let r = 0; r < Math.min(rows.length, 40); r++) {
       const row = rows[r] ?? [];
@@ -167,6 +167,40 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
         monthlyCol = localMonthlyCol;
         realizadoCol = localRealizadoCol;
         dateCols.push(...filtered);
+
+        // Recupera cabeçalhos de data malformados (ex: "25/0/2026", "25//2026",
+        // "25" só o dia) entre VISITA MENSAL e REALIZADO, inferindo mês/ano
+        // a partir dos vizinhos válidos. Não inventa marcação: só devolve a
+        // coluna ao parser. Se a célula estiver vazia, ignora.
+        const capturedCols = new Set(filtered.map((d) => d.col));
+        const startCol = localMonthlyCol >= 0 ? localMonthlyCol + 1 : 0;
+        const endCol = localRealizadoCol >= 0 ? localRealizadoCol : row.length;
+        for (let c = startCol; c < endCol; c++) {
+          if (capturedCols.has(c)) continue;
+          const raw = row[c];
+          if (raw === null || raw === undefined || String(raw).trim() === "") continue;
+          const rawStr = String(raw).trim();
+          const dayMatch = rawStr.match(/(\d{1,2})/);
+          if (!dayMatch) continue;
+          const day = Number(dayMatch[1]);
+          if (!(day >= 1 && day <= 31)) continue;
+          let ref: { col: number; iso: string } | null = null;
+          for (let i = filtered.length - 1; i >= 0; i--) {
+            if (filtered[i].col < c) { ref = filtered[i]; break; }
+          }
+          if (!ref) {
+            for (const d of filtered) { if (d.col > c) { ref = d; break; } }
+          }
+          if (!ref) continue;
+          const [yy, mm] = ref.iso.split("-");
+          const iso = `${yy}-${mm}-${pad2(day)}`;
+          dateCols.push({ col: c, iso, recovered: true, original: rawStr });
+          out.warnings.push(
+            `Cabeçalho de data corrigido automaticamente na coluna ${c + 1} (linha ${r + 1}): "${rawStr}" interpretado como ${iso.split("-").reverse().join("/")}.`,
+          );
+        }
+        dateCols.sort((a, b) => a.col - b.col);
+
         debug("header-identified", "Cabeçalho identificado", {
           sheet: sheetName,
           excelRow: r + 1,
@@ -175,13 +209,15 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
           weeklyColumn: localWeeklyCol >= 0 ? localWeeklyCol + 1 : null,
           monthlyColumn: localMonthlyCol >= 0 ? localMonthlyCol + 1 : null,
           realizadoColumn: localRealizadoCol >= 0 ? localRealizadoCol + 1 : null,
-          dateColumnCount: filtered.length,
-          firstDate: filtered[0]?.iso ?? null,
-          lastDate: filtered[filtered.length - 1]?.iso ?? null,
+          dateColumnCount: dateCols.length,
+          recoveredColumns: dateCols.filter((d) => d.recovered).length,
+          firstDate: dateCols[0]?.iso ?? null,
+          lastDate: dateCols[dateCols.length - 1]?.iso ?? null,
         });
         break;
       }
     }
+
 
     if (headerRow < 0) {
       debug("header-not-found", "Cabeçalho não identificado na sheet", { sheet: sheetName, checkedRows: Math.min(rows.length, 40) });
