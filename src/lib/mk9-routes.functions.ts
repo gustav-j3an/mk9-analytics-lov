@@ -173,6 +173,8 @@ export const mk9RoutesUpsertItem = createServerFn({ method: "POST" })
         is_active: true,
         created_by: ctx.userId,
         updated_by: ctx.userId,
+        source_type: "MANUAL",
+        last_manual_edit_at: new Date().toISOString(),
       })
       .select("id")
       .single();
