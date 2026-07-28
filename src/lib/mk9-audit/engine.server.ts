@@ -15,6 +15,8 @@ export const EXEC_STATUS_LABEL: Record<ExecStatus, string> = {
   NAO_REALIZADO: "Não realizado",
 };
 
+export type PromoterResolution = "MATCHED_ROUTE" | "AMBIGUOUS_ROUTE" | "UNASSIGNED_ROUTE";
+
 export interface AuditStoreLine {
   storeId: string;
   storeName: string;
@@ -24,6 +26,7 @@ export interface AuditStoreLine {
   industryName: string;
   promoterId: string | null;
   promoterName: string | null;
+  promoterResolution: PromoterResolution;
   contratadas: number;
   realizadas: number;
   pendentes: number;
@@ -114,13 +117,18 @@ async function buildIndustryContext(
     .limit(50000);
   if (eA) throw new Error(eA.message);
 
-  // Promotor responsável por loja: maioria em mk9_planned_routes do mês
+  // Promotor responsável por (loja, indústria): rotas com vigência que
+  // intercepta o período. Se houver 1 promotor distinto → MATCHED,
+  // 0 → UNASSIGNED, >1 → AMBIGUOUS. Majority vote decide o "vencedor"
+  // exibido nas linhas ambíguas.
   const { data: routes, error: eR } = await supabase
     .from("mk9_planned_routes")
-    .select("store_id, promoter_id, promoter:mk9_promoters(id,name)")
+    .select("store_id, promoter_id, valid_from, valid_until, promoter:mk9_promoters(id,name)")
     .eq("industry_id", industry.id)
-    .eq("operation_year", year)
-    .eq("operation_month", month)
+    .eq("is_active", true)
+    .is("archived_at", null)
+    .lte("valid_from", win.endDate)
+    .or(`valid_until.is.null,valid_until.gte.${win.startDate}`)
     .limit(50000);
   if (eR) throw new Error(eR.message);
 
@@ -133,13 +141,13 @@ async function buildIndustryContext(
     inner.set(r.promoter_id, cur);
     promoterVotes.set(r.store_id, inner);
   }
-  const promoterByStore = new Map<string, { id: string; name: string }>();
+  const promoterByStore = new Map<string, { id: string; name: string; distinct: number }>();
   for (const [sid, inner] of promoterVotes) {
     let best: { id: string; name: string; count: number } | null = null;
     for (const [pid, v] of inner) {
       if (!best || v.count > best.count) best = { id: pid, name: v.name, count: v.count };
     }
-    if (best) promoterByStore.set(sid, { id: best.id, name: best.name });
+    if (best) promoterByStore.set(sid, { id: best.id, name: best.name, distinct: inner.size });
   }
 
   type Bucket = {
@@ -176,6 +184,11 @@ async function buildIndustryContext(
     const pendentes = Math.max(0, contratadas - realizadas);
     const coberturaPct = contratadas > 0 ? Math.min(100, Math.round((realizadas / contratadas) * 100)) : 0;
     const promo = promoterByStore.get(b.storeId);
+    const resolution: PromoterResolution = !promo
+      ? "UNASSIGNED_ROUTE"
+      : promo.distinct > 1
+        ? "AMBIGUOUS_ROUTE"
+        : "MATCHED_ROUTE";
     return {
       storeId: b.storeId,
       storeName: b.storeName,
@@ -185,6 +198,7 @@ async function buildIndustryContext(
       industryName: industry.name,
       promoterId: promo?.id ?? null,
       promoterName: promo?.name ?? null,
+      promoterResolution: resolution,
       contratadas,
       realizadas,
       pendentes,

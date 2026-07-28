@@ -290,11 +290,15 @@ export function createSupabaseRepository(): Mk9Repository {
       const { data, error } = await supabaseAdmin.from("mk9_planned_routes").upsert(
         list.map((r) => {
           const key = `${r.promoterId}|${r.storeId}|${r.industryId}|${r.weekday}|${r.operationMonth}|${r.operationYear}`;
+          // valid_from = primeiro dia da competência (mesma regra do backfill).
+          // Rotas reimportadas mantêm id/vigência estáveis via UPDATE do onConflict.
+          const validFrom = `${r.operationYear}-${String(r.operationMonth).padStart(2, "0")}-01`;
           return withOptionalId({
-          id: r.id ?? routeIdByKey.get(key), promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
-          weekday: r.weekday, operation_month: r.operationMonth, operation_year: r.operationYear,
-          source_sheet: r.sourceSheet, last_import_id: importId,
-        });
+            id: r.id ?? routeIdByKey.get(key), promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
+            weekday: r.weekday, operation_month: r.operationMonth, operation_year: r.operationYear,
+            source_sheet: r.sourceSheet, last_import_id: importId,
+            valid_from: validFrom,
+          });
         }),
         { onConflict: "promoter_id,store_id,industry_id,weekday,operation_month,operation_year", defaultToNull: false },
       ).select();

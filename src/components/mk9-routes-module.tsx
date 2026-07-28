@@ -1,0 +1,437 @@
+// Mk9RoutesModule — visualização e edição do Roteiro versionado.
+// Agrupa Promotor → Dia da semana → Loja → Indústrias. Toda alteração
+// abre um modal que exige a data de vigência escolhida pelo usuário
+// (nunca "hoje" automaticamente). Conflitos de sobreposição retornam
+// a rota conflitante e bloqueiam o salvamento até correção.
+
+import { useMemo, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { AlertTriangle, CalendarClock, History, Loader2, Pencil, Plus, PowerOff, Route as RouteIcon, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  mk9RoutesListVersioned,
+  mk9RoutesListHistory,
+  mk9RoutesUpsertItem,
+  mk9RoutesDeactivate,
+} from "@/lib/mk9-routes.functions";
+
+const WEEKDAY_PT = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+
+type Route = Awaited<ReturnType<typeof mk9RoutesListVersioned>>[number];
+
+interface Props {
+  promoters: Array<{ id: string; name: string }>;
+  stores: Array<{ id: string; name: string; chain: string | null; uf: string | null }>;
+  industries: Array<{ id: string; name: string }>;
+}
+
+interface ConflictPayload {
+  conflictRouteId: string;
+  conflictPromoterId: string;
+  conflictPromoterName: string;
+  conflictFrom: string;
+  conflictUntil: string;
+}
+
+export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
+  const qc = useQueryClient();
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [referenceDate, setReferenceDate] = useState(today);
+  const [filterPromoter, setFilterPromoter] = useState<string>("");
+  const [filterIndustry, setFilterIndustry] = useState<string>("");
+  const [filterStore, setFilterStore] = useState<string>("");
+  const [filterUf, setFilterUf] = useState<string>("");
+  const [filterWeekday, setFilterWeekday] = useState<string>("");
+  const [nameFilter, setNameFilter] = useState("");
+
+  const [editing, setEditing] = useState<Route | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [historyKey, setHistoryKey] = useState<{ storeId: string; industryId: string; weekday: number; label: string } | null>(null);
+
+  const listFn = useServerFn(mk9RoutesListVersioned);
+  const listQ = useQuery({
+    queryKey: ["mk9-routes-versioned", referenceDate, filterPromoter, filterIndustry, filterStore, filterUf, filterWeekday],
+    queryFn: () =>
+      listFn({
+        data: {
+          referenceDate,
+          promoterId: filterPromoter || undefined,
+          industryId: filterIndustry || undefined,
+          storeId: filterStore || undefined,
+          uf: (filterUf || undefined) as string | undefined,
+          weekday: filterWeekday === "" ? undefined : Number(filterWeekday),
+        },
+      }),
+  });
+
+  const rawRoutes = listQ.data ?? [];
+  const routes = useMemo(() => {
+    if (!nameFilter.trim()) return rawRoutes;
+    const q = nameFilter.toLowerCase();
+    return rawRoutes.filter(
+      (r) =>
+        r.promoterName.toLowerCase().includes(q) ||
+        r.storeName.toLowerCase().includes(q) ||
+        r.industryName.toLowerCase().includes(q),
+    );
+  }, [rawRoutes, nameFilter]);
+
+  const grouped = useMemo(() => {
+    // Promotor → weekday → storeId → { store, items[] }
+    const m = new Map<string, Map<number, Map<string, { store: Route; items: Route[] }>>>();
+    for (const r of routes) {
+      if (!m.has(r.promoterName)) m.set(r.promoterName, new Map());
+      const days = m.get(r.promoterName)!;
+      if (!days.has(r.weekday)) days.set(r.weekday, new Map());
+      const stMap = days.get(r.weekday)!;
+      const key = (r.storeId ?? r.storeName) as string;
+      if (!stMap.has(key)) stMap.set(key, { store: r, items: [] });
+      stMap.get(key)!.items.push(r);
+    }
+    return m;
+  }, [routes]);
+
+  const ufs = Array.from(new Set(stores.map((s) => s.uf).filter(Boolean))) as string[];
+
+  return (
+    <div className="space-y-4">
+      {/* Filtros */}
+      <Card>
+        <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-6 gap-3">
+          <div>
+            <label className="text-xs text-muted-foreground">Data de referência</label>
+            <Input type="date" value={referenceDate} onChange={(e) => setReferenceDate(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">Promotor</label>
+            <Select value={filterPromoter || "all"} onValueChange={(v) => setFilterPromoter(v === "all" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+              <SelectContent><SelectItem value="all">Todos</SelectItem>{promoters.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">Indústria</label>
+            <Select value={filterIndustry || "all"} onValueChange={(v) => setFilterIndustry(v === "all" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent><SelectItem value="all">Todas</SelectItem>{industries.map((i) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">Loja</label>
+            <Select value={filterStore || "all"} onValueChange={(v) => setFilterStore(v === "all" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent><SelectItem value="all">Todas</SelectItem>{stores.slice(0, 500).map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">UF</label>
+            <Select value={filterUf || "all"} onValueChange={(v) => setFilterUf(v === "all" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent><SelectItem value="all">Todas</SelectItem>{ufs.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">Dia da semana</label>
+            <Select value={filterWeekday || "all"} onValueChange={(v) => setFilterWeekday(v === "all" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
+              <SelectContent><SelectItem value="all">Todos</SelectItem>{WEEKDAY_PT.map((n, i) => <SelectItem key={i} value={String(i)}>{n}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="md:col-span-6">
+            <Input placeholder="Buscar por promotor, loja ou indústria…" value={nameFilter} onChange={(e) => setNameFilter(e.target.value)} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Roteiros vigentes em <strong>{referenceDate}</strong> · {routes.length} itens
+        </p>
+        <Button size="sm" onClick={() => setCreating(true)}><Plus className="h-4 w-4" /> Novo item de roteiro</Button>
+      </div>
+
+      {listQ.isLoading ? (
+        <div className="flex items-center justify-center py-12"><Loader2 className="h-5 w-5 animate-spin" /></div>
+      ) : routes.length === 0 ? (
+        <Card><CardContent className="py-10 text-center text-muted-foreground">Nenhum roteiro vigente para os filtros escolhidos.</CardContent></Card>
+      ) : (
+        <div className="space-y-4">
+          {Array.from(grouped.keys()).sort((a, b) => a.localeCompare(b, "pt-BR")).map((promoter) => {
+            const days = grouped.get(promoter)!;
+            return (
+              <Card key={promoter}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4 text-primary" />{promoter}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {Array.from(days.keys()).sort().map((wd) => {
+                    const stMap = days.get(wd)!;
+                    return (
+                      <div key={wd} className="rounded-lg border bg-muted/20 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">{WEEKDAY_PT[wd]}</p>
+                        <div className="space-y-2">
+                          {Array.from(stMap.values()).map(({ store, items }) => (
+                            <div key={store.storeId ?? store.storeName} className="flex items-start justify-between gap-3 border-l-2 border-primary/40 pl-3">
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium truncate">
+                                  {store.storeChain ? `${store.storeChain} · ` : ""}{store.storeName}
+                                  {store.storeUf ? <span className="ml-2 text-xs text-muted-foreground">{store.storeUf}</span> : null}
+                                </p>
+                                <div className="flex flex-wrap items-center gap-1 mt-1">
+                                  {items.map((it) => (
+                                    <div key={it.id} className="inline-flex items-center gap-1 rounded-md bg-background border px-1.5 py-0.5 text-xs">
+                                      <span>{it.industryName}</span>
+                                      <Button variant="ghost" size="icon" className="h-5 w-5" title="Editar item" onClick={() => setEditing(it)}>
+                                        <Pencil className="h-3 w-3" />
+                                      </Button>
+                                      <Button variant="ghost" size="icon" className="h-5 w-5" title="Histórico de versões" onClick={() => setHistoryKey({
+                                        storeId: it.storeId!, industryId: it.industryId!, weekday: it.weekday,
+                                        label: `${it.storeName} · ${it.industryName} · ${WEEKDAY_PT[it.weekday]}`,
+                                      })}>
+                                        <History className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {(editing || creating) && (
+        <EditDialog
+          initial={editing}
+          promoters={promoters}
+          stores={stores}
+          industries={industries}
+          onClose={() => { setEditing(null); setCreating(false); }}
+          onSaved={() => {
+            setEditing(null); setCreating(false);
+            qc.invalidateQueries({ queryKey: ["mk9-routes-versioned"] });
+          }}
+        />
+      )}
+
+      {historyKey && (
+        <HistoryDialog
+          storeId={historyKey.storeId}
+          industryId={historyKey.industryId}
+          weekday={historyKey.weekday}
+          label={historyKey.label}
+          onClose={() => setHistoryKey(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Modal de criação/edição
+// ---------------------------------------------------------------------------
+function EditDialog({
+  initial, promoters, stores, industries, onClose, onSaved,
+}: {
+  initial: Route | null;
+  promoters: Array<{ id: string; name: string }>;
+  stores: Array<{ id: string; name: string; chain: string | null; uf: string | null }>;
+  industries: Array<{ id: string; name: string }>;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [promoterId, setPromoterId] = useState(initial?.promoterId ?? "");
+  const [storeId, setStoreId] = useState(initial?.storeId ?? "");
+  const [industryId, setIndustryId] = useState(initial?.industryId ?? "");
+  const [weekday, setWeekday] = useState<number>(initial?.weekday ?? 1);
+  const [validFrom, setValidFrom] = useState<string>(""); // obrigatório escolha explícita
+  const [conflict, setConflict] = useState<ConflictPayload | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const upsertFn = useServerFn(mk9RoutesUpsertItem);
+  const deactivateFn = useServerFn(mk9RoutesDeactivate);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      setError(null); setConflict(null);
+      if (!promoterId || !storeId || !industryId) throw new Error("Preencha promotor, loja e indústria.");
+      if (!validFrom) throw new Error("Escolha a data de início da nova vigência.");
+      return upsertFn({
+        data: {
+          id: initial?.id,
+          promoterId, storeId, industryId, weekday, validFrom,
+        },
+      });
+    },
+    onSuccess: () => onSaved(),
+    onError: (err: any) => {
+      const msg = err?.message || "Falha ao salvar.";
+      if (msg.startsWith("CONFLITO_VIGENCIA::")) {
+        try { setConflict(JSON.parse(msg.slice("CONFLITO_VIGENCIA::".length))); } catch { setError(msg); }
+      } else {
+        setError(msg);
+      }
+    },
+  });
+
+  const deactivate = useMutation({
+    mutationFn: async () => {
+      if (!initial?.id || !validFrom) throw new Error("Escolha a data-limite de encerramento.");
+      return deactivateFn({ data: { id: initial.id, validUntil: validFrom } });
+    },
+    onSuccess: () => onSaved(),
+    onError: (err: any) => setError(err?.message || "Falha ao desativar."),
+  });
+
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <RouteIcon className="h-4 w-4" /> {initial ? "Editar item de roteiro" : "Novo item de roteiro"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-muted-foreground">Promotor</label>
+            <Select value={promoterId} onValueChange={setPromoterId}>
+              <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
+              <SelectContent>{promoters.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">Loja</label>
+            <Select value={storeId} onValueChange={setStoreId}>
+              <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
+              <SelectContent>{stores.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}{s.uf ? ` · ${s.uf}` : ""}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">Indústria</label>
+            <Select value={industryId} onValueChange={setIndustryId}>
+              <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
+              <SelectContent>{industries.map((i) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground">Dia da semana</label>
+              <Select value={String(weekday)} onValueChange={(v) => setWeekday(Number(v))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{WEEKDAY_PT.map((n, i) => <SelectItem key={i} value={String(i)}>{n}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground flex items-center gap-1">
+                <CalendarClock className="h-3 w-3" /> Vigência a partir de
+              </label>
+              <Input type="date" value={validFrom} onChange={(e) => setValidFrom(e.target.value)} />
+            </div>
+          </div>
+          {initial && (
+            <p className="text-xs text-muted-foreground">
+              Versão atual vigente desde <strong>{initial.validFrom}</strong>. A nova vigência precisa ser posterior.
+            </p>
+          )}
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Não foi possível salvar</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {conflict && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Conflito de vigência</AlertTitle>
+              <AlertDescription className="space-y-1">
+                <p>Esta loja + indústria + dia já está atribuída a <strong>{conflict.conflictPromoterName}</strong> no intervalo <strong>{conflict.conflictFrom}</strong> → <strong>{conflict.conflictUntil}</strong>.</p>
+                <p>Encerre ou reagende a rota conflitante antes de salvar.</p>
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+
+        <DialogFooter className="flex items-center justify-between sm:justify-between">
+          {initial && (
+            <Button variant="outline" size="sm" onClick={() => deactivate.mutate()} disabled={!validFrom || deactivate.isPending}>
+              <PowerOff className="h-4 w-4" /> Desativar em {validFrom || "…"}
+            </Button>
+          )}
+          <div className="flex gap-2 ml-auto">
+            <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+            <Button onClick={() => save.mutate()} disabled={save.isPending}>
+              {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              Salvar nova vigência
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Histórico de versões
+// ---------------------------------------------------------------------------
+function HistoryDialog({
+  storeId, industryId, weekday, label, onClose,
+}: {
+  storeId: string; industryId: string; weekday: number; label: string; onClose: () => void;
+}) {
+  const listFn = useServerFn(mk9RoutesListHistory);
+  const q = useQuery({
+    queryKey: ["mk9-routes-history", storeId, industryId, weekday],
+    queryFn: () => listFn({ data: { storeId, industryId, weekday } }),
+  });
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><History className="h-4 w-4" /> Histórico · {label}</DialogTitle>
+        </DialogHeader>
+        {q.isLoading ? (
+          <div className="flex items-center justify-center py-8"><Loader2 className="h-5 w-5 animate-spin" /></div>
+        ) : (
+          <div className="space-y-2">
+            {(q.data ?? []).map((v) => (
+              <div key={v.id} className="flex items-center justify-between rounded border p-2 text-sm">
+                <div>
+                  <p className="font-medium">{v.promoterName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {v.validFrom} → {v.validUntil ?? "vigente"}
+                  </p>
+                </div>
+                <div className="flex gap-1">
+                  {v.isActive
+                    ? <Badge variant="default">Ativa</Badge>
+                    : <Badge variant="outline">Encerrada</Badge>}
+                  {v.archivedAt && <Badge variant="destructive">Arquivada</Badge>}
+                </div>
+              </div>
+            ))}
+            {(q.data ?? []).length === 0 && <p className="text-sm text-muted-foreground">Nenhuma versão registrada.</p>}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Mk9ImportModule } from "@/components/mk9-import-module";
 import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
 import { Mk9AuditModule } from "@/components/mk9-audit-module";
+import { Mk9RoutesModule } from "@/components/mk9-routes-module";
 import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
 import { Mk9UsersModule } from "@/components/mk9-users-module";
 import { useMk9Session, type Mk9Role } from "@/lib/mk9-auth/session";
@@ -406,7 +407,13 @@ export function Mk9AnalyticsApp() {
             {activeModule === "industrias" && <IndustriesModule industries={industries} loading={industriesQ.isLoading} />}
             {activeModule === "lojas" && <StoresModule stores={stores} routes={routes} loading={storesQ.isLoading} />}
             {activeModule === "promotores" && <PromotersModule promoters={promoters} routes={routes} visits={visits} loading={promotersQ.isLoading} />}
-            {activeModule === "roteiros" && <RoutesModule routes={routes} loading={routesQ.isLoading} month={month} year={year} />}
+            {activeModule === "roteiros" && (
+              <Mk9RoutesModule
+                promoters={promoters.map((p: any) => ({ id: p.id, name: p.name }))}
+                stores={stores.map((s: any) => ({ id: s.id, name: s.name, chain: s.chain ?? null, uf: s.uf ?? null }))}
+                industries={industries.map((i: any) => ({ id: i.id, name: i.name }))}
+              />
+            )}
             {activeModule === "visitas" && <VisitsModule visits={visits} loading={visitsQ.isLoading} />}
             {activeModule === "importacoes" && (
               <Mk9ImportModule onSwitchToChecklists={() => setActiveModule("checklists")} />
