@@ -310,7 +310,19 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
                 { k: "Preservadas", v: c.visitsPreserved ?? 0, tone: "violet" },
               ]} />
             </div>
+
+            {preview.routeDiff && (
+              <RouteDiffPanel
+                diff={preview.routeDiff}
+                expanded={showRouteDetails}
+                onToggle={() => setShowRouteDetails((v) => !v)}
+                resolveConflicts={resolveConflicts}
+                onToggleResolve={setResolveConflicts}
+              />
+            )}
+
             <div className="flex flex-wrap gap-2">
+
               {(["all","create","update","keep","remove","duplicate","ambiguous","invalid","preserved"] as const).map((f) => (
                 <button key={f} onClick={() => setFilter(f)}
                   className={`text-xs px-3 py-1 rounded-full border transition-colors ${filter===f?"bg-primary text-primary-foreground border-primary":"bg-transparent hover:bg-accent"}`}>
