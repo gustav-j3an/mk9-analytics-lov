@@ -381,7 +381,7 @@ export const mk9StoresSearch = createServerFn({ method: "POST" })
 
     const { data: rows, error, count } = await supabaseAdmin
       .from("mk9_stores")
-      .select("id, name, chain, uf, city", { count: "exact" })
+      .select("id, name, chain, uf", { count: "exact" })
       .or(orExpr)
       .order("name", { ascending: true })
       .limit(20);
@@ -394,10 +394,10 @@ export const mk9StoresSearch = createServerFn({ method: "POST" })
         name: r.name as string,
         chain: (r.chain as string | null) ?? null,
         uf: (r.uf as string | null) ?? null,
-        city: (r.city as string | null) ?? null,
       })),
     };
   });
+
 
 
 // Busca uma loja específica pelo id — usado quando o modal abre em modo
