@@ -231,6 +231,28 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
     out.dateColumnCount = Math.max(out.dateColumnCount, dateCols.length);
     for (const dc of dateCols) allDates.push(dc.iso);
 
+    // Total declarado impresso na planilha: procura "TOTAL VISITAS ... REALIZ..." nas linhas acima
+    // do cabeçalho e pega o número na mesma célula, à direita ou abaixo. Só define uma vez.
+    if (out.declaredTotal === null) {
+      for (let rr = 0; rr < headerRow; rr++) {
+        const row = rows[rr] ?? [];
+        for (let cc = 0; cc < row.length; cc++) {
+          const t = normalizeText(String(row[cc] ?? ""));
+          if (!t) continue;
+          if (t.includes("total") && (t.includes("realiz") || t.includes("visitas"))) {
+            const numHere = parseNumber(row[cc]);
+            if (numHere !== null && numHere > 0 && Number.isFinite(numHere)) { out.declaredTotal = numHere; break; }
+            const right = parseNumber(row[cc + 1]);
+            if (right !== null && Number.isFinite(right)) { out.declaredTotal = right; break; }
+            const below = parseNumber((rows[rr + 1] ?? [])[cc]);
+            if (below !== null && Number.isFinite(below)) { out.declaredTotal = below; break; }
+          }
+        }
+        if (out.declaredTotal !== null) break;
+      }
+    }
+
+
     // 2) Percorre linhas de dados
     let sheetRealizadoSum = 0;
     let sheetMarks = 0;
