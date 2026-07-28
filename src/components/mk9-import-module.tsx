@@ -125,6 +125,8 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
+  const [resolveConflicts, setResolveConflicts] = useState(false);
+  const [showRouteDetails, setShowRouteDetails] = useState(false);
 
   const previewFn = useServerFn(mk9PreviewImport);
   const commitFn = useServerFn(mk9CommitImport);
