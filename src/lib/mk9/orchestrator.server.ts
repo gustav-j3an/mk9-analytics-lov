@@ -3,6 +3,7 @@
 // Portar para Prisma = trocar o adapter no ponto de composição.
 import { parseWorkbook } from "./parser";
 import { buildSyncPlan } from "./sync";
+import { buildRouteDiff, applyRouteDiff } from "./route-diff.server";
 import type { Mk9Repository } from "./repository";
 import type {
   IndustryRecord, PromoterRecord, StoreRecord,
@@ -34,6 +35,26 @@ export async function generatePreview(repo: Mk9Repository, input: PreviewInput) 
     operationYear: input.operationYear,
     syncMode: input.syncMode,
   });
+
+  // Diff de rotas com IDs já resolvíveis (preview: pending: refs viram best-effort).
+  // Para o preview usamos apenas as rotas cujos IDs já existem no snapshot; as demais
+  // aparecerão como NEW_ROUTE após o commit (que resolve pendings antes do diff).
+  let routeDiff = undefined as ImportPreview["routeDiff"];
+  if (input.syncMode !== "registry_only") {
+    const industryIdBy = indexByNorm(industries, industries);
+    const storeIdBy = indexStore(stores, stores);
+    const promoterIdBy = indexByNorm(promoters, promoters);
+    const previewRoutes: PlannedRouteRecord[] = plan.toUpsert.routes.map((r) => ({
+      ...r,
+      promoterId: safeResolve(r.promoterId, promoterIdBy) ?? r.promoterId,
+      storeId: safeResolve(r.storeId, storeIdBy) ?? r.storeId,
+      industryId: safeResolve(r.industryId, industryIdBy) ?? r.industryId,
+    })).filter((r) => !r.promoterId.startsWith("pending:")
+      && !r.storeId.startsWith("pending:")
+      && !r.industryId.startsWith("pending:"));
+    routeDiff = await buildRouteDiff(previewRoutes, input.operationMonth, input.operationYear);
+  }
+
   const importRow = await repo.createImport({
     filename: input.filename,
     fileHash: null,
@@ -43,9 +64,10 @@ export async function generatePreview(repo: Mk9Repository, input: PreviewInput) 
     sheetsAnalyzed: parsed.sheetsAnalyzed,
     userId: input.userId,
   });
-  await repo.savePreview(importRow.id, plan.preview);
+  const previewWithDiff: ImportPreview = { ...plan.preview, routeDiff };
+  await repo.savePreview(importRow.id, previewWithDiff);
   await repo.saveImportItems(importRow.id, plan.preview.items);
-  return { importId: importRow.id, preview: plan.preview };
+  return { importId: importRow.id, preview: previewWithDiff };
 }
 
 export interface CommitInput {
@@ -55,16 +77,19 @@ export interface CommitInput {
   operationMonth: number;
   operationYear: number;
   syncMode: SyncMode;
+  /** Se true, permite aplicar decisões marcadas como MANUAL_CONFLICT / FUTURE_VERSION_CONFLICT. */
+  resolveConflicts?: boolean;
 }
 
 export async function commitImport(repo: Mk9Repository, input: CommitInput) {
   const start = Date.now();
-  console.info("[IMPORT ROUTE VERSION] soft-delete-v2", {
+  console.info("[IMPORT ROUTE VERSION] diff-based-v3", {
     importId: input.importId,
     filename: input.filename,
     operationMonth: input.operationMonth,
     operationYear: input.operationYear,
     syncMode: input.syncMode,
+    resolveConflicts: !!input.resolveConflicts,
   });
   await repo.updateImportStatus(input.importId, { status: "committing" });
   try {
@@ -107,22 +132,49 @@ export async function commitImport(repo: Mk9Repository, input: CommitInput) {
       industryId: resolvePending(v.industryId, industryIdBy),
     }));
 
-    // 3) upsert rotas/visitas
-    await repo.upsertPlannedRoutes(routesReady, input.importId);
-    await repo.upsertPlannedVisits(visitsReady, input.importId, plan.toRemove.visitIds);
+    // 3) DIFF de rotas + aplicação transacional (substitui o upsert em massa antigo).
+    //    Regras: MANUAL preservado; versões futuras preservadas; UNCHANGED mantém route_id.
+    const routeDiff = await buildRouteDiff(routesReady, input.operationMonth, input.operationYear);
+    console.info("[ROUTE DIFF]", {
+      importId: input.importId,
+      unchanged: routeDiff.unchanged,
+      new: routeDiff.new,
+      changedPromoter: routeDiff.changedPromoter,
+      changedWeekday: routeDiff.changedWeekday,
+      removed: routeDiff.removed,
+      manualConflicts: routeDiff.manualConflicts,
+      futureConflicts: routeDiff.futureConflicts,
+    });
+    if ((routeDiff.manualConflicts + routeDiff.futureConflicts) > 0 && !input.resolveConflicts) {
+      throw new Error(
+        `ROUTE_DIFF_CONFLICTS::${JSON.stringify({
+          manualConflicts: routeDiff.manualConflicts,
+          futureConflicts: routeDiff.futureConflicts,
+        })}`,
+      );
+    }
+    await applyRouteDiff(input.importId, routeDiff, !!input.resolveConflicts);
 
-    // 4) remoções de rotas somente. Visitas ausentes são arquivadas dentro da
-    // rotina transacional mk9_sync_planned_visits, nunca apagadas fisicamente.
-    await repo.removePlannedRoutes(plan.toRemove.routeIds);
+    // 4) visitas — mantém rotina antiga (soft-archive via mk9_sync_planned_visits)
+    await repo.upsertPlannedVisits(visitsReady, input.importId, plan.toRemove.visitIds);
 
     const durationMs = Date.now() - start;
     await repo.updateImportStatus(input.importId, {
       status: "done",
-      counters: plan.preview.counters as unknown as Record<string, number>,
+      counters: {
+        ...(plan.preview.counters as unknown as Record<string, number>),
+        routesUnchanged: routeDiff.unchanged,
+        routesNew: routeDiff.new,
+        routesChangedPromoter: routeDiff.changedPromoter,
+        routesChangedWeekday: routeDiff.changedWeekday,
+        routesRemovedFromImport: routeDiff.removed,
+        routesManualConflicts: routeDiff.manualConflicts,
+        routesFutureConflicts: routeDiff.futureConflicts,
+      },
       finishedAt: new Date(),
       durationMs,
     });
-    return { ok: true, counters: plan.preview.counters };
+    return { ok: true, counters: plan.preview.counters, routeDiff };
   } catch (err) {
     const msg = serializeError(err);
     console.error("[mk9 commit] failed:", msg, err);
@@ -173,4 +225,9 @@ function resolvePending(ref: string, index: Map<string, string>): string {
   const id = index.get(key);
   if (!id) throw new Error(`Falha ao resolver referência pendente: ${ref}`);
   return id;
+}
+function safeResolve(ref: string, index: Map<string, string>): string | null {
+  if (!ref.startsWith("pending:")) return ref;
+  const key = ref.slice("pending:".length);
+  return index.get(key) ?? null;
 }
