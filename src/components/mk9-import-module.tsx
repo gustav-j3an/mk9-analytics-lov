@@ -161,7 +161,7 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
     mutationFn: async () => {
       if (!file || !importId) throw new Error("Gere a prévia antes");
       const base64 = await fileToBase64(file);
-      return commitFn({ data: { importId, filename: file.name, base64, operationMonth: month, operationYear: year, syncMode } });
+      return commitFn({ data: { importId, filename: file.name, base64, operationMonth: month, operationYear: year, syncMode, resolveConflicts } });
     },
     onSuccess: (res: any) => {
       const c = res?.counters ?? {};
