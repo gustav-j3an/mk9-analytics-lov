@@ -313,6 +313,8 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
 
   await savePreviewSnapshot(importId, preview);
   await updateImportStatus(importId, { status: "previewing", counters: { ...preview.counters } });
+  if (preview.validation) await writeValidationReport(importId, preview.validation);
+
 
 
   diagnostics.info("preview-complete", "Prévia finalizada com sucesso", {
