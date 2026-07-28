@@ -437,9 +437,12 @@ export type Database = {
       }
       mk9_planned_routes: {
         Row: {
+          archived_at: string | null
           created_at: string
+          created_by: string | null
           id: string
           industry_id: string
+          is_active: boolean
           last_import_id: string | null
           operation_month: number
           operation_year: number
@@ -447,12 +450,18 @@ export type Database = {
           source_sheet: string | null
           store_id: string
           updated_at: string
+          updated_by: string | null
+          valid_from: string
+          valid_until: string | null
           weekday: number
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           id?: string
           industry_id: string
+          is_active?: boolean
           last_import_id?: string | null
           operation_month: number
           operation_year: number
@@ -460,12 +469,18 @@ export type Database = {
           source_sheet?: string | null
           store_id: string
           updated_at?: string
+          updated_by?: string | null
+          valid_from: string
+          valid_until?: string | null
           weekday: number
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           id?: string
           industry_id?: string
+          is_active?: boolean
           last_import_id?: string | null
           operation_month?: number
           operation_year?: number
@@ -473,6 +488,9 @@ export type Database = {
           source_sheet?: string | null
           store_id?: string
           updated_at?: string
+          updated_by?: string | null
+          valid_from?: string
+          valid_until?: string | null
           weekday?: number
         }
         Relationships: [
@@ -939,6 +957,17 @@ export type Database = {
         Returns: undefined
       }
       mk9_normalize_store_name: { Args: { input: string }; Returns: string }
+      mk9_resolve_route_promoter: {
+        Args: { _industry_id: string; _on_date: string; _store_id: string }
+        Returns: {
+          match_count: number
+          promoter_id: string
+          route_id: string
+          valid_from: string
+          valid_until: string
+          weekday: number
+        }[]
+      }
       mk9_sync_planned_visits: {
         Args: { _archive_ids: string[]; _import_id: string; _rows: Json }
         Returns: Json
