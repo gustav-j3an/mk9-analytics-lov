@@ -119,4 +119,58 @@ export interface ImportPreview {
   sheetsAnalyzed: string[];
   counters: PreviewCounters;
   items: ImportItem[];
+  routeDiff?: RouteDiffReport;
 }
+
+// -----------------------------------------------------------------------------
+// Diff de reimportação de roteiros. Preserva edições manuais e versões futuras.
+// -----------------------------------------------------------------------------
+export type RouteChangeKind =
+  | "UNCHANGED"
+  | "NEW_ROUTE"
+  | "CHANGED_PROMOTER"
+  | "CHANGED_WEEKDAY"
+  | "REMOVED_FROM_IMPORT"
+  | "MANUAL_CONFLICT"
+  | "FUTURE_VERSION_CONFLICT";
+
+export interface RouteDiffItem {
+  kind: RouteChangeKind;
+  currentRouteId: string | null;
+  // Snapshot legível para a UI
+  storeName?: string | null;
+  storeUf?: string | null;
+  industryName?: string | null;
+  weekday: number;
+  // Promotor atual (banco) e importado (planilha)
+  currentPromoterId?: string | null;
+  currentPromoterName?: string | null;
+  incomingPromoterId?: string | null;
+  incomingPromoterName?: string | null;
+  // Payload usado pela função SQL mk9_apply_route_diff quando aplicável
+  newRoute: {
+    promoter_id: string;
+    store_id: string;
+    industry_id: string;
+    weekday: number;
+    operation_month: number;
+    operation_year: number;
+    source_sheet?: string | null;
+  } | null;
+  competencyStart: string; // yyyy-mm-dd primeiro dia da competência
+  reason?: string;
+}
+
+export interface RouteDiffReport {
+  competencyStart: string;
+  totalIncoming: number;
+  unchanged: number;
+  new: number;
+  changedPromoter: number;
+  changedWeekday: number;
+  removed: number;
+  manualConflicts: number;
+  futureConflicts: number;
+  items: RouteDiffItem[];
+}
+
