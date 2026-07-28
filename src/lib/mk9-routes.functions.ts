@@ -308,23 +308,25 @@ export const mk9RoutesResolvePromoter = createServerFn({ method: "POST" })
     const weekdayRealized = new Date(data.visitDate + "T00:00:00Z").getUTCDay();
 
     if (!list.length) {
-      return {
-        status: "UNASSIGNED_ROUTE" as const,
-        weekdayRealized,
-        candidates: [],
-      };
+      return { status: "UNASSIGNED_ROUTE" as const, weekdayRealized, candidates: [] };
     }
-    if (list[0].match_count > 1) {
+
+    // Prioriza candidatos que casam com o dia da semana da execução.
+    const sameDay = list.filter((c) => c.weekday === weekdayRealized);
+    const pool = sameDay.length > 0 ? sameDay : list;
+    const distinctPromoters = new Set(pool.map((c) => c.promoter_id));
+
+    if (distinctPromoters.size > 1) {
       return {
         status: "AMBIGUOUS_ROUTE" as const,
         weekdayRealized,
-        candidates: list.map((c) => ({
+        candidates: pool.map((c) => ({
           routeId: c.route_id, promoterId: c.promoter_id, weekday: c.weekday,
           validFrom: c.valid_from, validUntil: c.valid_until,
         })),
       };
     }
-    const winner = list[0];
+    const winner = pool[0];
     return {
       status: "MATCHED_ROUTE" as const,
       routeId: winner.route_id,
