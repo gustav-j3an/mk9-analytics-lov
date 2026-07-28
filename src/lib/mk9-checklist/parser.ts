@@ -28,6 +28,7 @@ export interface ParsedChecklist {
   }>;
   realizadoSum: number;
   monthlyFrequencySum: number;
+  declaredTotal: number | null; // célula "TOTAL VISITAS MÊS REALIZADAS" (quando presente)
   firstDate: string | null; // ISO yyyy-mm-dd
   lastDate: string | null;
   dateColumnCount: number;
