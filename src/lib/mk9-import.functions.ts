@@ -11,7 +11,10 @@ const previewSchema = z.object({
   syncMode: z.enum(["full", "add_only", "registry_only", "routes_only"]),
 });
 
-const commitSchema = previewSchema.extend({ importId: z.string().uuid() });
+const commitSchema = previewSchema.extend({
+  importId: z.string().uuid(),
+  resolveConflicts: z.boolean().optional(),
+});
 
 function b64ToArrayBuffer(base64: string): ArrayBuffer {
   const bin = typeof atob === "function"
