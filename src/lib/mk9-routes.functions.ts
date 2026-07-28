@@ -371,29 +371,34 @@ export const mk9StoresSearch = createServerFn({ method: "POST" })
     // vier no futuro. A UF entra como termo direto (2 letras).
     const uf = normalized.length === 2 ? normalized.toUpperCase() : null;
 
-    const { data: rows, error } = await supabaseAdmin
+    const orExpr = [
+      `name_normalized.ilike.${like}`,
+      `chain.ilike.${like}`,
+      uf ? `uf.eq.${uf}` : null,
+    ]
+      .filter(Boolean)
+      .join(",");
+
+    const { data: rows, error, count } = await supabaseAdmin
       .from("mk9_stores")
-      .select("id, name, chain, uf")
-      .or(
-        [
-          `name_normalized.ilike.${like}`,
-          `chain.ilike.${like}`,
-          uf ? `uf.eq.${uf}` : null,
-        ]
-          .filter(Boolean)
-          .join(","),
-      )
+      .select("id, name, chain, uf", { count: "exact" })
+      .or(orExpr)
       .order("name", { ascending: true })
       .limit(20);
 
     if (error) throw new Error(error.message);
-    return (rows ?? []).map((r) => ({
-      id: r.id as string,
-      name: r.name as string,
-      chain: (r.chain as string | null) ?? null,
-      uf: (r.uf as string | null) ?? null,
-    }));
+    return {
+      total: count ?? 0,
+      items: (rows ?? []).map((r) => ({
+        id: r.id as string,
+        name: r.name as string,
+        chain: (r.chain as string | null) ?? null,
+        uf: (r.uf as string | null) ?? null,
+      })),
+    };
   });
+
+
 
 // Busca uma loja específica pelo id — usado quando o modal abre em modo
 // edição e precisamos exibir a loja selecionada sem carregar a lista toda.
