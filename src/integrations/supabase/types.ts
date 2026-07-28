@@ -987,6 +987,8 @@ export type Database = {
       }
       mk9_visible_industry: { Args: { _industry_id: string }; Returns: boolean }
       mk9_visible_store: { Args: { _store_uf: string }; Returns: boolean }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       user_has_mk9_scope: {
         Args: { _scope_type: string; _scope_value: string }
         Returns: boolean

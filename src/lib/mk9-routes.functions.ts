@@ -340,3 +340,79 @@ export const mk9RoutesResolvePromoter = createServerFn({ method: "POST" })
       validUntil: winner.valid_until,
     };
   });
+
+// ---------------------------------------------------------------------------
+// BUSCA ASSÍNCRONA DE LOJAS — autocomplete leve
+// Não carrega tudo: só é chamada quando o usuário digita ≥ 2 caracteres.
+// Retorna no máximo 20 resultados por consulta, ordenados por nome.
+// ---------------------------------------------------------------------------
+export const mk9StoresSearch = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z.object({ q: z.string().min(2).max(80) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Normaliza a consulta (minúsculas, sem acentos, sem pontuação) para
+    // bater com mk9_stores.name_normalized (indexado com trigram).
+    const normalized = data.q
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[-–—/,.()·|]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (normalized.length < 2) return [];
+
+    const like = `%${normalized}%`;
+    // Busca por nome (normalizado), rede (lower) e UF.
+    // OBS: cidade não está armazenada em mk9_stores; mostrada apenas quando
+    // vier no futuro. A UF entra como termo direto (2 letras).
+    const uf = normalized.length === 2 ? normalized.toUpperCase() : null;
+
+    const { data: rows, error } = await supabaseAdmin
+      .from("mk9_stores")
+      .select("id, name, chain, uf")
+      .or(
+        [
+          `name_normalized.ilike.${like}`,
+          `chain.ilike.${like}`,
+          uf ? `uf.eq.${uf}` : null,
+        ]
+          .filter(Boolean)
+          .join(","),
+      )
+      .order("name", { ascending: true })
+      .limit(20);
+
+    if (error) throw new Error(error.message);
+    return (rows ?? []).map((r) => ({
+      id: r.id as string,
+      name: r.name as string,
+      chain: (r.chain as string | null) ?? null,
+      uf: (r.uf as string | null) ?? null,
+    }));
+  });
+
+// Busca uma loja específica pelo id — usado quando o modal abre em modo
+// edição e precisamos exibir a loja selecionada sem carregar a lista toda.
+export const mk9StoreGet = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
+      .from("mk9_stores")
+      .select("id, name, chain, uf")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) return null;
+    return {
+      id: row.id as string,
+      name: row.name as string,
+      chain: (row.chain as string | null) ?? null,
+      uf: (row.uf as string | null) ?? null,
+    };
+  });
+

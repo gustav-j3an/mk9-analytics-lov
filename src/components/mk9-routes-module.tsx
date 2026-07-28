@@ -21,6 +21,7 @@ import {
   mk9RoutesUpsertItem,
   mk9RoutesDeactivate,
 } from "@/lib/mk9-routes.functions";
+import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
 
 const WEEKDAY_PT = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
 
@@ -317,10 +318,11 @@ function EditDialog({
           </div>
           <div>
             <label className="text-xs text-muted-foreground">Loja</label>
-            <Select value={storeId} onValueChange={setStoreId}>
-              <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
-              <SelectContent>{stores.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}{s.uf ? ` · ${s.uf}` : ""}</SelectItem>)}</SelectContent>
-            </Select>
+            <Mk9StoreAutocomplete
+              value={storeId}
+              initialLabel={initial?.storeName ? `${initial.storeName}${initial.storeUf ? ` · ${initial.storeUf}` : ""}` : null}
+              onChange={(s) => setStoreId(s.id)}
+            />
           </div>
           <div>
             <label className="text-xs text-muted-foreground">Indústria</label>
