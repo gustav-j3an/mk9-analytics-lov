@@ -106,6 +106,7 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
     duplicateStores: [],
     realizadoSum: 0,
     monthlyFrequencySum: 0,
+    declaredTotal: null,
     firstDate: null,
     lastDate: null,
     dateColumnCount: 0,
