@@ -406,7 +406,13 @@ export function Mk9AnalyticsApp() {
             {activeModule === "industrias" && <IndustriesModule industries={industries} loading={industriesQ.isLoading} />}
             {activeModule === "lojas" && <StoresModule stores={stores} routes={routes} loading={storesQ.isLoading} />}
             {activeModule === "promotores" && <PromotersModule promoters={promoters} routes={routes} visits={visits} loading={promotersQ.isLoading} />}
-            {activeModule === "roteiros" && <RoutesModule routes={routes} loading={routesQ.isLoading} month={month} year={year} />}
+            {activeModule === "roteiros" && (
+              <Mk9RoutesModule
+                promoters={promoters.map((p: any) => ({ id: p.id, name: p.name }))}
+                stores={stores.map((s: any) => ({ id: s.id, name: s.name, chain: s.chain ?? null, uf: s.uf ?? null }))}
+                industries={industries.map((i: any) => ({ id: i.id, name: i.name }))}
+              />
+            )}
             {activeModule === "visitas" && <VisitsModule visits={visits} loading={visitsQ.isLoading} />}
             {activeModule === "importacoes" && (
               <Mk9ImportModule onSwitchToChecklists={() => setActiveModule("checklists")} />
