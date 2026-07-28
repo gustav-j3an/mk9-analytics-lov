@@ -56,6 +56,13 @@ const STATUS_LABEL: Record<string, { label: string; variant: "default" | "second
   cancelled: { label: "Cancelada", variant: "secondary" },
 };
 
+const VALIDATION_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+  CONSISTENT: { label: "Auditoria OK", variant: "default" },
+  COMPLETED_WITH_ALERTS: { label: "Concluído com alertas", variant: "secondary" },
+  INCONSISTENT: { label: "INCONSISTENTE", variant: "destructive" },
+  FAILED: { label: "Auditoria falhou", variant: "destructive" },
+};
+
 function shortDate(value: string) {
   if (!value) return "—";
   const [y, m, d] = value.split("-");
