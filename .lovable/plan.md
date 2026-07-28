@@ -1,82 +1,104 @@
-## Missão: Importador de Checklists das Indústrias
+# Missão — Proteção do Roteiro contra Reimportação Destrutiva
 
-Novo módulo independente do importador MK9, para processar planilhas de checklist mensal (ex: `KING - CHECK LIST - JULHO 2026.xlsx`) e persistir **visitas realizadas** (origem `CHECKLIST`).
+## Diagnóstico
 
----
+Situação atual de `mk9_planned_routes`:
+- Já tem `created_by`, `updated_by`, `last_import_id`, `valid_from/until`, `archived_at`, `is_active`.
+- **Falta**: `source_type`, `source_import_id`, `last_manual_edit_at`.
+- 446 rotas ativas, todas com o mesmo `last_import_id` (importação de julho).
+- Importador atual em `persistence.server.ts` faz upsert em bloco sem diff/classificação; qualquer reimportação hoje pode reabrir/sobrescrever silenciosamente.
 
-### 1. Banco de dados (migration)
+## Escopo
 
-Criar duas tabelas + enum:
+### 1. Migração aditiva (sem destruição)
+Adicionar em `mk9_planned_routes`:
+- `source_type text NOT NULL DEFAULT 'IMPORT'` com CHECK `('IMPORT','MANUAL')`
+- `source_import_id uuid` (nullable, FK lógica p/ `mk9_imports.id`)
+- `last_manual_edit_at timestamptz` (nullable)
 
-- `mk9_checklist_origin` enum: `CHECKLIST`
-- **`mk9_checklist_imports`** — registro da importação
-  - `filename`, `file_hash`, `industry_id` (FK mk9_industries), `operation_month`, `operation_year`
-  - `status` (reuso do enum `mk9_import_status`)
-  - `counters jsonb`, `preview jsonb`, `error_message`, `user_id`
-  - `started_at`, `finished_at`, `duration_ms`
-- **`mk9_actual_visits`** — visita realizada
-  - `industry_id` (FK), `store_id` (FK), `scheduled_date date`
-  - `origin` (enum, default `CHECKLIST`)
-  - `status text default 'completed'`
-  - `source_import_id` (FK mk9_checklist_imports)
-  - `created_at`, `updated_at`
-  - **UNIQUE(industry_id, store_id, scheduled_date, origin)** — idempotência
-- GRANTs para `authenticated` + `service_role`, RLS ligado com policies `authenticated ALL`
-- Trigger `updated_at` com `mk9_touch_updated_at`
+Backfill:
+- Todas as 446 linhas atuais → `source_type='IMPORT'`, `source_import_id = last_import_id`.
+- Preservar `valid_from/until`, IDs, vigências.
 
-### 2. Camada de domínio (`src/lib/mk9-checklist/`)
+Ajustar `mk9RoutesUpsertItem` (edição pela UI) para marcar `source_type='MANUAL'` e `last_manual_edit_at=now()` na versão nova.
 
-- `types.ts` — `ChecklistRow`, `ChecklistPreview`, `ChecklistItem`, `PersistResult`
-- `parser.ts` — lê o xlsx:
-  - detecta linha de cabeçalho (loja / UF / freq semanal / freq mensal + colunas 1..31)
-  - normaliza cada linha; identifica ✓ (`✓`, `x`, `X`, `V`, `1`, `true`) em colunas de dia
-  - gera `{ storeName, uf, day }` para cada marcação
-- `resolution.ts` — resolve loja por (`name_normalized`, `uf`) contra `mk9_stores`; resolve indústria selecionada
-- `preview.ts` — monta contadores + tabela de linhas com status (`FOUND` / `STORE_NOT_FOUND` / `INVALID_DATE`)
-- `persistence.server.ts` — usa `supabaseAdmin`:
-  - cria `mk9_checklist_imports` (previewing → done/failed)
-  - upsert em `mk9_actual_visits` com `onConflict: 'industry_id,store_id,scheduled_date,origin'`
+### 2. Motor de diff (`src/lib/mk9/route-diff.server.ts` — novo)
 
-### 3. Server functions (`src/lib/mk9-checklist.functions.ts`)
+Entrada: rotas importadas da planilha (com competência) + snapshot atual do banco.
 
-- `previewChecklist({ fileBase64, filename, industryId, month, year })` → parse + resolve + retorna preview (não persiste)
-- `commitChecklist({ ...preview payload, industryId, month, year, filename })` → cria registro import, persiste visitas, atualiza contadores/status
-- `listChecklistImports()` — histórico
-- `deleteChecklistImport(id)` — apaga import + visitas correlatas
+Para cada rota importada, classifica:
+- **UNCHANGED** — versão vigente no início da competência é semanticamente igual (mesmo promotor, loja, indústria, dia).
+- **NEW_ROUTE** — nenhuma versão cobre a chave (loja, indústria, dia) na competência.
+- **CHANGED_PROMOTER** — versão vigente tem outro promotor.
+- **CHANGED_WEEKDAY** — mesma tripla loja+indústria+promotor migrou de dia.
+- **MANUAL_CONFLICT** — versão vigente é `source_type='MANUAL'` ou tem `last_manual_edit_at` posterior a `source_import_id.started_at`.
+- **FUTURE_VERSION_CONFLICT** — existe uma versão com `valid_from > competência` que seria invalidada.
 
-### 4. UI
+Para rotas do banco ausentes da planilha na competência:
+- **REMOVED_FROM_IMPORT** (se `source_type='IMPORT'`)
+- **MANUAL_CONFLICT** (se `source_type='MANUAL'`)
 
-- Novo menu no sidebar de `mk9-analytics-app.tsx`:
+Saída: `RouteDiffReport { unchanged, new, changedPromoter, changedWeekday, removed, manualConflicts, futureConflicts, items: RouteDiffItem[] }`.
+
+### 3. Persistência transacional
+Nova função SQL `mk9_apply_route_diff(_import_id uuid, _decisions jsonb)`:
+- BEGIN implícito (função plpgsql).
+- Para cada decisão aplicável:
+  - UNCHANGED → apenas atualiza `last_import_id`.
+  - NEW_ROUTE → INSERT com `source_type='IMPORT'`, `valid_from = primeiro dia da competência`.
+  - CHANGED_* → UPDATE `valid_until = competência - 1` na versão anterior; INSERT nova versão.
+  - REMOVED_FROM_IMPORT → UPDATE `valid_until = competência - 1` (não DELETE).
+  - MANUAL_CONFLICT/FUTURE_VERSION_CONFLICT → **skip** salvo decisão administrativa explícita `force=true`.
+- Falha em qualquer passo → RAISE EXCEPTION → rollback total → importação marcada FAILED.
+
+Substituir `persistDataset` em `persistence.server.ts` para consumir o diff (não mais upsert em massa das rotas).
+
+### 4. Prévia obrigatória
+Refatorar `orchestrator.server.ts`:
+- Fase preview roda o diff e retorna `RouteDiffReport` no `preview.routeDiff`.
+- Fase commit só executa `mk9_apply_route_diff` — bloqueia se `manualConflicts + futureConflicts > 0` e a chamada não explicitou `resolveConflicts`.
+
+Atualizar `src/components/mk9-import-module.tsx`:
+- Novo painel "Roteiro — impacto":
   ```
-  Importações
-    ├── Base MK9        (existente)
-    └── Checklists      (novo)
+  Sem alteração: 430   Novas: 8
+  Alteradas (promotor): 3   Alteradas (dia): 0
+  Removidas: 2   Conflitos manuais: 3   Conflitos futuros: 1
   ```
-- Novo componente `src/components/mk9-checklist-import-module.tsx`:
-  1. Upload arquivo
-  2. Selects: mês, ano, indústria (carregada via query)
-  3. Botão "Gerar prévia"
-  4. Cards: total lojas / total visitas / encontradas / não encontradas / datas válidas / inválidas
-  5. Tabela: Loja · UF · Data · Status · Resultado
-  6. AlertDialog "Confirmar importação" → persiste
-  7. Histórico com status e botão apagar
+- Botão "Ver detalhes" abre tabela por rota com badge da classificação.
+- Botão "Confirmar" desabilitado se conflitos > 0, salvo checkbox "Resolver conflitos usando planilha".
 
-### 5. Regras / validações
+### 5. Regra de prioridade (documentada no código)
+1. `MANUAL` confirmado no sistema.
+2. Importação da competência mais recente.
+3. Importação histórica anterior.
+Importação nunca sobrescreve `MANUAL` silenciosamente.
 
-- Rejeita arquivo vazio, sem cabeçalho esperado, ou sem colunas de dias
-- Data validada contra mês/ano selecionados (ignora dia fora do mês)
-- Loja sem match → marcada `LOJA NÃO ENCONTRADA`, não cria automaticamente
-- Idempotência via UNIQUE — reimportar não duplica
+### 6. Validação (testes A–F executados via SQL/UI e reportados)
+- A: reimportar julho → 446 UNCHANGED, mesmos IDs.
+- B: editar rota futura (ago) + reimportar julho → agosto intacto.
+- C: editar promotor manual + importar planilha antiga → MANUAL_CONFLICT.
+- D: importar agosto com troca → julho fecha 31/07, agosto abre 01/08.
+- E: rota removida de agosto → valid_until fechado, sem DELETE.
+- F: erro forçado no commit → rollback total.
 
-### 6. Entregáveis
+## Detalhes técnicos
 
-Ao final da importação, retornar (e exibir):
-- tabelas usadas: `mk9_checklist_imports`, `mk9_actual_visits`
-- nº de visitas importadas / persistidas
-- lojas encontradas / não encontradas
-- resultado de reimportação (0 novas / N ignoradas)
+**Arquivos novos**
+- `src/lib/mk9/route-diff.server.ts` — motor de diff puro.
+- Migração SQL adicionando colunas + função `mk9_apply_route_diff`.
 
-### Fora de escopo (explicitamente não fazer agora)
+**Arquivos alterados**
+- `src/lib/mk9/persistence.server.ts` — substituir `upsertPlannedRoutes` por integração com diff + RPC.
+- `src/lib/mk9/orchestrator.server.ts` — expor `routeDiff` no preview, bloquear commit com conflitos.
+- `src/lib/mk9-routes.functions.ts` — `mk9RoutesUpsertItem` marca `source_type='MANUAL'`, `last_manual_edit_at`.
+- `src/components/mk9-import-module.tsx` — painel de impacto + tabela de conflitos + toggle "force".
+- `src/lib/mk9/types.ts` — tipos `RouteDiffItem`, `RouteDiffReport`, `RouteChangeKind`.
 
-- Conciliação com `mk9_planned_visits`
-- Alterações no dashboard, roteiros, ou importador MK9 existente
+**Sem alteração**
+- `mk9_planned_visits`, menu "Visitas" oculto, checklist, auditoria, PDFs, dashboard.
+
+## Entrega
+Após execução dos testes, reporto: contagem antes/depois, IDs preservados, conflitos detectados, coluna real usada, typecheck e build.
+
+Aprovar para prosseguir?
