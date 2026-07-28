@@ -15,6 +15,8 @@ export const EXEC_STATUS_LABEL: Record<ExecStatus, string> = {
   NAO_REALIZADO: "Não realizado",
 };
 
+export type PromoterResolution = "MATCHED_ROUTE" | "AMBIGUOUS_ROUTE" | "UNASSIGNED_ROUTE";
+
 export interface AuditStoreLine {
   storeId: string;
   storeName: string;
@@ -24,6 +26,7 @@ export interface AuditStoreLine {
   industryName: string;
   promoterId: string | null;
   promoterName: string | null;
+  promoterResolution: PromoterResolution;
   contratadas: number;
   realizadas: number;
   pendentes: number;
