@@ -625,25 +625,30 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
             <p className="text-sm text-muted-foreground">Nenhum checklist importado.</p>
           ) : (
             <div className="space-y-2">
-              {(historyQ.data ?? []).map((imp) => {
+              {(historyQ.data ?? []).map((imp: any) => {
                 const st = STATUS_LABEL[imp.status] ?? { label: imp.status, variant: "secondary" as const };
+                const vs = imp.validationStatus ? VALIDATION_LABEL[imp.validationStatus] : null;
                 const c: any = imp.counters ?? {};
                 return (
-                  <div key={imp.id} className="text-sm rounded-lg border p-3 flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{imp.filename}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {imp.industryName} · {MONTHS[imp.operationMonth - 1]} {imp.operationYear}
-                        {c.persisted != null && ` · ${c.persisted} novas / ${c.skipped ?? 0} já existentes`}
-                        {imp.errorMessage && ` · ${imp.errorMessage}`}
-                      </p>
+                  <div key={imp.id} className="text-sm rounded-lg border p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{imp.filename}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {imp.industryName} · {MONTHS[imp.operationMonth - 1]} {imp.operationYear}
+                          {c.persisted != null && ` · ${c.persisted} novas / ${c.skipped ?? 0} já existentes`}
+                          {imp.errorMessage && ` · ${imp.errorMessage}`}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge variant={st.variant}>{st.label}</Badge>
+                        {vs && <Badge variant={vs.variant}>{vs.label}</Badge>}
+                        <Button size="sm" variant="ghost" onClick={() => deleteMut.mutate(imp.id)} disabled={deleteMut.isPending}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Badge variant={st.variant}>{st.label}</Badge>
-                      <Button size="sm" variant="ghost" onClick={() => deleteMut.mutate(imp.id)} disabled={deleteMut.isPending}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
+                    <ValidationPanel importId={imp.id} initial={imp.validationDetails ?? null} onReloaded={() => historyQ.refetch()} />
                   </div>
                 );
               })}
@@ -651,6 +656,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
           )}
         </CardContent>
       </Card>
+
 
       <AlertDialog open={confirmOpen} onOpenChange={(o) => !commitMut.isPending && setConfirmOpen(o)}>
         <AlertDialogContent>
