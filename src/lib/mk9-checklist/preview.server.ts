@@ -1,7 +1,7 @@
-import type { ChecklistItem, ChecklistPreview } from "./types";
+import type { ChecklistItem, ChecklistPreview, ChecklistStoreValidation, ChecklistValidationReport } from "./types";
 import type { ChecklistDiagnostics } from "./diagnostics";
 import { buildRichError } from "./errors.server";
-import { parseChecklistWorkbook } from "./parser";
+import { parseChecklistWorkbook, type ParsedChecklist } from "./parser";
 import { diceCoefficient } from "./similarity";
 import { storeCompactKey, storeTokenSetKey } from "@/lib/mk9/normalization";
 import {
@@ -11,7 +11,9 @@ import {
   loadStoresIndex,
   savePreviewSnapshot,
   updateImportStatus,
+  writeValidationReport,
 } from "./persistence.server";
+
 
 
 interface ChecklistPreviewInput {
