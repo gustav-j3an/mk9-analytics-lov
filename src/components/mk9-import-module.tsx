@@ -524,6 +524,120 @@ function recordLabel(payload: any): string {
   return "";
 }
 
+const WEEKDAY_LABEL = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+const ROUTE_KIND_LABEL: Record<string, { label: string; className: string }> = {
+  UNCHANGED: { label: "Sem alteração", className: "bg-gray-500/15 text-gray-600" },
+  NEW_ROUTE: { label: "Nova", className: "bg-emerald-500/15 text-emerald-600" },
+  CHANGED_PROMOTER: { label: "Promotor alterado", className: "bg-blue-500/15 text-blue-600" },
+  CHANGED_WEEKDAY: { label: "Dia alterado", className: "bg-indigo-500/15 text-indigo-600" },
+  REMOVED_FROM_IMPORT: { label: "Removida da planilha", className: "bg-red-500/15 text-red-600" },
+  MANUAL_CONFLICT: { label: "Conflito manual", className: "bg-orange-500/15 text-orange-700" },
+  FUTURE_VERSION_CONFLICT: { label: "Conflito com versão futura", className: "bg-pink-500/15 text-pink-600" },
+};
+
+function RouteDiffPanel({
+  diff,
+  expanded,
+  onToggle,
+  resolveConflicts,
+  onToggleResolve,
+}: {
+  diff: NonNullable<ImportPreview["routeDiff"]>;
+  expanded: boolean;
+  onToggle: () => void;
+  resolveConflicts: boolean;
+  onToggleResolve: (v: boolean) => void;
+}) {
+  const conflicts = diff.manualConflicts + diff.futureConflicts;
+  return (
+    <div className="rounded-xl border bg-card/50 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold">Roteiro — impacto da reimportação</p>
+          <p className="text-xs text-muted-foreground">Vigência a partir de {diff.competencyStart} · {diff.totalIncoming} rotas lidas</p>
+        </div>
+        <button className="text-xs underline text-muted-foreground" onClick={onToggle}>
+          {expanded ? "Ocultar detalhes" : "Ver detalhes"}
+        </button>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+        <RouteDiffStat label="Sem alteração" value={diff.unchanged} tone="muted" />
+        <RouteDiffStat label="Novas" value={diff.new} tone="green" />
+        <RouteDiffStat label="Promotor alterado" value={diff.changedPromoter} tone="blue" />
+        <RouteDiffStat label="Dia alterado" value={diff.changedWeekday} tone="blue" />
+        <RouteDiffStat label="Removidas" value={diff.removed} tone="red" />
+        <RouteDiffStat label="Conflitos manuais" value={diff.manualConflicts} tone={diff.manualConflicts > 0 ? "red" : "muted"} />
+        <RouteDiffStat label="Conflitos futuros" value={diff.futureConflicts} tone={diff.futureConflicts > 0 ? "red" : "muted"} />
+      </div>
+      {conflicts > 0 && (
+        <div className="rounded-lg border border-orange-500/40 bg-orange-500/10 p-3 text-xs space-y-2">
+          <p className="font-semibold text-orange-700">
+            {conflicts} conflitos precisam de decisão administrativa
+          </p>
+          <p className="text-orange-700/80">
+            Por padrão a importação NÃO sobrescreve rotas editadas manualmente ou versões futuras.
+            Marque a opção abaixo apenas se realmente quer que a planilha prevaleça.
+          </p>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={resolveConflicts}
+              onChange={(e) => onToggleResolve(e.target.checked)}
+            />
+            <span>Resolver conflitos usando a planilha (fecha versões conflitantes e cria novas versões IMPORT)</span>
+          </label>
+        </div>
+      )}
+      {expanded && (
+        <div className="max-h-96 overflow-auto border rounded-lg">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 bg-muted/60">
+              <tr>
+                <th className="text-left px-2 py-1.5">Classificação</th>
+                <th className="text-left px-2 py-1.5">Loja</th>
+                <th className="text-left px-2 py-1.5">Indústria</th>
+                <th className="text-left px-2 py-1.5">Dia</th>
+                <th className="text-left px-2 py-1.5">Promotor (atual → planilha)</th>
+                <th className="text-left px-2 py-1.5">Observação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {diff.items.map((it, idx) => {
+                const k = ROUTE_KIND_LABEL[it.kind] ?? { label: it.kind, className: "" };
+                return (
+                  <tr key={idx} className="border-t">
+                    <td className="px-2 py-1.5">
+                      <span className={`px-2 py-0.5 rounded-full text-xs ${k.className}`}>{k.label}</span>
+                    </td>
+                    <td className="px-2 py-1.5">{it.storeName ?? "—"}{it.storeUf ? ` (${it.storeUf})` : ""}</td>
+                    <td className="px-2 py-1.5">{it.industryName ?? "—"}</td>
+                    <td className="px-2 py-1.5">{WEEKDAY_LABEL[it.weekday] ?? it.weekday}</td>
+                    <td className="px-2 py-1.5 text-muted-foreground">
+                      {it.currentPromoterName ?? "—"}
+                      {it.incomingPromoterName ? ` → ${it.incomingPromoterName}` : ""}
+                    </td>
+                    <td className="px-2 py-1.5 text-muted-foreground">{it.reason ?? ""}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RouteDiffStat({ label, value, tone }: { label: string; value: number; tone: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-md border bg-background/60 px-3 py-2">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={`font-semibold tabular-nums ${TONE_CLASS[tone] ?? ""}`}>{value}</span>
+    </div>
+  );
+}
+
+
 function summarize(payload: any): string {
   if (!payload) return "";
   const parts: string[] = [];
