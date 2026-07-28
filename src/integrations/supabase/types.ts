@@ -123,6 +123,9 @@ export type Database = {
           status: Database["public"]["Enums"]["mk9_import_status"]
           updated_at: string
           user_id: string | null
+          validated_at: string | null
+          validation_details: Json | null
+          validation_status: string | null
         }
         Insert: {
           counters?: Json
@@ -141,6 +144,9 @@ export type Database = {
           status?: Database["public"]["Enums"]["mk9_import_status"]
           updated_at?: string
           user_id?: string | null
+          validated_at?: string | null
+          validation_details?: Json | null
+          validation_status?: string | null
         }
         Update: {
           counters?: Json
@@ -159,6 +165,9 @@ export type Database = {
           status?: Database["public"]["Enums"]["mk9_import_status"]
           updated_at?: string
           user_id?: string | null
+          validated_at?: string | null
+          validation_details?: Json | null
+          validation_status?: string | null
         }
         Relationships: [
           {

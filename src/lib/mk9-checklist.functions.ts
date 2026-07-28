@@ -183,8 +183,28 @@ export const checklistCommit = createServerFn({ method: "POST" })
         totalContractedFrequency: snapshot?.counters.totalContractedFrequency ?? null,
       };
 
+      // 5) Auditoria em 3 níveis pós-commit: recomputa parsed × declarado × persistido.
+      let validation: import("./mk9-checklist/types").ChecklistValidationReport | null = null;
+      let validationError: string | null = null;
+      try {
+        const [{ queryPersistedVisitsByImport, writeValidationReport }, { buildValidationFromSnapshot }] = await Promise.all([
+          import("./mk9-checklist/persistence.server"),
+          import("./mk9-checklist/validation"),
+        ]);
+        const persistedByStore = await queryPersistedVisitsByImport(data.importId);
+        if (snapshot) {
+          validation = buildValidationFromSnapshot(snapshot, persistedByStore);
+          await writeValidationReport(data.importId, validation);
+        }
+      } catch (vErr: any) {
+        validationError = String(vErr?.message ?? vErr);
+      }
+
+      const finalStatus: "done" | "failed" =
+        validation && validation.status === "INCONSISTENT" ? "done" : "done";
+
       await updateImportStatus(data.importId, {
-        status: "done",
+        status: finalStatus,
         counters,
         finishedAt: new Date(),
         durationMs: Date.now() - startedAt,
@@ -209,6 +229,7 @@ export const checklistCommit = createServerFn({ method: "POST" })
         operationYear: data.operationYear,
         persisted,
         storesCreated,
+        validationStatus: validation?.status ?? null,
       });
 
       return {
@@ -222,7 +243,10 @@ export const checklistCommit = createServerFn({ method: "POST" })
         frequenciesUpserted,
         frequenciesNotImported,
         reconciliationError,
+        validation,
+        validationError,
       };
+
 
     } catch (e: any) {
       let msg: string;
@@ -276,5 +300,39 @@ export const checklistCancel = createServerFn({ method: "POST" })
     await logAudit(ctx, "mk9.checklist.cancel", "mk9_checklist_imports", data.importId);
     return { ok: true };
   });
+
+// Recomputa a validação em 3 níveis a partir dos dados persistidos, sem re-parsear o Excel.
+// Útil quando a auditoria foi salva com uma versão antiga do motor.
+export const checklistReprocessValidation = createServerFn({ method: "POST" })
+  .inputValidator(async (data: unknown) => validate("checklistReprocessValidation", () => z.object({ importId: z.string().uuid() }).parse(data)))
+  .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
+    const { loadPreviewSnapshot, queryPersistedVisitsByImport, writeValidationReport } = await import(
+      "./mk9-checklist/persistence.server"
+    );
+    const { buildValidationFromSnapshot } = await import("./mk9-checklist/validation");
+    const snapshot = await loadPreviewSnapshot(data.importId);
+    if (!snapshot) throw new Error("Snapshot da prévia não encontrado para essa importação.");
+    const persistedByStore = await queryPersistedVisitsByImport(data.importId);
+    const validation = buildValidationFromSnapshot(snapshot, persistedByStore);
+    await writeValidationReport(data.importId, validation);
+    await logAudit(ctx, "mk9.checklist.reprocess_validation", "mk9_checklist_imports", data.importId, {
+      status: validation.status,
+      persistedTotal: validation.persistedTotal,
+      parsedTotal: validation.parsedTotal,
+    });
+    return { validation };
+  });
+
+export const checklistGetValidation = createServerFn({ method: "GET" })
+  .inputValidator(async (data: unknown) => validate("checklistGetValidation", () => z.object({ importId: z.string().uuid() }).parse(data)))
+  .handler(async ({ data }) => {
+    const { requireMk9Role } = await import("./mk9-auth/require-role.server");
+    await requireMk9Role(["ADMIN", "SUPERVISOR", "AUDITOR"]);
+    const { loadValidationReport } = await import("./mk9-checklist/persistence.server");
+    return { validation: await loadValidationReport(data.importId) };
+  });
+
 
 

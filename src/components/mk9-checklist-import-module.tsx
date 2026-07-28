@@ -34,6 +34,8 @@ import {
   checklistList,
   checklistDelete,
   checklistCancel,
+  checklistReprocessValidation,
+  checklistGetValidation,
 } from "@/lib/mk9-checklist.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 import { detectMk9FileKind } from "@/lib/mk9/detect-file-kind";
@@ -52,6 +54,13 @@ const STATUS_LABEL: Record<string, { label: string; variant: "default" | "second
   done: { label: "Concluído", variant: "default" },
   failed: { label: "Falhou", variant: "destructive" },
   cancelled: { label: "Cancelada", variant: "secondary" },
+};
+
+const VALIDATION_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+  CONSISTENT: { label: "Auditoria OK", variant: "default" },
+  COMPLETED_WITH_ALERTS: { label: "Concluído com alertas", variant: "secondary" },
+  INCONSISTENT: { label: "INCONSISTENTE", variant: "destructive" },
+  FAILED: { label: "Auditoria falhou", variant: "destructive" },
 };
 
 function shortDate(value: string) {
@@ -616,25 +625,30 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
             <p className="text-sm text-muted-foreground">Nenhum checklist importado.</p>
           ) : (
             <div className="space-y-2">
-              {(historyQ.data ?? []).map((imp) => {
+              {(historyQ.data ?? []).map((imp: any) => {
                 const st = STATUS_LABEL[imp.status] ?? { label: imp.status, variant: "secondary" as const };
+                const vs = imp.validationStatus ? VALIDATION_LABEL[imp.validationStatus] : null;
                 const c: any = imp.counters ?? {};
                 return (
-                  <div key={imp.id} className="text-sm rounded-lg border p-3 flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{imp.filename}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {imp.industryName} · {MONTHS[imp.operationMonth - 1]} {imp.operationYear}
-                        {c.persisted != null && ` · ${c.persisted} novas / ${c.skipped ?? 0} já existentes`}
-                        {imp.errorMessage && ` · ${imp.errorMessage}`}
-                      </p>
+                  <div key={imp.id} className="text-sm rounded-lg border p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{imp.filename}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {imp.industryName} · {MONTHS[imp.operationMonth - 1]} {imp.operationYear}
+                          {c.persisted != null && ` · ${c.persisted} novas / ${c.skipped ?? 0} já existentes`}
+                          {imp.errorMessage && ` · ${imp.errorMessage}`}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge variant={st.variant}>{st.label}</Badge>
+                        {vs && <Badge variant={vs.variant}>{vs.label}</Badge>}
+                        <Button size="sm" variant="ghost" onClick={() => deleteMut.mutate(imp.id)} disabled={deleteMut.isPending}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Badge variant={st.variant}>{st.label}</Badge>
-                      <Button size="sm" variant="ghost" onClick={() => deleteMut.mutate(imp.id)} disabled={deleteMut.isPending}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
+                    <ValidationPanel importId={imp.id} initial={imp.validationDetails ?? null} onReloaded={() => historyQ.refetch()} />
                   </div>
                 );
               })}
@@ -642,6 +656,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
           )}
         </CardContent>
       </Card>
+
 
       <AlertDialog open={confirmOpen} onOpenChange={(o) => !commitMut.isPending && setConfirmOpen(o)}>
         <AlertDialogContent>
@@ -717,6 +732,115 @@ function PhaseRow({ active, done, label }: { active: boolean; done: boolean; lab
     </div>
   );
 }
+
+function ValidationPanel({
+  importId,
+  initial,
+  onReloaded,
+}: {
+  importId: string;
+  initial: any | null;
+  onReloaded: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [data, setData] = useState<any | null>(initial);
+  const reprocessFn = useServerFn(checklistReprocessValidation);
+  const getFn = useServerFn(checklistGetValidation);
+  const reprocessMut = useMutation({
+    mutationFn: async () => reprocessFn({ data: { importId } }),
+    onSuccess: (r: any) => {
+      setData(r.validation);
+      toast.success("Auditoria recomputada.");
+      onReloaded();
+    },
+    onError: (e: any) => toast.error(`Falha ao recomputar auditoria: ${e?.message ?? e}`),
+  });
+  const refreshMut = useMutation({
+    mutationFn: async () => getFn({ data: { importId } }),
+    onSuccess: (r: any) => setData(r.validation),
+  });
+
+  const hasData = !!data;
+  const stores = (data?.stores ?? []) as any[];
+  const divergent = stores.filter((s: any) => s.status !== "OK");
+
+  return (
+    <div className="mt-2 border-t pt-2">
+      <button
+        type="button"
+        className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+        onClick={() => {
+          setOpen((v) => !v);
+          if (!open && !hasData) refreshMut.mutate();
+        }}
+      >
+        {open ? "Ocultar auditoria" : "Ver auditoria em 3 níveis"}
+      </button>
+      {open && (
+        <div className="mt-2 space-y-3">
+          {!hasData && refreshMut.isPending && (
+            <p className="text-xs text-muted-foreground">Carregando auditoria…</p>
+          )}
+          {!hasData && !refreshMut.isPending && (
+            <p className="text-xs text-muted-foreground">
+              Nenhuma auditoria registrada para essa importação. Clique em "Reprocessar auditoria" para gerar.
+            </p>
+          )}
+          {hasData && (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                <MiniStat label="Declarado (planilha)" value={data.declaredTotal ?? data.declaredSum ?? 0} tone="blue" />
+                <MiniStat label="Identificado (Excel)" value={data.parsedTotal ?? 0} tone="blue" />
+                <MiniStat label="Persistido (banco)" value={data.persistedTotal ?? 0} tone={data.status === "INCONSISTENT" ? "red" : "green"} />
+                <MiniStat label="Lojas divergentes" value={divergent.length} tone={divergent.length ? "amber" : "green"} />
+              </div>
+              {Array.isArray(data.summaryLines) && data.summaryLines.length > 0 && (
+                <ul className="text-xs list-disc pl-5 space-y-0.5 text-muted-foreground">
+                  {data.summaryLines.map((l: string, i: number) => (<li key={i}>{l}</li>))}
+                </ul>
+              )}
+              {divergent.length > 0 && (
+                <div className="rounded-md border overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left p-2">Loja</th>
+                        <th className="text-left p-2">UF</th>
+                        <th className="text-right p-2">Declar.</th>
+                        <th className="text-right p-2">Identif.</th>
+                        <th className="text-right p-2">Persist.</th>
+                        <th className="text-left p-2">Motivo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {divergent.map((s: any, i: number) => (
+                        <tr key={i} className="border-t">
+                          <td className="p-2 font-medium">{s.storeName}</td>
+                          <td className="p-2 text-muted-foreground">{s.uf ?? "—"}</td>
+                          <td className="p-2 text-right">{s.declared ?? "—"}</td>
+                          <td className="p-2 text-right">{s.parsed}</td>
+                          <td className="p-2 text-right">{s.persisted ?? "—"}</td>
+                          <td className="p-2 text-destructive">{s.message ?? s.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <div className="flex justify-end">
+                <Button size="sm" variant="outline" onClick={() => reprocessMut.mutate()} disabled={reprocessMut.isPending}>
+                  {reprocessMut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                  Reprocessar auditoria
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 
 function MiniStat({ label, value, tone }: { label: string; value: number; tone?: "green" | "red" | "blue" | "amber" }) {

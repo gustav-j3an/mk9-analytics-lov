@@ -1,7 +1,47 @@
 // Persistência do módulo Checklists. SERVER-ONLY.
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { storeCompactKey, storeTokenSetKey } from "@/lib/mk9/normalization";
-import type { ChecklistPreview } from "./types";
+import type { ChecklistPreview, ChecklistValidationReport } from "./types";
+
+export async function writeValidationReport(importId: string, report: ChecklistValidationReport) {
+  const { error } = await supabaseAdmin
+    .from("mk9_checklist_imports")
+    .update({
+      validation_status: report.status,
+      validation_details: report as any,
+      validated_at: new Date().toISOString(),
+    } as any)
+    .eq("id", importId);
+  if (error) throw new Error(error.message);
+}
+
+export async function loadValidationReport(importId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("mk9_checklist_imports")
+    .select("validation_details")
+    .eq("id", importId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return ((data as any)?.validation_details ?? null) as ChecklistValidationReport | null;
+}
+
+// Consulta as visitas persistidas para uma importação, agrupando por loja.
+export async function queryPersistedVisitsByImport(importId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("mk9_actual_visits")
+    .select("store_id, scheduled_date")
+    .eq("source_import_id", importId);
+  if (error) throw new Error(error.message);
+  const byStore = new Map<string, Set<string>>();
+  for (const row of data ?? []) {
+    const sid = row.store_id as string;
+    const set = byStore.get(sid) ?? new Set<string>();
+    set.add(String(row.scheduled_date));
+    byStore.set(sid, set);
+  }
+  return byStore;
+}
+
 
 export interface StoreIndexRecord {
   id: string;
@@ -302,6 +342,9 @@ export async function listChecklistImports(limit = 30) {
     startedAt: r.started_at as string,
     finishedAt: (r.finished_at as string | null) ?? null,
     durationMs: (r.duration_ms as number | null) ?? null,
+    validationStatus: (r.validation_status as string | null) ?? null,
+    validationDetails: (r.validation_details ?? null) as any,
+    validatedAt: (r.validated_at as string | null) ?? null,
   }));
 }
 

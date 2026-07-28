@@ -59,6 +59,40 @@ export interface ChecklistStoreFrequency {
   excelRow?: number;
 }
 
+export type ChecklistValidationStatus = "CONSISTENT" | "COMPLETED_WITH_ALERTS" | "INCONSISTENT" | "FAILED";
+
+export interface ChecklistStoreValidation {
+  storeName: string;
+  storeNormalized: string;
+  uf: string | null;
+  storeId: string | null;
+  declared: number | null;
+  parsed: number;
+  persisted: number | null;
+  diffParsedVsDeclared: number | null;
+  diffPersistedVsParsed: number | null;
+  status: "OK" | "PARSE_DIVERGENCE" | "PERSIST_DIVERGENCE" | "STORE_NOT_FOUND" | "AMBIGUOUS_STORE";
+  dates: string[];
+  persistedDates?: string[];
+  missingDates?: string[];
+  extraDates?: string[];
+  message?: string;
+}
+
+export interface ChecklistValidationReport {
+  status: ChecklistValidationStatus;
+  declaredTotal: number | null;
+  declaredSum: number;
+  parsedTotal: number;
+  persistedTotal: number | null;
+  unmatchedStoreTotal: number;
+  invalidDateTotal: number;
+  duplicateRowTotal: number;
+  stores: ChecklistStoreValidation[];
+  summaryLines: string[];
+  validatedAt: string;
+}
+
 export interface ChecklistPreview {
   filename: string;
   industryId: string;
@@ -69,6 +103,7 @@ export interface ChecklistPreview {
   items: ChecklistItem[];
   storeFrequencies: ChecklistStoreFrequency[];
   warnings: string[];
+  validation?: ChecklistValidationReport;
 }
 
 export interface ChecklistCommitResult {
@@ -77,4 +112,5 @@ export interface ChecklistCommitResult {
   visitsSkipped: number;
   storesNotFound: number;
   invalidDates: number;
+  validation?: ChecklistValidationReport;
 }

@@ -4,6 +4,7 @@ import { buildRichError } from "./errors.server";
 import { parseChecklistWorkbook } from "./parser";
 import { diceCoefficient } from "./similarity";
 import { storeCompactKey, storeTokenSetKey } from "@/lib/mk9/normalization";
+import { buildValidationReport } from "./validation";
 import {
   cancelPreviousPreviews,
   createChecklistImport,
@@ -11,7 +12,9 @@ import {
   loadStoresIndex,
   savePreviewSnapshot,
   updateImportStatus,
+  writeValidationReport,
 } from "./persistence.server";
+
 
 
 interface ChecklistPreviewInput {
@@ -276,12 +279,23 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
       ...(parsed.firstDate && parsed.lastDate
         ? [`Período detectado: ${parsed.firstDate.split("-").reverse().join("/")} a ${parsed.lastDate.split("-").reverse().join("/")} (${parsed.dateColumnCount} colunas de data). Soma REALIZADO: ${parsed.realizadoSum}. Soma VISITA MENSAL: ${parsed.monthlyFrequencySum}.`]
         : []),
+      ...(parsed.declaredTotal !== null
+        ? [`Total declarado na planilha (TOTAL VISITAS MÊS): ${parsed.declaredTotal}. Marcações identificadas: ${parsed.marks.length}.`]
+        : []),
       ...(parsed.duplicateStores.length
         ? [`Duplicidades de loja detectadas: ${parsed.duplicateStores.length}. Verifique linhas: ${parsed.duplicateStores.slice(0, 10).map((d) => `${d.storeName} (${d.uf ?? "—"}) linha ${d.excelRow}`).join(", ")}${parsed.duplicateStores.length > 10 ? "…" : ""}.`]
         : []),
       ...parsed.warnings,
     ],
   };
+
+  // Validação em 3 níveis (pré-commit: sem persistedByStore).
+  preview.validation = buildValidationReport({
+    parsed,
+    items,
+    storeFrequencies,
+  });
+
 
   // Encerra prévias anteriores presas para a mesma indústria/competência antes de criar a nova.
   await cancelPreviousPreviews({
@@ -299,6 +313,8 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
 
   await savePreviewSnapshot(importId, preview);
   await updateImportStatus(importId, { status: "previewing", counters: { ...preview.counters } });
+  if (preview.validation) await writeValidationReport(importId, preview.validation);
+
 
 
   diagnostics.info("preview-complete", "Prévia finalizada com sucesso", {
