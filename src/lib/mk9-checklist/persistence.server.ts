@@ -342,6 +342,9 @@ export async function listChecklistImports(limit = 30) {
     startedAt: r.started_at as string,
     finishedAt: (r.finished_at as string | null) ?? null,
     durationMs: (r.duration_ms as number | null) ?? null,
+    validationStatus: (r.validation_status as string | null) ?? null,
+    validationDetails: (r.validation_details ?? null) as any,
+    validatedAt: (r.validated_at as string | null) ?? null,
   }));
 }
 
