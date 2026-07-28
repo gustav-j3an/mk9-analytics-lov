@@ -1,4 +1,4 @@
-// Autocomplete assíncrono de lojas MK9.
+// Autocomplete assíncrono de lojas MK9 — estilo Notion/Slack/Google.
 // Só consulta o banco quando o usuário digita ≥ 2 caracteres.
 // Debounce de 300 ms + cache em memória por termo normalizado.
 
@@ -22,7 +22,7 @@ export interface StoreOption {
 interface Props {
   value: string;                         // store_id
   onChange: (store: StoreOption) => void;
-  initialLabel?: string | null;          // exibido antes de qualquer busca
+  initialLabel?: string | null;
   disabled?: boolean;
   placeholder?: string;
 }
@@ -50,7 +50,7 @@ export function Mk9StoreAutocomplete({
     return () => clearTimeout(t);
   }, [input]);
 
-  // Modo edição: carrega apenas a loja atual (1 registro) para exibir label.
+  // Modo edição: carrega apenas a loja atual para exibir label.
   useEffect(() => {
     if (!value) { setSelected(null); return; }
     if (selected?.id === value) return;
@@ -69,7 +69,6 @@ export function Mk9StoreAutocomplete({
     return () => { cancel = true; };
   }, [value, selected?.id, getFn, qc]);
 
-  // Consulta com cache automático por termo (staleTime alto = reutiliza sessão).
   const searchQ = useQuery({
     queryKey: ["mk9-stores-search", debounced],
     queryFn: () => searchFn({ data: { q: debounced } }),
@@ -78,7 +77,9 @@ export function Mk9StoreAutocomplete({
     gcTime: 30 * 60 * 1000,
   });
 
-  const results = searchQ.data ?? [];
+  const data = searchQ.data;
+  const results: StoreOption[] = Array.isArray(data) ? [] : (data?.items ?? []);
+  const total: number = Array.isArray(data) ? 0 : (data?.total ?? 0);
   const showHint = debounced.length < 2;
   const showEmpty = !showHint && !searchQ.isFetching && results.length === 0;
 
@@ -116,42 +117,50 @@ export function Mk9StoreAutocomplete({
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent align="start" className="w-[--radix-popover-trigger-width] p-0">
+      <PopoverContent
+        align="start"
+        sideOffset={4}
+        className="w-[--radix-popover-trigger-width] p-0 rounded-xl border shadow-lg overflow-hidden"
+      >
         <div className="flex items-center gap-2 border-b px-3 py-2">
-          <Search className="h-4 w-4 opacity-60" />
+          <Search className="h-4 w-4 opacity-60 shrink-0" />
           <input
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Nome, rede, cidade ou UF…"
+            placeholder="Nome, rede ou UF…"
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
           {input && (
             <button
               type="button"
               onClick={() => setInput("")}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground shrink-0"
               aria-label="Limpar"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           )}
-          {searchQ.isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin opacity-60" />}
+          {searchQ.isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin opacity-60 shrink-0" />}
         </div>
 
-        <div className="max-h-72 overflow-auto py-1">
+        <div
+          className="overflow-y-auto overscroll-contain p-1"
+          style={{ maxHeight: 320 }}
+        >
           {showHint && (
-            <p className="px-3 py-4 text-xs text-muted-foreground text-center">
+            <p className="px-3 py-6 text-xs text-muted-foreground text-center">
               Digite pelo menos 2 caracteres para pesquisar.
             </p>
           )}
           {showEmpty && (
-            <p className="px-3 py-4 text-xs text-muted-foreground text-center">
+            <p className="px-3 py-6 text-xs text-muted-foreground text-center">
               Nenhuma loja encontrada.
             </p>
           )}
           {results.map((s) => {
             const isActive = s.id === value;
+            const cityUf = [s.city, s.uf].filter(Boolean).join(" - ");
             return (
               <button
                 key={s.id}
@@ -163,24 +172,39 @@ export function Mk9StoreAutocomplete({
                   setOpen(false);
                 }}
                 className={cn(
-                  "w-full text-left px-3 py-2 text-sm hover:bg-accent focus:bg-accent focus:outline-none",
-                  isActive && "bg-accent/60",
+                  "w-full text-left px-3 py-2.5 my-0.5 rounded-lg transition-colors",
+                  "hover:bg-accent focus:bg-accent focus:outline-none",
+                  isActive && "bg-accent",
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{s.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {[s.uf].filter(Boolean).join(" · ") || "—"}
-                      {s.chain ? <> · Rede: <span className="text-foreground/80">{s.chain}</span></> : null}
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="text-sm font-medium leading-tight truncate">
+                      {s.name}
                     </p>
+                    {cityUf && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {cityUf}
+                      </p>
+                    )}
+                    {s.chain && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        Rede {s.chain}
+                      </p>
+                    )}
                   </div>
-                  {isActive && <Check className="h-4 w-4 text-primary shrink-0" />}
+                  {isActive && <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />}
                 </div>
               </button>
             );
           })}
         </div>
+
+        {!showHint && results.length > 0 && total > results.length && (
+          <div className="border-t px-3 py-2 text-[11px] text-muted-foreground text-center bg-muted/30">
+            Exibindo {results.length} de {total} resultados. Refine a busca para ver mais.
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );
