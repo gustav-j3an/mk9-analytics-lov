@@ -246,13 +246,19 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
               {previewMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
               Gerar prévia
             </Button>
-            {preview && (
-              <Button variant="default" onClick={() => setConfirmOpen(true)} disabled={commitMut.isPending}>
-                {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                Atualizar base MK9
-              </Button>
-            )}
+            {preview && (() => {
+              const conflicts = (preview.routeDiff?.manualConflicts ?? 0) + (preview.routeDiff?.futureConflicts ?? 0);
+              const blocked = conflicts > 0 && !resolveConflicts;
+              return (
+                <Button variant="default" onClick={() => setConfirmOpen(true)} disabled={commitMut.isPending || blocked}
+                  title={blocked ? `Existem ${conflicts} conflitos manuais/futuros. Marque "Resolver conflitos usando planilha" para prosseguir.` : undefined}>
+                  {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  Atualizar base MK9
+                </Button>
+              );
+            })()}
           </div>
+
         </CardContent>
       </Card>
 
