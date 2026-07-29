@@ -130,24 +130,9 @@ function weeksInWindow(window: PeriodWindow): number {
   return Math.max(1, Math.round(window.totalDays / 7));
 }
 
-/**
- * Contratadas por loja a partir da frequência cadastrada. VISITA MENSAL tem
- * prioridade e entra como valor direto do Excel. Nunca usa roteiro.
- */
-function contractedFromFrequency(
-  weekly: number | null,
-  monthly: number | null,
-  totalDays: number,
-): { contratadas: number; source: ContractedSource } {
-  const days = Math.max(1, totalDays);
-  if (monthly != null && Number.isFinite(monthly) && monthly > 0) {
-    return { contratadas: Math.max(0, Math.round(monthly)), source: "MONTHLY_FREQUENCY" };
-  }
-  if (weekly != null && Number.isFinite(weekly) && weekly > 0) {
-    return { contratadas: Math.max(0, Math.round(weekly * (days / 7))), source: "WEEKLY_FREQUENCY" };
-  }
-  return { contratadas: 0, source: "NONE" };
-}
+// Contratadas por loja vêm de contractedVisitsForFrequencySegments
+// (@/lib/mk9-frequency/segments) — motor único, com um só arredondamento.
+
 
 
 export async function buildIndustryReport(
