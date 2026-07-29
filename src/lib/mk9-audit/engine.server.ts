@@ -228,21 +228,42 @@ async function buildIndustryContext(
   return { industryId: industry.id, industryName: industry.name, window: win, stores };
 }
 
-async function loadIndustries(supabase: any, industryId: string | null | undefined) {
+async function loadIndustries(
+  supabase: any,
+  industryId: string | null | undefined,
+  allowedIndustryIds?: string[] | null,
+) {
+  if (allowedIndustryIds?.length === 0) return [];
+  if (industryId && allowedIndustryIds && !allowedIndustryIds.includes(industryId)) return [];
   let q = supabase.from("mk9_industries").select("id,name").order("name", { ascending: true });
   if (industryId) q = q.eq("id", industryId);
+  else if (allowedIndustryIds) q = q.in("id", allowedIndustryIds);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
   return (data ?? []) as Array<{ id: string; name: string }>;
 }
 
 export async function auditByStore(supabase: any, scope: AuditScope): Promise<{ stores: AuditStoreLine[]; totals: AuditIndustryLine[] }> {
-  const industries = await loadIndustries(supabase, scope.industryId ?? null);
-  const contexts = await Promise.all(industries.map((ind) => buildIndustryContext(supabase, ind, scope.year, scope.month, scope.uf ?? null)));
+  const access = scope.access ?? null;
+  // Filtro do navegador nunca amplia escopo: UF pedida fora do escopo → vazio.
+  if (scope.uf && access?.allowedUfs && !access.allowedUfs.includes(scope.uf.toUpperCase())) {
+    return { stores: [], totals: [] };
+  }
+  if (scope.promoterId && access?.allowedPromoterIds && !access.allowedPromoterIds.includes(scope.promoterId)) {
+    return { stores: [], totals: [] };
+  }
+  const industries = await loadIndustries(supabase, scope.industryId ?? null, access?.allowedIndustryIds ?? null);
+  const contexts = await Promise.all(
+    industries.map((ind) => buildIndustryContext(supabase, ind, scope.year, scope.month, scope.uf ?? null, access)),
+  );
   const all: AuditStoreLine[] = [];
   const totals: AuditIndustryLine[] = [];
   for (const c of contexts) {
     let stores = c.stores;
+    if (access?.allowedPromoterIds) {
+      stores = stores.filter((s) => s.promoterId && access.allowedPromoterIds!.includes(s.promoterId));
+    }
+
     if (scope.promoterId) stores = stores.filter((s) => s.promoterId === scope.promoterId);
     for (const s of stores) all.push(s);
     const agg = aggregateVisitMetrics(stores.map((s) => ({ contratadas: s.contratadas, executadas: s.realizadas })));
