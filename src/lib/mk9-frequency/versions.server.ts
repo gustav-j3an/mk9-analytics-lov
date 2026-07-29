@@ -43,7 +43,7 @@ export interface LoadFrequencyVersionsParams {
   periodStart: string;
   /** yyyy-mm-dd inclusive */
   periodEnd: string;
-  accessScope?: Mk9AccessScope | null;
+  accessScope?: FrequencyAccessScope | null;
 }
 
 /**
