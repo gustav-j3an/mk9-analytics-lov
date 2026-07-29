@@ -16,8 +16,15 @@
  *   - sem `SELECT *`: apenas as colunas necessárias;
  *   - consulta em lote única (sem N+1), com filtro de vigência no banco.
  */
-import type { Mk9AccessScope } from "@/lib/mk9-auth/access-scope.server";
 import type { FrequencySegmentInput } from "./segments";
+
+/** Subconjunto estrutural do escopo resolvido no servidor (nunca vem do cliente). */
+export interface FrequencyAccessScope {
+  allowedIndustryIds?: string[] | null;
+  allowedUfs?: string[] | null;
+  allowedStoreIds?: string[] | null;
+}
+
 
 export interface FrequencyVersionSegment extends FrequencySegmentInput {
   industryId: string;
