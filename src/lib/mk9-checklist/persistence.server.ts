@@ -366,47 +366,40 @@ export async function loadPreviewSnapshot(importId: string) {
   return (data?.preview ?? null) as ChecklistPreview | null;
 }
 
-// Upsert de frequência contratada por loja em uma indústria.
-// Idempotente por (industry_id, store_id). Usa NULL quando o valor não veio no checklist.
+// FASE 1B.2 — A escrita de frequência foi migrada para o motor versionado em
+// src/lib/mk9-frequency/diff.server.ts. A tabela mk9_industry_store_frequency
+// virou apenas projeção (trigger de guarda no banco bloqueia escrita direta).
+// Este wrapper mantém a assinatura anterior, mas agora aplica diff + vigência.
 export async function upsertIndustryStoreFrequencies(
   industryId: string,
   importId: string,
   rows: Array<{ storeId: string; weeklyFrequency: number | null; monthlyFrequency: number | null }>,
+  options: {
+    operationMonth: number;
+    operationYear: number;
+    force?: boolean;
+    reason?: string | null;
+    actorId?: string | null;
+  },
 ) {
-  if (!rows.length) return { upserted: 0 };
-  // Dedup por storeId. Quando linhas distintas do Excel apontam para a mesma
-  // loja, soma a VISITA MENSAL para preservar o total contratado da planilha.
-  const dedup = new Map<string, { storeId: string; weekly: number | null; monthly: number | null }>();
-  for (const r of rows) {
-    const prev = dedup.get(r.storeId);
-    const monthly = r.monthlyFrequency ?? null;
-    const weekly = r.weeklyFrequency ?? null;
-    dedup.set(r.storeId, {
-      storeId: r.storeId,
-      weekly: weekly != null || prev?.weekly != null ? (prev?.weekly ?? 0) + (weekly ?? 0) : null,
-      monthly: monthly != null || prev?.monthly != null ? (prev?.monthly ?? 0) + (monthly ?? 0) : null,
-    });
-  }
-  const payload = Array.from(dedup.values()).map((r) => ({
-    industry_id: industryId,
-    store_id: r.storeId,
-    weekly_frequency: r.weekly,
-    monthly_frequency: r.monthly,
-    last_import_id: importId,
-  }));
-  const CHUNK = 500;
-  for (let i = 0; i < payload.length; i += CHUNK) {
-    const { error } = await supabaseAdmin
-      .from("mk9_industry_store_frequency")
-      .upsert(payload.slice(i, i + CHUNK) as any, { onConflict: "industry_id,store_id" });
-    if (error) throw new Error(error.message);
-  }
-  const storeIds = payload.map((r) => r.store_id);
-  const { error: deleteError } = await supabaseAdmin
-    .from("mk9_industry_store_frequency")
-    .delete()
-    .eq("industry_id", industryId)
-    .not("store_id", "in", `(${storeIds.join(",")})`);
-  if (deleteError) throw new Error(deleteError.message);
-  return { upserted: payload.length };
+  const { buildFrequencyDiff, applyFrequencyDiff } = await import(
+    "@/lib/mk9-frequency/diff.server"
+  );
+  const report = await buildFrequencyDiff(
+    industryId,
+    rows,
+    options.operationMonth,
+    options.operationYear,
+  );
+  const applied = await applyFrequencyDiff(importId, report, {
+    force: !!options.force,
+    reason: options.reason ?? null,
+    actorId: options.actorId ?? null,
+  });
+  return {
+    upserted: applied.new + applied.changed,
+    report,
+    applied,
+  };
 }
+
