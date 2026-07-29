@@ -123,8 +123,10 @@ async function requestChecklistPreview(input: {
   form.append("operationMonth", String(input.operationMonth));
   form.append("operationYear", String(input.operationYear));
 
+  const { mk9AuthHeaders } = await import("@/lib/mk9-auth/fetch-headers");
   const response = await fetch("/api/checklists/preview", {
     method: "POST",
+    headers: await mk9AuthHeaders(),
     body: form,
   });
 
