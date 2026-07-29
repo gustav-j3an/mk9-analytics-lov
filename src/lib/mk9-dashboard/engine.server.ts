@@ -341,7 +341,19 @@ export async function buildDashboardOverview(
   }
 
   // ---- linhas por indústria --------------------------------------------------
-  const industryRows: DashboardIndustryRow[] = ctxs.map((ctx) => {
+  // Indústrias sem qualquer operação no período (sem frequência, sem execução e
+  // sem roteiro vigente) são cadastros inativos e ficam fora do painel.
+  const industriesWithRoute = new Set(Array.from(routeByKey.keys()).map((k) => k.split("|")[0]));
+  const industryRows: DashboardIndustryRow[] = ctxs
+    .filter((ctx) => {
+      const rows = storeRows.filter((s) => s.industryId === ctx.id);
+      const hasAny =
+        rows.some((s) => s.contratadas > 0 || s.realizadas > 0) ||
+        industriesWithRoute.has(ctx.id) ||
+        ctx.checklistImports > 0;
+      return hasAny;
+    })
+    .map((ctx) => {
     const rows = storeRows.filter((s) => s.industryId === ctx.id);
     const contratadas = rows.reduce((a, s) => a + s.contratadas, 0);
     const realizadas = rows.reduce((a, s) => a + s.realizadas, 0);
@@ -354,7 +366,7 @@ export async function buildDashboardOverview(
       expectedToDate,
       lojasContratadas,
       checklistImports: ctx.checklistImports,
-      hasExecutionOrRoute: realizadas > 0 || rows.some((s) => s.promoterResolution === "MATCHED_ROUTE"),
+      hasExecutionOrRoute: realizadas > 0 || industriesWithRoute.has(ctx.id),
     });
     return {
       industryId: ctx.id,
@@ -377,6 +389,7 @@ export async function buildDashboardOverview(
       checklistImports: ctx.checklistImports,
     };
   });
+
   industryRows.sort((a, b) => {
     const d = INDUSTRY_STATUS_ORDER.indexOf(a.status) - INDUSTRY_STATUS_ORDER.indexOf(b.status);
     if (d !== 0) return d;
