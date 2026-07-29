@@ -29,10 +29,24 @@ export const Route = createFileRoute("/api/reports/industry-pdf")({
         let industryId: string | null = null;
         let period: { month?: number; year?: number } = {};
         try {
+          stage = "authorize";
+          try {
+            const { requireMk9Reports } = await import("@/lib/mk9-auth/read-guards.server");
+            await requireMk9Reports(request);
+          } catch (authError) {
+            const status = (authError as any)?.statusCode === 403 ? 403 : 401;
+            return errorResponse(status, {
+              stage: "authorize",
+              message: authError instanceof Error ? authError.message : "Não autorizado.",
+            });
+          }
+
+          stage = "parse-payload";
           const raw = await request.json();
           const body = payloadSchema.parse(raw);
           industryId = body.industryId;
           period = { month: body.month, year: body.year };
+
 
           stage = "load-server-modules";
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
