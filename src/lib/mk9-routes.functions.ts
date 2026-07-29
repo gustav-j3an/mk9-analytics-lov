@@ -98,9 +98,13 @@ export const mk9RoutesListHistory = createServerFn({ method: "POST" })
     }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { assertIndustryAllowed, storeFilter } = await import("@/lib/mk9-auth/access-scope.server");
+    const { scope } = await requireMk9ReadScope();
+    assertIndustryAllowed(scope, data.industryId);
+    if (storeFilter(scope, data.storeId).outOfScope) return [];
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const { data: rows, error } = await supabaseAdmin
       .from("mk9_planned_routes")
       .select(
