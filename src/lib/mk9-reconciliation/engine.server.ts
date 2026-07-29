@@ -12,7 +12,39 @@ export interface ReconcileScope {
   operationMonth: number;
   industryId?: string | null;
   sourceImportId?: string | null;
+  /** Escopo de acesso resolvido no servidor (Fase 0.2). Nunca vem do navegador. */
+  access?: import("@/lib/mk9-auth/access-scope.server").Mk9AccessScope | null;
 }
+
+/** Aplica o escopo de acesso a uma consulta de conciliação (indústria/loja/promotor). */
+export function applyReconAccess(q: any, access?: ReconcileScope["access"]) {
+  if (!access) return q;
+  if (access.allowedIndustryIds) q = q.in("industry_id", access.allowedIndustryIds);
+  if (access.allowedStoreIds) q = q.in("store_id", access.allowedStoreIds);
+  if (access.allowedPromoterIds) q = q.in("promoter_id", access.allowedPromoterIds);
+  return q;
+}
+
+/** Filtro de UF pós-consulta (UF vive na loja relacionada). */
+export function filterRowsByAccessUf(rows: any[], access?: ReconcileScope["access"]) {
+  if (!access?.allowedUfs) return rows;
+  const allowed = access.allowedUfs;
+  return rows.filter((r) => {
+    const uf = r.store?.uf ?? r.raw_store_uf ?? null;
+    return uf ? allowed.includes(uf) : false;
+  });
+}
+
+/** true quando o escopo já é vazio (nenhuma linha pode ser retornada). */
+export function accessIsEmpty(access?: ReconcileScope["access"]) {
+  return (
+    access?.allowedIndustryIds?.length === 0 ||
+    access?.allowedStoreIds?.length === 0 ||
+    access?.allowedUfs?.length === 0 ||
+    access?.allowedPromoterIds?.length === 0
+  );
+}
+
 
 type PlannedRow = {
   id: string;
