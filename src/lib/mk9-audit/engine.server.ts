@@ -187,6 +187,8 @@ async function buildIndustryContext(
   for (const a of actuals ?? []) {
     if (!a.store_id) continue;
     if (uf && a.store?.uf !== uf) continue;
+    if (!inScope(a.store, a.store_id)) continue;
+
     const b = touch(a.store_id, a.store);
     b.actual += 1;
   }
