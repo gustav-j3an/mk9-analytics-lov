@@ -1086,6 +1086,18 @@ export type Database = {
           weekday: number
         }[]
       }
+      mk9_set_frequency_manual: {
+        Args: {
+          _actor?: string
+          _industry_id: string
+          _monthly: number
+          _reason?: string
+          _store_id: string
+          _valid_from?: string
+          _weekly: number
+        }
+        Returns: string
+      }
       mk9_sync_planned_visits: {
         Args: { _archive_ids: string[]; _import_id: string; _rows: Json }
         Returns: Json
