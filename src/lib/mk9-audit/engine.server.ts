@@ -98,9 +98,18 @@ async function buildIndustryContext(
   year: number,
   month: number,
   uf: string | null,
+  access?: AuditScope["access"],
 ): Promise<IndustryContext> {
+  const allowedUfs = access?.allowedUfs ?? null;
+  const allowedStoreIds = access?.allowedStoreIds ?? null;
+  const inScope = (store: any, storeId: string) => {
+    if (allowedStoreIds && !allowedStoreIds.includes(storeId)) return false;
+    if (allowedUfs && !(store?.uf && allowedUfs.includes(store.uf))) return false;
+    return true;
+  };
   const cfg = await loadPeriodConfig(supabase, industry.id);
   const win = resolveWindow(cfg, year, month);
+
 
   // Frequência por loja
   const { data: freqs, error: eF } = await supabase
