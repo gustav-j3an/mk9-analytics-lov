@@ -1037,6 +1037,16 @@ export type Database = {
         Returns: boolean
       }
       is_mk9_admin: { Args: never; Returns: boolean }
+      mk9_apply_frequency_diff: {
+        Args: {
+          _actor?: string
+          _decisions: Json
+          _force?: boolean
+          _import_id: string
+          _reason?: string
+        }
+        Returns: Json
+      }
       mk9_apply_route_diff: {
         Args: { _decisions: Json; _force?: boolean; _import_id: string }
         Returns: Json
