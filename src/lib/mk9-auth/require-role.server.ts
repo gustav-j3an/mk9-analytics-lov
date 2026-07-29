@@ -101,7 +101,7 @@ export async function requireMk9Role(
 
   if (!authHeader) {
     if (!devBypassAllowed(request)) {
-      throw new Mk9UnauthenticatedError("Autenticação obrigatória. Faça login para continuar.");
+      throw Mk9UnauthenticatedError("Autenticação obrigatória. Faça login para continuar.");
     }
     console.warn(
       `[MK9-AUTH] dev-bypass local: ação exige ${required.join("|")} — sem Authorization header. ` +
@@ -111,11 +111,11 @@ export async function requireMk9Role(
   }
 
   if (!authHeader.startsWith("Bearer ")) {
-    throw new Mk9UnauthenticatedError("Formato de autenticação inválido.");
+    throw Mk9UnauthenticatedError("Formato de autenticação inválido.");
   }
   const token = authHeader.slice(7).trim();
   if (!token || token.split(".").length !== 3) {
-    throw new Mk9UnauthenticatedError("Token de autenticação inválido.");
+    throw Mk9UnauthenticatedError("Token de autenticação inválido.");
   }
 
   const url = process.env.SUPABASE_URL!;
@@ -131,7 +131,7 @@ export async function requireMk9Role(
 
   const { data: userData, error: userErr } = await supabase.auth.getUser(token);
   if (userErr || !userData?.user) {
-    throw new Mk9UnauthenticatedError("Sessão expirada ou inválida. Faça login novamente.");
+    throw Mk9UnauthenticatedError("Sessão expirada ou inválida. Faça login novamente.");
   }
   const user = userData.user;
 
@@ -142,14 +142,14 @@ export async function requireMk9Role(
 
   if (roleErr) {
     console.error("[MK9-AUTH] falha ao ler roles:", roleErr);
-    throw new Mk9AuthorizationError("Não foi possível validar suas permissões.");
+    throw Mk9AuthorizationError("Não foi possível validar suas permissões.");
   }
 
   const roles = (roleRows ?? []).map((r) => r.role as Mk9Role);
   const ok = roles.some((r) => required.includes(r));
 
   if (!ok) {
-    throw new Mk9AuthorizationError(
+    throw Mk9AuthorizationError(
       `Usuário sem permissão para executar esta ação. Papel exigido: ${required.join(" ou ")}.`,
     );
   }
