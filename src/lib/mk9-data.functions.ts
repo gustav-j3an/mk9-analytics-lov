@@ -109,17 +109,26 @@ export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
     year: z.number().int().min(2020).max(2100),
   }).parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin
+    if (scope.allowedIndustryIds?.length === 0 || scope.allowedStoreIds?.length === 0 || scope.allowedUfs?.length === 0) return [];
+    let q = supabaseAdmin
       .from("mk9_planned_routes")
       .select(
         "id, weekday, operation_month, operation_year, source_sheet, promoter:mk9_promoters(id,name,city), store:mk9_stores(id,name,chain,uf), industry:mk9_industries(id,name)",
       )
       .eq("operation_month", data.month)
       .eq("operation_year", data.year);
+    if (scope.allowedIndustryIds) q = q.in("industry_id", scope.allowedIndustryIds);
+    if (scope.allowedStoreIds) q = q.in("store_id", scope.allowedStoreIds);
+    if (scope.allowedPromoterIds) q = q.in("promoter_id", scope.allowedPromoterIds);
+    const { data: allRows, error } = await q;
     if (error) throw new Error(error.message);
+    const rows = (allRows ?? []).filter(
+      (r: any) => !scope.allowedUfs || (r.store?.uf && scope.allowedUfs.includes(r.store.uf)),
+    );
+
     return (rows ?? []).map((r: any) => ({
       id: r.id as string,
       weekday: r.weekday as number,
