@@ -20,10 +20,10 @@ export const INDUSTRY_STATUS_LABEL: Record<IndustryStatusKey, string> = {
 export const INDUSTRY_STATUS_ORDER: IndustryStatusKey[] = [
   "CRITICA",
   "SEM_CHECKLIST",
-  "SEM_FREQUENCIA",
   "ATENCAO",
   "EM_DIA",
   "CONCLUIDA",
+  "SEM_FREQUENCIA",
 ];
 
 export type StoreExecStatus = "INTEGRAL" | "PARCIAL" | "NAO_ATENDIDA";

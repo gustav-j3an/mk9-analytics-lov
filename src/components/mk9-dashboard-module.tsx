@@ -86,12 +86,12 @@ function nf(v: number) {
 }
 
 const STATUS_STYLES: Record<IndustryStatusKey, string> = {
-  CONCLUIDA: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
-  EM_DIA: "bg-sky-500/15 text-sky-300 border-sky-500/30",
-  ATENCAO: "bg-amber-500/15 text-amber-300 border-amber-500/30",
-  CRITICA: "bg-rose-500/15 text-rose-300 border-rose-500/30",
-  SEM_CHECKLIST: "bg-violet-500/15 text-violet-300 border-violet-500/30",
-  SEM_FREQUENCIA: "bg-zinc-500/15 text-zinc-300 border-zinc-500/30",
+  CONCLUIDA: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+  EM_DIA: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
+  ATENCAO: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
+  CRITICA: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
+  SEM_CHECKLIST: "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30",
+  SEM_FREQUENCIA: "bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/30",
 };
 const STATUS_CHART_COLOR: Record<IndustryStatusKey, string> = {
   CONCLUIDA: "#34d399",
@@ -102,10 +102,10 @@ const STATUS_CHART_COLOR: Record<IndustryStatusKey, string> = {
   SEM_FREQUENCIA: "#a1a1aa",
 };
 const SEVERITY_STYLES: Record<DashboardAlert["severity"], string> = {
-  CRITICA: "bg-rose-500/15 text-rose-300 border-rose-500/30",
-  ALTA: "bg-amber-500/15 text-amber-300 border-amber-500/30",
-  MEDIA: "bg-sky-500/15 text-sky-300 border-sky-500/30",
-  BAIXA: "bg-zinc-500/15 text-zinc-300 border-zinc-500/30",
+  CRITICA: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
+  ALTA: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
+  MEDIA: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
+  BAIXA: "bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/30",
 };
 
 export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: DashboardDrillDown) => void }) {
@@ -358,12 +358,17 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
                   <RTooltip
                     contentStyle={{ background: "var(--color-popover)", border: "1px solid var(--color-border)", borderRadius: 10, fontSize: 12 }}
                     labelFormatter={(v) => fmtDate(String(v))}
-                    formatter={(value: any, name: any) => [nf(Number(value)), name === "expected" ? "Esperado acumulado" : name === "realized" ? "Realizado acumulado" : "Diferença"]}
+                    formatter={(value: any, name: any, item: any) => {
+                      if (name === "realized") {
+                        const d = Number(item?.payload?.diff ?? 0);
+                        return [`${nf(Number(value))}  (${d >= 0 ? "+" : ""}${nf(d)})`, "Realizado acumulado"];
+                      }
+                      return [nf(Number(value)), "Esperado acumulado"];
+                    }}
                   />
                   <Legend verticalAlign="top" height={28} formatter={(v) => (v === "expected" ? "Esperado" : v === "realized" ? "Realizado" : "Diferença")} wrapperStyle={{ fontSize: 11 }} />
                   <Area type="monotone" dataKey="expected" stroke="var(--color-chart-1)" strokeWidth={2} strokeDasharray="5 4" fill="url(#dExp)" />
                   <Area type="monotone" dataKey="realized" stroke="var(--color-chart-2)" strokeWidth={2} fill="url(#dReal)" />
-                  <Area type="monotone" dataKey="diff" stroke="transparent" fill="transparent" />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -451,7 +456,7 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
                         <TableCell className="text-right font-medium">{nf(i.realizadas)}</TableCell>
                         <TableCell className="text-right">{nf(i.pendentes)}</TableCell>
                         <TableCell className="text-right">{i.coberturaPct}%</TableCell>
-                        <TableCell className={cn("text-right font-medium", i.deviation >= 0 ? "text-emerald-300" : "text-rose-300")}>
+                        <TableCell className={cn("text-right font-medium", i.deviation >= 0 ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300")}>
                           {i.deviation >= 0 ? "+" : ""}{nf(i.deviation)}
                         </TableCell>
                         <TableCell><StatusBadge status={i.status} /></TableCell>
@@ -569,9 +574,9 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={cn("text-[10px]",
-                            s.status === "INTEGRAL" ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                              : s.status === "PARCIAL" ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
-                                : "bg-rose-500/15 text-rose-300 border-rose-500/30")}>
+                            s.status === "INTEGRAL" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                              : s.status === "PARCIAL" ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                                : "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30")}>
                             {s.status === "INTEGRAL" ? "Integral" : s.status === "PARCIAL" ? "Parcial" : "Não atendida"}
                           </Badge>
                         </TableCell>
@@ -647,10 +652,10 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
                       <TableCell className="text-right">{nf(p.visitsOffSchedule)}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={cn("text-[10px]",
-                          p.status === "EM_DIA" ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                            : p.status === "ATENCAO" ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
-                              : p.status === "CRITICA" ? "bg-rose-500/15 text-rose-300 border-rose-500/30"
-                                : "bg-zinc-500/15 text-zinc-300 border-zinc-500/30")}>
+                          p.status === "EM_DIA" ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                            : p.status === "ATENCAO" ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                              : p.status === "CRITICA" ? "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30"
+                                : "bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/30")}>
                           {p.status === "EM_DIA" ? "Em dia" : p.status === "ATENCAO" ? "Atenção" : p.status === "CRITICA" ? "Crítica" : "Não resolvido"}
                         </Badge>
                       </TableCell>
@@ -678,11 +683,11 @@ function FilterField({ label, children }: { label: string; children: React.React
 }
 
 const KPI_TONES = {
-  blue: "from-sky-500/15 to-transparent text-sky-300",
-  green: "from-emerald-500/15 to-transparent text-emerald-300",
-  amber: "from-amber-500/15 to-transparent text-amber-300",
-  violet: "from-violet-500/15 to-transparent text-violet-300",
-  rose: "from-rose-500/15 to-transparent text-rose-300",
+  blue: "from-sky-500/15 to-transparent text-sky-700 dark:text-sky-300",
+  green: "from-emerald-500/15 to-transparent text-emerald-700 dark:text-emerald-300",
+  amber: "from-amber-500/15 to-transparent text-amber-700 dark:text-amber-300",
+  violet: "from-violet-500/15 to-transparent text-violet-700 dark:text-violet-300",
+  rose: "from-rose-500/15 to-transparent text-rose-700 dark:text-rose-300",
 } as const;
 
 function Kpi({
