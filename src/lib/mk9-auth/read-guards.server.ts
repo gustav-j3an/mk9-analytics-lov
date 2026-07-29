@@ -28,3 +28,33 @@ export function requireMk9Reports(request?: Request): Promise<Mk9AuthContext> {
 export function requireMk9AdminRead(request?: Request): Promise<Mk9AuthContext> {
   return requireMk9Role(MK9_READ_ADMIN, request ? { request } : undefined);
 }
+
+// ---------------------------------------------------------------------------
+// Fase 0.2 — guardas que já devolvem o escopo resolvido (uma vez por request).
+// ---------------------------------------------------------------------------
+import { resolveMk9AccessScope, type Mk9AccessScope } from "./access-scope.server";
+
+export interface Mk9ReadSession {
+  ctx: Mk9AuthContext;
+  scope: Mk9AccessScope;
+}
+
+async function withScope(ctx: Mk9AuthContext): Promise<Mk9ReadSession> {
+  return { ctx, scope: await resolveMk9AccessScope(ctx) };
+}
+
+export async function requireMk9ReadScope(request?: Request): Promise<Mk9ReadSession> {
+  return withScope(await requireMk9Read(request));
+}
+
+export async function requireMk9ReportsScope(request?: Request): Promise<Mk9ReadSession> {
+  return withScope(await requireMk9Reports(request));
+}
+
+export async function requireMk9AdminReadScope(request?: Request): Promise<Mk9ReadSession> {
+  return withScope(await requireMk9AdminRead(request));
+}
+
+export async function requireMk9RoleScope(roles: Mk9Role[], request?: Request): Promise<Mk9ReadSession> {
+  return withScope(await requireMk9Role(roles, request ? { request } : undefined));
+}
