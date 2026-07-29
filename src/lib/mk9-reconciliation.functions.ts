@@ -20,7 +20,6 @@ export const reconcileRun = createServerFn({ method: "POST" })
       operationMonth: data.operationMonth,
       industryId: data.industryId ?? null,
       sourceImportId: data.sourceImportId ?? null,
-      access,
     });
     await logAudit(ctx, "mk9.reconcile.run", "mk9_visit_reconciliations", data.sourceImportId ?? null, {
       operationYear: data.operationYear,

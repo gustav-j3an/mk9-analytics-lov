@@ -849,7 +849,11 @@ export async function linkStoreToReconciliation(input: {
 // ============ LISTAR IMPORTS DO CHECKLIST NO ESCOPO ============
 export async function listChecklistImportsInScope(scope: {
   operationYear: number; operationMonth: number; industryId?: string | null;
+  access?: ReconcileScope["access"];
 }) {
+  const allowedIndustries = scope.access?.allowedIndustryIds ?? null;
+  if (allowedIndustries?.length === 0) return [];
+  if (scope.industryId && allowedIndustries && !allowedIndustries.includes(scope.industryId)) return [];
   let q = supabaseAdmin
     .from("mk9_checklist_imports")
     .select("id, filename, industry_id, started_at, status")
@@ -857,6 +861,7 @@ export async function listChecklistImportsInScope(scope: {
     .eq("operation_month", scope.operationMonth)
     .order("started_at", { ascending: false }).limit(50);
   if (scope.industryId) q = q.eq("industry_id", scope.industryId);
+  else if (allowedIndustries) q = q.in("industry_id", allowedIndustries);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
   return data ?? [];
