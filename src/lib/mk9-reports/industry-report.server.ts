@@ -363,6 +363,12 @@ export async function buildIndustryReport(
       contractedSource: source,
       weeklyFrequency: b.weekly,
       monthlyFrequency: b.monthly,
+      frequencyChangedInPeriod: contracted.hasMultipleSegments,
+      frequencyLabel: describeFrequencySegments(contracted, {
+        start: window.startDate,
+        end: window.endDate,
+      }),
+
       plannedCount: b.plannedCount,
       metrics: m,
     };
