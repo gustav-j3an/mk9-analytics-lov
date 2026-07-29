@@ -435,6 +435,82 @@ export type Database = {
           },
         ]
       }
+      mk9_industry_store_frequency_versions: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          industry_id: string
+          monthly_frequency: number | null
+          notes: string | null
+          source_import_id: string | null
+          source_type: string
+          store_id: string
+          updated_at: string
+          updated_by: string | null
+          valid_from: string
+          valid_until: string | null
+          weekly_frequency: number | null
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          industry_id: string
+          monthly_frequency?: number | null
+          notes?: string | null
+          source_import_id?: string | null
+          source_type: string
+          store_id: string
+          updated_at?: string
+          updated_by?: string | null
+          valid_from: string
+          valid_until?: string | null
+          weekly_frequency?: number | null
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          industry_id?: string
+          monthly_frequency?: number | null
+          notes?: string | null
+          source_import_id?: string | null
+          source_type?: string
+          store_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          valid_from?: string
+          valid_until?: string | null
+          weekly_frequency?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_isfv_industry_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_isfv_source_import_fkey"
+            columns: ["source_import_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_isfv_store_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mk9_planned_routes: {
         Row: {
           archived_at: string | null
@@ -970,6 +1046,24 @@ export type Database = {
         Returns: undefined
       }
       mk9_normalize_store_name: { Args: { input: string }; Returns: string }
+      mk9_resolve_frequency: {
+        Args: {
+          p_industry_id: string
+          p_reference_date: string
+          p_store_id: string
+        }
+        Returns: {
+          match_count: number
+          monthly_frequency: number
+          source_import_id: string
+          source_type: string
+          status: string
+          valid_from: string
+          valid_until: string
+          version_id: string
+          weekly_frequency: number
+        }[]
+      }
       mk9_resolve_route_promoter: {
         Args: { _industry_id: string; _on_date: string; _store_id: string }
         Returns: {
