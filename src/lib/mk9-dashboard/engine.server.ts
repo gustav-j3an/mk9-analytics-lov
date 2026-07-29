@@ -324,7 +324,7 @@ export async function buildDashboardOverview(
     return true;
   };
   const passesStore = (storeId: string) => !accessStoreIds || accessStoreIds.includes(storeId);
-  const touch = (ctx: IndustryCtx, storeId: string, store: any) => {
+  const touch = (ctx: IndustryCtx, storeId: string, store: any): StoreBucket => {
     let b = ctx.buckets.get(storeId);
     if (!b) {
       b = {
@@ -334,6 +334,7 @@ export async function buildDashboardOverview(
         uf: store?.uf ?? null,
         weekly: null,
         monthly: null,
+        segments: [],
         visits: [],
       };
       ctx.buckets.set(storeId, b);
@@ -341,15 +342,30 @@ export async function buildDashboardOverview(
     return b;
   };
 
-  for (const f of freqRes.data ?? []) {
-    const ctx = ctxById.get(f.industry_id);
-    if (!ctx || !f.store_id) continue;
-    if (!passesUf(f.store?.uf ?? null)) continue;
-    if (!passesStore(f.store_id)) continue;
-    const b = touch(ctx, f.store_id, f.store);
-    b.weekly = (f.weekly_frequency as number | null) ?? b.weekly;
-    b.monthly = (f.monthly_frequency as number | null) ?? b.monthly;
+  // Frequência versionada: cada (indústria, loja) recebe as vigências que
+  // interceptam a janela DAQUELA indústria (KING 23→22, demais 01→fim do mês).
+  for (const [key, segs] of freqVersions) {
+    const [industryId, storeId] = key.split("|");
+    const ctx = ctxById.get(industryId);
+    if (!ctx || !storeId) continue;
+    const inWindow = segmentsForWindow(segs, ctx.win.startDate, ctx.win.endDate);
+    if (!inWindow.length) continue;
+    const store = inWindow[0].store;
+    if (!passesUf(store?.uf ?? null)) continue;
+    if (!passesStore(storeId)) continue;
+    const b = touch(ctx, storeId, store);
+    b.segments = inWindow.map((s) => ({
+      validFrom: s.validFrom,
+      validUntil: s.validUntil,
+      weeklyFrequency: s.weeklyFrequency,
+      monthlyFrequency: s.monthlyFrequency,
+    }));
+    // valores da vigência mais recente — apenas exibição/compatibilidade
+    const last = inWindow[inWindow.length - 1];
+    b.weekly = last.weeklyFrequency;
+    b.monthly = last.monthlyFrequency;
   }
+
   for (const v of visitRes.data ?? []) {
     const ctx = ctxById.get(v.industry_id);
     if (!ctx || !v.store_id) continue;
