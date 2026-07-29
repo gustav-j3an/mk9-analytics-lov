@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DevDashPreviewRouteImport } from './routes/dev-dash-preview'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiReportsIndustryPdfRouteImport } from './routes/api/reports/industry-pdf'
 import { Route as ApiChecklistsPreviewRouteImport } from './routes/api/checklists/preview'
@@ -23,6 +24,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevDashPreviewRoute = DevDashPreviewRouteImport.update({
+  id: '/dev-dash-preview',
+  path: '/dev-dash-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +49,7 @@ const ApiChecklistsPreviewRoute = ApiChecklistsPreviewRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dev-dash-preview': typeof DevDashPreviewRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dev-dash-preview': typeof DevDashPreviewRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dev-dash-preview': typeof DevDashPreviewRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
@@ -67,6 +76,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/dev-dash-preview'
     | '/login'
     | '/reset-password'
     | '/api/checklists/preview'
@@ -74,6 +84,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/dev-dash-preview'
     | '/login'
     | '/reset-password'
     | '/api/checklists/preview'
@@ -81,6 +92,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/dev-dash-preview'
     | '/login'
     | '/reset-password'
     | '/api/checklists/preview'
@@ -89,6 +101,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DevDashPreviewRoute: typeof DevDashPreviewRoute
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiChecklistsPreviewRoute: typeof ApiChecklistsPreviewRoute
@@ -109,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev-dash-preview': {
+      id: '/dev-dash-preview'
+      path: '/dev-dash-preview'
+      fullPath: '/dev-dash-preview'
+      preLoaderRoute: typeof DevDashPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -137,6 +157,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DevDashPreviewRoute: DevDashPreviewRoute,
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiChecklistsPreviewRoute: ApiChecklistsPreviewRoute,
@@ -145,3 +166,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
