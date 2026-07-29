@@ -267,7 +267,7 @@ function frequencyLabel(s: StoreLine): string {
 
 function drawStoreTable(ctx: PdfCtx) {
   const pcts = [0.27, 0.04, 0.07, 0.06, 0.06, 0.06, 0.05, 0.06, 0.08, 0.09, 0.16];
-  const labels = ["Loja", "UF", "Frequência", "Contratadas", "Realizadas", "Pendentes", "Extras", "Cobertura", "Execução", "Roteiro", "Datas realizadas"];
+  const labels = ["Loja", "UF", "Frequência", "Contrat.", "Realiz.", "Pend.", "Extras", "Cobert.", "Execução", "Roteiro", "Datas realizadas"];
   const cols: Column[] = labels.map((label, i) => ({ label, w: CONTENT_W * pcts[i] }));
 
   // Título + cabeçalho nunca ficam órfãos: exigimos espaço para pelo menos 2 linhas.
