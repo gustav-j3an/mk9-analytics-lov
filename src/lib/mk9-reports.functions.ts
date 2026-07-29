@@ -14,8 +14,8 @@ const scopeSchema = z.object({
 export const reportIndustry = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => scopeSchema.parse(d))
   .handler(async ({ data }) => {
-    const { requireMk9Reports } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Reports();
+    const { requireMk9ReportsScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope: access } = await requireMk9ReportsScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { loadPeriodConfig, resolveWindow } = await import("./mk9-reports/period.server");
     const { buildIndustryReport } = await import("./mk9-reports/industry-report.server");
@@ -28,16 +28,19 @@ export const reportIndustry = createServerFn({ method: "POST" })
       uf: data.uf ?? null,
       storeId: data.storeId ?? null,
       sourceImportId: data.sourceImportId ?? null,
+      access,
     }, window);
   });
 
 export const reportIndustryPeriodConfig = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ industryId: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
-    const { requireMk9Reports } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Reports();
+    const { requireMk9ReportsScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope: access } = await requireMk9ReportsScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { loadPeriodConfig } = await import("./mk9-reports/period.server");
+    const { assertIndustryAllowed } = await import("@/lib/mk9-auth/access-scope.server");
+    assertIndustryAllowed(access, data.industryId);
     return loadPeriodConfig(supabaseAdmin, data.industryId);
   });
 
@@ -91,9 +94,11 @@ export const reportListChecklistImports = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Reports } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Reports();
+    const { requireMk9ReportsScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope: access } = await requireMk9ReportsScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assertIndustryAllowed } = await import("@/lib/mk9-auth/access-scope.server");
+    assertIndustryAllowed(access, data.industryId);
     const { data: rows, error } = await supabaseAdmin
       .from("mk9_checklist_imports")
       .select("id, filename, status, started_at, counters")
