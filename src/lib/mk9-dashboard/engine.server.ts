@@ -386,9 +386,16 @@ export async function buildDashboardOverview(
       if (filters.promoterId && promo.id !== filters.promoterId) continue;
       if (accessPromoterIds && (!promo.id || !accessPromoterIds.includes(promo.id))) continue;
 
-      const contratadas = contractedFromFrequency(b.weekly, b.monthly, ctx.win.totalDays);
+      const contracted = contractedForStore(b.segments, ctx.win);
+      const contratadas = contracted.contratadas;
       const realizadas = b.visits.length;
-      const expectedToDate = Math.round(contratadas * ctx.fraction);
+      // Meta até hoje: recorta a janela na data atual respeitando cada vigência
+      // (uma troca de frequência no meio do mês reflete corretamente).
+      const expectedToDate =
+        today >= ctx.win.endDate
+          ? contratadas
+          : contractedForStore(b.segments, ctx.win, today).contratadas;
+
       const lastVisit = b.visits.length ? b.visits.slice().sort()[b.visits.length - 1] : null;
       const status: StoreExecStatus =
         realizadas === 0 ? "NAO_ATENDIDA" : contratadas > 0 && realizadas >= contratadas ? "INTEGRAL" : "PARCIAL";
