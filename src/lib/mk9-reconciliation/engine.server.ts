@@ -426,13 +426,15 @@ export async function reconcile(scope: ReconcileScope): Promise<ReconciliationSu
 }
 
 export async function summarize(scope: ReconcileScope): Promise<ReconciliationSummary> {
-  const q = supabaseAdmin
+  let q: any = supabaseAdmin
     .from("mk9_visit_reconciliations")
-    .select("status")
+    .select("status, store:mk9_stores(uf), raw_store_uf")
     .eq("operation_year", scope.operationYear)
     .eq("operation_month", scope.operationMonth);
-  if (scope.industryId) q.eq("industry_id", scope.industryId);
-  const { data, error } = await q;
+  if (scope.industryId) q = q.eq("industry_id", scope.industryId);
+  q = applyReconAccess(q, scope.access);
+  const { data: rawData, error } = await q;
+  const data = filterRowsByAccessUf(rawData ?? [], scope.access);
   if (error) throw new Error(error.message);
 
   const counts: Record<string, number> = {};
@@ -595,11 +597,13 @@ export async function listReconciliations(scope: ReconcileScope, limit = 500) {
     .eq("operation_month", scope.operationMonth)
     .order("status", { ascending: true })
     .limit(limit);
-  if (scope.industryId) q.eq("industry_id", scope.industryId);
-  if (scope.sourceImportId) q.eq("source_import_id", scope.sourceImportId);
-  const { data, error } = await q;
+  let qq: any = q;
+  if (scope.industryId) qq = qq.eq("industry_id", scope.industryId);
+  if (scope.sourceImportId) qq = qq.eq("source_import_id", scope.sourceImportId);
+  qq = applyReconAccess(qq, scope.access);
+  const { data, error } = await qq;
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return filterRowsByAccessUf(data ?? [], scope.access);
 }
 
 // ============ LISTAGEM PAGINADA + FILTROS ============
@@ -633,12 +637,13 @@ export async function listReconciliationsPaged(f: PagedFilters) {
   if (f.promoterId) q = q.eq("promoter_id", f.promoterId);
   if (f.storeId) q = q.eq("store_id", f.storeId);
   if (f.statuses && f.statuses.length) q = q.in("status", f.statuses);
+  q = applyReconAccess(q, f.access);
 
   q = q.order("status", { ascending: true }).order("planned_date", { ascending: true }).range(from, to);
   const { data, count, error } = await q;
   if (error) throw new Error(error.message);
 
-  let rows = (data ?? []) as any[];
+  let rows = filterRowsByAccessUf((data ?? []) as any[], f.access);
   if (f.uf) {
     const uf = f.uf.toUpperCase();
     rows = rows.filter((r) => (r.store?.uf ?? r.raw_store_uf) === uf);
