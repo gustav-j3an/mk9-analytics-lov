@@ -26,7 +26,12 @@ const commitSchema = z.object({
   operationMonth: z.number().int().min(1).max(12),
   operationYear: z.number().int().min(2020).max(2100),
   items: z.array(commitItemSchema),
+  // Conflitos de frequência (MANUAL/FUTURE) só podem ser forçados por ADMIN
+  // e exigem justificativa registrada em auditoria.
+  forceFrequencyConflicts: z.boolean().optional(),
+  forceReason: z.string().min(10).max(500).optional(),
 });
+
 
 async function validate<T>(step: string, fn: () => T): Promise<T> {
   const { withRichErrors } = await import("./mk9-checklist/errors.server");
