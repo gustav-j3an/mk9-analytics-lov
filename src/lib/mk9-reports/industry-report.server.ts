@@ -311,12 +311,17 @@ export async function buildIndustryReport(
 
   // Monta linhas por loja
   const stores: StoreLine[] = Array.from(map.values()).map((b) => {
-    // Contratadas: SEMPRE da frequência cadastrada. VISITA MENSAL entra direto.
+    // Contratadas: SEMPRE da frequência versionada vigente no período.
     // Roteiro planejado é auditoria (routeStatus) — nunca substitui contrato.
-    const fromFreq = contractedFromFrequency(b.weekly, b.monthly, window.totalDays);
-    const contratadas = fromFreq.contratadas;
-    const source: ContractedSource = fromFreq.source;
+    const contracted = contractedVisitsForFrequencySegments({
+      segments: b.segments,
+      operationPeriodStart: window.startDate,
+      operationPeriodEnd: window.endDate,
+    });
+    const contratadas = contracted.contratadas;
+    const source: ContractedSource = contracted.source;
     const m = computeVisitMetrics({ contratadas, executadas: b.actual });
+
 
 
     // status_execucao (independe de roteiro)
