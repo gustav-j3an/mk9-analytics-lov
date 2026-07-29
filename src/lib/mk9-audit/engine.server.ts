@@ -86,14 +86,7 @@ export interface AuditScope {
 }
 
 
-function contractedFromFrequency(weekly: number | null, monthly: number | null, totalDays: number): number {
-  if (monthly != null && Number.isFinite(monthly) && monthly > 0) return Math.max(0, Math.round(monthly));
-  if (weekly != null && Number.isFinite(weekly) && weekly > 0) {
-    const days = Math.max(1, totalDays);
-    return Math.max(0, Math.round(weekly * (days / 7)));
-  }
-  return 0;
-}
+
 
 function pickStatus(contratadas: number, realizadas: number): ExecStatus {
   if (contratadas === 0 && realizadas === 0) return "NAO_REALIZADO";
