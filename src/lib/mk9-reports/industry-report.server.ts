@@ -1,17 +1,25 @@
 // Engine de agregação do Relatório da Indústria.
 //
-// Fonte ÚNICA das "visitas contratadas" por loja: cadastro de frequência da
-// indústria (mk9_industry_store_frequency). A existência ou ausência de
-// roteiro planejado NÃO altera o valor contratado — o roteiro é somente
+// Fonte ÚNICA das "visitas contratadas" por loja (Fase 1B.3): a frequência
+// VERSIONADA da indústria (mk9_industry_store_frequency_versions), somada por
+// segmento de vigência dentro da janela operacional. A existência ou ausência
+// de roteiro planejado NÃO altera o valor contratado — o roteiro é somente
 // auditoria (routeStatus). Extras de uma loja não compensam pendências de
 // outra.
 //
-// A coluna VISITA MENSAL do checklist é a fonte oficial de contrato:
-//   monthly → valor direto da planilha, sem escala por roteiro ou calendário.
-//   weekly  → fallback apenas quando a mensal não veio, escalado pelo período.
+// Regra de contrato (centralizada em @/lib/mk9-frequency/segments):
+//   monthly → proporcional aos dias de vigência dentro do período.
+//   weekly  → fallback (weekly × dias/7) apenas quando não há mensal.
 // Cobertura é limitada a 100 % (já garantido por validas = min(contr., exec.)).
 import type { PeriodWindow } from "./period.server";
 import { aggregateVisitMetrics, computeVisitMetrics, type VisitMetrics } from "./metrics";
+import {
+  contractedVisitsForFrequencySegments,
+  describeFrequencySegments,
+  type FrequencySegmentInput,
+} from "@/lib/mk9-frequency/segments";
+import { loadFrequencyVersionsForPeriod } from "@/lib/mk9-frequency/versions.server";
+
 
 
 export type StoreStatus =
