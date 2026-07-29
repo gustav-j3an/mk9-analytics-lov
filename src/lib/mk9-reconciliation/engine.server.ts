@@ -712,7 +712,9 @@ export async function getReconciliationDetail(id: string, access?: ReconcileScop
 }
 
 // ============ BUSCAR PLANEJADAS CANDIDATAS ============
-export async function findPlannedCandidates(input: { actualVisitId: string; windowDays?: number }) {
+export async function findPlannedCandidates(input: {
+  actualVisitId: string; windowDays?: number; access?: ReconcileScope["access"];
+}) {
   const { data: a, error } = await supabaseAdmin
     .from("mk9_actual_visits")
     .select("id, industry_id, store_id, scheduled_date")
@@ -764,12 +766,19 @@ export async function acceptDivergence(input: { reconciliationId: string; review
 }
 
 // ============ BUSCA DE LOJAS ============
-export async function searchStores(input: { query: string; uf?: string | null; limit?: number }) {
+export async function searchStores(input: {
+  query: string; uf?: string | null; limit?: number; access?: ReconcileScope["access"];
+}) {
+  const access = input.access ?? null;
+  if (access?.allowedUfs?.length === 0 || access?.allowedStoreIds?.length === 0) return [];
+  if (input.uf && access?.allowedUfs && !access.allowedUfs.includes(input.uf.toUpperCase())) return [];
   let q = supabaseAdmin
     .from("mk9_stores").select("id, name, chain, uf")
     .order("name", { ascending: true }).limit(Math.min(50, input.limit ?? 20));
   if (input.query.trim()) q = q.ilike("name", `%${input.query.trim()}%`);
   if (input.uf) q = q.eq("uf", input.uf.toUpperCase());
+  else if (access?.allowedUfs) q = q.in("uf", access.allowedUfs);
+  if (access?.allowedStoreIds) q = q.in("id", access.allowedStoreIds);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
   return data ?? [];
