@@ -63,7 +63,10 @@ export interface AuditScope {
   industryId?: string | null;
   uf?: string | null;
   promoterId?: string | null;
+  /** Escopo de acesso resolvido no servidor (Fase 0.2). Nunca vem do navegador. */
+  access?: import("@/lib/mk9-auth/access-scope.server").Mk9AccessScope | null;
 }
+
 
 function contractedFromFrequency(weekly: number | null, monthly: number | null, totalDays: number): number {
   if (monthly != null && Number.isFinite(monthly) && monthly > 0) return Math.max(0, Math.round(monthly));
