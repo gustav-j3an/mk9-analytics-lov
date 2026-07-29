@@ -185,25 +185,34 @@ async function buildIndustryContext(
 
   type Bucket = {
     storeId: string; storeName: string; chain: string | null; uf: string | null;
-    weekly: number | null; monthly: number | null; actual: number;
+    weekly: number | null; monthly: number | null; segments: FrequencySegmentInput[]; actual: number;
   };
   const map = new Map<string, Bucket>();
-  const touch = (id: string, s: any) => {
+  const touch = (id: string, s: any): Bucket => {
     let b = map.get(id);
     if (!b) {
-      b = { storeId: id, storeName: s?.name ?? "—", chain: s?.chain ?? null, uf: s?.uf ?? null, weekly: null, monthly: null, actual: 0 };
+      b = { storeId: id, storeName: s?.name ?? "—", chain: s?.chain ?? null, uf: s?.uf ?? null, weekly: null, monthly: null, segments: [], actual: 0 };
       map.set(id, b);
     }
     return b;
   };
-  for (const f of freqs ?? []) {
-    if (!f.store_id) continue;
-    if (uf && f.store?.uf !== uf) continue;
-    if (!inScope(f.store, f.store_id)) continue;
+  for (const [key, segs] of freqVersions) {
+    const storeId = key.slice(key.indexOf("|") + 1);
+    if (!storeId || !segs.length) continue;
+    const store = segs[0].store;
+    if (uf && store?.uf !== uf) continue;
+    if (!inScope(store, storeId)) continue;
 
-    const b = touch(f.store_id, f.store);
-    b.weekly = (f.weekly_frequency as number | null) ?? b.weekly;
-    b.monthly = (f.monthly_frequency as number | null) ?? b.monthly;
+    const b = touch(storeId, store);
+    b.segments = segs.map((s) => ({
+      validFrom: s.validFrom,
+      validUntil: s.validUntil,
+      weeklyFrequency: s.weeklyFrequency,
+      monthlyFrequency: s.monthlyFrequency,
+    }));
+    const last = segs[segs.length - 1];
+    b.weekly = last.weeklyFrequency;
+    b.monthly = last.monthlyFrequency;
   }
   for (const a of actuals ?? []) {
     if (!a.store_id) continue;
@@ -215,7 +224,12 @@ async function buildIndustryContext(
   }
 
   const stores: AuditStoreLine[] = Array.from(map.values()).map((b) => {
-    const contratadas = contractedFromFrequency(b.weekly, b.monthly, win.totalDays);
+    const contracted = contractedVisitsForFrequencySegments({
+      segments: b.segments,
+      operationPeriodStart: win.startDate,
+      operationPeriodEnd: win.endDate,
+    });
+    const contratadas = contracted.contratadas;
     const m = computeVisitMetrics({ contratadas, executadas: b.actual });
     const realizadas = m.executadas;
     const pendentes = Math.max(0, contratadas - realizadas);
@@ -243,8 +257,11 @@ async function buildIndustryContext(
       status: pickStatus(contratadas, realizadas),
       weeklyFrequency: b.weekly,
       monthlyFrequency: b.monthly,
+      frequencyChangedInPeriod: contracted.hasMultipleSegments,
+      frequencyLabel: describeFrequencySegments(contracted, { start: win.startDate, end: win.endDate }),
     };
   });
+
   stores.sort((a, z) => a.storeName.localeCompare(z.storeName, "pt-BR"));
   return { industryId: industry.id, industryName: industry.name, window: win, stores };
 }
