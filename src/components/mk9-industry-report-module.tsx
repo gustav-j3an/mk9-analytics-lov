@@ -102,9 +102,10 @@ export function Mk9IndustryReportModule() {
     setDownloading(true); setPdfError(null);
     const toastId = toast.loading("Gerando PDF...");
     try {
+      const { mk9AuthHeaders } = await import("@/lib/mk9-auth/fetch-headers");
       const res = await fetch("/api/reports/industry-pdf", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...(await mk9AuthHeaders()) },
         cache: "no-store",
         body: JSON.stringify({
           industryId, year, month,

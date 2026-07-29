@@ -77,6 +77,8 @@ export const mk9CommitImport = createServerFn({ method: "POST" })
   });
 
 export const mk9ListImports = createServerFn({ method: "GET" }).handler(async () => {
+    const { requireMk9AdminRead } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9AdminRead();
   const { createSupabaseRepository } = await import("./mk9/persistence.server");
   return createSupabaseRepository().listImports(30);
 });
@@ -96,6 +98,8 @@ export const mk9DeleteImport = createServerFn({ method: "POST" })
 
 
 export const mk9OverviewCounts = createServerFn({ method: "GET" }).handler(async () => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
   const { createSupabaseRepository } = await import("./mk9/persistence.server");
   const repo = createSupabaseRepository();
   const [industries, stores, promoters] = await Promise.all([

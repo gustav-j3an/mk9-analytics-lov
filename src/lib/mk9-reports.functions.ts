@@ -14,6 +14,8 @@ const scopeSchema = z.object({
 export const reportIndustry = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => scopeSchema.parse(d))
   .handler(async ({ data }) => {
+    const { requireMk9Reports } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Reports();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { loadPeriodConfig, resolveWindow } = await import("./mk9-reports/period.server");
     const { buildIndustryReport } = await import("./mk9-reports/industry-report.server");
@@ -32,6 +34,8 @@ export const reportIndustry = createServerFn({ method: "POST" })
 export const reportIndustryPeriodConfig = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ industryId: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
+    const { requireMk9Reports } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Reports();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { loadPeriodConfig } = await import("./mk9-reports/period.server");
     return loadPeriodConfig(supabaseAdmin, data.industryId);
@@ -87,6 +91,8 @@ export const reportListChecklistImports = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data }) => {
+    const { requireMk9Reports } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Reports();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("mk9_checklist_imports")

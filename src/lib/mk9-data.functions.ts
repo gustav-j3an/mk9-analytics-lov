@@ -1,9 +1,11 @@
 // Leitura de dados MK9 para consumo pelas telas.
-// Server functions públicas (uso interno do painel — sem auth por design).
+// Todas as leituras exigem sessão válida + papel (ver mk9-auth/read-guards.server).
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async () => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("mk9_industries")
@@ -23,6 +25,8 @@ export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async
 });
 
 export const mk9ListStores = createServerFn({ method: "GET" }).handler(async () => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("mk9_stores")
@@ -39,6 +43,8 @@ export const mk9ListStores = createServerFn({ method: "GET" }).handler(async () 
 });
 
 export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async () => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("mk9_promoters")
@@ -62,6 +68,8 @@ export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
     year: z.number().int().min(2020).max(2100),
   }).parse(data))
   .handler(async ({ data }) => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("mk9_planned_routes")
@@ -93,6 +101,8 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
     year: z.number().int().min(2020).max(2100),
   }).parse(data))
   .handler(async ({ data }) => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const first = new Date(Date.UTC(data.year, data.month - 1, 1)).toISOString().slice(0, 10);
     const last = new Date(Date.UTC(data.year, data.month, 0)).toISOString().slice(0, 10);
@@ -126,6 +136,8 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
     year: z.number().int().min(2020).max(2100),
   }).parse(data))
   .handler(async ({ data }) => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveWindow } = await import("@/lib/mk9-reports/period.server");
 

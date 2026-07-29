@@ -36,6 +36,16 @@ export const Route = createFileRoute("/api/checklists/preview")({
       POST: async ({ request }) => {
         const diagnostics = createChecklistDiagnostics("preview-multipart");
         try {
+          try {
+            const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+            await requireMk9Role(["ADMIN"], { request });
+          } catch (authError) {
+            const status = (authError as any)?.statusCode === 403 ? 403 : 401;
+            return Response.json(
+              { error: { __mk9Error: true, step: "authorize", message: authError instanceof Error ? authError.message : "Não autorizado." } },
+              { status },
+            );
+          }
           const contentType = request.headers.get("content-type") ?? "";
           diagnostics.info("request-received", "Requisição recebida no endpoint correto", {
             method: request.method,

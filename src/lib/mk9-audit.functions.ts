@@ -13,6 +13,8 @@ const scopeSchema = z.object({
 export const auditByStoreFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => scopeSchema.parse(d))
   .handler(async ({ data }) => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { auditByStore } = await import("./mk9-audit/engine.server");
     return auditByStore(supabaseAdmin, {
@@ -27,6 +29,8 @@ export const auditByStoreFn = createServerFn({ method: "POST" })
 export const auditByPromoterFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => scopeSchema.parse(d))
   .handler(async ({ data }) => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { auditByPromoter } = await import("./mk9-audit/engine.server");
     return auditByPromoter(supabaseAdmin, {
@@ -41,6 +45,8 @@ export const auditByPromoterFn = createServerFn({ method: "POST" })
 export const auditByIndustryFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => scopeSchema.parse(d))
   .handler(async ({ data }) => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { auditByIndustry } = await import("./mk9-audit/engine.server");
     return auditByIndustry(supabaseAdmin, {
