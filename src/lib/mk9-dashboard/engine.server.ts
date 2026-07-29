@@ -487,7 +487,7 @@ export async function buildDashboardOverview(
 
 // ---------------------------------------------------------------------------
 
-function classifyIndustry(input: {
+export function classifyIndustry(input: {
   contratadas: number;
   realizadas: number;
   expectedToDate: number;
