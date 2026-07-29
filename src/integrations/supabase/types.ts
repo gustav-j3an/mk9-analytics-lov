@@ -1041,6 +1041,7 @@ export type Database = {
         Args: { _decisions: Json; _force?: boolean; _import_id: string }
         Returns: Json
       }
+      mk9_assert_privileged: { Args: never; Returns: undefined }
       mk9_merge_stores: {
         Args: { canonical: string; other: string }
         Returns: undefined

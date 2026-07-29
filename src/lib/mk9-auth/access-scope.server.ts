@@ -22,13 +22,21 @@
  */
 import type { Mk9AuthContext, Mk9Role } from "./require-role.server";
 
-export class Mk9ScopeError extends Error {
-  statusCode = 403;
-  constructor(message = "Recurso fora do seu escopo de acesso.") {
-    super(message);
-    this.name = "Mk9ScopeError";
-  }
-}
+/**
+ * Erro de escopo como `Error` simples: subclasses de Error não são
+ * serializáveis pelo transporte das server functions (viravam HTTP 500
+ * genérico em vez do 403 real). `new Mk9ScopeError()` continua válido.
+ */
+export const Mk9ScopeError = function Mk9ScopeError(
+  this: unknown,
+  message = "Recurso fora do seu escopo de acesso.",
+): Error {
+  const err = new Error(message);
+  err.name = "Mk9ScopeError";
+  (err as any).statusCode = 403;
+  (err as any).mk9Scope = true;
+  return err;
+} as unknown as { new (message?: string): Error; (message?: string): Error };
 
 export interface Mk9AccessScope {
   userId: string | null;
@@ -84,8 +92,12 @@ export function resolveMk9AccessScope(ctx: Mk9AuthContext): Promise<Mk9AccessSco
 }
 
 async function computeScope(ctx: Mk9AuthContext): Promise<Mk9AccessScope> {
-  // Dev-bypass (apenas fora de produção, comportamento pré-existente).
-  if (ctx.devBypass || !ctx.userId) {
+  // Dev-bypass (somente ambiente local de desenvolvimento — ver require-role.server).
+  // Fase 0.3: sem devBypass e sem userId ⇒ falha fechado (nunca escopo global).
+  if (!ctx.devBypass && !ctx.userId) {
+    throw new Mk9ScopeError("Sessão inválida para resolver escopo de acesso.");
+  }
+  if (ctx.devBypass) {
     return finalize({
       userId: ctx.userId,
       roles: ctx.roles,
@@ -104,14 +116,15 @@ async function computeScope(ctx: Mk9AuthContext): Promise<Mk9AccessScope> {
   }
 
   const role = primaryRole(ctx.roles);
+  const userId = ctx.userId as string;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   // service_role justificado: leitura das PRÓPRIAS linhas de escopo do usuário,
   // filtrada por user_id, antes de qualquer decisão de autorização.
   const { data: rows, error } = await supabaseAdmin
     .from("mk9_user_scopes")
     .select("scope_type, scope_value")
-    .eq("user_id", ctx.userId);
-  if (error) throw new Error(error.message);
+    .eq("user_id", userId);
+  if (error) throw new Error("Não foi possível resolver o escopo de acesso.");
 
   const byType = (t: string) =>
     uniqSorted((rows ?? []).filter((r: any) => r.scope_type === t).map((r: any) => String(r.scope_value)));
@@ -153,6 +166,18 @@ async function computeScope(ctx: Mk9AuthContext): Promise<Mk9AccessScope> {
       allowedUfs: ufs.length ? ufs : null,
       allowedSupervisorIds: [],
       allowedPromoterIds: promoters,
+      canViewPersonalData: false, canViewImports: false, canViewImportPayload: false,
+      canGenerateReports: false,
+    });
+  }
+
+  // Fase 0.3: usuário autenticado sem papel MK9 reconhecido ⇒ escopo vazio
+  // (nunca herda o comportamento irrestrito de SUPERVISOR/AUDITOR).
+  if (!role) {
+    return finalize({
+      userId: ctx.userId, roles: ctx.roles, role: "PROMOTOR", canViewAll: false,
+      allowedIndustryIds: [], allowedStoreIds: [], allowedUfs: [],
+      allowedSupervisorIds: [], allowedPromoterIds: [],
       canViewPersonalData: false, canViewImports: false, canViewImportPayload: false,
       canGenerateReports: false,
     });
@@ -209,8 +234,14 @@ export function industryFilter(scope: Mk9AccessScope, requested?: string | null)
   return intersectFilter(scope.allowedIndustryIds, requested ?? null);
 }
 
+/**
+ * UF: normaliza caixa/espaços e rejeita valores inválidos ("Todas", "DF,GO", "").
+ * Valor inválido NUNCA amplia — cai para o escopo do servidor.
+ */
 export function ufFilter(scope: Mk9AccessScope, requested?: string | null): ScopedFilter {
-  return intersectFilter(scope.allowedUfs, requested ? requested.toUpperCase() : null);
+  const raw = (requested ?? "").trim().toUpperCase();
+  const valid = /^[A-Z]{2}$/.test(raw) ? raw : null;
+  return intersectFilter(scope.allowedUfs, valid);
 }
 
 export function storeFilter(scope: Mk9AccessScope, requested?: string | null): ScopedFilter {

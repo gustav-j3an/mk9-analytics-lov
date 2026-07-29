@@ -22,24 +22,74 @@ export type Mk9AuthContext = {
   devBypass: boolean;
 };
 
-class Mk9AuthorizationError extends Error {
-  statusCode = 403;
-  constructor(message: string) {
-    super(message);
-    this.name = "Mk9AuthorizationError";
-  }
+/**
+ * Erros de auth como `Error` simples (não subclasses): subclasses de Error não
+ * são serializáveis pelo transporte das server functions e viravam
+ * "Seroval Error" com HTTP 500, escondendo o 401/403 real do cliente.
+ */
+function mk9AuthError(statusCode: 401 | 403, message: string): Error {
+  const err = new Error(message);
+  err.name = statusCode === 401 ? "Mk9UnauthenticatedError" : "Mk9AuthorizationError";
+  (err as any).statusCode = statusCode;
+  (err as any).mk9Auth = true;
+  return err;
 }
 
-class Mk9UnauthenticatedError extends Error {
-  statusCode = 401;
-  constructor(message: string) {
-    super(message);
-    this.name = "Mk9UnauthenticatedError";
-  }
+const Mk9AuthorizationError = (message: string) => mk9AuthError(403, message);
+const Mk9UnauthenticatedError = (message: string) => mk9AuthError(401, message);
+
+/**
+ * Server functions não propagam o statusCode de um Error: o cliente recebia 500
+ * genérico. Lançar uma Response garante 401/403 reais, sem corpo técnico.
+ * Rotas HTTP (que passam `request` explicitamente) continuam recebendo Error,
+ * pois já traduzem o statusCode em suas próprias respostas.
+ */
+function authFailure(fromHttpRoute: boolean, statusCode: 401 | 403, message: string): unknown {
+  if (fromHttpRoute) return mk9AuthError(statusCode, message);
+  return new Response(JSON.stringify({ error: message, code: statusCode }), {
+    status: statusCode,
+    headers: { "content-type": "application/json", "cache-control": "no-store" },
+  });
 }
 
-function isProduction(): boolean {
-  return process.env.NODE_ENV === "production";
+
+/**
+ * Fase 0.3 — dev-bypass FAIL-CLOSED.
+ *
+ * O bypass só é permitido quando TODAS as condições abaixo forem verdadeiras:
+ *   1. NODE_ENV === "development" (ausente/desconhecido ⇒ fecha);
+ *   2. a requisição chegou por um host local (localhost / 127.0.0.1 / [::1]);
+ *   3. a variável MK9_DISABLE_DEV_BYPASS não está ligada.
+ *
+ * Assim o bypass nunca é ativado em preview/produção (hosts *.lovable.app) e
+ * não existe header, cookie ou query param capaz de ligá-lo remotamente.
+ */
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]", "::1", "0.0.0.0"]);
+
+export function isLocalRequest(request?: Request | null): boolean {
+  const host = request?.headers.get("host") ?? "";
+  if (!host) return false;
+  // Qualquer indício de proxy remoto derruba o bypass.
+  const forwarded = request?.headers.get("x-forwarded-host") ?? request?.headers.get("x-forwarded-for");
+  if (forwarded) return false;
+  const hostname = host.replace(/:\d+$/, "").toLowerCase();
+  return LOCAL_HOSTS.has(hostname);
+}
+
+export function devBypassAllowed(request?: Request | null): boolean {
+  if (process.env.MK9_DISABLE_DEV_BYPASS === "1") return false;
+  if (process.env.NODE_ENV !== "development") return false;
+  return isLocalRequest(request);
+}
+
+/** Mensagem segura: nunca vaza SQL, constraint, policy ou caminho interno. */
+export function sanitizeServerError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error ?? "");
+  const looksInternal =
+    /(select|insert|update|delete|from\s+mk9_|relation|constraint|policy|row-level|permission denied|pg[a-z_]*|\/[a-z0-9_.\-\/]+\.(ts|tsx|js)|service_role|supabase)/i.test(
+      raw,
+    );
+  return looksInternal || raw.length > 200 ? "Não foi possível concluir a operação." : raw;
 }
 
 function opaqueFetch(key: string): typeof fetch {
@@ -60,26 +110,28 @@ export async function requireMk9Role(
   required: Mk9Role[],
   opts?: { request?: Request },
 ): Promise<Mk9AuthContext> {
+  const fromHttpRoute = Boolean(opts?.request);
   const request = opts?.request ?? getRequest();
+  const fail = (code: 401 | 403, msg: string) => authFailure(fromHttpRoute, code, msg);
   const authHeader = request?.headers.get("authorization") ?? null;
 
   if (!authHeader) {
-    if (isProduction()) {
-      throw new Mk9UnauthenticatedError("Autenticação obrigatória. Faça login para continuar.");
+    if (!devBypassAllowed(request)) {
+      throw fail(401, "Autenticação obrigatória. Faça login para continuar.");
     }
     console.warn(
-      `[MK9-AUTH] dev-bypass: ação exige ${required.join("|")} — sem Authorization header. ` +
-        `Enforcement ativo apenas em produção (NODE_ENV=production).`,
+      `[MK9-AUTH] dev-bypass local: ação exige ${required.join("|")} — sem Authorization header. ` +
+        `Só ocorre em NODE_ENV=development com host local.`,
     );
     return { userId: null, email: null, roles: [], devBypass: true };
   }
 
   if (!authHeader.startsWith("Bearer ")) {
-    throw new Mk9UnauthenticatedError("Formato de autenticação inválido.");
+    throw fail(401, "Formato de autenticação inválido.");
   }
   const token = authHeader.slice(7).trim();
   if (!token || token.split(".").length !== 3) {
-    throw new Mk9UnauthenticatedError("Token de autenticação inválido.");
+    throw fail(401, "Token de autenticação inválido.");
   }
 
   const url = process.env.SUPABASE_URL!;
@@ -95,7 +147,7 @@ export async function requireMk9Role(
 
   const { data: userData, error: userErr } = await supabase.auth.getUser(token);
   if (userErr || !userData?.user) {
-    throw new Mk9UnauthenticatedError("Sessão expirada ou inválida. Faça login novamente.");
+    throw fail(401, "Sessão expirada ou inválida. Faça login novamente.");
   }
   const user = userData.user;
 
@@ -106,14 +158,14 @@ export async function requireMk9Role(
 
   if (roleErr) {
     console.error("[MK9-AUTH] falha ao ler roles:", roleErr);
-    throw new Mk9AuthorizationError("Não foi possível validar suas permissões.");
+    throw fail(403, "Não foi possível validar suas permissões.");
   }
 
   const roles = (roleRows ?? []).map((r) => r.role as Mk9Role);
   const ok = roles.some((r) => required.includes(r));
 
   if (!ok) {
-    throw new Mk9AuthorizationError(
+    throw fail(403, 
       `Usuário sem permissão para executar esta ação. Papel exigido: ${required.join(" ou ")}.`,
     );
   }
