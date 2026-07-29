@@ -99,12 +99,12 @@ export async function requireMk9Role(
   const authHeader = request?.headers.get("authorization") ?? null;
 
   if (!authHeader) {
-    if (isProduction()) {
+    if (!devBypassAllowed(request)) {
       throw new Mk9UnauthenticatedError("Autenticação obrigatória. Faça login para continuar.");
     }
     console.warn(
-      `[MK9-AUTH] dev-bypass: ação exige ${required.join("|")} — sem Authorization header. ` +
-        `Enforcement ativo apenas em produção (NODE_ENV=production).`,
+      `[MK9-AUTH] dev-bypass local: ação exige ${required.join("|")} — sem Authorization header. ` +
+        `Só ocorre em NODE_ENV=development com host local.`,
     );
     return { userId: null, email: null, roles: [], devBypass: true };
   }
