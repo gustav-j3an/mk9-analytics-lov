@@ -51,15 +51,24 @@ function downloadCsv(name: string, header: string[], rows: (string | number)[][]
   URL.revokeObjectURL(url);
 }
 
-export function Mk9AuditModule() {
+export interface Mk9AuditInitialFilters {
+  month?: number;
+  year?: number;
+  industryId?: string | null;
+  uf?: string | null;
+  promoterId?: string | null;
+}
+
+export function Mk9AuditModule({ initialFilters }: { initialFilters?: Mk9AuditInitialFilters } = {}) {
   const now = new Date();
-  const [year, setYear] = useState<number>(now.getFullYear());
-  const [month, setMonth] = useState<number>(now.getMonth() + 1);
-  const [industryId, setIndustryId] = useState<string>("__ALL__");
-  const [promoterId, setPromoterId] = useState<string>("__ALL__");
-  const [uf, setUf] = useState<string>("__ALL__");
+  const [year, setYear] = useState<number>(initialFilters?.year ?? now.getFullYear());
+  const [month, setMonth] = useState<number>(initialFilters?.month ?? now.getMonth() + 1);
+  const [industryId, setIndustryId] = useState<string>(initialFilters?.industryId ?? "__ALL__");
+  const [promoterId, setPromoterId] = useState<string>(initialFilters?.promoterId ?? "__ALL__");
+  const [uf, setUf] = useState<string>(initialFilters?.uf ?? "__ALL__");
   const [tab, setTab] = useState<TabKey>("industry");
   const [search, setSearch] = useState("");
+
 
   const industriesFn = useServerFn(mk9ListIndustries);
   const promotersFn = useServerFn(mk9ListPromoters);
