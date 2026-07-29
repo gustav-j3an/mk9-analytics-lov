@@ -1,4 +1,5 @@
 // Server-only PDF renderer for the Industry Report.
+// A4 landscape, full-width layout, no text truncation (all cells wrap).
 // Uses the self-contained pdf-lib ESM bundle to avoid the tslib/CommonJS entrypoint.
 import {
   PDFDocument,
@@ -15,9 +16,12 @@ const MONTHS_PT = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-const A4 = { w: 595.28, h: 841.89 };
-const MARGIN = 38;
-const CONTENT_W = A4.w - MARGIN * 2;
+// A4 landscape (pt)
+const PAGE = { w: 841.89, h: 595.28 };
+const MARGIN = 28; // ~10 mm
+const CONTENT_W = PAGE.w - MARGIN * 2;
+const FOOTER_H = 26;
+const BOTTOM_LIMIT = MARGIN + FOOTER_H;
 
 const COLOR_BRAND = rgb(0.07, 0.24, 0.52);
 const COLOR_TEXT = rgb(0.10, 0.12, 0.16);
@@ -48,6 +52,7 @@ function routeColor(s: RouteStatus) {
   return s === "DENTRO_ROTEIRO" ? COLOR_GOOD : COLOR_WARN;
 }
 
+// WinAnsi-safe sanitization (keeps accents, replaces unsupported glyphs).
 function sanitizePdfText(s: string): string {
   return s
     .replace(/[\x00-\x1F\x7F]/g, " ")
@@ -58,73 +63,97 @@ function sanitizePdfText(s: string): string {
     .replace(/\u00A0/g, " ");
 }
 
-function truncate(font: PDFFont, text: string, size: number, maxW: number): string {
-  const s = sanitizePdfText(text || "—");
-  if (font.widthOfTextAtSize(s, size) <= maxW) return s;
-  let lo = 0;
-  let hi = s.length;
-  while (lo < hi) {
-    const mid = Math.ceil((lo + hi) / 2);
-    if (font.widthOfTextAtSize(`${s.slice(0, mid)}...`, size) <= maxW) lo = mid;
-    else hi = mid - 1;
+/** Wraps text to a max width. Never truncates: long words are hard-split. */
+function wrapText(font: PDFFont, text: string, size: number, maxW: number): string[] {
+  const clean = sanitizePdfText(text ?? "").trim();
+  if (!clean) return ["-"];
+  const words = clean.split(/\s+/);
+  const lines: string[] = [];
+  let current = "";
+
+  const pushHardSplit = (word: string) => {
+    let chunk = "";
+    for (const ch of word) {
+      if (font.widthOfTextAtSize(chunk + ch, size) > maxW && chunk) {
+        lines.push(chunk);
+        chunk = ch;
+      } else {
+        chunk += ch;
+      }
+    }
+    current = chunk;
+  };
+
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (font.widthOfTextAtSize(candidate, size) <= maxW) {
+      current = candidate;
+      continue;
+    }
+    if (current) {
+      lines.push(current);
+      current = "";
+    }
+    if (font.widthOfTextAtSize(word, size) > maxW) pushHardSplit(word);
+    else current = word;
   }
-  return `${s.slice(0, lo)}...`;
+  if (current) lines.push(current);
+  return lines.length ? lines : ["-"];
 }
 
-type Column = { label: string; w: number };
+type Column = { label: string; w: number; align?: "left" | "right" };
 
 interface PdfCtx {
   pdf: PDFDocument;
   page: PDFPage;
   y: number;
-  pageNum: number;
   font: PDFFont;
   fontB: PDFFont;
   report: IndustryReport;
 }
 
 function drawRunningHeader(ctx: PdfCtx) {
-  ctx.page.drawText("MK9 Analytics", { x: MARGIN, y: A4.h - 24, size: 9, font: ctx.fontB, color: COLOR_BRAND });
+  ctx.page.drawText("MK9 Analytics", { x: MARGIN, y: PAGE.h - 20, size: 9, font: ctx.fontB, color: COLOR_BRAND });
   const right = sanitizePdfText(ctx.report.industry.name);
   const w = ctx.font.widthOfTextAtSize(right, 8);
-  ctx.page.drawText(right, { x: A4.w - MARGIN - w, y: A4.h - 24, size: 8, font: ctx.font, color: COLOR_MUTED });
-  ctx.page.drawLine({ start: { x: MARGIN, y: A4.h - 32 }, end: { x: A4.w - MARGIN, y: A4.h - 32 }, thickness: 0.5, color: COLOR_LINE });
+  ctx.page.drawText(right, { x: PAGE.w - MARGIN - w, y: PAGE.h - 20, size: 8, font: ctx.font, color: COLOR_MUTED });
+  ctx.page.drawLine({ start: { x: MARGIN, y: PAGE.h - 28 }, end: { x: PAGE.w - MARGIN, y: PAGE.h - 28 }, thickness: 0.5, color: COLOR_LINE });
 }
 
 function newPage(ctx: PdfCtx) {
-  ctx.page = ctx.pdf.addPage([A4.w, A4.h]);
-  ctx.pageNum += 1;
-  ctx.y = A4.h - MARGIN;
+  ctx.page = ctx.pdf.addPage([PAGE.w, PAGE.h]);
+  ctx.y = PAGE.h - MARGIN - 12;
   drawRunningHeader(ctx);
 }
 
 function ensure(ctx: PdfCtx, needed: number) {
-  if (ctx.y - needed < MARGIN + 34) newPage(ctx);
+  if (ctx.y - needed < BOTTOM_LIMIT) newPage(ctx);
 }
 
 function drawFooter(ctx: PdfCtx, pageNumber: number, total: number) {
-  const y = MARGIN - 18;
-  ctx.page.drawLine({ start: { x: MARGIN, y: y + 12 }, end: { x: A4.w - MARGIN, y: y + 12 }, thickness: 0.5, color: COLOR_LINE });
-  const left = sanitizePdfText(`Emitido em ${new Date(ctx.report.generatedAt).toLocaleString("pt-BR")}`);
-  ctx.page.drawText(left, { x: MARGIN, y, size: 8, font: ctx.font, color: COLOR_MUTED });
+  const y = MARGIN - 4;
+  ctx.page.drawLine({ start: { x: MARGIN, y: y + 12 }, end: { x: PAGE.w - MARGIN, y: y + 12 }, thickness: 0.5, color: COLOR_LINE });
+  const d = new Date(ctx.report.generatedAt);
+  const left = sanitizePdfText(`Emitido em ${d.toLocaleDateString("pt-BR")} as ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`);
+  ctx.page.drawText(left, { x: MARGIN, y, size: 7, font: ctx.font, color: COLOR_MUTED });
   const right = `Página ${pageNumber} de ${total}`;
-  const w = ctx.font.widthOfTextAtSize(right, 8);
-  ctx.page.drawText(right, { x: A4.w - MARGIN - w, y, size: 8, font: ctx.font, color: COLOR_MUTED });
+  const w = ctx.font.widthOfTextAtSize(right, 7);
+  ctx.page.drawText(right, { x: PAGE.w - MARGIN - w, y, size: 7, font: ctx.font, color: COLOR_MUTED });
 }
 
 function drawTitle(ctx: PdfCtx, year: number, month: number) {
   const { report } = ctx;
-  ctx.page.drawText("Relatório de visitas", { x: MARGIN, y: ctx.y - 26, size: 22, font: ctx.fontB, color: COLOR_BRAND });
-  ctx.y -= 36;
-  ctx.page.drawText(sanitizePdfText(report.industry.name), { x: MARGIN, y: ctx.y - 18, size: 16, font: ctx.fontB, color: COLOR_TEXT });
-  ctx.y -= 28;
-  const filters = [report.filters.uf ? `UF ${report.filters.uf}` : null, report.filters.sourceImportId ? "Checklist filtrado" : null].filter(Boolean).join(" · ");
+  ctx.page.drawText("Relatório de visitas", { x: MARGIN, y: ctx.y - 20, size: 17, font: ctx.fontB, color: COLOR_BRAND });
+  ctx.y -= 30;
+  ctx.page.drawText(sanitizePdfText(report.industry.name), { x: MARGIN, y: ctx.y - 14, size: 12, font: ctx.fontB, color: COLOR_TEXT });
+  ctx.y -= 22;
+  const filters = [report.filters.uf ? `UF ${report.filters.uf}` : null, report.filters.sourceImportId ? "Checklist filtrado" : null].filter(Boolean).join(" - ");
   const meta = `Competência: ${MONTHS_PT[month - 1]} / ${year}  ·  Período real: ${fmtBR(report.window.startDate)} a ${fmtBR(report.window.endDate)}  ·  ${report.window.totalDays} dias`;
-  ctx.page.drawText(sanitizePdfText(meta), { x: MARGIN, y: ctx.y - 12, size: 9.5, font: ctx.font, color: COLOR_MUTED });
-  ctx.y -= 17;
+  ctx.page.drawText(sanitizePdfText(meta), { x: MARGIN, y: ctx.y - 10, size: 9, font: ctx.font, color: COLOR_MUTED });
+  ctx.y -= 15;
   if (filters) {
-    ctx.page.drawText(sanitizePdfText(`Filtros: ${filters}`), { x: MARGIN, y: ctx.y - 12, size: 9, font: ctx.font, color: COLOR_MUTED });
-    ctx.y -= 16;
+    ctx.page.drawText(sanitizePdfText(`Filtros: ${filters}`), { x: MARGIN, y: ctx.y - 10, size: 9, font: ctx.font, color: COLOR_MUTED });
+    ctx.y -= 14;
   }
 }
 
@@ -141,31 +170,31 @@ function drawKpis(ctx: PdfCtx) {
     ["Cobertura", pct(m.coberturaPct), m.coberturaPct >= 90 ? "good" : m.coberturaPct >= 70 ? "warn" : "bad"],
     ["Cob. operacional", pct(t.operationalCoveragePct), t.operationalCoveragePct >= 90 ? "good" : t.operationalCoveragePct >= 70 ? "warn" : "bad"],
   ] as const;
-  const cols = 4;
-  const gap = 8;
+  const cols = 8;
+  const gap = 7;
   const cardW = (CONTENT_W - gap * (cols - 1)) / cols;
-  const cardH = 48;
-  const rows = Math.ceil(cards.length / cols);
-  ensure(ctx, rows * (cardH + gap) + 8);
+  const cardH = 44;
+  ensure(ctx, cardH + 12);
   const startY = ctx.y;
   cards.forEach(([label, value, tone], i) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const x = MARGIN + col * (cardW + gap);
-    const y = startY - row * (cardH + gap) - cardH;
+    const x = MARGIN + i * (cardW + gap);
+    const y = startY - cardH;
     const color = tone === "good" ? COLOR_GOOD : tone === "bad" ? COLOR_BAD : tone === "warn" ? COLOR_WARN : COLOR_BRAND;
     ctx.page.drawRectangle({ x, y, width: cardW, height: cardH, color: rgb(1, 1, 1), borderColor: COLOR_LINE, borderWidth: 0.7 });
     ctx.page.drawRectangle({ x, y: y + cardH - 3, width: cardW, height: 3, color });
-    ctx.page.drawText(truncate(ctx.font, label, 7.5, cardW - 10), { x: x + 7, y: y + cardH - 17, size: 7.5, font: ctx.font, color: COLOR_MUTED });
-    ctx.page.drawText(value, { x: x + 7, y: y + 10, size: 15, font: ctx.fontB, color: COLOR_TEXT });
+    const labelLines = wrapText(ctx.font, label, 7, cardW - 10).slice(0, 2);
+    labelLines.forEach((ln, li) => {
+      ctx.page.drawText(ln, { x: x + 6, y: y + cardH - 15 - li * 8, size: 7, font: ctx.font, color: COLOR_MUTED });
+    });
+    ctx.page.drawText(value, { x: x + 6, y: y + 8, size: 14, font: ctx.fontB, color: COLOR_TEXT });
   });
-  ctx.y = startY - rows * (cardH + gap) - 10;
+  ctx.y = startY - cardH - 12;
 }
 
 function drawCoverageExplanation(ctx: PdfCtx) {
-  ensure(ctx, 58);
-  ctx.page.drawText("Critério de cálculo", { x: MARGIN, y: ctx.y - 12, size: 10, font: ctx.fontB, color: COLOR_TEXT });
-  ctx.y -= 18;
+  ensure(ctx, 54);
+  ctx.page.drawText("Critério de cálculo", { x: MARGIN, y: ctx.y - 11, size: 10, font: ctx.fontB, color: COLOR_TEXT });
+  ctx.y -= 17;
   const lines = [
     "Contratadas = soma da coluna VISITA MENSAL do checklist por loja.",
     "Realizadas = TODAS as visitas confirmadas no checklist (nunca reduzido, mesmo acima do contrato).",
@@ -173,128 +202,153 @@ function drawCoverageExplanation(ctx: PdfCtx) {
     "Cobertura = realizadas / contratadas, limitada a 100 %. Roteiro é auditoria separada.",
   ];
   for (const line of lines) {
-    ctx.page.drawText(sanitizePdfText(line), { x: MARGIN, y: ctx.y - 10, size: 8.5, font: ctx.font, color: COLOR_MUTED });
-    ctx.y -= 13;
+    ctx.page.drawText(sanitizePdfText(line), { x: MARGIN, y: ctx.y - 9, size: 8, font: ctx.font, color: COLOR_MUTED });
+    ctx.y -= 11;
   }
   ctx.y -= 6;
 }
 
 function drawTableHeader(ctx: PdfCtx, cols: Column[]) {
-  ensure(ctx, 22);
-  const y = ctx.y - 18;
-  ctx.page.drawRectangle({ x: MARGIN, y: y - 3, width: CONTENT_W, height: 21, color: COLOR_HEADER_BG });
-  let x = MARGIN + 5;
-  for (const col of cols) {
-    ctx.page.drawText(sanitizePdfText(col.label), { x, y, size: 8, font: ctx.fontB, color: COLOR_BRAND });
-    x += col.w;
-  }
-  ctx.y -= 21;
+  const size = 8;
+  const lineH = 9.5;
+  const wrapped = cols.map((c) => wrapText(ctx.fontB, c.label, size, c.w - 8));
+  const maxLines = Math.max(...wrapped.map((w) => w.length));
+  const h = maxLines * lineH + 8;
+  const top = ctx.y;
+  ctx.page.drawRectangle({ x: MARGIN, y: top - h, width: CONTENT_W, height: h, color: COLOR_HEADER_BG });
+  let x = MARGIN + 4;
+  wrapped.forEach((lines, i) => {
+    lines.forEach((ln, li) => {
+      ctx.page.drawText(ln, { x, y: top - 12 - li * lineH, size, font: ctx.fontB, color: COLOR_BRAND });
+    });
+    x += cols[i].w;
+  });
+  ctx.y = top - h;
 }
 
 function drawUfTable(ctx: PdfCtx) {
   if (ctx.report.ufs.length === 0) return;
-  ensure(ctx, 50);
-  ctx.page.drawText("Resumo por UF", { x: MARGIN, y: ctx.y - 12, size: 11, font: ctx.fontB, color: COLOR_TEXT });
+  ensure(ctx, 60);
+  ctx.page.drawText("Resumo por UF", { x: MARGIN, y: ctx.y - 11, size: 11, font: ctx.fontB, color: COLOR_TEXT });
   ctx.y -= 20;
-  const cols: Column[] = [
-    { label: "UF", w: 42 },
-    { label: "Lojas", w: 52 },
-    { label: "Contr.", w: 62 },
-    { label: "Real.", w: 60 },
-    { label: "Pend.", w: 56 },
-    { label: "Extras", w: 56 },
-    { label: "Cobertura", w: CONTENT_W - 328 },
-  ];
+  const widths = [0.08, 0.1, 0.12, 0.12, 0.12, 0.12, 0.34];
+  const labels = ["UF", "Lojas", "Contratadas", "Realizadas", "Pendentes", "Extras", "Cobertura"];
+  const cols: Column[] = labels.map((label, i) => ({ label, w: CONTENT_W * widths[i] }));
   drawTableHeader(ctx, cols);
   ctx.report.ufs.forEach((u, i) => {
-    ensure(ctx, 18);
-    const y = ctx.y - 15;
-    if (i % 2 === 1) ctx.page.drawRectangle({ x: MARGIN, y: y - 3, width: CONTENT_W, height: 18, color: COLOR_ROW_ALT });
+    const rowH = 15;
+    if (ctx.y - rowH < BOTTOM_LIMIT) {
+      newPage(ctx);
+      drawTableHeader(ctx, cols);
+    }
+    const y = ctx.y - 11;
+    if (i % 2 === 1) ctx.page.drawRectangle({ x: MARGIN, y: ctx.y - rowH, width: CONTENT_W, height: rowH, color: COLOR_ROW_ALT });
     const vals = [u.uf, String(u.stores), String(u.expected), String(u.actual), String(u.pending), String(u.extra), pct(u.coveragePct)];
-    let x = MARGIN + 5;
+    let x = MARGIN + 4;
     vals.forEach((v, idx) => {
-      ctx.page.drawText(truncate(ctx.font, v, 8.5, cols[idx].w - 8), { x, y, size: 8.5, font: ctx.font, color: COLOR_TEXT });
+      ctx.page.drawText(sanitizePdfText(v), { x, y, size: 8.5, font: ctx.font, color: COLOR_TEXT });
       x += cols[idx].w;
     });
-    ctx.y -= 18;
+    ctx.y -= rowH;
   });
-  ctx.y -= 12;
+  ctx.y -= 14;
 }
 
 function dateList(store: StoreLine): string {
-  if (store.actualDates.length === 0) return "—";
-  const formatted = store.actualDates.map(fmtBR);
-  if (formatted.length <= 5) return formatted.join(", ");
-  return `${formatted.slice(0, 5).join(", ")} +${formatted.length - 5}`;
+  if (store.actualDates.length === 0) return "-";
+  return store.actualDates.map(fmtBR).join(", ");
+}
+
+function frequencyLabel(s: StoreLine): string {
+  if (s.weeklyFrequency != null) return `${s.weeklyFrequency}x/sem`;
+  if (s.monthlyFrequency != null) return `${s.monthlyFrequency}x/mês`;
+  return "-";
 }
 
 function drawStoreTable(ctx: PdfCtx) {
-  ensure(ctx, 54);
-  ctx.page.drawText("Resultado por loja", { x: MARGIN, y: ctx.y - 12, size: 11, font: ctx.fontB, color: COLOR_TEXT });
+  const pcts = [0.27, 0.04, 0.07, 0.06, 0.06, 0.06, 0.05, 0.06, 0.08, 0.09, 0.16];
+  const labels = ["Loja", "UF", "Frequência", "Contratadas", "Realizadas", "Pendentes", "Extras", "Cobertura", "Execução", "Roteiro", "Datas realizadas"];
+  const cols: Column[] = labels.map((label, i) => ({ label, w: CONTENT_W * pcts[i] }));
+
+  // Título + cabeçalho nunca ficam órfãos: exigimos espaço para pelo menos 2 linhas.
+  ensure(ctx, 90);
+  ctx.page.drawText("Resultado por loja", { x: MARGIN, y: ctx.y - 11, size: 11, font: ctx.fontB, color: COLOR_TEXT });
   ctx.y -= 20;
-  const cols: Column[] = [
-    { label: "Loja", w: 132 },
-    { label: "UF", w: 26 },
-    { label: "Contr.", w: 38 },
-    { label: "Real.", w: 36 },
-    { label: "Pend.", w: 36 },
-    { label: "Extra", w: 36 },
-    { label: "Cob.", w: 36 },
-    { label: "Execução", w: 60 },
-    { label: "Roteiro", w: 62 },
-    { label: "Datas realizadas", w: CONTENT_W - 462 },
-  ];
-  const drawHeader = () => drawTableHeader(ctx, cols);
-  drawHeader();
+  drawTableHeader(ctx, cols);
+
+  const size = 8;
+  const lineH = 9.5;
+
   ctx.report.stores.forEach((s, i) => {
-    if (ctx.y - 18 < MARGIN + 40) {
-      newPage(ctx);
-      drawHeader();
-    }
-    const y = ctx.y - 15;
-    if (i % 2 === 1) ctx.page.drawRectangle({ x: MARGIN, y: y - 3, width: CONTENT_W, height: 18, color: COLOR_ROW_ALT });
-    const name = s.chain ? `${s.chain} - ${s.storeName}` : s.storeName;
-    const vals = [
-      truncate(ctx.font, name, 8, cols[0].w - 8),
-      s.uf ?? "—",
+    const name = s.chain && !s.storeName.toUpperCase().startsWith(s.chain.toUpperCase())
+      ? `${s.chain} - ${s.storeName}`
+      : s.storeName;
+    const cells: string[] = [
+      name,
+      s.uf ?? "-",
+      frequencyLabel(s),
       String(s.expected),
       String(s.actual),
       String(s.pending),
       String(s.extra),
       pct(s.coveragePct),
-      truncate(ctx.font, EXECUTION_STATUS_LABEL[s.executionStatus], 8, cols[7].w - 8),
-      truncate(ctx.font, ROUTE_STATUS_LABEL[s.routeStatus], 8, cols[8].w - 8),
-      truncate(ctx.font, dateList(s), 8, cols[9].w - 8),
+      EXECUTION_STATUS_LABEL[s.executionStatus],
+      ROUTE_STATUS_LABEL[s.routeStatus],
+      dateList(s),
     ];
-    let x = MARGIN + 5;
-    vals.forEach((v, idx) => {
-      const color = idx === 7 ? executionColor(s.executionStatus) : idx === 8 ? routeColor(s.routeStatus) : COLOR_TEXT;
-      ctx.page.drawText(sanitizePdfText(v), { x, y, size: 8, font: idx === 7 || idx === 8 ? ctx.fontB : ctx.font, color });
+    const wrapped = cells.map((c, idx) => wrapText(idx === 8 || idx === 9 ? ctx.fontB : ctx.font, c, size, cols[idx].w - 8));
+    const maxLines = Math.max(...wrapped.map((w) => w.length));
+    const rowH = maxLines * lineH + 6;
+
+    // Nunca quebrar uma linha entre páginas.
+    if (ctx.y - rowH < BOTTOM_LIMIT) {
+      newPage(ctx);
+      drawTableHeader(ctx, cols);
+    }
+
+    const top = ctx.y;
+    if (i % 2 === 1) ctx.page.drawRectangle({ x: MARGIN, y: top - rowH, width: CONTENT_W, height: rowH, color: COLOR_ROW_ALT });
+    let x = MARGIN + 4;
+    wrapped.forEach((lines, idx) => {
+      const color = idx === 8 ? executionColor(s.executionStatus) : idx === 9 ? routeColor(s.routeStatus) : COLOR_TEXT;
+      const font = idx === 8 || idx === 9 ? ctx.fontB : ctx.font;
+      lines.forEach((ln, li) => {
+        ctx.page.drawText(ln, { x, y: top - 11 - li * lineH, size, font, color });
+      });
       x += cols[idx].w;
     });
-    ctx.y -= 18;
+    ctx.page.drawLine({ start: { x: MARGIN, y: top - rowH }, end: { x: PAGE.w - MARGIN, y: top - rowH }, thickness: 0.3, color: COLOR_LINE });
+    ctx.y = top - rowH;
   });
 }
 
 function drawLegend(ctx: PdfCtx) {
-  ensure(ctx, 86);
-  ctx.y -= 8;
-  ctx.page.drawText("Legenda", { x: MARGIN, y: ctx.y - 12, size: 10, font: ctx.fontB, color: COLOR_TEXT });
-  ctx.y -= 20;
   const executionStatuses: ExecutionStatus[] = ["INTEGRAL", "PARCIAL", "NAO_ATENDIDA"];
-  for (const st of executionStatuses) {
-    ensure(ctx, 14);
-    ctx.page.drawRectangle({ x: MARGIN, y: ctx.y - 10, width: 9, height: 9, color: executionColor(st) });
-    ctx.page.drawText(sanitizePdfText(`Execução: ${EXECUTION_STATUS_LABEL[st]}`), { x: MARGIN + 15, y: ctx.y - 9, size: 8.5, font: ctx.font, color: COLOR_TEXT });
-    ctx.y -= 13;
-  }
   const routeStatuses: RouteStatus[] = ["DENTRO_ROTEIRO", "FORA_ROTEIRO"];
-  for (const st of routeStatuses) {
-    ensure(ctx, 14);
-    ctx.page.drawRectangle({ x: MARGIN, y: ctx.y - 10, width: 9, height: 9, color: routeColor(st) });
-    ctx.page.drawText(sanitizePdfText(`Roteiro: ${ROUTE_STATUS_LABEL[st]}`), { x: MARGIN + 15, y: ctx.y - 9, size: 8.5, font: ctx.font, color: COLOR_TEXT });
-    ctx.y -= 13;
+  // Legenda em linha única para não criar página isolada.
+  const needed = 30;
+  if (ctx.y - needed < BOTTOM_LIMIT) newPage(ctx);
+  ctx.y -= 10;
+  ctx.page.drawText("Legenda", { x: MARGIN, y: ctx.y - 10, size: 9.5, font: ctx.fontB, color: COLOR_TEXT });
+  ctx.y -= 16;
+  let x = MARGIN;
+  const items = [
+    ...executionStatuses.map((st) => ({ label: `Execução: ${EXECUTION_STATUS_LABEL[st]}`, color: executionColor(st) })),
+    ...routeStatuses.map((st) => ({ label: `Roteiro: ${ROUTE_STATUS_LABEL[st]}`, color: routeColor(st) })),
+  ];
+  for (const item of items) {
+    const text = sanitizePdfText(item.label);
+    const w = ctx.font.widthOfTextAtSize(text, 8) + 24;
+    if (x + w > PAGE.w - MARGIN) {
+      ctx.y -= 12;
+      x = MARGIN;
+      if (ctx.y - 12 < BOTTOM_LIMIT) newPage(ctx);
+    }
+    ctx.page.drawRectangle({ x, y: ctx.y - 8, width: 8, height: 8, color: item.color });
+    ctx.page.drawText(text, { x: x + 12, y: ctx.y - 7, size: 8, font: ctx.font, color: COLOR_TEXT });
+    x += w;
   }
+  ctx.y -= 14;
 }
 
 export async function renderIndustryReportPdf(report: IndustryReport, year: number, month: number): Promise<Uint8Array> {
@@ -304,8 +358,8 @@ export async function renderIndustryReportPdf(report: IndustryReport, year: numb
   pdf.setCreator("MK9 Analytics");
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const fontB = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const page = pdf.addPage([A4.w, A4.h]);
-  const ctx: PdfCtx = { pdf, page, y: A4.h - MARGIN, pageNum: 1, font, fontB, report };
+  const page = pdf.addPage([PAGE.w, PAGE.h]);
+  const ctx: PdfCtx = { pdf, page, y: PAGE.h - MARGIN - 12, font, fontB, report };
 
   drawRunningHeader(ctx);
   drawTitle(ctx, year, month);
