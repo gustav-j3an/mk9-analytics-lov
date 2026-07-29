@@ -2,7 +2,8 @@
  * MK9 — Hook de sessão + provider (client-side).
  * Assina supabase.auth e expõe user, roles e profile para toda a app.
  */
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -48,8 +49,18 @@ export function Mk9SessionProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<Mk9Role[]>([]);
   const [profile, setProfile] = useState<Mk9SessionValue["profile"]>(null);
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  // Fase 0.3 — isolamento de cache: qualquer troca de identidade (login, logout,
+  // troca de usuário) descarta TODO o cache do TanStack Query, impedindo que
+  // dados de um escopo apareçam para outro usuário no mesmo navegador.
+  const identityRef = useRef<string | null | undefined>(undefined);
 
   async function hydrate(s: Session | null) {
+    const identity = s?.user?.id ?? null;
+    if (identityRef.current !== undefined && identityRef.current !== identity) {
+      queryClient.clear();
+    }
+    identityRef.current = identity;
     setSession(s);
     if (s?.user) {
       const { roles, profile } = await loadRolesAndProfile(s.user.id);
@@ -90,6 +101,7 @@ export function Mk9SessionProvider({ children }: { children: ReactNode }) {
     },
     signOut: async () => {
       await supabase.auth.signOut();
+      queryClient.clear();
     },
     refresh: async () => {
       const { data } = await supabase.auth.getSession();
