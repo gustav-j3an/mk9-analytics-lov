@@ -496,9 +496,8 @@ function classifyIndustry(input: {
   hasExecutionOrRoute: boolean;
 }): IndustryStatusKey {
   const { contratadas, realizadas, expectedToDate, lojasContratadas, checklistImports, hasExecutionOrRoute } = input;
-  if (contratadas <= 0 && lojasContratadas <= 0) {
-    return hasExecutionOrRoute ? "SEM_FREQUENCIA" : "SEM_FREQUENCIA";
-  }
+  // Sem frequência configurada, mas com execução ou roteiro vigente.
+  if (contratadas <= 0 && lojasContratadas <= 0) return "SEM_FREQUENCIA";
   if (realizadas === 0 && checklistImports === 0) return "SEM_CHECKLIST";
   if (realizadas >= contratadas) return "CONCLUIDA";
   if (expectedToDate <= 0) return "EM_DIA";
