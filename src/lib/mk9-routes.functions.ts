@@ -352,13 +352,15 @@ export const mk9RoutesResolvePromoter = createServerFn({ method: "POST" })
 // Não carrega tudo: só é chamada quando o usuário digita ≥ 2 caracteres.
 // Retorna no máximo 20 resultados por consulta, ordenados por nome.
 // ---------------------------------------------------------------------------
+// ESTRATÉGIA (Fase 0.2): cliente administrativo controlado — autentica,
+// resolve escopo e aplica restrição explícita de UF/loja em toda consulta.
 export const mk9StoresSearch = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
     z.object({ q: z.string().min(2).max(80) }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Normaliza a consulta (minúsculas, sem acentos, sem pontuação) para
@@ -371,12 +373,12 @@ export const mk9StoresSearch = createServerFn({ method: "POST" })
       .replace(/\s+/g, " ")
       .trim();
 
-    if (normalized.length < 2) return [];
+    if (normalized.length < 2) return { total: 0, items: [] };
+    if (scope.allowedUfs?.length === 0 || scope.allowedStoreIds?.length === 0) {
+      return { total: 0, items: [] };
+    }
 
     const like = `%${normalized}%`;
-    // Busca por nome (normalizado), rede (lower) e UF.
-    // OBS: cidade não está armazenada em mk9_stores; mostrada apenas quando
-    // vier no futuro. A UF entra como termo direto (2 letras).
     const uf = normalized.length === 2 ? normalized.toUpperCase() : null;
 
     const orExpr = [
@@ -387,12 +389,15 @@ export const mk9StoresSearch = createServerFn({ method: "POST" })
       .filter(Boolean)
       .join(",");
 
-    const { data: rows, error, count } = await supabaseAdmin
+    let q = supabaseAdmin
       .from("mk9_stores")
       .select("id, name, chain, uf", { count: "exact" })
-      .or(orExpr)
-      .order("name", { ascending: true })
-      .limit(20);
+      .or(orExpr);
+    // Escopo do servidor (nunca ampliado pelo cliente).
+    if (scope.allowedUfs) q = q.in("uf", scope.allowedUfs);
+    if (scope.allowedStoreIds) q = q.in("id", scope.allowedStoreIds);
+
+    const { data: rows, error, count } = await q.order("name", { ascending: true }).limit(20);
 
     if (error) throw new Error(error.message);
     return {
@@ -406,16 +411,15 @@ export const mk9StoresSearch = createServerFn({ method: "POST" })
     };
   });
 
-
-
 // Busca uma loja específica pelo id — usado quando o modal abre em modo
 // edição e precisamos exibir a loja selecionada sem carregar a lista toda.
 export const mk9StoreGet = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (scope.allowedStoreIds && !scope.allowedStoreIds.includes(data.id)) return null;
     const { data: row, error } = await supabaseAdmin
       .from("mk9_stores")
       .select("id, name, chain, uf")
@@ -423,11 +427,14 @@ export const mk9StoreGet = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) return null;
+    const uf = (row.uf as string | null) ?? null;
+    if (scope.allowedUfs && (!uf || !scope.allowedUfs.includes(uf))) return null;
     return {
       id: row.id as string,
       name: row.name as string,
       chain: (row.chain as string | null) ?? null,
-      uf: (row.uf as string | null) ?? null,
+      uf,
     };
   });
+
 
