@@ -314,9 +314,15 @@ export const mk9RoutesResolvePromoter = createServerFn({ method: "POST" })
     }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { assertIndustryAllowed, storeFilter } = await import("@/lib/mk9-auth/access-scope.server");
+    const { scope } = await requireMk9ReadScope();
+    assertIndustryAllowed(scope, data.industryId);
+    if (storeFilter(scope, data.storeId).outOfScope) {
+      return { status: "UNASSIGNED_ROUTE" as const, weekdayRealized: new Date(data.visitDate + "T00:00:00Z").getUTCDay(), candidates: [] };
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const { data: rows, error } = await (supabaseAdmin as any).rpc("mk9_resolve_route_promoter", {
       _store_id: data.storeId,
       _industry_id: data.industryId,
