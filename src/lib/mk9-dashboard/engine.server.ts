@@ -1,9 +1,10 @@
 // Motor agregado do Dashboard Operacional MK9.
 // Uma única chamada devolve KPIs, séries, rankings, alertas e tabelas resumidas.
 //
-// FONTE DA VERDADE
-//   contratadas = frequência vigente da indústria por loja (mk9_industry_store_frequency)
-//                 projetada na janela operacional da indústria.
+// FONTE DA VERDADE (Fase 1B.3)
+//   contratadas = frequência VERSIONADA vigente no período
+//                 (mk9_industry_store_frequency_versions), calculada por
+//                 segmentos de vigência via contractedVisitsForFrequencySegments.
 //   realizadas  = mk9_actual_visits (checklist) dentro da janela da indústria.
 //   pendentes   = max(0, contratadas - realizadas)
 //   extras      = max(0, realizadas - contratadas)
@@ -11,6 +12,8 @@
 //   roteiro     = mk9_planned_routes versionado (apenas auditoria de promotor).
 //
 // mk9_planned_visits NÃO é usada aqui.
+// A projeção mk9_industry_store_frequency NÃO é mais lida por este motor.
+
 
 import { resolveWindow, type PeriodConfig } from "@/lib/mk9-reports/period.server";
 import {
