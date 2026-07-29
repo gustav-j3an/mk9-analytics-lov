@@ -38,6 +38,20 @@ function mk9AuthError(statusCode: 401 | 403, message: string): Error {
 const Mk9AuthorizationError = (message: string) => mk9AuthError(403, message);
 const Mk9UnauthenticatedError = (message: string) => mk9AuthError(401, message);
 
+/**
+ * Server functions não propagam o statusCode de um Error: o cliente recebia 500
+ * genérico. Lançar uma Response garante 401/403 reais, sem corpo técnico.
+ * Rotas HTTP (que passam `request` explicitamente) continuam recebendo Error,
+ * pois já traduzem o statusCode em suas próprias respostas.
+ */
+function authFailure(fromHttpRoute: boolean, statusCode: 401 | 403, message: string): unknown {
+  if (fromHttpRoute) return mk9AuthError(statusCode, message);
+  return new Response(JSON.stringify({ error: message, code: statusCode }), {
+    status: statusCode,
+    headers: { "content-type": "application/json", "cache-control": "no-store" },
+  });
+}
+
 
 /**
  * Fase 0.3 — dev-bypass FAIL-CLOSED.
@@ -96,12 +110,14 @@ export async function requireMk9Role(
   required: Mk9Role[],
   opts?: { request?: Request },
 ): Promise<Mk9AuthContext> {
+  const fromHttpRoute = Boolean(opts?.request);
   const request = opts?.request ?? getRequest();
+  const fail = (code: 401 | 403, msg: string) => authFailure(fromHttpRoute, code, msg);
   const authHeader = request?.headers.get("authorization") ?? null;
 
   if (!authHeader) {
     if (!devBypassAllowed(request)) {
-      throw Mk9UnauthenticatedError("Autenticação obrigatória. Faça login para continuar.");
+      throw fail(401, "Autenticação obrigatória. Faça login para continuar.");
     }
     console.warn(
       `[MK9-AUTH] dev-bypass local: ação exige ${required.join("|")} — sem Authorization header. ` +
@@ -111,11 +127,11 @@ export async function requireMk9Role(
   }
 
   if (!authHeader.startsWith("Bearer ")) {
-    throw Mk9UnauthenticatedError("Formato de autenticação inválido.");
+    throw fail(401, "Formato de autenticação inválido.");
   }
   const token = authHeader.slice(7).trim();
   if (!token || token.split(".").length !== 3) {
-    throw Mk9UnauthenticatedError("Token de autenticação inválido.");
+    throw fail(401, "Token de autenticação inválido.");
   }
 
   const url = process.env.SUPABASE_URL!;
@@ -131,7 +147,7 @@ export async function requireMk9Role(
 
   const { data: userData, error: userErr } = await supabase.auth.getUser(token);
   if (userErr || !userData?.user) {
-    throw Mk9UnauthenticatedError("Sessão expirada ou inválida. Faça login novamente.");
+    throw fail(401, "Sessão expirada ou inválida. Faça login novamente.");
   }
   const user = userData.user;
 
@@ -142,14 +158,14 @@ export async function requireMk9Role(
 
   if (roleErr) {
     console.error("[MK9-AUTH] falha ao ler roles:", roleErr);
-    throw Mk9AuthorizationError("Não foi possível validar suas permissões.");
+    throw fail(403, "Não foi possível validar suas permissões.");
   }
 
   const roles = (roleRows ?? []).map((r) => r.role as Mk9Role);
   const ok = roles.some((r) => required.includes(r));
 
   if (!ok) {
-    throw Mk9AuthorizationError(
+    throw fail(403, 
       `Usuário sem permissão para executar esta ação. Papel exigido: ${required.join(" ou ")}.`,
     );
   }
