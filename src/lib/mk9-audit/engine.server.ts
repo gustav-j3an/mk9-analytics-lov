@@ -47,6 +47,11 @@ export interface AuditStoreLine {
   status: ExecStatus;
   weeklyFrequency: number | null;
   monthlyFrequency: number | null;
+  /** true quando a frequência mudou dentro do período (vigências múltiplas) */
+  frequencyChangedInPeriod: boolean;
+  /** ex.: "1x/sem até 15/07 · 2x/sem desde 16/07" */
+  frequencyLabel: string | null;
+
 }
 
 export interface AuditPromoterLine {
