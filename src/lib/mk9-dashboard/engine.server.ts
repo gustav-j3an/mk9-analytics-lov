@@ -133,7 +133,29 @@ export async function buildDashboardOverview(
     if (inds.length) scopeIndustryIds = inds;
     if (ufs.length) scopeUfs = ufs;
   }
+  // Escopo de acesso do usuário (Fase 0.2) — sempre intersectado, nunca ampliado.
+  const access = filters.access ?? null;
+  if (access?.allowedIndustryIds) {
+    scopeIndustryIds = scopeIndustryIds
+      ? scopeIndustryIds.filter((id) => access.allowedIndustryIds!.includes(id))
+      : access.allowedIndustryIds;
+  }
+  if (access?.allowedUfs) {
+    scopeUfs = scopeUfs ? scopeUfs.filter((u) => access.allowedUfs!.includes(u)) : access.allowedUfs;
+  }
+  const accessStoreIds = access?.allowedStoreIds ?? null;
+  const accessPromoterIds = access?.allowedPromoterIds ?? null;
   const ufFilter = filters.uf ?? null;
+  if (
+    (filters.industryId && access?.allowedIndustryIds && !access.allowedIndustryIds.includes(filters.industryId)) ||
+    (ufFilter && access?.allowedUfs && !access.allowedUfs.includes(ufFilter)) ||
+    (filters.promoterId && accessPromoterIds && !accessPromoterIds.includes(filters.promoterId)) ||
+    scopeIndustryIds?.length === 0 ||
+    scopeUfs?.length === 0 ||
+    accessStoreIds?.length === 0
+  ) {
+    return emptyOverview(todayIso(), year, month, `${year}-01-01`, `${year}-12-31`);
+  }
 
   // ---- indústrias e configurações de período --------------------------------
   let indQuery = supabase.from("mk9_industries").select("id,name").order("name", { ascending: true });
@@ -216,7 +238,12 @@ export async function buildDashboardOverview(
       .eq("operation_year", year)
       .in("status", ["done", "confirmed", "committing"])
       .limit(5000),
-    supabase.from("mk9_stores").select("uf").not("uf", "is", null).limit(50000),
+    (() => {
+      let q = supabase.from("mk9_stores").select("uf").not("uf", "is", null).limit(50000);
+      if (scopeUfs) q = q.in("uf", scopeUfs);
+      if (accessStoreIds) q = q.in("id", accessStoreIds);
+      return q;
+    })(),
   ]);
   for (const r of [freqRes, visitRes, routeRes, importRes, storeRes]) {
     if (r.error) throw new Error(r.error.message);
@@ -269,6 +296,7 @@ export async function buildDashboardOverview(
     if (scopeUfs && (!uf || !scopeUfs.includes(uf))) return false;
     return true;
   };
+  const passesStore = (storeId: string) => !accessStoreIds || accessStoreIds.includes(storeId);
   const touch = (ctx: IndustryCtx, storeId: string, store: any) => {
     let b = ctx.buckets.get(storeId);
     if (!b) {
