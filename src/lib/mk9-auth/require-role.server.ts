@@ -22,21 +22,22 @@ export type Mk9AuthContext = {
   devBypass: boolean;
 };
 
-class Mk9AuthorizationError extends Error {
-  statusCode = 403;
-  constructor(message: string) {
-    super(message);
-    this.name = "Mk9AuthorizationError";
-  }
+/**
+ * Erros de auth como `Error` simples (não subclasses): subclasses de Error não
+ * são serializáveis pelo transporte das server functions e viravam
+ * "Seroval Error" com HTTP 500, escondendo o 401/403 real do cliente.
+ */
+function mk9AuthError(statusCode: 401 | 403, message: string): Error {
+  const err = new Error(message);
+  err.name = statusCode === 401 ? "Mk9UnauthenticatedError" : "Mk9AuthorizationError";
+  (err as any).statusCode = statusCode;
+  (err as any).mk9Auth = true;
+  return err;
 }
 
-class Mk9UnauthenticatedError extends Error {
-  statusCode = 401;
-  constructor(message: string) {
-    super(message);
-    this.name = "Mk9UnauthenticatedError";
-  }
-}
+const Mk9AuthorizationError = (message: string) => mk9AuthError(403, message);
+const Mk9UnauthenticatedError = (message: string) => mk9AuthError(401, message);
+
 
 /**
  * Fase 0.3 — dev-bypass FAIL-CLOSED.
