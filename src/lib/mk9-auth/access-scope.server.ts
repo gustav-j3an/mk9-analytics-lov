@@ -22,13 +22,21 @@
  */
 import type { Mk9AuthContext, Mk9Role } from "./require-role.server";
 
-export class Mk9ScopeError extends Error {
-  statusCode = 403;
-  constructor(message = "Recurso fora do seu escopo de acesso.") {
-    super(message);
-    this.name = "Mk9ScopeError";
-  }
-}
+/**
+ * Erro de escopo como `Error` simples: subclasses de Error não são
+ * serializáveis pelo transporte das server functions (viravam HTTP 500
+ * genérico em vez do 403 real). `new Mk9ScopeError()` continua válido.
+ */
+export const Mk9ScopeError = function Mk9ScopeError(
+  this: unknown,
+  message = "Recurso fora do seu escopo de acesso.",
+): Error {
+  const err = new Error(message);
+  err.name = "Mk9ScopeError";
+  (err as any).statusCode = 403;
+  (err as any).mk9Scope = true;
+  return err;
+} as unknown as { new (message?: string): Error; (message?: string): Error };
 
 export interface Mk9AccessScope {
   userId: string | null;
