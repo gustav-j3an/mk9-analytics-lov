@@ -17,14 +17,14 @@ export const MK9_READ_OPS: Mk9Role[] = ["ADMIN", "SUPERVISOR", "AUDITOR"];
 export const MK9_READ_REPORTS: Mk9Role[] = ["ADMIN", "SUPERVISOR", "AUDITOR", "CLIENTE"];
 export const MK9_READ_ADMIN: Mk9Role[] = ["ADMIN", "AUDITOR"];
 
-export function requireMk9Read(): Promise<Mk9AuthContext> {
-  return requireMk9Role(MK9_READ_OPS);
+export function requireMk9Read(request?: Request): Promise<Mk9AuthContext> {
+  return requireMk9Role(MK9_READ_OPS, request ? { request } : undefined);
 }
 
-export function requireMk9Reports(): Promise<Mk9AuthContext> {
-  return requireMk9Role(MK9_READ_REPORTS);
+export function requireMk9Reports(request?: Request): Promise<Mk9AuthContext> {
+  return requireMk9Role(MK9_READ_REPORTS, request ? { request } : undefined);
 }
 
-export function requireMk9AdminRead(): Promise<Mk9AuthContext> {
-  return requireMk9Role(MK9_READ_ADMIN);
+export function requireMk9AdminRead(request?: Request): Promise<Mk9AuthContext> {
+  return requireMk9Role(MK9_READ_ADMIN, request ? { request } : undefined);
 }
