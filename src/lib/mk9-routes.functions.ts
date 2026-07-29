@@ -32,10 +32,20 @@ export const mk9RoutesListVersioned = createServerFn({ method: "POST" })
     }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { industryFilter, ufFilter, storeFilter, promoterFilter } = await import(
+      "@/lib/mk9-auth/access-scope.server"
+    );
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const ref = data.referenceDate ?? new Date().toISOString().slice(0, 10);
+
+    const ind = industryFilter(scope, data.industryId ?? null);
+    const store = storeFilter(scope, data.storeId ?? null);
+    const promoter = promoterFilter(scope, data.promoterId ?? null);
+    const ufs = ufFilter(scope, data.uf ?? null);
+    if (ind.outOfScope || store.outOfScope || promoter.outOfScope || ufs.outOfScope) return [];
+    if (ind.ids?.length === 0 || store.ids?.length === 0 || ufs.ids?.length === 0) return [];
 
     let q = supabaseAdmin
       .from("mk9_planned_routes")
@@ -47,16 +57,17 @@ export const mk9RoutesListVersioned = createServerFn({ method: "POST" })
       .or(`valid_until.is.null,valid_until.gte.${ref}`);
 
     if (!data.includeInactive) q = q.eq("is_active", true);
-    if (data.promoterId) q = q.eq("promoter_id", data.promoterId);
-    if (data.industryId) q = q.eq("industry_id", data.industryId);
-    if (data.storeId) q = q.eq("store_id", data.storeId);
+    if (promoter.ids) q = q.in("promoter_id", promoter.ids);
+    if (ind.ids) q = q.in("industry_id", ind.ids);
+    if (store.ids) q = q.in("store_id", store.ids);
     if (typeof data.weekday === "number") q = q.eq("weekday", data.weekday);
 
     const { data: rows, error } = await q.limit(20000);
     if (error) throw new Error(error.message);
 
     return (rows ?? [])
-      .filter((r: any) => !data.uf || r.store?.uf === data.uf)
+      .filter((r: any) => !ufs.ids || (r.store?.uf && ufs.ids.includes(r.store.uf)))
+
       .map((r: any) => ({
         id: r.id as string,
         weekday: r.weekday as number,
