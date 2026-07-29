@@ -259,8 +259,10 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
     const actuals: any[] = [];
     for (const result of actualResults) {
       if (result.error) throw new Error(result.error.message);
-      actuals.push(...(result.data ?? []));
+      // Extras fora do escopo não podem vazar para os totais.
+      actuals.push(...(result.data ?? []).filter((a: any) => scopedStoreIds.has(`${a.industry_id}|${a.store_id}`)));
     }
+
 
     const perStore = new Map<string, { contratadas: number; executadas: number }>();
     for (const f of freqs ?? []) {
