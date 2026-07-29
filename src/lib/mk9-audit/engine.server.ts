@@ -129,13 +129,16 @@ async function buildIndustryContext(
   const win = resolveWindow(cfg, year, month);
 
 
-  // Frequência por loja
-  const { data: freqs, error: eF } = await supabase
-    .from("mk9_industry_store_frequency")
-    .select("store_id, weekly_frequency, monthly_frequency, store:mk9_stores(id,name,chain,uf)")
-    .eq("industry_id", industry.id)
-    .limit(20000);
-  if (eF) throw new Error(eF.message);
+  // Frequência VERSIONADA por loja, restrita às vigências que interceptam a
+  // janela operacional desta indústria (uma consulta em lote, sem N+1).
+  const freqVersions = await loadFrequencyVersionsForPeriod(supabase, {
+    industryIds: [industry.id],
+    storeIds: allowedStoreIds,
+    periodStart: win.startDate,
+    periodEnd: win.endDate,
+    accessScope: access ?? null,
+  });
+
 
   // Visitas realizadas na janela
   const { data: actuals, error: eA } = await supabase
