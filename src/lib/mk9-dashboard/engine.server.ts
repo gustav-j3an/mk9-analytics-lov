@@ -341,6 +341,8 @@ export async function buildDashboardOverview(
       const key = `${ctx.id}|${b.storeId}`;
       const promo = resolvePromoter(key);
       if (filters.promoterId && promo.id !== filters.promoterId) continue;
+      if (accessPromoterIds && (!promo.id || !accessPromoterIds.includes(promo.id))) continue;
+
       const contratadas = contractedFromFrequency(b.weekly, b.monthly, ctx.win.totalDays);
       const realizadas = b.visits.length;
       const expectedToDate = Math.round(contratadas * ctx.fraction);
