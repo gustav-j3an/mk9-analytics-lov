@@ -163,6 +163,18 @@ async function computeScope(ctx: Mk9AuthContext): Promise<Mk9AccessScope> {
     });
   }
 
+  // Fase 0.3: usuário autenticado sem papel MK9 reconhecido ⇒ escopo vazio
+  // (nunca herda o comportamento irrestrito de SUPERVISOR/AUDITOR).
+  if (!role) {
+    return finalize({
+      userId: ctx.userId, roles: ctx.roles, role: "PROMOTOR", canViewAll: false,
+      allowedIndustryIds: [], allowedStoreIds: [], allowedUfs: [],
+      allowedSupervisorIds: [], allowedPromoterIds: [],
+      canViewPersonalData: false, canViewImports: false, canViewImportPayload: false,
+      canGenerateReports: false,
+    });
+  }
+
   // AUDITOR e SUPERVISOR: irrestritos por padrão (paridade com os helpers SQL),
   // restritos assim que houver linhas em mk9_user_scopes.
   const isAuditor = role === "AUDITOR";
