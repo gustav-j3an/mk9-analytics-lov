@@ -271,9 +271,10 @@ export async function buildDashboardOverview(
       return q;
     })(),
   ]);
-  for (const r of [freqRes, visitRes, routeRes, importRes, storeRes]) {
+  for (const r of [visitRes, routeRes, importRes, storeRes]) {
     if (r.error) throw new Error(r.error.message);
   }
+
 
   const availableUfs = Array.from(
     new Set((storeRes.data ?? []).map((s: any) => s.uf).filter(Boolean) as string[]),
