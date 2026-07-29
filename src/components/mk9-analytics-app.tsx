@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Mk9ImportModule } from "@/components/mk9-import-module";
 import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
-import { Mk9AuditModule } from "@/components/mk9-audit-module";
+import { Mk9AuditModule, type Mk9AuditInitialFilters } from "@/components/mk9-audit-module";
+import { Mk9DashboardModule } from "@/components/mk9-dashboard-module";
 import { Mk9RoutesModule } from "@/components/mk9-routes-module";
 import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
 import { Mk9UsersModule } from "@/components/mk9-users-module";
@@ -144,6 +145,8 @@ export function Mk9AnalyticsApp() {
   const [query, setQuery] = useState("");
   const [collapsed, setCollapsed] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
+  const [auditFilters, setAuditFilters] = useState<Mk9AuditInitialFilters | undefined>(undefined);
+  const [auditKey, setAuditKey] = useState(0);
 
   // Se o módulo ativo deixou de ser permitido (ex: role mudou), volta para o primeiro visível.
   if (!visibleModules.some((m) => m.id === activeModule)) {
@@ -393,15 +396,18 @@ export function Mk9AnalyticsApp() {
 
           <div key={activeModule} className="animate-fade-up mx-auto max-w-[1400px] px-4 py-6 lg:px-8 lg:py-8">
             {activeModule === "dashboard" && (
-              <DashboardModule
-                metrics={metrics}
-                industries={industries}
-                stores={stores}
-                promoters={promoters}
-                routes={routes}
-                visits={visits}
-                onOpenModule={setActiveModule}
-                loading={industriesQ.isLoading || visitsQ.isLoading}
+              <Mk9DashboardModule
+                onDrillDown={(f) => {
+                  setAuditFilters({
+                    month: f.month,
+                    year: f.year,
+                    industryId: f.industryId ?? null,
+                    uf: f.uf ?? null,
+                    promoterId: f.promoterId ?? null,
+                  });
+                  setAuditKey((k) => k + 1);
+                  setActiveModule("conciliacao");
+                }}
               />
             )}
             {activeModule === "industrias" && <IndustriesModule industries={industries} loading={industriesQ.isLoading} />}
@@ -421,7 +427,7 @@ export function Mk9AnalyticsApp() {
             {activeModule === "checklists" && (
               <Mk9ChecklistImportModule onSwitchToBase={() => setActiveModule("importacoes")} />
             )}
-            {activeModule === "conciliacao" && <Mk9AuditModule />}
+            {activeModule === "conciliacao" && <Mk9AuditModule key={auditKey} initialFilters={auditFilters} />}
             {activeModule === "relatorio_industria" && <Mk9IndustryReportModule />}
             {activeModule === "usuarios" && <Mk9UsersModule currentUserId={user?.id ?? null} />}
           </div>
