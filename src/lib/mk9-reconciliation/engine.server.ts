@@ -661,12 +661,22 @@ export async function listReconciliationsPaged(f: PagedFilters) {
 }
 
 // ============ DETALHE EXPANDIDO ============
-export async function getReconciliationDetail(id: string) {
+export async function getReconciliationDetail(id: string, access?: ReconcileScope["access"]) {
   const { data: r, error } = await supabaseAdmin
     .from("mk9_visit_reconciliations")
     .select("*, industry:mk9_industries(id,name), store:mk9_stores(id,name,chain,uf), promoter:mk9_promoters(id,name)")
     .eq("id", id).single();
   if (error) throw new Error(error.message);
+  // Verificação de escopo por objeto: impede leitura direta por ID fora do escopo.
+  if (access) {
+    const { Mk9ScopeError } = await import("@/lib/mk9-auth/access-scope.server");
+    const outOfScope =
+      (access.allowedIndustryIds && !access.allowedIndustryIds.includes(r.industry_id as string)) ||
+      (access.allowedStoreIds && (!r.store_id || !access.allowedStoreIds.includes(r.store_id as string))) ||
+      (access.allowedPromoterIds && (!r.promoter_id || !access.allowedPromoterIds.includes(r.promoter_id as string))) ||
+      (access.allowedUfs && !access.allowedUfs.includes(((r as any).store?.uf ?? r.raw_store_uf) as string));
+    if (outOfScope) throw new Mk9ScopeError();
+  }
 
   let planned: any = null;
   if (r.planned_visit_id) {
