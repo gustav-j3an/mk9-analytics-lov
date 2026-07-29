@@ -1,5 +1,5 @@
 // Leitura de dados MK9 para consumo pelas telas.
-// Server functions públicas (uso interno do painel — sem auth por design).
+// Todas as leituras exigem sessão válida + papel (ver mk9-auth/read-guards.server).
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
