@@ -318,6 +318,7 @@ export async function buildDashboardOverview(
     const ctx = ctxById.get(f.industry_id);
     if (!ctx || !f.store_id) continue;
     if (!passesUf(f.store?.uf ?? null)) continue;
+    if (!passesStore(f.store_id)) continue;
     const b = touch(ctx, f.store_id, f.store);
     b.weekly = (f.weekly_frequency as number | null) ?? b.weekly;
     b.monthly = (f.monthly_frequency as number | null) ?? b.monthly;
@@ -328,6 +329,7 @@ export async function buildDashboardOverview(
     const d = String(v.scheduled_date);
     if (d < ctx.win.startDate || d > ctx.win.endDate) continue; // respeita a janela da indústria
     if (!passesUf(v.store?.uf ?? null)) continue;
+    if (!passesStore(v.store_id)) continue;
     const b = touch(ctx, v.store_id, v.store);
     b.visits.push(d);
   }
