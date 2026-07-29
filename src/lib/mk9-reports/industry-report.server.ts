@@ -173,14 +173,15 @@ export async function buildIndustryReport(
   if (!industry) throw new Error("Indústria não encontrada");
 
   // 2) Frequência por loja (fonte principal de "contratadas")
-  let freqQ = supabase
-    .from("mk9_industry_store_frequency")
-    .select("store_id, weekly_frequency, monthly_frequency, store:mk9_stores(id,name,chain,uf)")
-    .eq("industry_id", industryId)
-    .limit(20000);
-  if (storeId) freqQ = freqQ.eq("store_id", storeId);
-  const { data: freqs, error: eFq } = await freqQ;
-  if (eFq) throw new Error(eFq.message);
+  // Frequência VERSIONADA vigente na janela (fonte de "contratadas").
+  const freqVersions = await loadFrequencyVersionsForPeriod(supabase, {
+    industryIds: [industryId],
+    storeIds: storeId ? [storeId] : (access?.allowedStoreIds ?? null),
+    periodStart: window.startDate,
+    periodEnd: window.endDate,
+    accessScope: access,
+  });
+
 
   // 3) Roteiro planejado (usado só para status_roteiro; nunca altera contrato)
   let plannedQ = supabase
