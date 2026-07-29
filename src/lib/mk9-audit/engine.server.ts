@@ -1,12 +1,25 @@
 // Motor da Auditoria de Execução MK9.
-// Reutiliza a mesma regra de contratação (frequência da indústria por loja)
-// já usada em industry-report.server.ts. Executadas = total bruto de checklist
-// no período da indústria. Pendentes = max(0, contratadas - executadas).
-// Cobertura = executadas / contratadas (limite 100%). Promotor responsável
-// vem do roteiro planejado (mk9_planned_routes), pela maioria por loja.
+//
+// FONTE DA VERDADE (Fase 1B.3)
+//   contratadas = frequência VERSIONADA vigente na janela da indústria
+//                 (mk9_industry_store_frequency_versions), somada por segmento
+//                 de vigência em contractedVisitsForFrequencySegments.
+//   executadas  = total bruto de checklist no período da indústria.
+//   pendentes   = max(0, contratadas - executadas).
+//   cobertura   = executadas / contratadas (limite 100%).
+// Promotor responsável vem do roteiro planejado (mk9_planned_routes).
+//
+// A projeção mk9_industry_store_frequency NÃO é mais lida aqui.
 
 import { loadPeriodConfig, resolveWindow, type PeriodWindow } from "@/lib/mk9-reports/period.server";
 import { computeVisitMetrics, aggregateVisitMetrics } from "@/lib/mk9-reports/metrics";
+import {
+  contractedVisitsForFrequencySegments,
+  describeFrequencySegments,
+  type FrequencySegmentInput,
+} from "@/lib/mk9-frequency/segments";
+import { freqKey, loadFrequencyVersionsForPeriod } from "@/lib/mk9-frequency/versions.server";
+
 
 export type ExecStatus = "COMPLETO" | "PARCIAL" | "NAO_REALIZADO";
 export const EXEC_STATUS_LABEL: Record<ExecStatus, string> = {
@@ -34,6 +47,11 @@ export interface AuditStoreLine {
   status: ExecStatus;
   weeklyFrequency: number | null;
   monthlyFrequency: number | null;
+  /** true quando a frequência mudou dentro do período (vigências múltiplas) */
+  frequencyChangedInPeriod: boolean;
+  /** ex.: "1x/sem até 15/07 · 2x/sem desde 16/07" */
+  frequencyLabel: string | null;
+
 }
 
 export interface AuditPromoterLine {
@@ -68,14 +86,7 @@ export interface AuditScope {
 }
 
 
-function contractedFromFrequency(weekly: number | null, monthly: number | null, totalDays: number): number {
-  if (monthly != null && Number.isFinite(monthly) && monthly > 0) return Math.max(0, Math.round(monthly));
-  if (weekly != null && Number.isFinite(weekly) && weekly > 0) {
-    const days = Math.max(1, totalDays);
-    return Math.max(0, Math.round(weekly * (days / 7)));
-  }
-  return 0;
-}
+
 
 function pickStatus(contratadas: number, realizadas: number): ExecStatus {
   if (contratadas === 0 && realizadas === 0) return "NAO_REALIZADO";
@@ -111,13 +122,16 @@ async function buildIndustryContext(
   const win = resolveWindow(cfg, year, month);
 
 
-  // Frequência por loja
-  const { data: freqs, error: eF } = await supabase
-    .from("mk9_industry_store_frequency")
-    .select("store_id, weekly_frequency, monthly_frequency, store:mk9_stores(id,name,chain,uf)")
-    .eq("industry_id", industry.id)
-    .limit(20000);
-  if (eF) throw new Error(eF.message);
+  // Frequência VERSIONADA por loja, restrita às vigências que interceptam a
+  // janela operacional desta indústria (uma consulta em lote, sem N+1).
+  const freqVersions = await loadFrequencyVersionsForPeriod(supabase, {
+    industryIds: [industry.id],
+    storeIds: allowedStoreIds,
+    periodStart: win.startDate,
+    periodEnd: win.endDate,
+    accessScope: access ?? null,
+  });
+
 
   // Visitas realizadas na janela
   const { data: actuals, error: eA } = await supabase
@@ -164,25 +178,34 @@ async function buildIndustryContext(
 
   type Bucket = {
     storeId: string; storeName: string; chain: string | null; uf: string | null;
-    weekly: number | null; monthly: number | null; actual: number;
+    weekly: number | null; monthly: number | null; segments: FrequencySegmentInput[]; actual: number;
   };
   const map = new Map<string, Bucket>();
-  const touch = (id: string, s: any) => {
+  const touch = (id: string, s: any): Bucket => {
     let b = map.get(id);
     if (!b) {
-      b = { storeId: id, storeName: s?.name ?? "—", chain: s?.chain ?? null, uf: s?.uf ?? null, weekly: null, monthly: null, actual: 0 };
+      b = { storeId: id, storeName: s?.name ?? "—", chain: s?.chain ?? null, uf: s?.uf ?? null, weekly: null, monthly: null, segments: [], actual: 0 };
       map.set(id, b);
     }
     return b;
   };
-  for (const f of freqs ?? []) {
-    if (!f.store_id) continue;
-    if (uf && f.store?.uf !== uf) continue;
-    if (!inScope(f.store, f.store_id)) continue;
+  for (const [key, segs] of freqVersions) {
+    const storeId = key.slice(key.indexOf("|") + 1);
+    if (!storeId || !segs.length) continue;
+    const store = segs[0].store;
+    if (uf && store?.uf !== uf) continue;
+    if (!inScope(store, storeId)) continue;
 
-    const b = touch(f.store_id, f.store);
-    b.weekly = (f.weekly_frequency as number | null) ?? b.weekly;
-    b.monthly = (f.monthly_frequency as number | null) ?? b.monthly;
+    const b = touch(storeId, store);
+    b.segments = segs.map((s) => ({
+      validFrom: s.validFrom,
+      validUntil: s.validUntil,
+      weeklyFrequency: s.weeklyFrequency,
+      monthlyFrequency: s.monthlyFrequency,
+    }));
+    const last = segs[segs.length - 1];
+    b.weekly = last.weeklyFrequency;
+    b.monthly = last.monthlyFrequency;
   }
   for (const a of actuals ?? []) {
     if (!a.store_id) continue;
@@ -194,7 +217,12 @@ async function buildIndustryContext(
   }
 
   const stores: AuditStoreLine[] = Array.from(map.values()).map((b) => {
-    const contratadas = contractedFromFrequency(b.weekly, b.monthly, win.totalDays);
+    const contracted = contractedVisitsForFrequencySegments({
+      segments: b.segments,
+      operationPeriodStart: win.startDate,
+      operationPeriodEnd: win.endDate,
+    });
+    const contratadas = contracted.contratadas;
     const m = computeVisitMetrics({ contratadas, executadas: b.actual });
     const realizadas = m.executadas;
     const pendentes = Math.max(0, contratadas - realizadas);
@@ -222,8 +250,11 @@ async function buildIndustryContext(
       status: pickStatus(contratadas, realizadas),
       weeklyFrequency: b.weekly,
       monthlyFrequency: b.monthly,
+      frequencyChangedInPeriod: contracted.hasMultipleSegments,
+      frequencyLabel: describeFrequencySegments(contracted, { start: win.startDate, end: win.endDate }),
     };
   });
+
   stores.sort((a, z) => a.storeName.localeCompare(z.storeName, "pt-BR"));
   return { industryId: industry.id, industryName: industry.name, window: win, stores };
 }

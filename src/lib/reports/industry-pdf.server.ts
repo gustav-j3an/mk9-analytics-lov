@@ -259,11 +259,16 @@ function dateList(store: StoreLine): string {
   return store.actualDates.map(fmtBR).join(", ");
 }
 
+// Fase 1B.3: quando houve troca de vigência dentro do período, o PDF mostra a
+// composição real (ex.: "1x/sem até 15/07 · 2x/sem desde 16/07") em vez de um
+// único valor que não explicaria o contratado.
 function frequencyLabel(s: StoreLine): string {
-  if (s.weeklyFrequency != null) return `${s.weeklyFrequency}x/sem`;
+  if (s.frequencyLabel) return s.frequencyLabel;
   if (s.monthlyFrequency != null) return `${s.monthlyFrequency}x/mês`;
+  if (s.weeklyFrequency != null) return `${s.weeklyFrequency}x/sem`;
   return "-";
 }
+
 
 function drawStoreTable(ctx: PdfCtx) {
   const pcts = [0.27, 0.04, 0.07, 0.06, 0.06, 0.06, 0.05, 0.06, 0.08, 0.09, 0.16];

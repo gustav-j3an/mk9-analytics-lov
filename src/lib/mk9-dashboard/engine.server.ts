@@ -1,9 +1,10 @@
 // Motor agregado do Dashboard Operacional MK9.
 // Uma única chamada devolve KPIs, séries, rankings, alertas e tabelas resumidas.
 //
-// FONTE DA VERDADE
-//   contratadas = frequência vigente da indústria por loja (mk9_industry_store_frequency)
-//                 projetada na janela operacional da indústria.
+// FONTE DA VERDADE (Fase 1B.3)
+//   contratadas = frequência VERSIONADA vigente no período
+//                 (mk9_industry_store_frequency_versions), calculada por
+//                 segmentos de vigência via contractedVisitsForFrequencySegments.
 //   realizadas  = mk9_actual_visits (checklist) dentro da janela da indústria.
 //   pendentes   = max(0, contratadas - realizadas)
 //   extras      = max(0, realizadas - contratadas)
@@ -11,8 +12,17 @@
 //   roteiro     = mk9_planned_routes versionado (apenas auditoria de promotor).
 //
 // mk9_planned_visits NÃO é usada aqui.
+// A projeção mk9_industry_store_frequency NÃO é mais lida por este motor.
+
 
 import { resolveWindow, type PeriodConfig } from "@/lib/mk9-reports/period.server";
+import {
+  contractedVisitsForFrequencySegments,
+  type ContractedResult,
+  type FrequencySegmentInput,
+} from "@/lib/mk9-frequency/segments";
+import { freqKey, loadFrequencyVersionsForPeriod, segmentsForWindow } from "@/lib/mk9-frequency/versions.server";
+
 import {
   INDUSTRY_STATUS_LABEL,
   INDUSTRY_STATUS_ORDER,
@@ -66,14 +76,23 @@ function addDays(iso: string, n: number) {
   return d.toISOString().slice(0, 10);
 }
 
-/** Contratadas de uma loja na janela: mensal explícita, senão semanal × (dias/7). */
-function contractedFromFrequency(weekly: number | null, monthly: number | null, totalDays: number) {
-  if (monthly != null && Number.isFinite(monthly) && monthly > 0) return Math.max(0, Math.round(monthly));
-  if (weekly != null && Number.isFinite(weekly) && weekly > 0) {
-    return Math.max(0, Math.round(weekly * (Math.max(1, totalDays) / 7)));
-  }
-  return 0;
+/**
+ * Contratadas de uma loja na janela a partir das vigências versionadas.
+ * Centralizado em @/lib/mk9-frequency/segments — nunca `weekly × 4`.
+ */
+function contractedForStore(
+  segments: FrequencySegmentInput[],
+  win: { startDate: string; endDate: string },
+  untilDate?: string | null,
+): ContractedResult {
+  return contractedVisitsForFrequencySegments({
+    segments,
+    operationPeriodStart: win.startDate,
+    operationPeriodEnd: win.endDate,
+    untilDate: untilDate ?? null,
+  });
 }
+
 
 /**
  * Fração do período já transcorrida até hoje.
@@ -100,8 +119,11 @@ interface StoreBucket {
   uf: string | null;
   weekly: number | null;
   monthly: number | null;
+  /** vigências que interceptam a janela desta indústria */
+  segments: FrequencySegmentInput[];
   visits: string[];
 }
+
 
 interface IndustryCtx {
   id: string;
@@ -207,13 +229,17 @@ export async function buildDashboardOverview(
     return emptyOverview(today, year, month, globalStart, globalEnd);
   }
 
-  // ---- consultas em paralelo -------------------------------------------------
-  const [freqRes, visitRes, routeRes, importRes, storeRes] = await Promise.all([
-    supabase
-      .from("mk9_industry_store_frequency")
-      .select("industry_id, store_id, weekly_frequency, monthly_frequency, store:mk9_stores(id,name,chain,uf)")
-      .in("industry_id", industryIds)
-      .limit(50000),
+  // ---- consultas em paralelo (mesmo número de round-trips de antes) ----------
+  const [freqVersions, visitRes, routeRes, importRes, storeRes] = await Promise.all([
+    // Fase 1B.3: frequências VERSIONADAS que interceptam a janela global.
+    loadFrequencyVersionsForPeriod(supabase, {
+      industryIds,
+      storeIds: accessStoreIds,
+      periodStart: globalStart,
+      periodEnd: globalEnd,
+      accessScope: access,
+    }),
+
     supabase
       .from("mk9_actual_visits")
       .select("industry_id, store_id, scheduled_date, store:mk9_stores(id,name,chain,uf)")
@@ -245,9 +271,10 @@ export async function buildDashboardOverview(
       return q;
     })(),
   ]);
-  for (const r of [freqRes, visitRes, routeRes, importRes, storeRes]) {
+  for (const r of [visitRes, routeRes, importRes, storeRes]) {
     if (r.error) throw new Error(r.error.message);
   }
+
 
   const availableUfs = Array.from(
     new Set((storeRes.data ?? []).map((s: any) => s.uf).filter(Boolean) as string[]),
@@ -297,7 +324,7 @@ export async function buildDashboardOverview(
     return true;
   };
   const passesStore = (storeId: string) => !accessStoreIds || accessStoreIds.includes(storeId);
-  const touch = (ctx: IndustryCtx, storeId: string, store: any) => {
+  const touch = (ctx: IndustryCtx, storeId: string, store: any): StoreBucket => {
     let b = ctx.buckets.get(storeId);
     if (!b) {
       b = {
@@ -307,6 +334,7 @@ export async function buildDashboardOverview(
         uf: store?.uf ?? null,
         weekly: null,
         monthly: null,
+        segments: [],
         visits: [],
       };
       ctx.buckets.set(storeId, b);
@@ -314,15 +342,30 @@ export async function buildDashboardOverview(
     return b;
   };
 
-  for (const f of freqRes.data ?? []) {
-    const ctx = ctxById.get(f.industry_id);
-    if (!ctx || !f.store_id) continue;
-    if (!passesUf(f.store?.uf ?? null)) continue;
-    if (!passesStore(f.store_id)) continue;
-    const b = touch(ctx, f.store_id, f.store);
-    b.weekly = (f.weekly_frequency as number | null) ?? b.weekly;
-    b.monthly = (f.monthly_frequency as number | null) ?? b.monthly;
+  // Frequência versionada: cada (indústria, loja) recebe as vigências que
+  // interceptam a janela DAQUELA indústria (KING 23→22, demais 01→fim do mês).
+  for (const [key, segs] of freqVersions) {
+    const [industryId, storeId] = key.split("|");
+    const ctx = ctxById.get(industryId);
+    if (!ctx || !storeId) continue;
+    const inWindow = segmentsForWindow(segs, ctx.win.startDate, ctx.win.endDate);
+    if (!inWindow.length) continue;
+    const store = inWindow[0].store;
+    if (!passesUf(store?.uf ?? null)) continue;
+    if (!passesStore(storeId)) continue;
+    const b = touch(ctx, storeId, store);
+    b.segments = inWindow.map((s) => ({
+      validFrom: s.validFrom,
+      validUntil: s.validUntil,
+      weeklyFrequency: s.weeklyFrequency,
+      monthlyFrequency: s.monthlyFrequency,
+    }));
+    // valores da vigência mais recente — apenas exibição/compatibilidade
+    const last = inWindow[inWindow.length - 1];
+    b.weekly = last.weeklyFrequency;
+    b.monthly = last.monthlyFrequency;
   }
+
   for (const v of visitRes.data ?? []) {
     const ctx = ctxById.get(v.industry_id);
     if (!ctx || !v.store_id) continue;
@@ -343,9 +386,16 @@ export async function buildDashboardOverview(
       if (filters.promoterId && promo.id !== filters.promoterId) continue;
       if (accessPromoterIds && (!promo.id || !accessPromoterIds.includes(promo.id))) continue;
 
-      const contratadas = contractedFromFrequency(b.weekly, b.monthly, ctx.win.totalDays);
+      const contracted = contractedForStore(b.segments, ctx.win);
+      const contratadas = contracted.contratadas;
       const realizadas = b.visits.length;
-      const expectedToDate = Math.round(contratadas * ctx.fraction);
+      // Meta até hoje: recorta a janela na data atual respeitando cada vigência
+      // (uma troca de frequência no meio do mês reflete corretamente).
+      const expectedToDate =
+        today >= ctx.win.endDate
+          ? contratadas
+          : contractedForStore(b.segments, ctx.win, today).contratadas;
+
       const lastVisit = b.visits.length ? b.visits.slice().sort()[b.visits.length - 1] : null;
       const status: StoreExecStatus =
         realizadas === 0 ? "NAO_ATENDIDA" : contratadas > 0 && realizadas >= contratadas ? "INTEGRAL" : "PARCIAL";

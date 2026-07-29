@@ -1,17 +1,25 @@
 // Engine de agregação do Relatório da Indústria.
 //
-// Fonte ÚNICA das "visitas contratadas" por loja: cadastro de frequência da
-// indústria (mk9_industry_store_frequency). A existência ou ausência de
-// roteiro planejado NÃO altera o valor contratado — o roteiro é somente
+// Fonte ÚNICA das "visitas contratadas" por loja (Fase 1B.3): a frequência
+// VERSIONADA da indústria (mk9_industry_store_frequency_versions), somada por
+// segmento de vigência dentro da janela operacional. A existência ou ausência
+// de roteiro planejado NÃO altera o valor contratado — o roteiro é somente
 // auditoria (routeStatus). Extras de uma loja não compensam pendências de
 // outra.
 //
-// A coluna VISITA MENSAL do checklist é a fonte oficial de contrato:
-//   monthly → valor direto da planilha, sem escala por roteiro ou calendário.
-//   weekly  → fallback apenas quando a mensal não veio, escalado pelo período.
+// Regra de contrato (centralizada em @/lib/mk9-frequency/segments):
+//   monthly → proporcional aos dias de vigência dentro do período.
+//   weekly  → fallback (weekly × dias/7) apenas quando não há mensal.
 // Cobertura é limitada a 100 % (já garantido por validas = min(contr., exec.)).
 import type { PeriodWindow } from "./period.server";
 import { aggregateVisitMetrics, computeVisitMetrics, type VisitMetrics } from "./metrics";
+import {
+  contractedVisitsForFrequencySegments,
+  describeFrequencySegments,
+  type FrequencySegmentInput,
+} from "@/lib/mk9-frequency/segments";
+import { loadFrequencyVersionsForPeriod } from "@/lib/mk9-frequency/versions.server";
+
 
 
 export type StoreStatus =
@@ -62,6 +70,11 @@ export interface StoreLine {
   contractedSource: ContractedSource;  // origem da métrica contratada
   weeklyFrequency: number | null;
   monthlyFrequency: number | null;
+  /** houve troca de frequência dentro do período operacional */
+  frequencyChangedInPeriod: boolean;
+  /** ex.: "1x/sem até 15/07 · 2x/sem desde 16/07" (null quando sem vigência) */
+  frequencyLabel: string | null;
+
   plannedCount: number;
   metrics: VisitMetrics;
 }
@@ -122,24 +135,9 @@ function weeksInWindow(window: PeriodWindow): number {
   return Math.max(1, Math.round(window.totalDays / 7));
 }
 
-/**
- * Contratadas por loja a partir da frequência cadastrada. VISITA MENSAL tem
- * prioridade e entra como valor direto do Excel. Nunca usa roteiro.
- */
-function contractedFromFrequency(
-  weekly: number | null,
-  monthly: number | null,
-  totalDays: number,
-): { contratadas: number; source: ContractedSource } {
-  const days = Math.max(1, totalDays);
-  if (monthly != null && Number.isFinite(monthly) && monthly > 0) {
-    return { contratadas: Math.max(0, Math.round(monthly)), source: "MONTHLY_FREQUENCY" };
-  }
-  if (weekly != null && Number.isFinite(weekly) && weekly > 0) {
-    return { contratadas: Math.max(0, Math.round(weekly * (days / 7))), source: "WEEKLY_FREQUENCY" };
-  }
-  return { contratadas: 0, source: "NONE" };
-}
+// Contratadas por loja vêm de contractedVisitsForFrequencySegments
+// (@/lib/mk9-frequency/segments) — motor único, com um só arredondamento.
+
 
 
 export async function buildIndustryReport(
@@ -175,14 +173,15 @@ export async function buildIndustryReport(
   if (!industry) throw new Error("Indústria não encontrada");
 
   // 2) Frequência por loja (fonte principal de "contratadas")
-  let freqQ = supabase
-    .from("mk9_industry_store_frequency")
-    .select("store_id, weekly_frequency, monthly_frequency, store:mk9_stores(id,name,chain,uf)")
-    .eq("industry_id", industryId)
-    .limit(20000);
-  if (storeId) freqQ = freqQ.eq("store_id", storeId);
-  const { data: freqs, error: eFq } = await freqQ;
-  if (eFq) throw new Error(eFq.message);
+  // Frequência VERSIONADA vigente na janela (fonte de "contratadas").
+  const freqVersions = await loadFrequencyVersionsForPeriod(supabase, {
+    industryIds: [industryId],
+    storeIds: storeId ? [storeId] : (access?.allowedStoreIds ?? null),
+    periodStart: window.startDate,
+    periodEnd: window.endDate,
+    accessScope: access,
+  });
+
 
   // 3) Roteiro planejado (usado só para status_roteiro; nunca altera contrato)
   let plannedQ = supabase
@@ -231,6 +230,8 @@ export async function buildIndustryReport(
     uf: string | null;
     weekly: number | null;
     monthly: number | null;
+    segments: FrequencySegmentInput[];
+
     plannedCount: number;
     actual: number;
     actualDates: Set<string>;
@@ -239,7 +240,7 @@ export async function buildIndustryReport(
   const touch = (
     id: string,
     r: { name?: string | null; chain?: string | null; uf?: string | null } | null | undefined,
-  ) => {
+  ): Bucket => {
     let b = map.get(id);
     if (!b) {
       b = {
@@ -249,6 +250,7 @@ export async function buildIndustryReport(
         uf: r?.uf ?? null,
         weekly: null,
         monthly: null,
+        segments: [],
         plannedCount: 0,
         actual: 0,
         actualDates: new Set<string>(),
@@ -262,15 +264,25 @@ export async function buildIndustryReport(
     return b;
   };
 
-  // Frequência cadastrada (nunca filtrar por UF antes de existir a loja no bucket)
-  for (const f of freqs ?? []) {
-    if (!f.store_id) continue;
-    if (uf && f.store?.uf !== uf) continue;
-    if (!inAccess(f.store, f.store_id ?? null)) continue;
-    const b = touch(f.store_id, f.store);
-    b.weekly = (f.weekly_frequency as number | null) ?? b.weekly;
-    b.monthly = (f.monthly_frequency as number | null) ?? b.monthly;
+  // Vigências de frequência (nunca filtrar por UF antes de existir a loja no bucket)
+  for (const [key, segs] of freqVersions) {
+    const sid = key.slice(key.indexOf("|") + 1);
+    if (!sid || !segs.length) continue;
+    const store = segs[0].store;
+    if (uf && store?.uf !== uf) continue;
+    if (!inAccess(store, sid)) continue;
+    const b = touch(sid, store);
+    b.segments = segs.map((s) => ({
+      validFrom: s.validFrom,
+      validUntil: s.validUntil,
+      weeklyFrequency: s.weeklyFrequency,
+      monthlyFrequency: s.monthlyFrequency,
+    }));
+    const last = segs[segs.length - 1];
+    b.weekly = last.weeklyFrequency;
+    b.monthly = last.monthlyFrequency;
   }
+
   for (const p of planned ?? []) {
     if (!p.store_id) continue;
     if (uf && p.store?.uf !== uf) continue;
@@ -299,12 +311,17 @@ export async function buildIndustryReport(
 
   // Monta linhas por loja
   const stores: StoreLine[] = Array.from(map.values()).map((b) => {
-    // Contratadas: SEMPRE da frequência cadastrada. VISITA MENSAL entra direto.
+    // Contratadas: SEMPRE da frequência versionada vigente no período.
     // Roteiro planejado é auditoria (routeStatus) — nunca substitui contrato.
-    const fromFreq = contractedFromFrequency(b.weekly, b.monthly, window.totalDays);
-    const contratadas = fromFreq.contratadas;
-    const source: ContractedSource = fromFreq.source;
+    const contracted = contractedVisitsForFrequencySegments({
+      segments: b.segments,
+      operationPeriodStart: window.startDate,
+      operationPeriodEnd: window.endDate,
+    });
+    const contratadas = contracted.contratadas;
+    const source: ContractedSource = contracted.source;
     const m = computeVisitMetrics({ contratadas, executadas: b.actual });
+
 
 
     // status_execucao (independe de roteiro)
@@ -346,6 +363,12 @@ export async function buildIndustryReport(
       contractedSource: source,
       weeklyFrequency: b.weekly,
       monthlyFrequency: b.monthly,
+      frequencyChangedInPeriod: contracted.hasMultipleSegments,
+      frequencyLabel: describeFrequencySegments(contracted, {
+        start: window.startDate,
+        end: window.endDate,
+      }),
+
       plannedCount: b.plannedCount,
       metrics: m,
     };

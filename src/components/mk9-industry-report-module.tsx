@@ -297,9 +297,13 @@ export function Mk9IndustryReportModule() {
                 </thead>
                 <tbody>
                   {report.stores.map((s: any) => {
+                    // Fase 1B.3: mostra a composição da vigência quando a
+                    // frequência mudou no meio do período.
                     const freqLabel =
-                      s.weeklyFrequency ? `${s.weeklyFrequency}/sem` :
-                      s.monthlyFrequency ? `${s.monthlyFrequency}/mês` : "—";
+                      s.frequencyLabel ??
+                      (s.monthlyFrequency ? `${s.monthlyFrequency}/mês` :
+                       s.weeklyFrequency ? `${s.weeklyFrequency}/sem` : "—");
+
                     return (
                       <tr key={s.storeId} className="border-b last:border-0 hover:bg-muted/30">
                         <td className="py-2">
