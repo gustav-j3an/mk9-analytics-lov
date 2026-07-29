@@ -26,7 +26,12 @@ const commitSchema = z.object({
   operationMonth: z.number().int().min(1).max(12),
   operationYear: z.number().int().min(2020).max(2100),
   items: z.array(commitItemSchema),
+  // Conflitos de frequência (MANUAL/FUTURE) só podem ser forçados por ADMIN
+  // e exigem justificativa registrada em auditoria.
+  forceFrequencyConflicts: z.boolean().optional(),
+  forceReason: z.string().min(10).max(500).optional(),
 });
+
 
 async function validate<T>(step: string, fn: () => T): Promise<T> {
   const { withRichErrors } = await import("./mk9-checklist/errors.server");
@@ -154,6 +159,16 @@ export const checklistCommit = createServerFn({ method: "POST" })
       //    "visitas contratadas" no relatório da indústria.
       let frequenciesUpserted = 0;
       let frequenciesNotImported = 0;
+      let frequencyDiff: {
+        unchanged: number;
+        new: number;
+        changed: number;
+        removed: number;
+        manualConflicts: number;
+        futureConflicts: number;
+        skipped: number;
+        forced: number;
+      } | null = null;
       if (freqs.length) {
         const rows = freqs
           .map((f) => ({
@@ -163,12 +178,37 @@ export const checklistCommit = createServerFn({ method: "POST" })
           }))
           .filter((r): r is { storeId: string; weeklyFrequency: number | null; monthlyFrequency: number | null } => !!r.storeId);
         frequenciesNotImported = freqs.length - rows.length;
-        const { upserted } = await withRichErrors(
+        const { upserted, report, applied } = await withRichErrors(
           { step: "upsert-industry-store-frequencies", function: "checklistCommit", extra: { rows: rows.length, frequenciesNotImported } },
-          () => upsertIndustryStoreFrequencies(data.industryId, data.importId, rows),
+          () =>
+            upsertIndustryStoreFrequencies(data.industryId, data.importId, rows, {
+              operationMonth: data.operationMonth,
+              operationYear: data.operationYear,
+              // force só é aceito para ADMIN (papel já validado acima) e exige justificativa.
+              force: !!data.forceFrequencyConflicts && !!data.forceReason,
+              reason: data.forceReason ?? null,
+              actorId: ctx.userId,
+            }),
         );
         frequenciesUpserted = upserted;
+        frequencyDiff = {
+          unchanged: report.unchanged,
+          new: report.new,
+          changed: report.changed,
+          removed: report.removed,
+          manualConflicts: report.manualConflicts,
+          futureConflicts: report.futureConflicts,
+          skipped: applied.skipped,
+          forced: applied.forced,
+        };
+        await logAudit(ctx, "mk9.frequency.version.apply", "mk9_industry_store_frequency_versions", data.importId, {
+          industryId: data.industryId,
+          competencyStart: report.competencyStart,
+          ...frequencyDiff,
+          forceReason: data.forceReason ?? null,
+        });
       }
+
 
       const counters = {
         persisted,
@@ -242,6 +282,7 @@ export const checklistCommit = createServerFn({ method: "POST" })
         unresolved: unresolved.length,
         frequenciesUpserted,
         frequenciesNotImported,
+        frequencyDiff,
         reconciliationError,
         validation,
         validationError,

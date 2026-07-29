@@ -1037,6 +1037,16 @@ export type Database = {
         Returns: boolean
       }
       is_mk9_admin: { Args: never; Returns: boolean }
+      mk9_apply_frequency_diff: {
+        Args: {
+          _actor?: string
+          _decisions: Json
+          _force?: boolean
+          _import_id: string
+          _reason?: string
+        }
+        Returns: Json
+      }
       mk9_apply_route_diff: {
         Args: { _decisions: Json; _force?: boolean; _import_id: string }
         Returns: Json
@@ -1075,6 +1085,18 @@ export type Database = {
           valid_until: string
           weekday: number
         }[]
+      }
+      mk9_set_frequency_manual: {
+        Args: {
+          _actor?: string
+          _industry_id: string
+          _monthly: number
+          _reason?: string
+          _store_id: string
+          _valid_from?: string
+          _weekly: number
+        }
+        Returns: string
       }
       mk9_sync_planned_visits: {
         Args: { _archive_ids: string[]; _import_id: string; _rows: Json }
