@@ -83,6 +83,9 @@ export const Route = createFileRoute("/api/reports/industry-pdf")({
           });
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error));
+          if ((error as any)?.statusCode === 403) {
+            return errorResponse(403, { stage, message: err.message });
+          }
           console.error("[industry-pdf]", { stage, industryId, period, error: err });
           return errorResponse(stage === "parse-payload" ? 400 : 500, {
             stage,
