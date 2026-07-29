@@ -151,12 +151,13 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
     year: z.number().int().min(2020).max(2100),
   }).parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (scope.allowedIndustryIds?.length === 0 || scope.allowedStoreIds?.length === 0 || scope.allowedUfs?.length === 0) return [];
     const first = new Date(Date.UTC(data.year, data.month - 1, 1)).toISOString().slice(0, 10);
     const last = new Date(Date.UTC(data.year, data.month, 0)).toISOString().slice(0, 10);
-    const { data: rows, error } = await supabaseAdmin
+    let q = supabaseAdmin
       .from("mk9_planned_visits")
       .select(
         "id, scheduled_date, status, source_sheet, promoter:mk9_promoters(id,name), store:mk9_stores(id,name,chain,uf), industry:mk9_industries(id,name)",
@@ -166,7 +167,15 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
       .is("archived_at", null)
       .order("scheduled_date", { ascending: true })
       .limit(5000);
+    if (scope.allowedIndustryIds) q = q.in("industry_id", scope.allowedIndustryIds);
+    if (scope.allowedStoreIds) q = q.in("store_id", scope.allowedStoreIds);
+    if (scope.allowedPromoterIds) q = q.in("promoter_id", scope.allowedPromoterIds);
+    const { data: allRows, error } = await q;
     if (error) throw new Error(error.message);
+    const rows = (allRows ?? []).filter(
+      (r: any) => !scope.allowedUfs || (r.store?.uf && scope.allowedUfs.includes(r.store.uf)),
+    );
+
     return (rows ?? []).map((r: any) => ({
       id: r.id as string,
       scheduledDate: r.scheduled_date as string,
