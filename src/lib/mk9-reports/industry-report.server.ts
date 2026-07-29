@@ -70,6 +70,11 @@ export interface StoreLine {
   contractedSource: ContractedSource;  // origem da métrica contratada
   weeklyFrequency: number | null;
   monthlyFrequency: number | null;
+  /** houve troca de frequência dentro do período operacional */
+  frequencyChangedInPeriod: boolean;
+  /** ex.: "1x/sem até 15/07 · 2x/sem desde 16/07" (null quando sem vigência) */
+  frequencyLabel: string | null;
+
   plannedCount: number;
   metrics: VisitMetrics;
 }
