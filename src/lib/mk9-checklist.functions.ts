@@ -154,6 +154,16 @@ export const checklistCommit = createServerFn({ method: "POST" })
       //    "visitas contratadas" no relatório da indústria.
       let frequenciesUpserted = 0;
       let frequenciesNotImported = 0;
+      let frequencyDiff: {
+        unchanged: number;
+        new: number;
+        changed: number;
+        removed: number;
+        manualConflicts: number;
+        futureConflicts: number;
+        skipped: number;
+        forced: number;
+      } | null = null;
       if (freqs.length) {
         const rows = freqs
           .map((f) => ({
@@ -163,12 +173,37 @@ export const checklistCommit = createServerFn({ method: "POST" })
           }))
           .filter((r): r is { storeId: string; weeklyFrequency: number | null; monthlyFrequency: number | null } => !!r.storeId);
         frequenciesNotImported = freqs.length - rows.length;
-        const { upserted } = await withRichErrors(
+        const { upserted, report, applied } = await withRichErrors(
           { step: "upsert-industry-store-frequencies", function: "checklistCommit", extra: { rows: rows.length, frequenciesNotImported } },
-          () => upsertIndustryStoreFrequencies(data.industryId, data.importId, rows),
+          () =>
+            upsertIndustryStoreFrequencies(data.industryId, data.importId, rows, {
+              operationMonth: data.operationMonth,
+              operationYear: data.operationYear,
+              // force só é aceito para ADMIN (papel já validado acima) e exige justificativa.
+              force: !!data.forceFrequencyConflicts && !!data.forceReason,
+              reason: data.forceReason ?? null,
+              actorId: ctx.userId,
+            }),
         );
         frequenciesUpserted = upserted;
+        frequencyDiff = {
+          unchanged: report.unchanged,
+          new: report.new,
+          changed: report.changed,
+          removed: report.removed,
+          manualConflicts: report.manualConflicts,
+          futureConflicts: report.futureConflicts,
+          skipped: applied.skipped,
+          forced: applied.forced,
+        };
+        await logAudit(ctx, "mk9.frequency.version.apply", "mk9_industry_store_frequency_versions", data.importId, {
+          industryId: data.industryId,
+          competencyStart: report.competencyStart,
+          ...frequencyDiff,
+          forceReason: data.forceReason ?? null,
+        });
       }
+
 
       const counters = {
         persisted,
