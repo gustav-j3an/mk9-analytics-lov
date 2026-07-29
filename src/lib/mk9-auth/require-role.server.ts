@@ -38,8 +38,43 @@ class Mk9UnauthenticatedError extends Error {
   }
 }
 
-function isProduction(): boolean {
-  return process.env.NODE_ENV === "production";
+/**
+ * Fase 0.3 — dev-bypass FAIL-CLOSED.
+ *
+ * O bypass só é permitido quando TODAS as condições abaixo forem verdadeiras:
+ *   1. NODE_ENV === "development" (ausente/desconhecido ⇒ fecha);
+ *   2. a requisição chegou por um host local (localhost / 127.0.0.1 / [::1]);
+ *   3. a variável MK9_DISABLE_DEV_BYPASS não está ligada.
+ *
+ * Assim o bypass nunca é ativado em preview/produção (hosts *.lovable.app) e
+ * não existe header, cookie ou query param capaz de ligá-lo remotamente.
+ */
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]", "::1", "0.0.0.0"]);
+
+export function isLocalRequest(request?: Request | null): boolean {
+  const host = request?.headers.get("host") ?? "";
+  if (!host) return false;
+  // Qualquer indício de proxy remoto derruba o bypass.
+  const forwarded = request?.headers.get("x-forwarded-host") ?? request?.headers.get("x-forwarded-for");
+  if (forwarded) return false;
+  const hostname = host.replace(/:\d+$/, "").toLowerCase();
+  return LOCAL_HOSTS.has(hostname);
+}
+
+export function devBypassAllowed(request?: Request | null): boolean {
+  if (process.env.MK9_DISABLE_DEV_BYPASS === "1") return false;
+  if (process.env.NODE_ENV !== "development") return false;
+  return isLocalRequest(request);
+}
+
+/** Mensagem segura: nunca vaza SQL, constraint, policy ou caminho interno. */
+export function sanitizeServerError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error ?? "");
+  const looksInternal =
+    /(select|insert|update|delete|from\s+mk9_|relation|constraint|policy|row-level|permission denied|pg[a-z_]*|\/[a-z0-9_.\-\/]+\.(ts|tsx|js)|service_role|supabase)/i.test(
+      raw,
+    );
+  return looksInternal || raw.length > 200 ? "Não foi possível concluir a operação." : raw;
 }
 
 function opaqueFetch(key: string): typeof fetch {
