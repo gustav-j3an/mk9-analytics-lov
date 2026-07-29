@@ -17,6 +17,13 @@
 
 import { resolveWindow, type PeriodConfig } from "@/lib/mk9-reports/period.server";
 import {
+  contractedVisitsForFrequencySegments,
+  type ContractedResult,
+  type FrequencySegmentInput,
+} from "@/lib/mk9-frequency/segments";
+import { freqKey, loadFrequencyVersionsForPeriod, segmentsForWindow } from "@/lib/mk9-frequency/versions.server";
+
+import {
   INDUSTRY_STATUS_LABEL,
   INDUSTRY_STATUS_ORDER,
   type DashboardAlert,
