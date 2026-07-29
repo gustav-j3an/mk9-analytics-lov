@@ -282,6 +282,7 @@ export const checklistCommit = createServerFn({ method: "POST" })
         unresolved: unresolved.length,
         frequenciesUpserted,
         frequenciesNotImported,
+        frequencyDiff,
         reconciliationError,
         validation,
         validationError,
