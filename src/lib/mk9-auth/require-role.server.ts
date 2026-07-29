@@ -56,8 +56,11 @@ function opaqueFetch(key: string): typeof fetch {
 /**
  * Exige que o usuário autenticado possua pelo menos uma das roles indicadas.
  */
-export async function requireMk9Role(required: Mk9Role[]): Promise<Mk9AuthContext> {
-  const request = getRequest();
+export async function requireMk9Role(
+  required: Mk9Role[],
+  opts?: { request?: Request },
+): Promise<Mk9AuthContext> {
+  const request = opts?.request ?? getRequest();
   const authHeader = request?.headers.get("authorization") ?? null;
 
   if (!authHeader) {
