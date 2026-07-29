@@ -25,7 +25,6 @@ import {
   assertStoreAllowed,
   rowInScope,
   toPromoterView,
-  Mk9ScopeError,
   type Mk9AccessScope,
 } from "@/lib/mk9-auth/access-scope.server";
 
@@ -158,7 +157,7 @@ describe("interseção de filtros", () => {
 describe("validação por objeto", () => {
   it("relatório/PDF de indústria fora do escopo lança 403", () => {
     const s = scope({});
-    expect(() => assertIndustryAllowed(s, INDUSTRY_B)).toThrowError(Mk9ScopeError);
+    expect(() => assertIndustryAllowed(s, INDUSTRY_B)).toThrowError(/escopo/i);
     try {
       assertIndustryAllowed(s, INDUSTRY_B);
     } catch (e: any) {
@@ -170,8 +169,10 @@ describe("validação por objeto", () => {
 
   it("loja/UF fora do escopo lança 403", () => {
     const s = scope({});
-    expect(() => assertStoreAllowed(s, STORE_B1, "DF")).toThrowError(Mk9ScopeError);
-    expect(() => assertStoreAllowed(s, STORE_A1, "GO")).toThrowError(Mk9ScopeError);
+    for (const bad of [() => assertStoreAllowed(s, STORE_B1, "DF"), () => assertStoreAllowed(s, STORE_A1, "GO")]) {
+      expect(bad).toThrow();
+      try { bad(); } catch (e: any) { expect(e.statusCode).toBe(403); expect(e.name).toBe("Mk9ScopeError"); }
+    }
     expect(() => assertStoreAllowed(s, STORE_A1, "DF")).not.toThrow();
   });
 
