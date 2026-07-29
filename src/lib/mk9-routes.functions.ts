@@ -258,7 +258,9 @@ export const mk9RoutesDeactivate = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// SET FREQUÊNCIA — atualiza mk9_industry_store_frequency
+// SET FREQUÊNCIA — cria nova versão MANUAL (Fase 1B.2).
+// A projeção mk9_industry_store_frequency é atualizada pelo trigger do banco.
+// Nunca sobrescreve nem apaga a versão anterior: encerra a vigência.
 // ---------------------------------------------------------------------------
 export const mk9RoutesSetFrequency = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
@@ -267,36 +269,46 @@ export const mk9RoutesSetFrequency = createServerFn({ method: "POST" })
       storeId: z.string().uuid(),
       weeklyFrequency: z.number().nullable().optional(),
       monthlyFrequency: z.number().nullable().optional(),
+      validFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      reason: z.string().max(500).optional(),
     }).parse(data),
   )
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(["ADMIN", "SUPERVISOR"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: existing } = await supabaseAdmin
-      .from("mk9_industry_store_frequency")
-      .select("id")
-      .eq("industry_id", data.industryId)
-      .eq("store_id", data.storeId)
-      .maybeSingle();
-    const payload = {
-      industry_id: data.industryId,
-      store_id: data.storeId,
-      weekly_frequency: data.weeklyFrequency ?? null,
-      monthly_frequency: data.monthlyFrequency ?? null,
-    };
-    if (existing) {
-      const { error } = await supabaseAdmin
-        .from("mk9_industry_store_frequency")
-        .update(payload)
-        .eq("id", existing.id);
-      if (error) throw new Error(error.message);
-    } else {
-      const { error } = await supabaseAdmin.from("mk9_industry_store_frequency").insert(payload);
-      if (error) throw new Error(error.message);
+    const { data: versionId, error } = await supabaseAdmin.rpc(
+      "mk9_set_frequency_manual" as any,
+      {
+        _industry_id: data.industryId,
+        _store_id: data.storeId,
+        _weekly: data.weeklyFrequency ?? null,
+        _monthly: data.monthlyFrequency ?? null,
+        _valid_from: data.validFrom ?? null,
+        _actor: ctx.userId,
+        _reason: data.reason ?? null,
+      } as any,
+    );
+    if (error) {
+      const { sanitizeServerError } = await import("./mk9-auth/require-role.server");
+      throw new Error(sanitizeServerError(error));
     }
-    await logAudit(ctx, "mk9_routes.set_frequency", "mk9_industry_store_frequency", null, payload);
-    return { ok: true };
+    await logAudit(
+      ctx,
+      "mk9_routes.set_frequency",
+      "mk9_industry_store_frequency_versions",
+      (versionId as string) ?? null,
+      {
+        industryId: data.industryId,
+        storeId: data.storeId,
+        weeklyFrequency: data.weeklyFrequency ?? null,
+        monthlyFrequency: data.monthlyFrequency ?? null,
+        validFrom: data.validFrom ?? null,
+        reason: data.reason ?? null,
+      },
+    );
+    return { ok: true, versionId: (versionId as string) ?? null };
   });
+
 
 // ---------------------------------------------------------------------------
 // RESOLVER PROMOTOR NA EXECUÇÃO — para uma visita real (loja+indústria+data)
