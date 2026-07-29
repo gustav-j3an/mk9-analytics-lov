@@ -108,14 +108,15 @@ async function computeScope(ctx: Mk9AuthContext): Promise<Mk9AccessScope> {
   }
 
   const role = primaryRole(ctx.roles);
+  const userId = ctx.userId as string;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   // service_role justificado: leitura das PRÓPRIAS linhas de escopo do usuário,
   // filtrada por user_id, antes de qualquer decisão de autorização.
   const { data: rows, error } = await supabaseAdmin
     .from("mk9_user_scopes")
     .select("scope_type, scope_value")
-    .eq("user_id", ctx.userId);
-  if (error) throw new Error(error.message);
+    .eq("user_id", userId);
+  if (error) throw new Error("Não foi possível resolver o escopo de acesso.");
 
   const byType = (t: string) =>
     uniqSorted((rows ?? []).filter((r: any) => r.scope_type === t).map((r: any) => String(r.scope_value)));
