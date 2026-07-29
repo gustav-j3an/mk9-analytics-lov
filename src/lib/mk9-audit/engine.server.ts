@@ -178,6 +178,8 @@ async function buildIndustryContext(
   for (const f of freqs ?? []) {
     if (!f.store_id) continue;
     if (uf && f.store?.uf !== uf) continue;
+    if (!inScope(f.store, f.store_id)) continue;
+
     const b = touch(f.store_id, f.store);
     b.weekly = (f.weekly_frequency as number | null) ?? b.weekly;
     b.monthly = (f.monthly_frequency as number | null) ?? b.monthly;
