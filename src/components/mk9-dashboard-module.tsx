@@ -683,11 +683,18 @@ function FilterField({ label, children }: { label: string; children: React.React
 }
 
 const KPI_TONES = {
-  blue: "from-sky-500/15 to-transparent text-sky-700 dark:text-sky-300",
-  green: "from-emerald-500/15 to-transparent text-emerald-700 dark:text-emerald-300",
-  amber: "from-amber-500/15 to-transparent text-amber-700 dark:text-amber-300",
-  violet: "from-violet-500/15 to-transparent text-violet-700 dark:text-violet-300",
-  rose: "from-rose-500/15 to-transparent text-rose-700 dark:text-rose-300",
+  blue: "from-sky-500/15 to-transparent",
+  green: "from-emerald-500/15 to-transparent",
+  amber: "from-amber-500/15 to-transparent",
+  violet: "from-violet-500/15 to-transparent",
+  rose: "from-rose-500/15 to-transparent",
+} as const;
+const KPI_ICON_TONES = {
+  blue: "text-sky-600 dark:text-sky-300",
+  green: "text-emerald-600 dark:text-emerald-300",
+  amber: "text-amber-600 dark:text-amber-300",
+  violet: "text-violet-600 dark:text-violet-300",
+  rose: "text-rose-600 dark:text-rose-300",
 } as const;
 
 function Kpi({
@@ -705,7 +712,7 @@ function Kpi({
       <div className="relative">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-muted-foreground">{label}</span>
-          <Icon className={cn("h-4 w-4", KPI_TONES[tone].split(" ").pop())} />
+          <Icon className={cn("h-4 w-4", KPI_ICON_TONES[tone])} />
         </div>
         <div className="mt-2 flex items-baseline gap-2">
           <span className="text-2xl font-semibold tracking-tight">{value}</span>
