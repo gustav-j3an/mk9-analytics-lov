@@ -86,6 +86,8 @@ export interface IndustryReportInput {
   storeId?: string | null;
   sourceImportId?: string | null;
   includePromoter?: boolean;
+  /** Escopo de acesso resolvido no servidor (Fase 0.2). Nunca vem do navegador. */
+  access?: import("@/lib/mk9-auth/access-scope.server").Mk9AccessScope | null;
 }
 
 export interface IndustryReport {
@@ -147,6 +149,21 @@ export async function buildIndustryReport(
 ): Promise<IndustryReport> {
   const { industryId, uf, storeId, sourceImportId } = input;
   const weeks = weeksInWindow(window);
+  const access = input.access ?? null;
+  if (access) {
+    const { assertIndustryAllowed, assertStoreAllowed, Mk9ScopeError } = await import(
+      "@/lib/mk9-auth/access-scope.server"
+    );
+    assertIndustryAllowed(access, industryId);
+    if (storeId) assertStoreAllowed(access, storeId, null);
+    if (uf && access.allowedUfs && !access.allowedUfs.includes(uf.toUpperCase())) throw new Mk9ScopeError();
+  }
+  const inAccess = (store: any, sid: string | null) => {
+    if (!access) return true;
+    if (access.allowedStoreIds && (!sid || !access.allowedStoreIds.includes(sid))) return false;
+    if (access.allowedUfs && !(store?.uf && access.allowedUfs.includes(store.uf))) return false;
+    return true;
+  };
 
   // 1) Indústria
   const { data: industry, error: eInd } = await supabase
@@ -249,6 +266,7 @@ export async function buildIndustryReport(
   for (const f of freqs ?? []) {
     if (!f.store_id) continue;
     if (uf && f.store?.uf !== uf) continue;
+    if (!inAccess(f.store, f.store_id ?? null)) continue;
     const b = touch(f.store_id, f.store);
     b.weekly = (f.weekly_frequency as number | null) ?? b.weekly;
     b.monthly = (f.monthly_frequency as number | null) ?? b.monthly;
@@ -256,12 +274,14 @@ export async function buildIndustryReport(
   for (const p of planned ?? []) {
     if (!p.store_id) continue;
     if (uf && p.store?.uf !== uf) continue;
+    if (!inAccess(p.store, p.store_id ?? null)) continue;
     const b = map.get(p.store_id);
     if (b) b.plannedCount += 1;
   }
   for (const a of actuals ?? []) {
     if (!a.store_id) continue;
     if (uf && a.store?.uf !== uf) continue;
+    if (!inAccess(a.store, a.store_id ?? null)) continue;
     const b = touch(a.store_id, a.store);
     b.actual += 1;
     if (a.scheduled_date) b.actualDates.add(a.scheduled_date as string);
@@ -273,6 +293,7 @@ export async function buildIndustryReport(
     if (!p.id) continue;
     if (storeId && p.store_id !== storeId) continue;
     if (uf && p.store?.uf !== uf) continue;
+    if (!inAccess(p.store, p.store_id ?? null)) continue;
     plannedIdsInReport.add(p.id as string);
   }
 

@@ -33,28 +33,30 @@ export const reconcileRun = createServerFn({ method: "POST" })
 export const reconcileSummary = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => scopeSchema.parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope: access } = await requireMk9ReadScope();
     const { summarize } = await import("./mk9-reconciliation/engine.server");
     return summarize({
       operationYear: data.operationYear,
       operationMonth: data.operationMonth,
       industryId: data.industryId ?? null,
       sourceImportId: data.sourceImportId ?? null,
+      access,
     });
   });
 
 export const reconcileList = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => scopeSchema.parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope: access } = await requireMk9ReadScope();
     const { listReconciliations } = await import("./mk9-reconciliation/engine.server");
     return listReconciliations({
       operationYear: data.operationYear,
       operationMonth: data.operationMonth,
       industryId: data.industryId ?? null,
       sourceImportId: data.sourceImportId ?? null,
+      access,
     });
   });
 
@@ -123,8 +125,8 @@ const pagedSchema = z.object({
 export const reconcileListPaged = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => pagedSchema.parse(d))
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope: access } = await requireMk9ReadScope();
     const { listReconciliationsPaged } = await import("./mk9-reconciliation/engine.server");
     return listReconciliationsPaged({
       operationYear: data.operationYear,
@@ -138,16 +140,17 @@ export const reconcileListPaged = createServerFn({ method: "POST" })
       search: data.search ?? null,
       page: data.page ?? 1,
       pageSize: data.pageSize ?? 50,
+      access,
     });
   });
 
 export const reconcileDetail = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope: access } = await requireMk9ReadScope();
     const { getReconciliationDetail } = await import("./mk9-reconciliation/engine.server");
-    return getReconciliationDetail(data.id);
+    return getReconciliationDetail(data.id, access);
   });
 
 export const reconcileFindCandidates = createServerFn({ method: "POST" })
@@ -155,10 +158,10 @@ export const reconcileFindCandidates = createServerFn({ method: "POST" })
     z.object({ actualVisitId: z.string().uuid(), windowDays: z.number().int().min(1).max(60).nullish() }).parse(d),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope: access } = await requireMk9ReadScope();
     const { findPlannedCandidates } = await import("./mk9-reconciliation/engine.server");
-    return findPlannedCandidates({ actualVisitId: data.actualVisitId, windowDays: data.windowDays ?? 7 });
+    return findPlannedCandidates({ actualVisitId: data.actualVisitId, windowDays: data.windowDays ?? 7, access });
   });
 
 export const reconcileAcceptDivergence = createServerFn({ method: "POST" })
@@ -180,10 +183,10 @@ export const reconcileSearchStores = createServerFn({ method: "POST" })
     z.object({ query: z.string().default(""), uf: z.string().nullish(), limit: z.number().int().min(1).max(50).nullish() }).parse(d),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope: access } = await requireMk9ReadScope();
     const { searchStores } = await import("./mk9-reconciliation/engine.server");
-    return searchStores({ query: data.query, uf: data.uf ?? null, limit: data.limit ?? 20 });
+    return searchStores({ query: data.query, uf: data.uf ?? null, limit: data.limit ?? 20, access });
   });
 
 export const reconcileLinkStore = createServerFn({ method: "POST" })
@@ -213,12 +216,13 @@ export const reconcileListImports = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope: access } = await requireMk9ReadScope();
     const { listChecklistImportsInScope } = await import("./mk9-reconciliation/engine.server");
     return listChecklistImportsInScope({
       operationYear: data.operationYear,
       operationMonth: data.operationMonth,
       industryId: data.industryId ?? null,
+      access,
     });
   });

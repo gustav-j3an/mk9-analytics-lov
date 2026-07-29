@@ -1,16 +1,24 @@
 // Leitura de dados MK9 para consumo pelas telas.
-// Todas as leituras exigem sessão válida + papel (ver mk9-auth/read-guards.server).
+// Todas as leituras exigem sessão válida + papel (ver mk9-auth/read-guards.server)
+// e são filtradas pelo escopo resolvido no servidor (mk9-auth/access-scope.server).
+// ESTRATÉGIA: cliente administrativo controlado (agregações e joins), sempre com
+// restrições explícitas de indústria/UF/loja aplicadas na própria consulta.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async () => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+  const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+  const { scope } = await requireMk9ReadScope();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
+  if (scope.allowedIndustryIds?.length === 0) return [];
+  let q = supabaseAdmin
     .from("mk9_industries")
-    .select("*")
+    .select(
+      "id, name, monthly_contracted_frequency, monthly_estimated_frequency, frequency_difference, frequency_status, weeks_count, updated_at",
+    )
     .order("name", { ascending: true });
+  if (scope.allowedIndustryIds) q = q.in("id", scope.allowedIndustryIds);
+  const { data, error } = await q;
   if (error) throw new Error(error.message);
   return (data ?? []).map((r: any) => ({
     id: r.id as string,
@@ -25,13 +33,17 @@ export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async
 });
 
 export const mk9ListStores = createServerFn({ method: "GET" }).handler(async () => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+  const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+  const { scope } = await requireMk9ReadScope();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
+  if (scope.allowedUfs?.length === 0 || scope.allowedStoreIds?.length === 0) return [];
+  let q = supabaseAdmin
     .from("mk9_stores")
-    .select("*")
+    .select("id, name, chain, uf, updated_at")
     .order("name", { ascending: true });
+  if (scope.allowedUfs) q = q.in("uf", scope.allowedUfs);
+  if (scope.allowedStoreIds) q = q.in("id", scope.allowedStoreIds);
+  const { data, error } = await q;
   if (error) throw new Error(error.message);
   return (data ?? []).map((r: any) => ({
     id: r.id as string,
@@ -43,24 +55,53 @@ export const mk9ListStores = createServerFn({ method: "GET" }).handler(async () 
 });
 
 export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async () => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+  const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+  const { scope } = await requireMk9ReadScope();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin
+
+  // Escopo de promotor: explícito (mk9_user_scopes) ou derivado do roteiro
+  // dentro das indústrias/UFs permitidas (resolvido em lote, sem N+1).
+  let allowedPromoterIds: string[] | null = scope.allowedPromoterIds;
+  if (!allowedPromoterIds && (scope.allowedIndustryIds || scope.allowedUfs || scope.allowedStoreIds)) {
+    let rq = supabaseAdmin
+      .from("mk9_planned_routes")
+      .select("promoter_id, store:mk9_stores(uf)")
+      .is("archived_at", null)
+      .not("promoter_id", "is", null)
+      .limit(50000);
+    if (scope.allowedIndustryIds) rq = rq.in("industry_id", scope.allowedIndustryIds);
+    if (scope.allowedStoreIds) rq = rq.in("store_id", scope.allowedStoreIds);
+    const { data: routes, error: rErr } = await rq;
+    if (rErr) throw new Error(rErr.message);
+    allowedPromoterIds = Array.from(
+      new Set(
+        (routes ?? [])
+          .filter((r: any) => !scope.allowedUfs || (r.store?.uf && scope.allowedUfs.includes(r.store.uf)))
+          .map((r: any) => r.promoter_id as string),
+      ),
+    );
+  }
+  if (allowedPromoterIds?.length === 0) return [];
+
+  let q = supabaseAdmin
     .from("mk9_promoters")
-    .select("*")
+    .select("id, name, external_id, city, contact, notes, updated_at")
     .order("name", { ascending: true });
+  if (allowedPromoterIds) q = q.in("id", allowedPromoterIds);
+  const { data, error } = await q;
   if (error) throw new Error(error.message);
+  // Dados pessoais (contato/observações) só para quem tem autorização.
   return (data ?? []).map((r: any) => ({
     id: r.id as string,
     externalId: (r.external_id as string | null) ?? null,
     name: r.name as string,
     city: (r.city as string | null) ?? null,
-    contact: (r.contact as string | null) ?? null,
-    notes: (r.notes as string | null) ?? null,
+    contact: scope.canViewPersonalData ? ((r.contact as string | null) ?? null) : null,
+    notes: scope.canViewPersonalData ? ((r.notes as string | null) ?? null) : null,
     updatedAt: r.updated_at as string,
   }));
 });
+
 
 export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({
@@ -68,17 +109,26 @@ export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
     year: z.number().int().min(2020).max(2100),
   }).parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin
+    if (scope.allowedIndustryIds?.length === 0 || scope.allowedStoreIds?.length === 0 || scope.allowedUfs?.length === 0) return [];
+    let q = supabaseAdmin
       .from("mk9_planned_routes")
       .select(
         "id, weekday, operation_month, operation_year, source_sheet, promoter:mk9_promoters(id,name,city), store:mk9_stores(id,name,chain,uf), industry:mk9_industries(id,name)",
       )
       .eq("operation_month", data.month)
       .eq("operation_year", data.year);
+    if (scope.allowedIndustryIds) q = q.in("industry_id", scope.allowedIndustryIds);
+    if (scope.allowedStoreIds) q = q.in("store_id", scope.allowedStoreIds);
+    if (scope.allowedPromoterIds) q = q.in("promoter_id", scope.allowedPromoterIds);
+    const { data: allRows, error } = await q;
     if (error) throw new Error(error.message);
+    const rows = (allRows ?? []).filter(
+      (r: any) => !scope.allowedUfs || (r.store?.uf && scope.allowedUfs.includes(r.store.uf)),
+    );
+
     return (rows ?? []).map((r: any) => ({
       id: r.id as string,
       weekday: r.weekday as number,
@@ -101,12 +151,13 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
     year: z.number().int().min(2020).max(2100),
   }).parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (scope.allowedIndustryIds?.length === 0 || scope.allowedStoreIds?.length === 0 || scope.allowedUfs?.length === 0) return [];
     const first = new Date(Date.UTC(data.year, data.month - 1, 1)).toISOString().slice(0, 10);
     const last = new Date(Date.UTC(data.year, data.month, 0)).toISOString().slice(0, 10);
-    const { data: rows, error } = await supabaseAdmin
+    let q = supabaseAdmin
       .from("mk9_planned_visits")
       .select(
         "id, scheduled_date, status, source_sheet, promoter:mk9_promoters(id,name), store:mk9_stores(id,name,chain,uf), industry:mk9_industries(id,name)",
@@ -116,7 +167,15 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
       .is("archived_at", null)
       .order("scheduled_date", { ascending: true })
       .limit(5000);
+    if (scope.allowedIndustryIds) q = q.in("industry_id", scope.allowedIndustryIds);
+    if (scope.allowedStoreIds) q = q.in("store_id", scope.allowedStoreIds);
+    if (scope.allowedPromoterIds) q = q.in("promoter_id", scope.allowedPromoterIds);
+    const { data: allRows, error } = await q;
     if (error) throw new Error(error.message);
+    const rows = (allRows ?? []).filter(
+      (r: any) => !scope.allowedUfs || (r.store?.uf && scope.allowedUfs.includes(r.store.uf)),
+    );
+
     return (rows ?? []).map((r: any) => ({
       id: r.id as string,
       scheduledDate: r.scheduled_date as string,
@@ -136,19 +195,25 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
     year: z.number().int().min(2020).max(2100),
   }).parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveWindow } = await import("@/lib/mk9-reports/period.server");
+    const empty = { contratadas: 0, executadas: 0, validas: 0, extras: 0, pendencias: 0, coverage: 0 };
+    if (scope.allowedIndustryIds?.length === 0 || scope.allowedStoreIds?.length === 0 || scope.allowedUfs?.length === 0) return empty;
+
+    let freqQuery = supabaseAdmin
+      .from("mk9_industry_store_frequency")
+      .select("industry_id, store_id, monthly_frequency, weekly_frequency, store:mk9_stores(uf)")
+      .limit(20000);
+    if (scope.allowedIndustryIds) freqQuery = freqQuery.in("industry_id", scope.allowedIndustryIds);
+    if (scope.allowedStoreIds) freqQuery = freqQuery.in("store_id", scope.allowedStoreIds);
 
     const [
-      { data: freqs, error: freqError },
+      { data: freqRows, error: freqError },
       { data: configs, error: configError },
     ] = await Promise.all([
-      supabaseAdmin
-        .from("mk9_industry_store_frequency")
-        .select("industry_id, store_id, monthly_frequency, weekly_frequency")
-        .limit(20000),
+      freqQuery,
       supabaseAdmin
         .from("mk9_industry_period_config")
         .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping")
@@ -157,6 +222,11 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
     ]);
     if (freqError) throw new Error(freqError.message);
     if (configError) throw new Error(configError.message);
+    const freqs = (freqRows ?? []).filter(
+      (f: any) => !scope.allowedUfs || (f.store?.uf && scope.allowedUfs.includes(f.store.uf)),
+    );
+    const scopedStoreIds = new Set(freqs.map((f: any) => `${f.industry_id}|${f.store_id}`));
+
 
     const configByIndustry = new Map<string, any>();
     for (const cfg of configs ?? []) configByIndustry.set(cfg.industry_id as string, cfg);
@@ -189,8 +259,10 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
     const actuals: any[] = [];
     for (const result of actualResults) {
       if (result.error) throw new Error(result.error.message);
-      actuals.push(...(result.data ?? []));
+      // Extras fora do escopo não podem vazar para os totais.
+      actuals.push(...(result.data ?? []).filter((a: any) => scopedStoreIds.has(`${a.industry_id}|${a.store_id}`)));
     }
+
 
     const perStore = new Map<string, { contratadas: number; executadas: number }>();
     for (const f of freqs ?? []) {

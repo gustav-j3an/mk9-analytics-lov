@@ -48,7 +48,16 @@ export interface DashboardFilters {
   uf?: string | null;
   promoterId?: string | null;
   supervisorUserId?: string | null;
+  /** Escopo de acesso resolvido no servidor (Fase 0.2). Nunca vem do navegador. */
+  access?: {
+    allowedIndustryIds: string[] | null;
+    allowedUfs: string[] | null;
+    allowedStoreIds: string[] | null;
+    allowedPromoterIds: string[] | null;
+    canViewPersonalData: boolean;
+  } | null;
 }
+
 
 export interface PaceBlock {
   contractedTotal: number;

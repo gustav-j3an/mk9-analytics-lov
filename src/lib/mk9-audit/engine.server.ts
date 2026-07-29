@@ -63,7 +63,10 @@ export interface AuditScope {
   industryId?: string | null;
   uf?: string | null;
   promoterId?: string | null;
+  /** Escopo de acesso resolvido no servidor (Fase 0.2). Nunca vem do navegador. */
+  access?: import("@/lib/mk9-auth/access-scope.server").Mk9AccessScope | null;
 }
+
 
 function contractedFromFrequency(weekly: number | null, monthly: number | null, totalDays: number): number {
   if (monthly != null && Number.isFinite(monthly) && monthly > 0) return Math.max(0, Math.round(monthly));
@@ -95,9 +98,18 @@ async function buildIndustryContext(
   year: number,
   month: number,
   uf: string | null,
+  access?: AuditScope["access"],
 ): Promise<IndustryContext> {
+  const allowedUfs = access?.allowedUfs ?? null;
+  const allowedStoreIds = access?.allowedStoreIds ?? null;
+  const inScope = (store: any, storeId: string) => {
+    if (allowedStoreIds && !allowedStoreIds.includes(storeId)) return false;
+    if (allowedUfs && !(store?.uf && allowedUfs.includes(store.uf))) return false;
+    return true;
+  };
   const cfg = await loadPeriodConfig(supabase, industry.id);
   const win = resolveWindow(cfg, year, month);
+
 
   // Frequência por loja
   const { data: freqs, error: eF } = await supabase
@@ -166,6 +178,8 @@ async function buildIndustryContext(
   for (const f of freqs ?? []) {
     if (!f.store_id) continue;
     if (uf && f.store?.uf !== uf) continue;
+    if (!inScope(f.store, f.store_id)) continue;
+
     const b = touch(f.store_id, f.store);
     b.weekly = (f.weekly_frequency as number | null) ?? b.weekly;
     b.monthly = (f.monthly_frequency as number | null) ?? b.monthly;
@@ -173,6 +187,8 @@ async function buildIndustryContext(
   for (const a of actuals ?? []) {
     if (!a.store_id) continue;
     if (uf && a.store?.uf !== uf) continue;
+    if (!inScope(a.store, a.store_id)) continue;
+
     const b = touch(a.store_id, a.store);
     b.actual += 1;
   }
@@ -212,21 +228,42 @@ async function buildIndustryContext(
   return { industryId: industry.id, industryName: industry.name, window: win, stores };
 }
 
-async function loadIndustries(supabase: any, industryId: string | null | undefined) {
+async function loadIndustries(
+  supabase: any,
+  industryId: string | null | undefined,
+  allowedIndustryIds?: string[] | null,
+) {
+  if (allowedIndustryIds?.length === 0) return [];
+  if (industryId && allowedIndustryIds && !allowedIndustryIds.includes(industryId)) return [];
   let q = supabase.from("mk9_industries").select("id,name").order("name", { ascending: true });
   if (industryId) q = q.eq("id", industryId);
+  else if (allowedIndustryIds) q = q.in("id", allowedIndustryIds);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
   return (data ?? []) as Array<{ id: string; name: string }>;
 }
 
 export async function auditByStore(supabase: any, scope: AuditScope): Promise<{ stores: AuditStoreLine[]; totals: AuditIndustryLine[] }> {
-  const industries = await loadIndustries(supabase, scope.industryId ?? null);
-  const contexts = await Promise.all(industries.map((ind) => buildIndustryContext(supabase, ind, scope.year, scope.month, scope.uf ?? null)));
+  const access = scope.access ?? null;
+  // Filtro do navegador nunca amplia escopo: UF pedida fora do escopo → vazio.
+  if (scope.uf && access?.allowedUfs && !access.allowedUfs.includes(scope.uf.toUpperCase())) {
+    return { stores: [], totals: [] };
+  }
+  if (scope.promoterId && access?.allowedPromoterIds && !access.allowedPromoterIds.includes(scope.promoterId)) {
+    return { stores: [], totals: [] };
+  }
+  const industries = await loadIndustries(supabase, scope.industryId ?? null, access?.allowedIndustryIds ?? null);
+  const contexts = await Promise.all(
+    industries.map((ind) => buildIndustryContext(supabase, ind, scope.year, scope.month, scope.uf ?? null, access)),
+  );
   const all: AuditStoreLine[] = [];
   const totals: AuditIndustryLine[] = [];
   for (const c of contexts) {
     let stores = c.stores;
+    if (access?.allowedPromoterIds) {
+      stores = stores.filter((s) => s.promoterId && access.allowedPromoterIds!.includes(s.promoterId));
+    }
+
     if (scope.promoterId) stores = stores.filter((s) => s.promoterId === scope.promoterId);
     for (const s of stores) all.push(s);
     const agg = aggregateVisitMetrics(stores.map((s) => ({ contratadas: s.contratadas, executadas: s.realizadas })));

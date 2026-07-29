@@ -12,7 +12,39 @@ export interface ReconcileScope {
   operationMonth: number;
   industryId?: string | null;
   sourceImportId?: string | null;
+  /** Escopo de acesso resolvido no servidor (Fase 0.2). Nunca vem do navegador. */
+  access?: import("@/lib/mk9-auth/access-scope.server").Mk9AccessScope | null;
 }
+
+/** Aplica o escopo de acesso a uma consulta de conciliação (indústria/loja/promotor). */
+export function applyReconAccess(q: any, access?: ReconcileScope["access"]) {
+  if (!access) return q;
+  if (access.allowedIndustryIds) q = q.in("industry_id", access.allowedIndustryIds);
+  if (access.allowedStoreIds) q = q.in("store_id", access.allowedStoreIds);
+  if (access.allowedPromoterIds) q = q.in("promoter_id", access.allowedPromoterIds);
+  return q;
+}
+
+/** Filtro de UF pós-consulta (UF vive na loja relacionada). */
+export function filterRowsByAccessUf(rows: any[], access?: ReconcileScope["access"]) {
+  if (!access?.allowedUfs) return rows;
+  const allowed = access.allowedUfs;
+  return rows.filter((r) => {
+    const uf = r.store?.uf ?? r.raw_store_uf ?? null;
+    return uf ? allowed.includes(uf) : false;
+  });
+}
+
+/** true quando o escopo já é vazio (nenhuma linha pode ser retornada). */
+export function accessIsEmpty(access?: ReconcileScope["access"]) {
+  return (
+    access?.allowedIndustryIds?.length === 0 ||
+    access?.allowedStoreIds?.length === 0 ||
+    access?.allowedUfs?.length === 0 ||
+    access?.allowedPromoterIds?.length === 0
+  );
+}
+
 
 type PlannedRow = {
   id: string;
@@ -394,13 +426,15 @@ export async function reconcile(scope: ReconcileScope): Promise<ReconciliationSu
 }
 
 export async function summarize(scope: ReconcileScope): Promise<ReconciliationSummary> {
-  const q = supabaseAdmin
+  let q: any = supabaseAdmin
     .from("mk9_visit_reconciliations")
-    .select("status")
+    .select("status, store:mk9_stores(uf), raw_store_uf")
     .eq("operation_year", scope.operationYear)
     .eq("operation_month", scope.operationMonth);
-  if (scope.industryId) q.eq("industry_id", scope.industryId);
-  const { data, error } = await q;
+  if (scope.industryId) q = q.eq("industry_id", scope.industryId);
+  q = applyReconAccess(q, scope.access);
+  const { data: rawData, error } = await q;
+  const data = filterRowsByAccessUf(rawData ?? [], scope.access);
   if (error) throw new Error(error.message);
 
   const counts: Record<string, number> = {};
@@ -563,11 +597,13 @@ export async function listReconciliations(scope: ReconcileScope, limit = 500) {
     .eq("operation_month", scope.operationMonth)
     .order("status", { ascending: true })
     .limit(limit);
-  if (scope.industryId) q.eq("industry_id", scope.industryId);
-  if (scope.sourceImportId) q.eq("source_import_id", scope.sourceImportId);
-  const { data, error } = await q;
+  let qq: any = q;
+  if (scope.industryId) qq = qq.eq("industry_id", scope.industryId);
+  if (scope.sourceImportId) qq = qq.eq("source_import_id", scope.sourceImportId);
+  qq = applyReconAccess(qq, scope.access);
+  const { data, error } = await qq;
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return filterRowsByAccessUf(data ?? [], scope.access);
 }
 
 // ============ LISTAGEM PAGINADA + FILTROS ============
@@ -601,12 +637,13 @@ export async function listReconciliationsPaged(f: PagedFilters) {
   if (f.promoterId) q = q.eq("promoter_id", f.promoterId);
   if (f.storeId) q = q.eq("store_id", f.storeId);
   if (f.statuses && f.statuses.length) q = q.in("status", f.statuses);
+  q = applyReconAccess(q, f.access);
 
   q = q.order("status", { ascending: true }).order("planned_date", { ascending: true }).range(from, to);
   const { data, count, error } = await q;
   if (error) throw new Error(error.message);
 
-  let rows = (data ?? []) as any[];
+  let rows = filterRowsByAccessUf((data ?? []) as any[], f.access);
   if (f.uf) {
     const uf = f.uf.toUpperCase();
     rows = rows.filter((r) => (r.store?.uf ?? r.raw_store_uf) === uf);
@@ -624,12 +661,22 @@ export async function listReconciliationsPaged(f: PagedFilters) {
 }
 
 // ============ DETALHE EXPANDIDO ============
-export async function getReconciliationDetail(id: string) {
+export async function getReconciliationDetail(id: string, access?: ReconcileScope["access"]) {
   const { data: r, error } = await supabaseAdmin
     .from("mk9_visit_reconciliations")
     .select("*, industry:mk9_industries(id,name), store:mk9_stores(id,name,chain,uf), promoter:mk9_promoters(id,name)")
     .eq("id", id).single();
   if (error) throw new Error(error.message);
+  // Verificação de escopo por objeto: impede leitura direta por ID fora do escopo.
+  if (access) {
+    const { Mk9ScopeError } = await import("@/lib/mk9-auth/access-scope.server");
+    const outOfScope =
+      (access.allowedIndustryIds && !access.allowedIndustryIds.includes(r.industry_id as string)) ||
+      (access.allowedStoreIds && (!r.store_id || !access.allowedStoreIds.includes(r.store_id as string))) ||
+      (access.allowedPromoterIds && (!r.promoter_id || !access.allowedPromoterIds.includes(r.promoter_id as string))) ||
+      (access.allowedUfs && !access.allowedUfs.includes(((r as any).store?.uf ?? r.raw_store_uf) as string));
+    if (outOfScope) throw new Mk9ScopeError();
+  }
 
   let planned: any = null;
   if (r.planned_visit_id) {
@@ -665,7 +712,9 @@ export async function getReconciliationDetail(id: string) {
 }
 
 // ============ BUSCAR PLANEJADAS CANDIDATAS ============
-export async function findPlannedCandidates(input: { actualVisitId: string; windowDays?: number }) {
+export async function findPlannedCandidates(input: {
+  actualVisitId: string; windowDays?: number; access?: ReconcileScope["access"];
+}) {
   const { data: a, error } = await supabaseAdmin
     .from("mk9_actual_visits")
     .select("id, industry_id, store_id, scheduled_date")
@@ -717,12 +766,19 @@ export async function acceptDivergence(input: { reconciliationId: string; review
 }
 
 // ============ BUSCA DE LOJAS ============
-export async function searchStores(input: { query: string; uf?: string | null; limit?: number }) {
+export async function searchStores(input: {
+  query: string; uf?: string | null; limit?: number; access?: ReconcileScope["access"];
+}) {
+  const access = input.access ?? null;
+  if (access?.allowedUfs?.length === 0 || access?.allowedStoreIds?.length === 0) return [];
+  if (input.uf && access?.allowedUfs && !access.allowedUfs.includes(input.uf.toUpperCase())) return [];
   let q = supabaseAdmin
     .from("mk9_stores").select("id, name, chain, uf")
     .order("name", { ascending: true }).limit(Math.min(50, input.limit ?? 20));
   if (input.query.trim()) q = q.ilike("name", `%${input.query.trim()}%`);
   if (input.uf) q = q.eq("uf", input.uf.toUpperCase());
+  else if (access?.allowedUfs) q = q.in("uf", access.allowedUfs);
+  if (access?.allowedStoreIds) q = q.in("id", access.allowedStoreIds);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
   return data ?? [];
@@ -793,7 +849,11 @@ export async function linkStoreToReconciliation(input: {
 // ============ LISTAR IMPORTS DO CHECKLIST NO ESCOPO ============
 export async function listChecklistImportsInScope(scope: {
   operationYear: number; operationMonth: number; industryId?: string | null;
+  access?: ReconcileScope["access"];
 }) {
+  const allowedIndustries = scope.access?.allowedIndustryIds ?? null;
+  if (allowedIndustries?.length === 0) return [];
+  if (scope.industryId && allowedIndustries && !allowedIndustries.includes(scope.industryId)) return [];
   let q = supabaseAdmin
     .from("mk9_checklist_imports")
     .select("id, filename, industry_id, started_at, status")
@@ -801,6 +861,7 @@ export async function listChecklistImportsInScope(scope: {
     .eq("operation_month", scope.operationMonth)
     .order("started_at", { ascending: false }).limit(50);
   if (scope.industryId) q = q.eq("industry_id", scope.industryId);
+  else if (allowedIndustries) q = q.in("industry_id", allowedIndustries);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
   return data ?? [];

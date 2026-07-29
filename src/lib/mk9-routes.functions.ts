@@ -32,10 +32,20 @@ export const mk9RoutesListVersioned = createServerFn({ method: "POST" })
     }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { industryFilter, ufFilter, storeFilter, promoterFilter } = await import(
+      "@/lib/mk9-auth/access-scope.server"
+    );
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const ref = data.referenceDate ?? new Date().toISOString().slice(0, 10);
+
+    const ind = industryFilter(scope, data.industryId ?? null);
+    const store = storeFilter(scope, data.storeId ?? null);
+    const promoter = promoterFilter(scope, data.promoterId ?? null);
+    const ufs = ufFilter(scope, data.uf ?? null);
+    if (ind.outOfScope || store.outOfScope || promoter.outOfScope || ufs.outOfScope) return [];
+    if (ind.ids?.length === 0 || store.ids?.length === 0 || ufs.ids?.length === 0) return [];
 
     let q = supabaseAdmin
       .from("mk9_planned_routes")
@@ -47,16 +57,17 @@ export const mk9RoutesListVersioned = createServerFn({ method: "POST" })
       .or(`valid_until.is.null,valid_until.gte.${ref}`);
 
     if (!data.includeInactive) q = q.eq("is_active", true);
-    if (data.promoterId) q = q.eq("promoter_id", data.promoterId);
-    if (data.industryId) q = q.eq("industry_id", data.industryId);
-    if (data.storeId) q = q.eq("store_id", data.storeId);
+    if (promoter.ids) q = q.in("promoter_id", promoter.ids);
+    if (ind.ids) q = q.in("industry_id", ind.ids);
+    if (store.ids) q = q.in("store_id", store.ids);
     if (typeof data.weekday === "number") q = q.eq("weekday", data.weekday);
 
     const { data: rows, error } = await q.limit(20000);
     if (error) throw new Error(error.message);
 
     return (rows ?? [])
-      .filter((r: any) => !data.uf || r.store?.uf === data.uf)
+      .filter((r: any) => !ufs.ids || (r.store?.uf && ufs.ids.includes(r.store.uf)))
+
       .map((r: any) => ({
         id: r.id as string,
         weekday: r.weekday as number,
@@ -87,9 +98,13 @@ export const mk9RoutesListHistory = createServerFn({ method: "POST" })
     }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { assertIndustryAllowed, storeFilter } = await import("@/lib/mk9-auth/access-scope.server");
+    const { scope } = await requireMk9ReadScope();
+    assertIndustryAllowed(scope, data.industryId);
+    if (storeFilter(scope, data.storeId).outOfScope) return [];
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const { data: rows, error } = await supabaseAdmin
       .from("mk9_planned_routes")
       .select(
@@ -299,9 +314,15 @@ export const mk9RoutesResolvePromoter = createServerFn({ method: "POST" })
     }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { assertIndustryAllowed, storeFilter } = await import("@/lib/mk9-auth/access-scope.server");
+    const { scope } = await requireMk9ReadScope();
+    assertIndustryAllowed(scope, data.industryId);
+    if (storeFilter(scope, data.storeId).outOfScope) {
+      return { status: "UNASSIGNED_ROUTE" as const, weekdayRealized: new Date(data.visitDate + "T00:00:00Z").getUTCDay(), candidates: [] };
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     const { data: rows, error } = await (supabaseAdmin as any).rpc("mk9_resolve_route_promoter", {
       _store_id: data.storeId,
       _industry_id: data.industryId,
@@ -352,13 +373,15 @@ export const mk9RoutesResolvePromoter = createServerFn({ method: "POST" })
 // Não carrega tudo: só é chamada quando o usuário digita ≥ 2 caracteres.
 // Retorna no máximo 20 resultados por consulta, ordenados por nome.
 // ---------------------------------------------------------------------------
+// ESTRATÉGIA (Fase 0.2): cliente administrativo controlado — autentica,
+// resolve escopo e aplica restrição explícita de UF/loja em toda consulta.
 export const mk9StoresSearch = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
     z.object({ q: z.string().min(2).max(80) }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Normaliza a consulta (minúsculas, sem acentos, sem pontuação) para
@@ -371,12 +394,12 @@ export const mk9StoresSearch = createServerFn({ method: "POST" })
       .replace(/\s+/g, " ")
       .trim();
 
-    if (normalized.length < 2) return [];
+    if (normalized.length < 2) return { total: 0, items: [] };
+    if (scope.allowedUfs?.length === 0 || scope.allowedStoreIds?.length === 0) {
+      return { total: 0, items: [] };
+    }
 
     const like = `%${normalized}%`;
-    // Busca por nome (normalizado), rede (lower) e UF.
-    // OBS: cidade não está armazenada em mk9_stores; mostrada apenas quando
-    // vier no futuro. A UF entra como termo direto (2 letras).
     const uf = normalized.length === 2 ? normalized.toUpperCase() : null;
 
     const orExpr = [
@@ -387,12 +410,15 @@ export const mk9StoresSearch = createServerFn({ method: "POST" })
       .filter(Boolean)
       .join(",");
 
-    const { data: rows, error, count } = await supabaseAdmin
+    let q = supabaseAdmin
       .from("mk9_stores")
       .select("id, name, chain, uf", { count: "exact" })
-      .or(orExpr)
-      .order("name", { ascending: true })
-      .limit(20);
+      .or(orExpr);
+    // Escopo do servidor (nunca ampliado pelo cliente).
+    if (scope.allowedUfs) q = q.in("uf", scope.allowedUfs);
+    if (scope.allowedStoreIds) q = q.in("id", scope.allowedStoreIds);
+
+    const { data: rows, error, count } = await q.order("name", { ascending: true }).limit(20);
 
     if (error) throw new Error(error.message);
     return {
@@ -406,16 +432,15 @@ export const mk9StoresSearch = createServerFn({ method: "POST" })
     };
   });
 
-
-
 // Busca uma loja específica pelo id — usado quando o modal abre em modo
 // edição e precisamos exibir a loja selecionada sem carregar a lista toda.
 export const mk9StoreGet = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (scope.allowedStoreIds && !scope.allowedStoreIds.includes(data.id)) return null;
     const { data: row, error } = await supabaseAdmin
       .from("mk9_stores")
       .select("id, name, chain, uf")
@@ -423,11 +448,14 @@ export const mk9StoreGet = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) return null;
+    const uf = (row.uf as string | null) ?? null;
+    if (scope.allowedUfs && (!uf || !scope.allowedUfs.includes(uf))) return null;
     return {
       id: row.id as string,
       name: row.name as string,
       chain: (row.chain as string | null) ?? null,
-      uf: (row.uf as string | null) ?? null,
+      uf,
     };
   });
+
 

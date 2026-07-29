@@ -26,13 +26,15 @@ export const Route = createFileRoute("/api/reports/industry-pdf")({
     handlers: {
       POST: async ({ request }) => {
         let stage = "parse-payload";
+        let access: import("@/lib/mk9-auth/access-scope.server").Mk9AccessScope | null = null;
         let industryId: string | null = null;
         let period: { month?: number; year?: number } = {};
         try {
           stage = "authorize";
           try {
-            const { requireMk9Reports } = await import("@/lib/mk9-auth/read-guards.server");
-            await requireMk9Reports(request);
+            const { requireMk9ReportsScope } = await import("@/lib/mk9-auth/read-guards.server");
+            const resolved = await requireMk9ReportsScope(request);
+            access = resolved.scope;
           } catch (authError) {
             const status = (authError as any)?.statusCode === 403 ? 403 : 401;
             return errorResponse(status, {
@@ -55,6 +57,8 @@ export const Route = createFileRoute("/api/reports/industry-pdf")({
           const { renderIndustryReportPdf, industryPdfFileName } = await import("@/lib/reports/industry-pdf.server");
 
           stage = "resolve-period";
+          const { assertIndustryAllowed } = await import("@/lib/mk9-auth/access-scope.server");
+          assertIndustryAllowed(access!, body.industryId);
           const cfg = await loadPeriodConfig(supabaseAdmin, body.industryId);
           const window = resolveWindow(cfg, body.year, body.month);
 
@@ -62,7 +66,7 @@ export const Route = createFileRoute("/api/reports/industry-pdf")({
           const sourceImportId = body.checklistImportId ?? body.sourceImportId ?? null;
           const report = await buildIndustryReport(supabaseAdmin, {
             industryId: body.industryId, year: body.year, month: body.month,
-            uf: body.uf ?? null, storeId: body.storeId ?? null, sourceImportId,
+            uf: body.uf ?? null, storeId: body.storeId ?? null, sourceImportId, access,
           }, window);
 
           stage = "render-pdf";
@@ -79,6 +83,9 @@ export const Route = createFileRoute("/api/reports/industry-pdf")({
           });
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error));
+          if ((error as any)?.statusCode === 403) {
+            return errorResponse(403, { stage, message: err.message });
+          }
           console.error("[industry-pdf]", { stage, industryId, period, error: err });
           return errorResponse(stage === "parse-payload" ? 400 : 500, {
             stage,
