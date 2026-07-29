@@ -240,7 +240,7 @@ export async function buildIndustryReport(
   const touch = (
     id: string,
     r: { name?: string | null; chain?: string | null; uf?: string | null } | null | undefined,
-  ) => {
+  ): Bucket => {
     let b = map.get(id);
     if (!b) {
       b = {
@@ -250,6 +250,7 @@ export async function buildIndustryReport(
         uf: r?.uf ?? null,
         weekly: null,
         monthly: null,
+        segments: [],
         plannedCount: 0,
         actual: 0,
         actualDates: new Set<string>(),
@@ -263,15 +264,25 @@ export async function buildIndustryReport(
     return b;
   };
 
-  // Frequência cadastrada (nunca filtrar por UF antes de existir a loja no bucket)
-  for (const f of freqs ?? []) {
-    if (!f.store_id) continue;
-    if (uf && f.store?.uf !== uf) continue;
-    if (!inAccess(f.store, f.store_id ?? null)) continue;
-    const b = touch(f.store_id, f.store);
-    b.weekly = (f.weekly_frequency as number | null) ?? b.weekly;
-    b.monthly = (f.monthly_frequency as number | null) ?? b.monthly;
+  // Vigências de frequência (nunca filtrar por UF antes de existir a loja no bucket)
+  for (const [key, segs] of freqVersions) {
+    const sid = key.slice(key.indexOf("|") + 1);
+    if (!sid || !segs.length) continue;
+    const store = segs[0].store;
+    if (uf && store?.uf !== uf) continue;
+    if (!inAccess(store, sid)) continue;
+    const b = touch(sid, store);
+    b.segments = segs.map((s) => ({
+      validFrom: s.validFrom,
+      validUntil: s.validUntil,
+      weeklyFrequency: s.weeklyFrequency,
+      monthlyFrequency: s.monthlyFrequency,
+    }));
+    const last = segs[segs.length - 1];
+    b.weekly = last.weeklyFrequency;
+    b.monthly = last.monthlyFrequency;
   }
+
   for (const p of planned ?? []) {
     if (!p.store_id) continue;
     if (uf && p.store?.uf !== uf) continue;
