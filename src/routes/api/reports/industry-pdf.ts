@@ -84,16 +84,14 @@ export const Route = createFileRoute("/api/reports/industry-pdf")({
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error));
           if ((error as any)?.statusCode === 403) {
-            return errorResponse(403, { stage, message: err.message });
+            return errorResponse(403, { stage: "authorize", message: "FORBIDDEN" });
           }
+          // Log completo fica no servidor; a resposta nunca expõe stack, SQL ou caminho interno.
           console.error("[industry-pdf]", { stage, industryId, period, error: err });
-          return errorResponse(stage === "parse-payload" ? 400 : 500, {
-            stage,
-            message: err.message,
-            stack: process.env.NODE_ENV !== "production" ? err.stack : undefined,
-            industryId,
-            period,
-          });
+          if (stage === "parse-payload") {
+            return errorResponse(400, { stage: "request", message: "INVALID_REQUEST" });
+          }
+          return errorResponse(500, { stage: "internal", message: "INTERNAL_ERROR" });
         }
       },
     },
