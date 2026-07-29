@@ -229,13 +229,17 @@ export async function buildDashboardOverview(
     return emptyOverview(today, year, month, globalStart, globalEnd);
   }
 
-  // ---- consultas em paralelo -------------------------------------------------
-  const [freqRes, visitRes, routeRes, importRes, storeRes] = await Promise.all([
-    supabase
-      .from("mk9_industry_store_frequency")
-      .select("industry_id, store_id, weekly_frequency, monthly_frequency, store:mk9_stores(id,name,chain,uf)")
-      .in("industry_id", industryIds)
-      .limit(50000),
+  // ---- consultas em paralelo (mesmo número de round-trips de antes) ----------
+  const [freqVersions, visitRes, routeRes, importRes, storeRes] = await Promise.all([
+    // Fase 1B.3: frequências VERSIONADAS que interceptam a janela global.
+    loadFrequencyVersionsForPeriod(supabase, {
+      industryIds,
+      storeIds: accessStoreIds,
+      periodStart: globalStart,
+      periodEnd: globalEnd,
+      accessScope: access,
+    }),
+
     supabase
       .from("mk9_actual_visits")
       .select("industry_id, store_id, scheduled_date, store:mk9_stores(id,name,chain,uf)")
