@@ -119,8 +119,11 @@ interface StoreBucket {
   uf: string | null;
   weekly: number | null;
   monthly: number | null;
+  /** vigências que interceptam a janela desta indústria */
+  segments: FrequencySegmentInput[];
   visits: string[];
 }
+
 
 interface IndustryCtx {
   id: string;
