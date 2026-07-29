@@ -84,8 +84,12 @@ export function resolveMk9AccessScope(ctx: Mk9AuthContext): Promise<Mk9AccessSco
 }
 
 async function computeScope(ctx: Mk9AuthContext): Promise<Mk9AccessScope> {
-  // Dev-bypass (apenas fora de produção, comportamento pré-existente).
-  if (ctx.devBypass || !ctx.userId) {
+  // Dev-bypass (somente ambiente local de desenvolvimento — ver require-role.server).
+  // Fase 0.3: sem devBypass e sem userId ⇒ falha fechado (nunca escopo global).
+  if (!ctx.devBypass && !ctx.userId) {
+    throw new Mk9ScopeError("Sessão inválida para resolver escopo de acesso.");
+  }
+  if (ctx.devBypass) {
     return finalize({
       userId: ctx.userId,
       roles: ctx.roles,
