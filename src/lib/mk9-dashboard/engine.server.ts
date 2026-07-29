@@ -76,14 +76,23 @@ function addDays(iso: string, n: number) {
   return d.toISOString().slice(0, 10);
 }
 
-/** Contratadas de uma loja na janela: mensal explícita, senão semanal × (dias/7). */
-function contractedFromFrequency(weekly: number | null, monthly: number | null, totalDays: number) {
-  if (monthly != null && Number.isFinite(monthly) && monthly > 0) return Math.max(0, Math.round(monthly));
-  if (weekly != null && Number.isFinite(weekly) && weekly > 0) {
-    return Math.max(0, Math.round(weekly * (Math.max(1, totalDays) / 7)));
-  }
-  return 0;
+/**
+ * Contratadas de uma loja na janela a partir das vigências versionadas.
+ * Centralizado em @/lib/mk9-frequency/segments — nunca `weekly × 4`.
+ */
+function contractedForStore(
+  segments: FrequencySegmentInput[],
+  win: { startDate: string; endDate: string },
+  untilDate?: string | null,
+): ContractedResult {
+  return contractedVisitsForFrequencySegments({
+    segments,
+    operationPeriodStart: win.startDate,
+    operationPeriodEnd: win.endDate,
+    untilDate: untilDate ?? null,
+  });
 }
+
 
 /**
  * Fração do período já transcorrida até hoje.
