@@ -202,38 +202,38 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
     const empty = { contratadas: 0, executadas: 0, validas: 0, extras: 0, pendencias: 0, coverage: 0 };
     if (scope.allowedIndustryIds?.length === 0 || scope.allowedStoreIds?.length === 0 || scope.allowedUfs?.length === 0) return empty;
 
-    let freqQuery = supabaseAdmin
-      .from("mk9_industry_store_frequency")
-      .select("industry_id, store_id, monthly_frequency, weekly_frequency, store:mk9_stores(uf)")
-      .limit(20000);
-    if (scope.allowedIndustryIds) freqQuery = freqQuery.in("industry_id", scope.allowedIndustryIds);
-    if (scope.allowedStoreIds) freqQuery = freqQuery.in("store_id", scope.allowedStoreIds);
+    // Fase 1B.3: contratadas vêm da frequência VERSIONADA, com a mesma
+    // matemática proporcional do Dashboard/Auditoria/Relatório.
+    // A antiga fórmula `weekly × 4` foi eliminada.
+    const { contractedVisitsForFrequencySegments } = await import("@/lib/mk9-frequency/segments");
+    const { loadFrequencyVersionsForPeriod, segmentsForWindow } = await import(
+      "@/lib/mk9-frequency/versions.server"
+    );
+
+    let indQuery = supabaseAdmin.from("mk9_industries").select("id").limit(20000);
+    if (scope.allowedIndustryIds) indQuery = indQuery.in("id", scope.allowedIndustryIds);
 
     const [
-      { data: freqRows, error: freqError },
+      { data: industryRows, error: indError },
       { data: configs, error: configError },
     ] = await Promise.all([
-      freqQuery,
+      indQuery,
       supabaseAdmin
         .from("mk9_industry_period_config")
         .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping")
         .eq("active", true)
         .limit(20000),
     ]);
-    if (freqError) throw new Error(freqError.message);
+    if (indError) throw new Error(indError.message);
     if (configError) throw new Error(configError.message);
-    const freqs = (freqRows ?? []).filter(
-      (f: any) => !scope.allowedUfs || (f.store?.uf && scope.allowedUfs.includes(f.store.uf)),
-    );
-    const scopedStoreIds = new Set(freqs.map((f: any) => `${f.industry_id}|${f.store_id}`));
 
+    const industryIds = (industryRows ?? []).map((i: any) => i.id as string);
+    if (!industryIds.length) return empty;
 
     const configByIndustry = new Map<string, any>();
     for (const cfg of configs ?? []) configByIndustry.set(cfg.industry_id as string, cfg);
     const windows = new Map<string, { startDate: string; endDate: string }>();
-    for (const f of freqs ?? []) {
-      const industryId = f.industry_id as string;
-      if (windows.has(industryId)) continue;
+    for (const industryId of industryIds) {
       const cfg = configByIndustry.get(industryId) ?? {
         industryId,
         periodType: "CALENDAR_MONTH",
@@ -245,6 +245,35 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
       };
       windows.set(industryId, resolveWindow(cfg, data.year, data.month));
     }
+    const globalStart = Array.from(windows.values()).reduce(
+      (a, w) => (w.startDate < a ? w.startDate : a),
+      `${data.year}-12-31`,
+    );
+    const globalEnd = Array.from(windows.values()).reduce((a, w) => (w.endDate > a ? w.endDate : a), `${data.year}-01-01`);
+
+    const freqVersions = await loadFrequencyVersionsForPeriod(supabaseAdmin, {
+      industryIds,
+      storeIds: scope.allowedStoreIds,
+      periodStart: globalStart,
+      periodEnd: globalEnd,
+      accessScope: scope,
+    });
+
+    const perStore = new Map<string, { contratadas: number; executadas: number }>();
+    for (const [key, segs] of freqVersions) {
+      const industryId = key.slice(0, key.indexOf("|"));
+      const win = windows.get(industryId);
+      if (!win) continue;
+      const inWindow = segmentsForWindow(segs, win.startDate, win.endDate);
+      if (!inWindow.length) continue;
+      const contracted = contractedVisitsForFrequencySegments({
+        segments: inWindow,
+        operationPeriodStart: win.startDate,
+        operationPeriodEnd: win.endDate,
+      });
+      perStore.set(key, { contratadas: contracted.contratadas, executadas: 0 });
+    }
+    const scopedStoreIds = new Set(perStore.keys());
 
     const actualQueries = Array.from(windows.entries()).map(([industryId, window]) =>
       supabaseAdmin
@@ -263,23 +292,13 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
       actuals.push(...(result.data ?? []).filter((a: any) => scopedStoreIds.has(`${a.industry_id}|${a.store_id}`)));
     }
 
-
-    const perStore = new Map<string, { contratadas: number; executadas: number }>();
-    for (const f of freqs ?? []) {
-      const key = `${f.industry_id}|${f.store_id}`;
-      const monthly = Number(f.monthly_frequency ?? 0);
-      const weekly = Number(f.weekly_frequency ?? 0);
-      perStore.set(key, {
-        contratadas: monthly > 0 ? Math.round(monthly) : Math.round(weekly * 4),
-        executadas: 0,
-      });
-    }
-    for (const a of actuals ?? []) {
+    for (const a of actuals) {
       const key = `${a.industry_id}|${a.store_id}`;
       const cur = perStore.get(key) ?? { contratadas: 0, executadas: 0 };
       cur.executadas += 1;
       perStore.set(key, cur);
     }
+
 
     let contratadas = 0;
     let executadas = 0;
