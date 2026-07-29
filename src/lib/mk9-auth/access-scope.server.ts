@@ -226,8 +226,14 @@ export function industryFilter(scope: Mk9AccessScope, requested?: string | null)
   return intersectFilter(scope.allowedIndustryIds, requested ?? null);
 }
 
+/**
+ * UF: normaliza caixa/espaços e rejeita valores inválidos ("Todas", "DF,GO", "").
+ * Valor inválido NUNCA amplia — cai para o escopo do servidor.
+ */
 export function ufFilter(scope: Mk9AccessScope, requested?: string | null): ScopedFilter {
-  return intersectFilter(scope.allowedUfs, requested ? requested.toUpperCase() : null);
+  const raw = (requested ?? "").trim().toUpperCase();
+  const valid = /^[A-Z]{2}$/.test(raw) ? raw : null;
+  return intersectFilter(scope.allowedUfs, valid);
 }
 
 export function storeFilter(scope: Mk9AccessScope, requested?: string | null): ScopedFilter {
