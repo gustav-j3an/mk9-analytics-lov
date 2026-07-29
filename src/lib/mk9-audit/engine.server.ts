@@ -1,12 +1,25 @@
 // Motor da Auditoria de Execução MK9.
-// Reutiliza a mesma regra de contratação (frequência da indústria por loja)
-// já usada em industry-report.server.ts. Executadas = total bruto de checklist
-// no período da indústria. Pendentes = max(0, contratadas - executadas).
-// Cobertura = executadas / contratadas (limite 100%). Promotor responsável
-// vem do roteiro planejado (mk9_planned_routes), pela maioria por loja.
+//
+// FONTE DA VERDADE (Fase 1B.3)
+//   contratadas = frequência VERSIONADA vigente na janela da indústria
+//                 (mk9_industry_store_frequency_versions), somada por segmento
+//                 de vigência em contractedVisitsForFrequencySegments.
+//   executadas  = total bruto de checklist no período da indústria.
+//   pendentes   = max(0, contratadas - executadas).
+//   cobertura   = executadas / contratadas (limite 100%).
+// Promotor responsável vem do roteiro planejado (mk9_planned_routes).
+//
+// A projeção mk9_industry_store_frequency NÃO é mais lida aqui.
 
 import { loadPeriodConfig, resolveWindow, type PeriodWindow } from "@/lib/mk9-reports/period.server";
 import { computeVisitMetrics, aggregateVisitMetrics } from "@/lib/mk9-reports/metrics";
+import {
+  contractedVisitsForFrequencySegments,
+  describeFrequencySegments,
+  type FrequencySegmentInput,
+} from "@/lib/mk9-frequency/segments";
+import { freqKey, loadFrequencyVersionsForPeriod } from "@/lib/mk9-frequency/versions.server";
+
 
 export type ExecStatus = "COMPLETO" | "PARCIAL" | "NAO_REALIZADO";
 export const EXEC_STATUS_LABEL: Record<ExecStatus, string> = {
