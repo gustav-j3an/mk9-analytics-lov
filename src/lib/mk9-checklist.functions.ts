@@ -270,6 +270,8 @@ export const checklistCommit = createServerFn({ method: "POST" })
   });
 
 export const checklistList = createServerFn({ method: "GET" }).handler(async () => {
+    const { requireMk9AdminRead } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9AdminRead();
   const { listChecklistImports } = await import("./mk9-checklist/persistence.server");
   return listChecklistImports(30);
 });

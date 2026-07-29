@@ -32,6 +32,8 @@ export const mk9RoutesListVersioned = createServerFn({ method: "POST" })
     }).parse(data),
   )
   .handler(async ({ data }) => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const ref = data.referenceDate ?? new Date().toISOString().slice(0, 10);
 
@@ -85,6 +87,8 @@ export const mk9RoutesListHistory = createServerFn({ method: "POST" })
     }).parse(data),
   )
   .handler(async ({ data }) => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("mk9_planned_routes")
@@ -295,6 +299,8 @@ export const mk9RoutesResolvePromoter = createServerFn({ method: "POST" })
     }).parse(data),
   )
   .handler(async ({ data }) => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await (supabaseAdmin as any).rpc("mk9_resolve_route_promoter", {
       _store_id: data.storeId,
@@ -351,6 +357,8 @@ export const mk9StoresSearch = createServerFn({ method: "POST" })
     z.object({ q: z.string().min(2).max(80) }).parse(data),
   )
   .handler(async ({ data }) => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Normaliza a consulta (minúsculas, sem acentos, sem pontuação) para
@@ -405,6 +413,8 @@ export const mk9StoresSearch = createServerFn({ method: "POST" })
 export const mk9StoreGet = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
       .from("mk9_stores")

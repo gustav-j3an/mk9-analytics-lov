@@ -15,6 +15,8 @@ const filtersSchema = z.object({
 export const mk9DashboardOverviewFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => filtersSchema.parse(d))
   .handler(async ({ data }) => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { buildDashboardOverview } = await import("./mk9-dashboard/engine.server");
     return buildDashboardOverview(supabaseAdmin, {
@@ -29,6 +31,8 @@ export const mk9DashboardOverviewFn = createServerFn({ method: "POST" })
 
 /** Lista de supervisores (perfis com papel SUPERVISOR) para o filtro global. */
 export const mk9DashboardSupervisorsFn = createServerFn({ method: "GET" }).handler(async () => {
+    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9Read();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: roles, error } = await supabaseAdmin
     .from("mk9_user_roles")
