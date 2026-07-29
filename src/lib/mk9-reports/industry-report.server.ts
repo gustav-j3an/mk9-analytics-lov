@@ -230,6 +230,8 @@ export async function buildIndustryReport(
     uf: string | null;
     weekly: number | null;
     monthly: number | null;
+    segments: FrequencySegmentInput[];
+
     plannedCount: number;
     actual: number;
     actualDates: Set<string>;
