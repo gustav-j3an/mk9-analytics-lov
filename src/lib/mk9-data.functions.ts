@@ -195,19 +195,25 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
     year: z.number().int().min(2020).max(2100),
   }).parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveWindow } = await import("@/lib/mk9-reports/period.server");
+    const empty = { contratadas: 0, executadas: 0, validas: 0, extras: 0, pendencias: 0, coverage: 0 };
+    if (scope.allowedIndustryIds?.length === 0 || scope.allowedStoreIds?.length === 0 || scope.allowedUfs?.length === 0) return empty;
+
+    let freqQuery = supabaseAdmin
+      .from("mk9_industry_store_frequency")
+      .select("industry_id, store_id, monthly_frequency, weekly_frequency, store:mk9_stores(uf)")
+      .limit(20000);
+    if (scope.allowedIndustryIds) freqQuery = freqQuery.in("industry_id", scope.allowedIndustryIds);
+    if (scope.allowedStoreIds) freqQuery = freqQuery.in("store_id", scope.allowedStoreIds);
 
     const [
-      { data: freqs, error: freqError },
+      { data: freqRows, error: freqError },
       { data: configs, error: configError },
     ] = await Promise.all([
-      supabaseAdmin
-        .from("mk9_industry_store_frequency")
-        .select("industry_id, store_id, monthly_frequency, weekly_frequency")
-        .limit(20000),
+      freqQuery,
       supabaseAdmin
         .from("mk9_industry_period_config")
         .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping")
@@ -216,6 +222,11 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
     ]);
     if (freqError) throw new Error(freqError.message);
     if (configError) throw new Error(configError.message);
+    const freqs = (freqRows ?? []).filter(
+      (f: any) => !scope.allowedUfs || (f.store?.uf && scope.allowedUfs.includes(f.store.uf)),
+    );
+    const scopedStoreIds = new Set(freqs.map((f: any) => `${f.industry_id}|${f.store_id}`));
+
 
     const configByIndustry = new Map<string, any>();
     for (const cfg of configs ?? []) configByIndustry.set(cfg.industry_id as string, cfg);
