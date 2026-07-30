@@ -253,14 +253,6 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
         <CardContent className="hidden lg:block">{filtersNode}</CardContent>
       </Card>
 
-      {data?.usesHistoricalFrequency && (
-        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
-          <Info className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>
-            Este período utiliza a frequência atualmente cadastrada. Alterações posteriores podem afetar o histórico.
-          </span>
-        </div>
-      )}
 
       {/* -------- KPIs -------- */}
       {loading || !data ? (
