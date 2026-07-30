@@ -13,7 +13,7 @@ import type { Mk9AccessScope } from "@/lib/mk9-auth/access-scope.server";
 import { fingerprintIssue, type FingerprintedIssue } from "./fingerprint";
 import { sanitizeEvidence } from "./evidence";
 import { MK9_QUALITY_DETECTORS } from "./detectors";
-import { overviewCounts, syncDetections } from "./repository.server";
+import { diagnosticSummary, overviewCounts, syncDetections } from "./repository.server";
 import type {
   DetectedIssue,
   Mk9Competence,
