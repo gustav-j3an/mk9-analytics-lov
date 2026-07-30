@@ -1303,6 +1303,19 @@ export type Database = {
         Returns: boolean
       }
       is_mk9_admin: { Args: never; Returns: boolean }
+      mk9_admin_set_industry_requires_checklist: {
+        Args: {
+          p_actor?: string
+          p_industry_id: string
+          p_reason?: string
+          p_value: boolean
+        }
+        Returns: {
+          id: string
+          name: string
+          requires_checklist: boolean
+        }[]
+      }
       mk9_apply_frequency_diff: {
         Args: {
           _actor?: string
