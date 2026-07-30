@@ -30,16 +30,79 @@ const listSchema = competenceSchema.extend({
   storeId: z.string().uuid().nullish(),
   uf: z.string().trim().max(20).nullish(),
   search: z.string().trim().max(80).nullish(),
+  // --- Fase 2B.4 ------------------------------------------------------------
+  assignedTo: z
+    .union([z.literal("UNASSIGNED"), z.literal("ME"), z.string().uuid()])
+    .nullish(),
+  priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).nullish(),
+  dueState: z.enum(["OVERDUE", "DUE_TODAY", "NO_DUE_DATE"]).nullish(),
   page: z.number().int().min(1).max(500).default(1),
   pageSize: z.number().int().min(1).max(100).default(25),
 });
 
-
+const versionField = z.string().datetime({ offset: true }).nullish();
 
 const transitionSchema = z.object({
   id: z.string().uuid(),
   toStatus: z.enum(["ACKNOWLEDGED", "IN_PROGRESS", "RESOLVED", "IGNORED"]),
   reason: z.string().trim().max(1000).nullish(),
+  resolutionType: z
+    .enum([
+      "DATA_FIXED",
+      "CONFIGURATION_FIXED",
+      "IMPORT_REPROCESSED",
+      "DUPLICATE_REVIEWED",
+      "ROUTE_FIXED",
+      "FREQUENCY_FIXED",
+      "ACCEPTED_AS_VALID",
+      "OTHER",
+    ])
+    .nullish(),
+  /** Registrar resolução mesmo com o problema ainda detectado (só gestão). */
+  forced: z.boolean().default(false),
+  /** Revisão automática de um IGNORADO. */
+  ignoreUntil: z.string().datetime({ offset: true }).nullish(),
+  expectedUpdatedAt: versionField,
+});
+
+const assignSchema = z.object({
+  id: z.string().uuid(),
+  /** null remove o responsável; "ME" assume para si. */
+  assigneeId: z.union([z.string().uuid(), z.literal("ME")]).nullish(),
+  note: z.string().trim().max(500).nullish(),
+  expectedUpdatedAt: versionField,
+});
+
+const planningSchema = z.object({
+  id: z.string().uuid(),
+  priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).nullish(),
+  dueAt: z.string().datetime({ offset: true }).nullish(),
+  clearDue: z.boolean().default(false),
+  reason: z.string().trim().max(500).nullish(),
+  expectedUpdatedAt: versionField,
+});
+
+const reopenSchema = z.object({
+  id: z.string().uuid(),
+  reason: z.string().trim().min(10).max(1000),
+  expectedUpdatedAt: versionField,
+});
+
+const commentSchema = z.object({
+  issueId: z.string().uuid(),
+  body: z.string().trim().min(1).max(4000),
+  visibility: z.enum(["INTERNAL", "CLIENT_VISIBLE"]).default("INTERNAL"),
+});
+
+const commentEditSchema = z.object({
+  issueId: z.string().uuid(),
+  commentId: z.string().uuid(),
+  body: z.string().trim().min(1).max(4000),
+});
+
+const commentArchiveSchema = z.object({
+  issueId: z.string().uuid(),
+  commentId: z.string().uuid(),
 });
 
 /** Guard padrão do módulo: leitura operacional + escopo resolvido. */
@@ -102,6 +165,11 @@ export const mk9QualityListFn = createServerFn({ method: "POST" })
       search: data.search ?? null,
       competenceMonth: data.month ?? null,
       competenceYear: data.year ?? null,
+      // "ME" é resolvido no servidor: o navegador não escolhe o id de ninguém.
+      assignedTo:
+        data.assignedTo === "ME" ? (scope.userId ?? "UNASSIGNED") : (data.assignedTo ?? null),
+      priority: data.priority ?? null,
+      dueState: data.dueState ?? null,
       page: data.page,
       pageSize: data.pageSize,
     });
@@ -171,18 +239,45 @@ export const mk9QualityRunFn = createServerFn({ method: "POST" })
     };
   });
 
-/** Transição manual de status, com justificativa obrigatória quando aplicável. */
+/**
+ * Transição manual de status.
+ *
+ * Regras aplicadas AQUI (servidor) e repetidas pela RPC dentro da transação:
+ *  - a transição precisa ser válida a partir do status atual;
+ *  - RESOLVIDO exige tipo de resolução + descrição;
+ *  - IGNORAR é decisão de gestão;
+ *  - resolver com o problema ainda detectado exige justificativa e gestão.
+ */
 export const mk9QualityTransitionFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => transitionSchema.parse(d))
   .handler(async ({ data }) => {
     const { requireMk9RoleScope } = await import("@/lib/mk9-auth/read-guards.server");
-    // IGNORAR é uma decisão de risco: restrita a ADMIN/AUDITOR.
-    const allowed = data.toStatus === "IGNORED" ? ["ADMIN", "AUDITOR"] : ["ADMIN", "AUDITOR", "SUPERVISOR"];
-    const { scope } = await requireMk9RoleScope(allowed as any);
+    const { canIgnore, canForceResolution, validateResolution, FORCE_MIN_JUSTIFICATION } =
+      await import("./mk9-quality/assignment");
+
+    const { scope } = await requireMk9RoleScope(["ADMIN", "AUDITOR", "SUPERVISOR"]);
+
+    // IGNORAR é uma decisão de risco: apenas gestão.
+    if (data.toStatus === "IGNORED" && !canIgnore(scope.role)) {
+      throw new Error("MK9_DQ_FORBIDDEN");
+    }
+    if (data.forced && !canForceResolution(scope.role)) {
+      throw new Error("MK9_DQ_FORBIDDEN");
+    }
 
     const { validateReason } = await import("./mk9-quality/lifecycle");
     if (!validateReason(data.toStatus, data.reason ?? null)) {
       throw new Error("MK9_DQ_REASON_REQUIRED");
+    }
+    if (data.toStatus === "RESOLVED") {
+      const problems = validateResolution({
+        resolutionType: data.resolutionType ?? null,
+        note: data.reason ?? null,
+      });
+      if (problems.length) throw new Error("MK9_DQ_RESOLUTION_INVALID");
+      if (data.forced && (data.reason ?? "").trim().length < FORCE_MIN_JUSTIFICATION) {
+        throw new Error("MK9_DQ_FORCE_JUSTIFICATION_REQUIRED");
+      }
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -192,5 +287,166 @@ export const mk9QualityTransitionFn = createServerFn({ method: "POST" })
       toStatus: data.toStatus,
       actorId: scope.userId,
       reason: data.reason ?? null,
+      resolutionType: data.resolutionType ?? null,
+      forced: data.forced,
+      ignoreUntil: data.ignoreUntil ?? null,
+      expectedUpdatedAt: data.expectedUpdatedAt ?? null,
     });
   });
+
+/** Atribuir, reatribuir, assumir ou remover o responsável. */
+export const mk9QualityAssignFn = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => assignSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { requireMk9RoleScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { canAssignOthers, canSelfAssign, canUnassign, scopeCoversIssue } = await import(
+      "./mk9-quality/assignment"
+    );
+    const { scope } = await requireMk9RoleScope(["ADMIN", "AUDITOR", "SUPERVISOR"]);
+
+    const target =
+      data.assigneeId === "ME" ? (scope.userId ?? null) : (data.assigneeId ?? null);
+    const isSelf = !!target && target === scope.userId;
+
+    if (target === null && !canUnassign(scope.role)) throw new Error("MK9_DQ_FORBIDDEN");
+    if (target !== null && isSelf && !canSelfAssign(scope.role)) {
+      throw new Error("MK9_DQ_FORBIDDEN");
+    }
+    if (target !== null && !isSelf && !canAssignOthers(scope.role)) {
+      throw new Error("MK9_DQ_FORBIDDEN");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { assignIssue, getIssue } = await import("./mk9-quality/repository.server");
+
+    // Nunca atribuir a quem não enxerga a ocorrência: valida o escopo do destino.
+    if (target && !isSelf) {
+      const found = await getIssue(supabaseAdmin, scope, data.id);
+      if (!found) throw new Error("MK9_DQ_NOT_FOUND");
+      const { resolveMk9AccessScopeForUser } = await import("./mk9-quality/assignee-scope.server");
+      const targetScope = await resolveMk9AccessScopeForUser(supabaseAdmin, target);
+      if (!targetScope) throw new Error("MK9_DQ_ASSIGNEE_INVALID");
+      if (
+        !scopeCoversIssue(targetScope, {
+          industryId: found.issue.industryId,
+          storeId: found.issue.storeId,
+        })
+      ) {
+        throw new Error("MK9_DQ_ASSIGNEE_OUT_OF_SCOPE");
+      }
+    }
+
+    return assignIssue(supabaseAdmin, scope, {
+      id: data.id,
+      assigneeId: target,
+      actorId: scope.userId,
+      note: data.note ?? null,
+      expectedUpdatedAt: data.expectedUpdatedAt ?? null,
+    });
+  });
+
+/** Definir prioridade e/ou prazo. */
+export const mk9QualityPlanningFn = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => planningSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { requireMk9RoleScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { canPlan } = await import("./mk9-quality/assignment");
+    const { scope } = await requireMk9RoleScope(["ADMIN", "AUDITOR", "SUPERVISOR"]);
+    if (!canPlan(scope.role)) throw new Error("MK9_DQ_FORBIDDEN");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { setPlanning } = await import("./mk9-quality/repository.server");
+    return setPlanning(supabaseAdmin, scope, {
+      id: data.id,
+      priority: data.priority ?? null,
+      dueAt: data.dueAt ?? null,
+      clearDue: data.clearDue,
+      actorId: scope.userId,
+      reason: data.reason ?? null,
+      expectedUpdatedAt: data.expectedUpdatedAt ?? null,
+    });
+  });
+
+/** Reabertura manual de uma ocorrência encerrada (somente gestão). */
+export const mk9QualityReopenFn = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => reopenSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { requireMk9RoleScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { canReopen } = await import("./mk9-quality/assignment");
+    const { scope } = await requireMk9RoleScope(["ADMIN", "AUDITOR"]);
+    if (!canReopen(scope.role)) throw new Error("MK9_DQ_FORBIDDEN");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { reopenIssue } = await import("./mk9-quality/repository.server");
+    return reopenIssue(supabaseAdmin, scope, {
+      id: data.id,
+      actorId: scope.userId,
+      reason: data.reason,
+      expectedUpdatedAt: data.expectedUpdatedAt ?? null,
+    });
+  });
+
+/** Comentar em uma ocorrência. O texto é higienizado antes de ser gravado. */
+export const mk9QualityAddCommentFn = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => commentSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { requireMk9RoleScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { canComment } = await import("./mk9-quality/assignment");
+    const { scope } = await requireMk9RoleScope(["ADMIN", "AUDITOR", "SUPERVISOR"]);
+    if (!canComment(scope.role)) throw new Error("MK9_DQ_FORBIDDEN");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { addComment } = await import("./mk9-quality/repository.server");
+    return addComment(supabaseAdmin, scope, {
+      issueId: data.issueId,
+      body: data.body,
+      visibility: data.visibility,
+      actorId: scope.userId,
+    });
+  });
+
+/** Editar o próprio comentário (a gestão pode editar qualquer um). */
+export const mk9QualityEditCommentFn = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => commentEditSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { requireMk9RoleScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9RoleScope(["ADMIN", "AUDITOR", "SUPERVISOR"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { editComment } = await import("./mk9-quality/repository.server");
+    return editComment(supabaseAdmin, scope, {
+      issueId: data.issueId,
+      commentId: data.commentId,
+      body: data.body,
+      actorId: scope.userId,
+    });
+  });
+
+/** Arquivar um comentário — nunca apagar fisicamente. */
+export const mk9QualityArchiveCommentFn = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => commentArchiveSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { requireMk9RoleScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9RoleScope(["ADMIN", "AUDITOR", "SUPERVISOR"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { archiveComment } = await import("./mk9-quality/repository.server");
+    return archiveComment(supabaseAdmin, scope, {
+      issueId: data.issueId,
+      commentId: data.commentId,
+      actorId: scope.userId,
+    });
+  });
+
+/** Painel de acompanhamento: carga, prazos e tempos médios. */
+export const mk9QualityFollowUpFn = createServerFn({ method: "POST" })
+  .inputValidator(() => ({}))
+  .handler(async () => {
+    const { scope } = await qualitySession();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { followUpSummary, assignableUsers } = await import("./mk9-quality/repository.server");
+    const [summary, users] = await Promise.all([
+      followUpSummary(supabaseAdmin, scope),
+      assignableUsers(supabaseAdmin, scope),
+    ]);
+    return { summary, users, currentUserId: scope.userId, role: scope.role };
+  });
+

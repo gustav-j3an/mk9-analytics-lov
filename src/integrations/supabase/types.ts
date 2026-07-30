@@ -179,6 +179,47 @@ export type Database = {
           },
         ]
       }
+      mk9_data_quality_issue_comments: {
+        Row: {
+          archived_at: string | null
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          issue_id: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          archived_at?: string | null
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          issue_id: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          archived_at?: string | null
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          issue_id?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_data_quality_issue_comments_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_data_quality_issues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mk9_data_quality_issue_events: {
         Row: {
           actor_id: string | null
@@ -228,12 +269,17 @@ export type Database = {
           acknowledged_at: string | null
           acknowledged_by: string | null
           archived_at: string | null
+          assigned_at: string | null
+          assigned_by: string | null
+          assigned_to_user_id: string | null
+          assignment_note: string | null
           category: string
           competence_month: number | null
           competence_year: number | null
           context_hash: string
           created_at: string
           description: string
+          due_at: string | null
           entity_id: string | null
           entity_type: string
           evidence: Json
@@ -241,20 +287,26 @@ export type Database = {
           first_detected_at: string
           id: string
           ignore_reason: string | null
+          ignore_until: string | null
           ignored_at: string | null
           ignored_by: string | null
           import_id: string | null
           industry_id: string | null
           issue_type: string
+          last_comment_at: string | null
           last_seen_at: string
           peer_entity_id: string | null
+          priority: string
           promoter_id: string | null
           reopened_at: string | null
+          resolution_forced: boolean
           resolution_note: string | null
+          resolution_type: string | null
           resolved_at: string | null
           resolved_by: string | null
           severity: string
           source: string
+          started_at: string | null
           status: string
           store_id: string | null
           suggested_action: string | null
@@ -266,12 +318,17 @@ export type Database = {
           acknowledged_at?: string | null
           acknowledged_by?: string | null
           archived_at?: string | null
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_to_user_id?: string | null
+          assignment_note?: string | null
           category: string
           competence_month?: number | null
           competence_year?: number | null
           context_hash: string
           created_at?: string
           description: string
+          due_at?: string | null
           entity_id?: string | null
           entity_type: string
           evidence?: Json
@@ -279,20 +336,26 @@ export type Database = {
           first_detected_at?: string
           id?: string
           ignore_reason?: string | null
+          ignore_until?: string | null
           ignored_at?: string | null
           ignored_by?: string | null
           import_id?: string | null
           industry_id?: string | null
           issue_type: string
+          last_comment_at?: string | null
           last_seen_at?: string
           peer_entity_id?: string | null
+          priority?: string
           promoter_id?: string | null
           reopened_at?: string | null
+          resolution_forced?: boolean
           resolution_note?: string | null
+          resolution_type?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           severity: string
           source: string
+          started_at?: string | null
           status?: string
           store_id?: string | null
           suggested_action?: string | null
@@ -304,12 +367,17 @@ export type Database = {
           acknowledged_at?: string | null
           acknowledged_by?: string | null
           archived_at?: string | null
+          assigned_at?: string | null
+          assigned_by?: string | null
+          assigned_to_user_id?: string | null
+          assignment_note?: string | null
           category?: string
           competence_month?: number | null
           competence_year?: number | null
           context_hash?: string
           created_at?: string
           description?: string
+          due_at?: string | null
           entity_id?: string | null
           entity_type?: string
           evidence?: Json
@@ -317,20 +385,26 @@ export type Database = {
           first_detected_at?: string
           id?: string
           ignore_reason?: string | null
+          ignore_until?: string | null
           ignored_at?: string | null
           ignored_by?: string | null
           import_id?: string | null
           industry_id?: string | null
           issue_type?: string
+          last_comment_at?: string | null
           last_seen_at?: string
           peer_entity_id?: string | null
+          priority?: string
           promoter_id?: string | null
           reopened_at?: string | null
+          resolution_forced?: boolean
           resolution_note?: string | null
+          resolution_type?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           severity?: string
           source?: string
+          started_at?: string | null
           status?: string
           store_id?: string | null
           suggested_action?: string | null
@@ -1240,6 +1314,140 @@ export type Database = {
         Returns: undefined
       }
       mk9_normalize_store_name: { Args: { input: string }; Returns: string }
+      mk9_quality_add_comment: {
+        Args: {
+          _author_id: string
+          _body: string
+          _issue_id: string
+          _visibility: string
+        }
+        Returns: {
+          archived_at: string | null
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          issue_id: string
+          updated_at: string
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "mk9_data_quality_issue_comments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mk9_quality_archive_comment: {
+        Args: { _actor_id: string; _comment_id: string; _reason?: string }
+        Returns: {
+          archived_at: string | null
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          issue_id: string
+          updated_at: string
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "mk9_data_quality_issue_comments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mk9_quality_assign_issue: {
+        Args: {
+          _actor_id: string
+          _assignee: string
+          _expected_updated_at?: string
+          _issue_id: string
+          _note?: string
+        }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          archived_at: string | null
+          assigned_at: string | null
+          assigned_by: string | null
+          assigned_to_user_id: string | null
+          assignment_note: string | null
+          category: string
+          competence_month: number | null
+          competence_year: number | null
+          context_hash: string
+          created_at: string
+          description: string
+          due_at: string | null
+          entity_id: string | null
+          entity_type: string
+          evidence: Json
+          fingerprint: string
+          first_detected_at: string
+          id: string
+          ignore_reason: string | null
+          ignore_until: string | null
+          ignored_at: string | null
+          ignored_by: string | null
+          import_id: string | null
+          industry_id: string | null
+          issue_type: string
+          last_comment_at: string | null
+          last_seen_at: string
+          peer_entity_id: string | null
+          priority: string
+          promoter_id: string | null
+          reopened_at: string | null
+          resolution_forced: boolean
+          resolution_note: string | null
+          resolution_type: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source: string
+          started_at: string | null
+          status: string
+          store_id: string | null
+          suggested_action: string | null
+          supervisor_id: string | null
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "mk9_data_quality_issues"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mk9_quality_check_version: {
+        Args: { _cur: string; _expected: string }
+        Returns: undefined
+      }
+      mk9_quality_default_due_at: {
+        Args: { _from?: string; _severity: string }
+        Returns: string
+      }
+      mk9_quality_edit_comment: {
+        Args: { _actor_id: string; _body: string; _comment_id: string }
+        Returns: {
+          archived_at: string | null
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          issue_id: string
+          updated_at: string
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "mk9_data_quality_issue_comments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       mk9_quality_guard_status: { Args: never; Returns: Json }
       mk9_quality_legacy_counts: { Args: never; Returns: Json }
       mk9_quality_projection_divergence: {
@@ -1254,6 +1462,135 @@ export type Database = {
           version_monthly: number
           version_weekly: number
         }[]
+      }
+      mk9_quality_reopen_issue: {
+        Args: {
+          _actor_id: string
+          _expected_updated_at?: string
+          _issue_id: string
+          _reason: string
+        }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          archived_at: string | null
+          assigned_at: string | null
+          assigned_by: string | null
+          assigned_to_user_id: string | null
+          assignment_note: string | null
+          category: string
+          competence_month: number | null
+          competence_year: number | null
+          context_hash: string
+          created_at: string
+          description: string
+          due_at: string | null
+          entity_id: string | null
+          entity_type: string
+          evidence: Json
+          fingerprint: string
+          first_detected_at: string
+          id: string
+          ignore_reason: string | null
+          ignore_until: string | null
+          ignored_at: string | null
+          ignored_by: string | null
+          import_id: string | null
+          industry_id: string | null
+          issue_type: string
+          last_comment_at: string | null
+          last_seen_at: string
+          peer_entity_id: string | null
+          priority: string
+          promoter_id: string | null
+          reopened_at: string | null
+          resolution_forced: boolean
+          resolution_note: string | null
+          resolution_type: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source: string
+          started_at: string | null
+          status: string
+          store_id: string | null
+          suggested_action: string | null
+          supervisor_id: string | null
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "mk9_data_quality_issues"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mk9_quality_set_planning: {
+        Args: {
+          _actor_id: string
+          _clear_due: boolean
+          _due_at: string
+          _expected_updated_at?: string
+          _issue_id: string
+          _priority: string
+          _reason?: string
+        }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          archived_at: string | null
+          assigned_at: string | null
+          assigned_by: string | null
+          assigned_to_user_id: string | null
+          assignment_note: string | null
+          category: string
+          competence_month: number | null
+          competence_year: number | null
+          context_hash: string
+          created_at: string
+          description: string
+          due_at: string | null
+          entity_id: string | null
+          entity_type: string
+          evidence: Json
+          fingerprint: string
+          first_detected_at: string
+          id: string
+          ignore_reason: string | null
+          ignore_until: string | null
+          ignored_at: string | null
+          ignored_by: string | null
+          import_id: string | null
+          industry_id: string | null
+          issue_type: string
+          last_comment_at: string | null
+          last_seen_at: string
+          peer_entity_id: string | null
+          priority: string
+          promoter_id: string | null
+          reopened_at: string | null
+          resolution_forced: boolean
+          resolution_note: string | null
+          resolution_type: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source: string
+          started_at: string | null
+          status: string
+          store_id: string | null
+          suggested_action: string | null
+          supervisor_id: string | null
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "mk9_data_quality_issues"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       mk9_quality_sync_detections: {
         Args: {
@@ -1281,12 +1618,17 @@ export type Database = {
           acknowledged_at: string | null
           acknowledged_by: string | null
           archived_at: string | null
+          assigned_at: string | null
+          assigned_by: string | null
+          assigned_to_user_id: string | null
+          assignment_note: string | null
           category: string
           competence_month: number | null
           competence_year: number | null
           context_hash: string
           created_at: string
           description: string
+          due_at: string | null
           entity_id: string | null
           entity_type: string
           evidence: Json
@@ -1294,20 +1636,93 @@ export type Database = {
           first_detected_at: string
           id: string
           ignore_reason: string | null
+          ignore_until: string | null
           ignored_at: string | null
           ignored_by: string | null
           import_id: string | null
           industry_id: string | null
           issue_type: string
+          last_comment_at: string | null
           last_seen_at: string
           peer_entity_id: string | null
+          priority: string
           promoter_id: string | null
           reopened_at: string | null
+          resolution_forced: boolean
           resolution_note: string | null
+          resolution_type: string | null
           resolved_at: string | null
           resolved_by: string | null
           severity: string
           source: string
+          started_at: string | null
+          status: string
+          store_id: string | null
+          suggested_action: string | null
+          supervisor_id: string | null
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "mk9_data_quality_issues"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mk9_quality_transition_issue_v2: {
+        Args: {
+          _actor_id: string
+          _expected_updated_at?: string
+          _forced?: boolean
+          _ignore_until?: string
+          _issue_id: string
+          _reason?: string
+          _resolution_type?: string
+          _to_status: string
+        }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          archived_at: string | null
+          assigned_at: string | null
+          assigned_by: string | null
+          assigned_to_user_id: string | null
+          assignment_note: string | null
+          category: string
+          competence_month: number | null
+          competence_year: number | null
+          context_hash: string
+          created_at: string
+          description: string
+          due_at: string | null
+          entity_id: string | null
+          entity_type: string
+          evidence: Json
+          fingerprint: string
+          first_detected_at: string
+          id: string
+          ignore_reason: string | null
+          ignore_until: string | null
+          ignored_at: string | null
+          ignored_by: string | null
+          import_id: string | null
+          industry_id: string | null
+          issue_type: string
+          last_comment_at: string | null
+          last_seen_at: string
+          peer_entity_id: string | null
+          priority: string
+          promoter_id: string | null
+          reopened_at: string | null
+          resolution_forced: boolean
+          resolution_note: string | null
+          resolution_type: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source: string
+          started_at: string | null
           status: string
           store_id: string | null
           suggested_action: string | null

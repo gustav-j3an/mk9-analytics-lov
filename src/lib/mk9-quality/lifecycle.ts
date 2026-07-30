@@ -77,3 +77,51 @@ export function validateReason(target: Mk9ManualTransition, reason?: string | nu
   if (min === 0) return true;
   return typeof reason === "string" && reason.trim().length >= min;
 }
+
+// ---------------------------------------------------------------------------
+// Fase 2B.4 — transições permitidas a partir do status atual
+// ---------------------------------------------------------------------------
+
+const OPEN_STATES: Mk9QualityStatus[] = ["OPEN", "ACKNOWLEDGED", "IN_PROGRESS", "REOPENED"];
+
+export function isOpen(status: Mk9QualityStatus | string): boolean {
+  return (OPEN_STATES as string[]).includes(status);
+}
+
+/**
+ * Transições manuais possíveis. Nunca inclui reabertura: reabrir é uma ação
+ * separada (`mk9_quality_reopen_issue`) e restrita à gestão.
+ */
+export function allowedTransitions(status: Mk9QualityStatus | string): Mk9ManualTransition[] {
+  switch (status) {
+    case "OPEN":
+    case "REOPENED":
+      return ["ACKNOWLEDGED", "IN_PROGRESS", "RESOLVED", "IGNORED"];
+    case "ACKNOWLEDGED":
+      return ["IN_PROGRESS", "RESOLVED", "IGNORED"];
+    case "IN_PROGRESS":
+      return ["RESOLVED", "IGNORED"];
+    default:
+      // RESOLVED, RESOLVED_AUTO e IGNORED só voltam por reabertura.
+      return [];
+  }
+}
+
+export function canTransition(
+  status: Mk9QualityStatus | string,
+  target: Mk9ManualTransition,
+): boolean {
+  return allowedTransitions(status).includes(target);
+}
+
+/** Reabertura manual só faz sentido em ocorrência encerrada. */
+export function canReopenStatus(status: Mk9QualityStatus | string): boolean {
+  return status === "RESOLVED" || status === "RESOLVED_AUTO" || status === "IGNORED";
+}
+
+export const REOPEN_MIN_REASON = 10;
+
+export function validateReopenReason(reason?: string | null): boolean {
+  return typeof reason === "string" && reason.trim().length >= REOPEN_MIN_REASON;
+}
+
