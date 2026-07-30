@@ -67,6 +67,27 @@ export const Route = createFileRoute("/api/checklists/preview")({
             operationYear: form.get("operationYear"),
           });
 
+          // Trava servidora: indústria precisa estar classificada como "exige checklist".
+          const { assertIndustryRequiresChecklist } = await import("@/lib/mk9-checklist/industry-gate.server");
+          try {
+            await assertIndustryRequiresChecklist(fields.industryId);
+          } catch (gateError) {
+            const { INDUSTRY_CHECKLIST_DISABLED, INDUSTRY_CHECKLIST_DISABLED_MESSAGE } = await import(
+              "@/lib/mk9-checklist/industry-gate"
+            );
+            return Response.json(
+              {
+                error: {
+                  __mk9Error: true,
+                  step: "industry-gate",
+                  code: INDUSTRY_CHECKLIST_DISABLED,
+                  message: INDUSTRY_CHECKLIST_DISABLED_MESSAGE,
+                },
+              },
+              { status: 422 },
+            );
+          }
+
           if (!(filePart instanceof File)) {
             throw new Error("Arquivo não chegou ao backend no campo multipart 'file'.");
           }
