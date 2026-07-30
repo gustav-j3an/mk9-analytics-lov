@@ -9,6 +9,7 @@
  *  - as RPCs são SECURITY DEFINER com EXECUTE revogado de PUBLIC/anon/authenticated.
  */
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 
 import {
   archiveIndustrySchema,
@@ -18,19 +19,14 @@ import {
   updateIndustrySchema,
 } from "./mk9-industries/admin";
 
-async function adminCtx() {
-  const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
-  return requireMk9Role(["ADMIN"]);
-}
-
 /** Nomes semelhantes exibidos antes de criar — sem criar nada. */
 export const mk9SearchSimilarIndustries = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => {
-    const { z } = require("zod") as typeof import("zod");
     return z.object({ name: z.string().min(1).max(120) }).strict().parse(data);
   })
   .handler(async ({ data }) => {
-    await adminCtx();
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+    await requireMk9Role(["ADMIN"]);
     const { findSimilarIndustries } = await import("@/lib/mk9-checklist/industry-admin");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
@@ -51,7 +47,8 @@ export const mk9SearchSimilarIndustries = createServerFn({ method: "POST" })
 export const mk9CreateIndustry = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => createIndustrySchema.parse(data))
   .handler(async ({ data }) => {
-    const ctx = await adminCtx();
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { decideIndustryCreation } = await import("@/lib/mk9-checklist/industry-admin");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -103,7 +100,8 @@ export const mk9CreateIndustry = createServerFn({ method: "POST" })
 export const mk9UpdateIndustry = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => updateIndustrySchema.parse(data))
   .handler(async ({ data }) => {
-    const ctx = await adminCtx();
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { normalizeName } = await import("@/lib/mk9/normalization");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin.rpc("mk9_admin_update_industry" as any, {
@@ -129,7 +127,8 @@ export const mk9UpdateIndustry = createServerFn({ method: "POST" })
 export const mk9ArchiveIndustry = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => archiveIndustrySchema.parse(data))
   .handler(async ({ data }) => {
-    const ctx = await adminCtx();
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin.rpc("mk9_admin_archive_industry" as any, {
       p_industry_id: data.industryId,
@@ -145,7 +144,8 @@ export const mk9ArchiveIndustry = createServerFn({ method: "POST" })
 export const mk9ReactivateIndustry = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => reactivateIndustrySchema.parse(data))
   .handler(async ({ data }) => {
-    const ctx = await adminCtx();
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin.rpc("mk9_admin_reactivate_industry" as any, {
       p_industry_id: data.industryId,
@@ -163,11 +163,11 @@ export const mk9ReactivateIndustry = createServerFn({ method: "POST" })
  */
 export const mk9IndustryArchiveImpact = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => {
-    const { z } = require("zod") as typeof import("zod");
     return z.object({ industryId: z.string().uuid() }).strict().parse(data);
   })
   .handler(async ({ data }) => {
-    await adminCtx();
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+    await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [freq, routes, visits] = await Promise.all([
       supabaseAdmin
