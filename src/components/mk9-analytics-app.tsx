@@ -20,6 +20,13 @@ import {
   DISABLE_CONFIRMATION_MESSAGE,
   MISSING_PERIOD_WARNING,
 } from "@/lib/mk9-checklist/industry-admin-ui";
+import { matchesStatusFilter, type IndustryStatusFilter } from "@/lib/mk9-industries/admin";
+import {
+  IndustryArchiveDialog,
+  IndustryCreateDialog,
+  IndustryEditDialog,
+  IndustryReactivateDialog,
+} from "@/components/mk9/industry-admin-dialogs";
 import {
   Dialog,
   DialogContent,
@@ -544,8 +551,13 @@ function IndustriesModule({
 }) {
   const [filter, setFilter] = useState("");
   const [checklistFilter, setChecklistFilter] = useState<"all" | "yes" | "no">("all");
+  const [statusFilter, setStatusFilter] = useState<IndustryStatusFilter>("active");
   const [pending, setPending] = useState<{ id: string; name: string; next: boolean } | null>(null);
   const [configId, setConfigId] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [archiving, setArchiving] = useState<any | null>(null);
+  const [reactivating, setReactivating] = useState<any | null>(null);
   const queryClient = useQueryClient();
   const setChecklistFn = useServerFn(mk9SetIndustryRequiresChecklist);
 
@@ -560,10 +572,11 @@ function IndustriesModule({
   });
 
   const rows = industries
-    .filter((i) => i.name.toLowerCase().includes(filter.toLowerCase()))
+    .filter((i) => `${i.name} ${i.displayName ?? ""}`.toLowerCase().includes(filter.toLowerCase()))
     .filter((i) =>
       checklistFilter === "all" ? true : checklistFilter === "yes" ? i.requiresChecklist === true : i.requiresChecklist !== true,
-    );
+    )
+    .filter((i) => matchesStatusFilter(i, statusFilter));
 
   return (
     <div className="space-y-4">
@@ -571,6 +584,16 @@ function IndustriesModule({
         <div className="flex-1 min-w-[220px]">
           <DataToolbar value={filter} onChange={setFilter} placeholder="Filtrar indústrias…" total={industries.length} />
         </div>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as IndustryStatusFilter)}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="active">Ativas</SelectItem>
+            <SelectItem value="archived">Arquivadas</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={checklistFilter} onValueChange={(v) => setChecklistFilter(v as any)}>
           <SelectTrigger className="w-[220px]">
             <SelectValue placeholder="Checklist" />
@@ -581,25 +604,37 @@ function IndustriesModule({
             <SelectItem value="no">Não exigem checklist</SelectItem>
           </SelectContent>
         </Select>
+        {isAdmin && <Button onClick={() => setCreateOpen(true)}>Nova indústria</Button>}
       </div>
       {loading ? <LoadingBlock /> : industries.length === 0 ? (
-        <EmptyState title="Nenhuma indústria cadastrada" hint="Importe a planilha MK9 para popular a base." />
+        <EmptyState title="Nenhuma indústria cadastrada" hint="Importe a planilha MK9 ou cadastre manualmente." />
       ) : (
         <TableShell
           headers={[
             "Indústria",
+            "Status",
             "Checklist",
             "Freq. contratada",
             "Freq. estimada",
             "Diferença",
-            "Status",
+            "Meta",
             "Atualizado em",
-            ...(isAdmin ? ["Ação"] : []),
+            ...(isAdmin ? ["Ações"] : []),
           ]}
         >
           {rows.map((i) => (
             <tr key={i.id} className="border-b last:border-0">
-              <td className="p-3 font-medium">{i.name}</td>
+              <td className="p-3 font-medium">
+                {i.name}
+                {i.displayName && <span className="block text-xs text-muted-foreground">{i.displayName}</span>}
+              </td>
+              <td className="p-3">
+                {i.archivedAt ? (
+                  <Badge variant="outline" className="text-muted-foreground">Arquivada</Badge>
+                ) : (
+                  <Badge className="bg-sky-500/15 text-sky-600 hover:bg-sky-500/15">Ativa</Badge>
+                )}
+              </td>
               <td className="p-3">
                 {i.requiresChecklist ? (
                   <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/15">Exige checklist</Badge>
@@ -614,15 +649,41 @@ function IndustriesModule({
               <td className="p-3 text-muted-foreground text-xs">{i.updatedAt ? new Date(i.updatedAt).toLocaleString("pt-BR") : "—"}</td>
               {isAdmin && (
                 <td className="p-3">
-                  <Button size="sm" variant="outline" onClick={() => setConfigId(i.id)}>
-                    Configurar operação
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => setConfigId(i.id)}>
+                      Configurar
+                    </Button>
+                    {i.archivedAt ? (
+                      <Button size="sm" variant="outline" onClick={() => setReactivating(i)}>
+                        Reativar
+                      </Button>
+                    ) : (
+                      <>
+                        <Button size="sm" variant="outline" onClick={() => setEditing(i)}>
+                          Editar
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setArchiving(i)}>
+                          Arquivar
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </td>
               )}
             </tr>
           ))}
         </TableShell>
       )}
+
+      {isAdmin && (
+        <>
+          <IndustryCreateDialog open={createOpen} onClose={() => setCreateOpen(false)} />
+          <IndustryEditDialog industry={editing} onClose={() => setEditing(null)} />
+          <IndustryArchiveDialog industry={archiving} onClose={() => setArchiving(null)} />
+          <IndustryReactivateDialog industry={reactivating} onClose={() => setReactivating(null)} />
+        </>
+      )}
+
 
       <AlertDialog open={!!pending} onOpenChange={(o) => !o && setPending(null)}>
         <AlertDialogContent>

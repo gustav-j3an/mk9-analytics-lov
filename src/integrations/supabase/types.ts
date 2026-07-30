@@ -548,9 +548,14 @@ export type Database = {
       }
       mk9_industries: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           checklist_enabled_at: string | null
           checklist_enabled_by: string | null
           created_at: string
+          created_by: string | null
+          display_name: string | null
           frequency_difference: number | null
           frequency_status:
             | Database["public"]["Enums"]["mk9_industry_status"]
@@ -561,14 +566,22 @@ export type Database = {
           monthly_estimated_frequency: number | null
           name: string
           name_normalized: string
+          notes: string | null
           requires_checklist: boolean
+          source_type: string
           updated_at: string
+          updated_by: string | null
           weeks_count: number | null
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           checklist_enabled_at?: string | null
           checklist_enabled_by?: string | null
           created_at?: string
+          created_by?: string | null
+          display_name?: string | null
           frequency_difference?: number | null
           frequency_status?:
             | Database["public"]["Enums"]["mk9_industry_status"]
@@ -579,14 +592,22 @@ export type Database = {
           monthly_estimated_frequency?: number | null
           name: string
           name_normalized: string
+          notes?: string | null
           requires_checklist?: boolean
+          source_type?: string
           updated_at?: string
+          updated_by?: string | null
           weeks_count?: number | null
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           checklist_enabled_at?: string | null
           checklist_enabled_by?: string | null
           created_at?: string
+          created_by?: string | null
+          display_name?: string | null
           frequency_difference?: number | null
           frequency_status?:
             | Database["public"]["Enums"]["mk9_industry_status"]
@@ -597,8 +618,11 @@ export type Database = {
           monthly_estimated_frequency?: number | null
           name?: string
           name_normalized?: string
+          notes?: string | null
           requires_checklist?: boolean
+          source_type?: string
           updated_at?: string
+          updated_by?: string | null
           weeks_count?: number | null
         }
         Relationships: []
@@ -1303,6 +1327,20 @@ export type Database = {
         Returns: boolean
       }
       is_mk9_admin: { Args: never; Returns: boolean }
+      mk9_admin_archive_industry: {
+        Args: {
+          p_actor: string
+          p_expected_updated_at: string
+          p_industry_id: string
+          p_reason: string
+        }
+        Returns: {
+          archived_at: string
+          id: string
+          name: string
+          updated_at: string
+        }[]
+      }
       mk9_admin_create_checklist_industry: {
         Args: {
           p_actor?: string
@@ -1316,6 +1354,39 @@ export type Database = {
           id: string
           name: string
           requires_checklist: boolean
+        }[]
+      }
+      mk9_admin_create_industry: {
+        Args: {
+          p_actor: string
+          p_display_name: string
+          p_end_day: number
+          p_name: string
+          p_name_normalized: string
+          p_notes: string
+          p_period_type: string
+          p_requires_checklist: boolean
+          p_start_day: number
+          p_uses_previous_month: boolean
+        }
+        Returns: {
+          id: string
+          name: string
+          requires_checklist: boolean
+          updated_at: string
+        }[]
+      }
+      mk9_admin_reactivate_industry: {
+        Args: {
+          p_actor: string
+          p_expected_updated_at: string
+          p_industry_id: string
+        }
+        Returns: {
+          archived_at: string
+          id: string
+          name: string
+          updated_at: string
         }[]
       }
       mk9_admin_set_industry_requires_checklist:
@@ -1348,6 +1419,24 @@ export type Database = {
               requires_checklist: boolean
             }[]
           }
+      mk9_admin_update_industry: {
+        Args: {
+          p_actor: string
+          p_display_name: string
+          p_expected_updated_at: string
+          p_industry_id: string
+          p_name: string
+          p_name_normalized: string
+          p_notes: string
+          p_requires_checklist: boolean
+        }
+        Returns: {
+          id: string
+          name: string
+          requires_checklist: boolean
+          updated_at: string
+        }[]
+      }
       mk9_apply_frequency_diff: {
         Args: {
           _actor?: string
