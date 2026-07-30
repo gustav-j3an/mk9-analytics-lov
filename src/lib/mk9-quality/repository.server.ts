@@ -28,7 +28,7 @@ const LIST_COLUMNS =
   "first_detected_at, last_seen_at, resolved_at, ignored_at, reopened_at";
 
 /** Colunas leves do overview — evidência NUNCA é carregada para gerar cards. */
-const OVERVIEW_COLUMNS = "category, severity, status, industry_id, store_id";
+const OVERVIEW_COLUMNS = "category, severity, status, issue_type, industry_id, store_id";
 
 function isAdminLike(scope: Mk9AccessScope): boolean {
   return scope.role === "ADMIN" || scope.role === "DEV" || scope.role === "AUDITOR";
