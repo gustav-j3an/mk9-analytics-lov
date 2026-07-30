@@ -43,7 +43,6 @@ const mapRow = (r: any) => ({
   storeId: r.store_id as string,
   storeName: (r.store?.name ?? null) as string | null,
   chain: (r.store?.chain ?? null) as string | null,
-  city: (r.store?.city ?? null) as string | null,
   uf: (r.store?.uf ?? null) as string | null,
   weeklyFrequency: r.weekly_frequency === null ? null : Number(r.weekly_frequency),
   monthlyFrequency: r.monthly_frequency === null ? null : Number(r.monthly_frequency),
@@ -58,7 +57,7 @@ const mapRow = (r: any) => ({
 });
 
 const SELECT_COLS =
-  "id, industry_id, store_id, weekly_frequency, monthly_frequency, valid_from, valid_until, source_type, source_import_id, notes, created_at, updated_at, updated_by, store:mk9_stores(id,name,chain,city,uf)";
+  "id, industry_id, store_id, weekly_frequency, monthly_frequency, valid_from, valid_until, source_type, source_import_id, notes, created_at, updated_at, updated_by, store:mk9_stores(id,name,chain,uf)";
 
 // ---------------------------------------------------------------------------
 // LISTAGEM PAGINADA — direto da tabela versionada
@@ -104,7 +103,7 @@ export const mk9ListIndustryFrequencies = createServerFn({ method: "POST" })
     if (data.search) {
       const needle = data.search.toLowerCase();
       items = items.filter((i) =>
-        `${i.storeName ?? ""} ${i.chain ?? ""} ${i.city ?? ""}`.toLowerCase().includes(needle),
+        `${i.storeName ?? ""} ${i.chain ?? ""}`.toLowerCase().includes(needle),
       );
     }
 
