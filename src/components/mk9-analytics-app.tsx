@@ -16,6 +16,18 @@ import { Mk9UsersModule } from "@/components/mk9-users-module";
 import { useMk9Session, type Mk9Role } from "@/lib/mk9-auth/session";
 import { toast } from "sonner";
 import {
+  CHECKLIST_INDUSTRY_CACHE_KEYS,
+  DISABLE_CONFIRMATION_MESSAGE,
+  MISSING_PERIOD_WARNING,
+} from "@/lib/mk9-checklist/industry-admin-ui";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -68,6 +80,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
+  mk9GetIndustryOperationConfig,
   mk9ListIndustries,
   mk9SetIndustryRequiresChecklist,
   mk9ListStores,
@@ -532,6 +545,7 @@ function IndustriesModule({
   const [filter, setFilter] = useState("");
   const [checklistFilter, setChecklistFilter] = useState<"all" | "yes" | "no">("all");
   const [pending, setPending] = useState<{ id: string; name: string; next: boolean } | null>(null);
+  const [configId, setConfigId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const setChecklistFn = useServerFn(mk9SetIndustryRequiresChecklist);
 
@@ -539,8 +553,7 @@ function IndustriesModule({
     mutationFn: (v: { industryId: string; value: boolean }) => setChecklistFn({ data: v }),
     onSuccess: (_d, v) => {
       toast.success(v.value ? "Indústria habilitada para checklist." : "Indústria desabilitada para novas importações de checklist.");
-      queryClient.invalidateQueries({ queryKey: ["mk9-industries"] });
-      queryClient.invalidateQueries({ queryKey: ["mk9-checklist-industries"] });
+      for (const key of CHECKLIST_INDUSTRY_CACHE_KEYS) queryClient.invalidateQueries({ queryKey: [key] });
       setPending(null);
     },
     onError: () => toast.error("Não foi possível alterar a classificação de checklist."),
@@ -601,12 +614,8 @@ function IndustriesModule({
               <td className="p-3 text-muted-foreground text-xs">{i.updatedAt ? new Date(i.updatedAt).toLocaleString("pt-BR") : "—"}</td>
               {isAdmin && (
                 <td className="p-3">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setPending({ id: i.id, name: i.name, next: !i.requiresChecklist })}
-                  >
-                    {i.requiresChecklist ? "Desabilitar" : "Habilitar"}
+                  <Button size="sm" variant="outline" onClick={() => setConfigId(i.id)}>
+                    Configurar operação
                   </Button>
                 </td>
               )}
@@ -624,7 +633,7 @@ function IndustriesModule({
             <AlertDialogDescription>
               {pending?.next
                 ? "Esta indústria passará a aparecer no fluxo de checklist."
-                : "Esta indústria deixará de aparecer para novas importações de checklist. Checklists, visitas e histórico existentes serão preservados."}
+                : DISABLE_CONFIRMATION_MESSAGE}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -638,7 +647,97 @@ function IndustriesModule({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <IndustryOperationDialog
+        industryId={configId}
+        isAdmin={isAdmin}
+        onClose={() => setConfigId(null)}
+        onToggle={(id, name, next) => {
+          setConfigId(null);
+          setPending({ id, name, next });
+        }}
+      />
     </div>
+  );
+}
+
+/**
+ * Modal "Configurar operação": mostra a classificação de checklist e o tipo de
+ * período (mês civil × período personalizado). A alteração é sempre revalidada
+ * no servidor — o modal só dispara a confirmação.
+ */
+function IndustryOperationDialog({
+  industryId,
+  isAdmin,
+  onClose,
+  onToggle,
+}: {
+  industryId: string | null;
+  isAdmin: boolean;
+  onClose: () => void;
+  onToggle: (id: string, name: string, next: boolean) => void;
+}) {
+  const cfgFn = useServerFn(mk9GetIndustryOperationConfig);
+  const q = useQuery({
+    queryKey: ["mk9-industry-operation-config", industryId],
+    queryFn: () => cfgFn({ data: { industryId: industryId as string } }),
+    enabled: !!industryId,
+  });
+  const cfg = q.data;
+
+  return (
+    <Dialog open={!!industryId} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Configurar operação</DialogTitle>
+          <DialogDescription>{cfg?.name ?? "Carregando…"}</DialogDescription>
+        </DialogHeader>
+        {q.isLoading || !cfg ? (
+          <LoadingBlock />
+        ) : (
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Exige checklist</span>
+              {cfg.requiresChecklist ? (
+                <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/15">Sim</Badge>
+              ) : (
+                <Badge variant="outline">Não</Badge>
+              )}
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Tipo de período</span>
+              <span>{cfg.periodType === "CUSTOM_CYCLE" ? "Período personalizado" : "Mês civil"}</span>
+            </div>
+            {cfg.period && cfg.periodType === "CUSTOM_CYCLE" && (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Configuração atual</span>
+                <span className="tabular-nums">
+                  dia {cfg.period.startDay} → dia {cfg.period.endDay}
+                  {cfg.period.usesPreviousMonth ? " (inicia no mês anterior)" : ""}
+                </span>
+              </div>
+            )}
+            {cfg.checklistEnabledAt && (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Habilitada em</span>
+                <span>{new Date(cfg.checklistEnabledAt).toLocaleString("pt-BR")}</span>
+              </div>
+            )}
+            {cfg.requiresChecklist && !cfg.hasCustomPeriod && (
+              <p className="rounded-md bg-amber-500/10 p-2 text-amber-600">{MISSING_PERIOD_WARNING}</p>
+            )}
+            {isAdmin && (
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={onClose}>Fechar</Button>
+                <Button onClick={() => onToggle(cfg.id, cfg.name, !cfg.requiresChecklist)}>
+                  {cfg.requiresChecklist ? "Desabilitar checklist" : "Habilitar checklist"}
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
