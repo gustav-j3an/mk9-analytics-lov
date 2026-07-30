@@ -8,6 +8,8 @@
  * Módulo puro — usado tanto na escrita (detectores) quanto na leitura
  * (projeção por papel).
  */
+import type { Mk9Evidence, Mk9JsonValue } from "./types";
+
 const FORBIDDEN_KEY = new RegExp(
   [
     "token", "secret", "senha", "password", "apikey", "api_key", "authorization", "bearer",
