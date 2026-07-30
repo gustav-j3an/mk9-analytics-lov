@@ -161,11 +161,16 @@ export interface ListFilters {
   issueType?: string | null;
   industryId?: string | null;
   storeId?: string | null;
+  /** Restrição adicional de lojas (ex.: filtro por UF já resolvido no servidor). */
+  storeIds?: string[] | null;
+  /** Busca livre no título/descrição (nunca na evidência). */
+  search?: string | null;
   competenceMonth?: number | null;
   competenceYear?: number | null;
   page: number;
   pageSize: number;
 }
+
 
 /** Peso de gravidade — usado para ordenar a página já carregada. */
 const SEVERITY_WEIGHT: Record<string, number> = {
