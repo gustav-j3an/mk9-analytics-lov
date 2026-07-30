@@ -93,7 +93,7 @@ export interface DetectedIssue {
   competence?: Mk9Competence | null;
   title: string;
   description: string;
-  evidence: Record<string, unknown>;
+  evidence: Mk9Evidence;
   suggestedAction?: string | null;
   source: string;
   fingerprintParts: Record<string, unknown>;
@@ -135,7 +135,7 @@ export interface Mk9QualityIssueView {
   competenceYear: number | null;
   title: string;
   description: string;
-  evidence: Record<string, unknown>;
+  evidence: Mk9Evidence;
   suggestedAction: string | null;
   source: string | null;
   firstDetectedAt: string;
