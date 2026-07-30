@@ -432,6 +432,38 @@ export function Mk9AnalyticsApp() {
               <Mk9ChecklistImportModule onSwitchToBase={() => setActiveModule("importacoes")} />
             )}
             {activeModule === "conciliacao" && <Mk9AuditModule key={auditKey} initialFilters={auditFilters} />}
+            {activeModule === "qualidade" && (
+              <Mk9QualityModule
+                month={month}
+                year={year}
+                onNavigate={(target) => {
+                  // Deep-link: o Centro de Qualidade só troca de módulo e pré-filtra;
+                  // nenhuma correção automática acontece aqui.
+                  if (target.month) setMonth(target.month);
+                  if (target.year) setYear(target.year);
+                  if (target.module === "audit") {
+                    setAuditFilters({
+                      industryId: target.industryId ?? undefined,
+                      storeId: target.storeId ?? undefined,
+                    });
+                    setAuditKey((k) => k + 1);
+                    setActiveModule("conciliacao");
+                    return;
+                  }
+                  const map: Record<string, ModuleId> = {
+                    stores: "lojas",
+                    routes: "roteiros",
+                    frequency: "roteiros",
+                    imports: "importacoes",
+                    checklists: "checklists",
+                    industries: "industrias",
+                    reports: "relatorio_industria",
+                  };
+                  setActiveModule(map[target.module] ?? "dashboard");
+                }}
+              />
+            )}
+
             {activeModule === "relatorio_industria" && <Mk9IndustryReportModule />}
             {activeModule === "usuarios" && <Mk9UsersModule currentUserId={user?.id ?? null} />}
           </div>
