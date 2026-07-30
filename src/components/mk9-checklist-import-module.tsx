@@ -37,7 +37,7 @@ import {
   checklistReprocessValidation,
   checklistGetValidation,
 } from "@/lib/mk9-checklist.functions";
-import { mk9ListIndustries } from "@/lib/mk9-data.functions";
+import { mk9ListChecklistIndustries } from "@/lib/mk9-data.functions";
 import { detectMk9FileKind } from "@/lib/mk9/detect-file-kind";
 import type { ChecklistPreview } from "@/lib/mk9-checklist/types";
 
@@ -168,7 +168,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const listFn = useServerFn(checklistList);
   const deleteFn = useServerFn(checklistDelete);
   const cancelFn = useServerFn(checklistCancel);
-  const industriesFn = useServerFn(mk9ListIndustries);
+  const industriesFn = useServerFn(mk9ListChecklistIndustries);
   const qc = useQueryClient();
 
   const clearPhaseTimers = () => {
@@ -178,7 +178,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   useEffect(() => () => clearPhaseTimers(), []);
 
 
-  const industriesQ = useQuery({ queryKey: ["mk9-industries"], queryFn: () => industriesFn() });
+  const industriesQ = useQuery({ queryKey: ["mk9-checklist-industries"], queryFn: () => industriesFn() });
   const historyQ = useQuery({ queryKey: ["mk9-checklist-imports"], queryFn: () => listFn() });
 
   const previewMut = useMutation({
