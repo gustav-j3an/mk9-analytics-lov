@@ -32,6 +32,20 @@ function isAdminLike(scope: Mk9AccessScope): boolean {
   return scope.role === "ADMIN" || scope.role === "DEV" || scope.role === "AUDITOR";
 }
 
+/**
+ * Neutraliza os metacaracteres do `ilike` e a vírgula/parênteses do parser do
+ * PostgREST, impedindo que um termo de busca altere a estrutura do filtro.
+ */
+export function escapeLike(term: string): string {
+  return term
+    .trim()
+    .slice(0, 80)
+    .replace(/[\\%_(),*]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+
 /** Aplica o escopo do servidor a uma query PostgREST. */
 function applyScope(query: any, scope: Mk9AccessScope) {
   let q = query.is("archived_at", null);
