@@ -28,6 +28,7 @@ import {
   Route,
   Search,
   Shield,
+  ShieldCheck,
   Store,
   Upload,
   Users,
