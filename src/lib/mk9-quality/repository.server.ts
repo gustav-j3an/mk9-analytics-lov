@@ -9,11 +9,21 @@
  *  - nenhuma remoção física: histórico e ocorrências só mudam de estado.
  */
 import type { Mk9AccessScope } from "@/lib/mk9-auth/access-scope.server";
+import { scopeCoversIssue } from "./assignment";
+import {
+  effectiveVisibility,
+  sanitizeCommentBody,
+  visibleComments,
+  type Mk9QualityCommentView,
+} from "./comments";
 import { evidenceForClient, sanitizeEvidence } from "./evidence";
 import type { FingerprintedIssue } from "./fingerprint";
+import { compareQueue, isDueToday, isOverdue, slaAverages } from "./sla";
 import type {
   Mk9Competence,
+  Mk9QualityAssignableUser,
   Mk9QualityDiagnostic,
+  Mk9QualityFollowUpSummary,
   Mk9QualityIssueView,
   Mk9QualityOverview,
   Mk9QualityStatus,
@@ -21,14 +31,25 @@ import type {
 
 import { MK9_TECHNICAL_CATEGORIES } from "./types";
 
+/** Estados considerados "em aberto" para prazo e carga de trabalho. */
+const OPEN_STATUSES = ["OPEN", "ACKNOWLEDGED", "IN_PROGRESS", "REOPENED"];
+
 const LIST_COLUMNS =
   "id, category, issue_type, severity, status, entity_type, entity_id, peer_entity_id, " +
   "industry_id, store_id, promoter_id, import_id, competence_month, competence_year, " +
   "title, description, evidence, suggested_action, source, fingerprint, " +
-  "first_detected_at, last_seen_at, resolved_at, ignored_at, reopened_at";
+  "first_detected_at, last_seen_at, resolved_at, ignored_at, reopened_at, " +
+  "assigned_to_user_id, assigned_at, assignment_note, priority, due_at, " +
+  "acknowledged_at, started_at, ignore_until, resolution_type, resolution_note, " +
+  "resolution_forced, last_comment_at, updated_at";
 
 /** Colunas leves do overview — evidência NUNCA é carregada para gerar cards. */
 const OVERVIEW_COLUMNS = "category, severity, status, issue_type, industry_id, store_id";
+
+/** Colunas leves do painel de acompanhamento (sem evidência, sem texto livre). */
+const FOLLOWUP_COLUMNS =
+  "status, severity, priority, due_at, assigned_to_user_id, first_detected_at, " +
+  "acknowledged_at, resolved_at";
 
 function isAdminLike(scope: Mk9AccessScope): boolean {
   return scope.role === "ADMIN" || scope.role === "DEV" || scope.role === "AUDITOR";
@@ -96,9 +117,54 @@ export function projectIssue(scope: Mk9AccessScope, row: any): Mk9QualityIssueVi
     resolvedAt: row.resolved_at ?? null,
     ignoredAt: row.ignored_at ?? null,
     reopenedAt: row.reopened_at ?? null,
+    assignedToUserId: row.assigned_to_user_id ?? null,
+    assignedToName: row.assigned_to_name ?? null,
+    assignedAt: row.assigned_at ?? null,
+    assignmentNote: isClient ? null : (row.assignment_note ?? null),
+    priority: row.priority ?? "NORMAL",
+    dueAt: row.due_at ?? null,
+    acknowledgedAt: row.acknowledged_at ?? null,
+    startedAt: row.started_at ?? null,
+    ignoreUntil: row.ignore_until ?? null,
+    resolutionType: row.resolution_type ?? null,
+    resolutionNote: isClient ? null : (row.resolution_note ?? null),
+    resolutionForced: row.resolution_forced === true,
+    lastCommentAt: row.last_comment_at ?? null,
+    lastCommentPreview: row.last_comment_preview ?? null,
+    updatedAt: row.updated_at ?? row.last_seen_at,
   };
   if (isAdminLike(scope)) view.fingerprint = row.fingerprint;
   return view;
+}
+
+/**
+ * Nomes dos responsáveis. Consulta separada e mínima: só `user_id` e `name`,
+ * nunca e-mail ou telefone (dado pessoal fora do necessário).
+ */
+export async function attachAssigneeNames(
+  supabase: any,
+  scope: Mk9AccessScope,
+  rows: Mk9QualityIssueView[],
+): Promise<Mk9QualityIssueView[]> {
+  if (scope.role === "CLIENTE" || scope.role === "PROMOTOR") {
+    return rows.map((r) => ({ ...r, assignedToName: null }));
+  }
+  const ids = Array.from(
+    new Set(rows.map((r) => r.assignedToUserId).filter((v): v is string => !!v)),
+  );
+  if (!ids.length) return rows;
+
+  const { data } = await supabase
+    .from("mk9_profiles")
+    .select("user_id, name")
+    .in("user_id", ids);
+
+  const names = new Map<string, string>();
+  for (const p of (data ?? []) as any[]) names.set(p.user_id, p.name ?? "Sem nome");
+  return rows.map((r) => ({
+    ...r,
+    assignedToName: r.assignedToUserId ? (names.get(r.assignedToUserId) ?? "Usuário") : null,
+  }));
 }
 
 // ---------------------------------------------------------------------------
@@ -183,6 +249,12 @@ export interface ListFilters {
   search?: string | null;
   competenceMonth?: number | null;
   competenceYear?: number | null;
+  // --- Fase 2B.4 ------------------------------------------------------------
+  /** UUID do responsável, ou "UNASSIGNED" para sem responsável. */
+  assignedTo?: string | null;
+  priority?: string | null;
+  /** OVERDUE | DUE_TODAY | NO_DUE_DATE */
+  dueState?: string | null;
   page: number;
   pageSize: number;
 }
@@ -228,6 +300,23 @@ export async function listIssues(
   if (filters.competenceMonth) q = q.eq("competence_month", filters.competenceMonth);
   if (filters.competenceYear) q = q.eq("competence_year", filters.competenceYear);
 
+  // --- Fase 2B.4: acompanhamento -------------------------------------------
+  if (filters.assignedTo === "UNASSIGNED") q = q.is("assigned_to_user_id", null);
+  else if (filters.assignedTo) q = q.eq("assigned_to_user_id", filters.assignedTo);
+  if (filters.priority) q = q.eq("priority", filters.priority);
+  if (filters.dueState === "OVERDUE") {
+    q = q.lt("due_at", new Date().toISOString()).in("status", OPEN_STATUSES);
+  } else if (filters.dueState === "DUE_TODAY") {
+    const now = new Date();
+    const end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+    q = q
+      .gte("due_at", now.toISOString())
+      .lte("due_at", end.toISOString())
+      .in("status", OPEN_STATUSES);
+  } else if (filters.dueState === "NO_DUE_DATE") {
+    q = q.is("due_at", null);
+  }
 
   const from = (filters.page - 1) * filters.pageSize;
   const { data, error, count } = await q
@@ -235,18 +324,15 @@ export async function listIssues(
     .range(from, from + filters.pageSize - 1);
   if (error) throw new Error("MK9_DQ_LIST_FAILED");
 
-  // Paginação estável no banco (last_seen_at) + gravidade primeiro na página
-  // entregue à interface. Sem coluna de rank, evita-se mudar o schema.
+  // Paginação estável no banco (last_seen_at) + fila operacional na página
+  // entregue à interface: atraso → prioridade → gravidade → recência.
+  const now = new Date();
   const items = (data ?? [])
     .map((row: any) => projectIssue(scope, row))
-    .sort(
-      (a: Mk9QualityIssueView, b: Mk9QualityIssueView) =>
-        (SEVERITY_WEIGHT[b.severity] ?? 0) - (SEVERITY_WEIGHT[a.severity] ?? 0) ||
-        b.lastSeenAt.localeCompare(a.lastSeenAt),
-    );
+    .sort((a: Mk9QualityIssueView, b: Mk9QualityIssueView) => compareQueue(a, b, now));
 
   return {
-    items,
+    items: await attachAssigneeNames(supabase, scope, items),
     total: count ?? 0,
     page: filters.page,
     pageSize: filters.pageSize,
@@ -258,7 +344,11 @@ export async function getIssue(
   supabase: any,
   scope: Mk9AccessScope,
   id: string,
-): Promise<{ issue: Mk9QualityIssueView; events: any[] } | null> {
+): Promise<{
+  issue: Mk9QualityIssueView;
+  events: any[];
+  comments: Mk9QualityCommentView[];
+} | null> {
   const { data, error } = await applyScope(
     supabase.from("mk9_data_quality_issues").select(LIST_COLUMNS),
     scope,
@@ -268,19 +358,22 @@ export async function getIssue(
   if (error) throw new Error("MK9_DQ_GET_FAILED");
   if (!data) return null;
 
-  const issue = projectIssue(scope, data);
+  const [issue] = await attachAssigneeNames(supabase, scope, [projectIssue(scope, data)]);
+  const comments = await listComments(supabase, scope, id);
 
-  // Histórico é informação administrativa: CLIENTE/PROMOTOR não recebe.
-  if (scope.role === "CLIENTE" || scope.role === "PROMOTOR") return { issue, events: [] };
+  // Histórico técnico é informação administrativa: CLIENTE/PROMOTOR não recebe.
+  if (scope.role === "CLIENTE" || scope.role === "PROMOTOR") {
+    return { issue, events: [], comments };
+  }
 
   const { data: events } = await supabase
     .from("mk9_data_quality_issue_events")
-    .select("id, event_type, from_status, to_status, reason, created_at")
+    .select("id, event_type, from_status, to_status, reason, actor_id, created_at")
     .eq("issue_id", id)
     .order("created_at", { ascending: false })
     .limit(100);
 
-  return { issue, events: events ?? [] };
+  return { issue, events: events ?? [], comments };
 }
 
 export async function overviewCounts(
@@ -367,21 +460,378 @@ export async function diagnosticSummary(
 }
 
 
+/**
+ * Transição manual (Fase 2B.4). A RPC v2 valida transição, justificativa,
+ * revalidação e concorrência otimista dentro da transação.
+ */
 export async function transitionIssue(
   supabase: any,
   scope: Mk9AccessScope,
-  params: { id: string; toStatus: string; actorId: string | null; reason?: string | null },
+  params: {
+    id: string;
+    toStatus: string;
+    actorId: string | null;
+    reason?: string | null;
+    resolutionType?: string | null;
+    forced?: boolean;
+    ignoreUntil?: string | null;
+    expectedUpdatedAt?: string | null;
+  },
 ): Promise<Mk9QualityIssueView> {
   // Defesa em profundidade: a ocorrência precisa estar dentro do escopo.
   const found = await getIssue(supabase, scope, params.id);
   if (!found) throw new Error("MK9_DQ_NOT_FOUND");
 
-  const { data, error } = await supabase.rpc("mk9_quality_transition_issue", {
+  const { data, error } = await supabase.rpc("mk9_quality_transition_issue_v2", {
     _issue_id: params.id,
     _to_status: params.toStatus,
     _actor_id: params.actorId,
     _reason: params.reason ?? null,
+    _resolution_type: params.resolutionType ?? null,
+    _forced: params.forced === true,
+    _ignore_until: params.ignoreUntil ?? null,
+    _expected_updated_at: params.expectedUpdatedAt ?? null,
   });
-  if (error) throw new Error("MK9_DQ_TRANSITION_FAILED");
-  return projectIssue(scope, Array.isArray(data) ? data[0] : data);
+  if (error) throw new Error(mapRpcError(error, "MK9_DQ_TRANSITION_FAILED"));
+  const [view] = await attachAssigneeNames(supabase, scope, [
+    projectIssue(scope, Array.isArray(data) ? data[0] : data),
+  ]);
+  return view;
 }
+
+/** Traduz o código de erro da RPC sem devolver detalhe técnico do banco. */
+function mapRpcError(error: any, fallback: string): string {
+  const message = String(error?.message ?? "");
+  const known = [
+    "MK9_DQ_NOT_FOUND",
+    "MK9_DQ_INVALID_TRANSITION",
+    "MK9_DQ_REASON_REQUIRED",
+    "MK9_DQ_RESOLUTION_TYPE_REQUIRED",
+    "MK9_DQ_ALREADY_OPEN",
+    "MK9_DQ_STALE",
+    "MK9_DQ_COMMENT_NOT_FOUND",
+  ];
+  return known.find((code) => message.includes(code)) ?? fallback;
+}
+
+// ---------------------------------------------------------------------------
+// Responsabilidade e planejamento
+// ---------------------------------------------------------------------------
+
+export async function assignIssue(
+  supabase: any,
+  scope: Mk9AccessScope,
+  params: {
+    id: string;
+    assigneeId: string | null;
+    actorId: string | null;
+    note?: string | null;
+    expectedUpdatedAt?: string | null;
+  },
+): Promise<Mk9QualityIssueView> {
+  const found = await getIssue(supabase, scope, params.id);
+  if (!found) throw new Error("MK9_DQ_NOT_FOUND");
+
+  const { data, error } = await supabase.rpc("mk9_quality_assign_issue", {
+    _issue_id: params.id,
+    _assignee_id: params.assigneeId,
+    _actor_id: params.actorId,
+    _note: params.note ?? null,
+    _expected_updated_at: params.expectedUpdatedAt ?? null,
+  });
+  if (error) throw new Error(mapRpcError(error, "MK9_DQ_ASSIGN_FAILED"));
+  const [view] = await attachAssigneeNames(supabase, scope, [
+    projectIssue(scope, Array.isArray(data) ? data[0] : data),
+  ]);
+  return view;
+}
+
+export async function setPlanning(
+  supabase: any,
+  scope: Mk9AccessScope,
+  params: {
+    id: string;
+    priority?: string | null;
+    dueAt?: string | null;
+    clearDue?: boolean;
+    actorId: string | null;
+    reason?: string | null;
+    expectedUpdatedAt?: string | null;
+  },
+): Promise<Mk9QualityIssueView> {
+  const found = await getIssue(supabase, scope, params.id);
+  if (!found) throw new Error("MK9_DQ_NOT_FOUND");
+
+  const { data, error } = await supabase.rpc("mk9_quality_set_planning", {
+    _issue_id: params.id,
+    _priority: params.priority ?? null,
+    _due_at: params.dueAt ?? null,
+    _clear_due: params.clearDue === true,
+    _actor_id: params.actorId,
+    _reason: params.reason ?? null,
+    _expected_updated_at: params.expectedUpdatedAt ?? null,
+  });
+  if (error) throw new Error(mapRpcError(error, "MK9_DQ_PLANNING_FAILED"));
+  const [view] = await attachAssigneeNames(supabase, scope, [
+    projectIssue(scope, Array.isArray(data) ? data[0] : data),
+  ]);
+  return view;
+}
+
+export async function reopenIssue(
+  supabase: any,
+  scope: Mk9AccessScope,
+  params: {
+    id: string;
+    actorId: string | null;
+    reason: string;
+    expectedUpdatedAt?: string | null;
+  },
+): Promise<Mk9QualityIssueView> {
+  const found = await getIssue(supabase, scope, params.id);
+  if (!found) throw new Error("MK9_DQ_NOT_FOUND");
+
+  const { data, error } = await supabase.rpc("mk9_quality_reopen_issue", {
+    _issue_id: params.id,
+    _actor_id: params.actorId,
+    _reason: params.reason,
+    _expected_updated_at: params.expectedUpdatedAt ?? null,
+  });
+  if (error) throw new Error(mapRpcError(error, "MK9_DQ_REOPEN_FAILED"));
+  const [view] = await attachAssigneeNames(supabase, scope, [
+    projectIssue(scope, Array.isArray(data) ? data[0] : data),
+  ]);
+  return view;
+}
+
+// ---------------------------------------------------------------------------
+// Comentários
+// ---------------------------------------------------------------------------
+
+function projectComment(row: any, names: Map<string, string>): Mk9QualityCommentView {
+  return {
+    id: row.id,
+    issueId: row.issue_id,
+    authorId: row.author_id ?? null,
+    authorName: row.author_id ? (names.get(row.author_id) ?? "Usuário") : "Sistema",
+    body: row.body,
+    visibility: row.visibility,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    edited: row.edited_at != null,
+  };
+}
+
+export async function listComments(
+  supabase: any,
+  scope: Mk9AccessScope,
+  issueId: string,
+): Promise<Mk9QualityCommentView[]> {
+  const { data, error } = await supabase
+    .from("mk9_data_quality_issue_comments")
+    .select("id, issue_id, author_id, body, visibility, created_at, updated_at, edited_at")
+    .eq("issue_id", issueId)
+    .is("archived_at", null)
+    .order("created_at", { ascending: true })
+    .limit(200);
+  if (error) return [];
+
+  const rows = visibleComments(scope.role, (data ?? []) as any[]);
+  const ids = Array.from(new Set(rows.map((r: any) => r.author_id).filter(Boolean))) as string[];
+  const names = new Map<string, string>();
+  if (ids.length) {
+    const { data: profiles } = await supabase
+      .from("mk9_profiles")
+      .select("user_id, name")
+      .in("user_id", ids);
+    for (const p of (profiles ?? []) as any[]) names.set(p.user_id, p.name ?? "Sem nome");
+  }
+  return rows.map((r: any) => projectComment(r, names));
+}
+
+export async function addComment(
+  supabase: any,
+  scope: Mk9AccessScope,
+  params: { issueId: string; body: string; visibility?: string | null; actorId: string | null },
+): Promise<Mk9QualityCommentView[]> {
+  const found = await getIssue(supabase, scope, params.issueId);
+  if (!found) throw new Error("MK9_DQ_NOT_FOUND");
+
+  const sanitized = sanitizeCommentBody(params.body);
+  if (sanitized.problems.length) throw new Error("MK9_DQ_COMMENT_INVALID");
+
+  const { error } = await supabase.rpc("mk9_quality_add_comment", {
+    _issue_id: params.issueId,
+    _body: sanitized.body,
+    _visibility: effectiveVisibility(scope.role, params.visibility),
+    _actor_id: params.actorId,
+  });
+  if (error) throw new Error(mapRpcError(error, "MK9_DQ_COMMENT_FAILED"));
+  return listComments(supabase, scope, params.issueId);
+}
+
+export async function editComment(
+  supabase: any,
+  scope: Mk9AccessScope,
+  params: { issueId: string; commentId: string; body: string; actorId: string | null },
+): Promise<Mk9QualityCommentView[]> {
+  const found = await getIssue(supabase, scope, params.issueId);
+  if (!found) throw new Error("MK9_DQ_NOT_FOUND");
+
+  const sanitized = sanitizeCommentBody(params.body);
+  if (sanitized.problems.length) throw new Error("MK9_DQ_COMMENT_INVALID");
+
+  const { error } = await supabase.rpc("mk9_quality_edit_comment", {
+    _comment_id: params.commentId,
+    _body: sanitized.body,
+    _actor_id: params.actorId,
+  });
+  if (error) throw new Error(mapRpcError(error, "MK9_DQ_COMMENT_FAILED"));
+  return listComments(supabase, scope, params.issueId);
+}
+
+export async function archiveComment(
+  supabase: any,
+  scope: Mk9AccessScope,
+  params: { issueId: string; commentId: string; actorId: string | null },
+): Promise<Mk9QualityCommentView[]> {
+  const found = await getIssue(supabase, scope, params.issueId);
+  if (!found) throw new Error("MK9_DQ_NOT_FOUND");
+
+  const { error } = await supabase.rpc("mk9_quality_archive_comment", {
+    _comment_id: params.commentId,
+    _actor_id: params.actorId,
+  });
+  if (error) throw new Error(mapRpcError(error, "MK9_DQ_COMMENT_FAILED"));
+  return listComments(supabase, scope, params.issueId);
+}
+
+// ---------------------------------------------------------------------------
+// Painel de acompanhamento
+// ---------------------------------------------------------------------------
+
+export async function followUpSummary(
+  supabase: any,
+  scope: Mk9AccessScope,
+): Promise<Mk9QualityFollowUpSummary> {
+  const summary: Mk9QualityFollowUpSummary = {
+    unassigned: 0,
+    mine: 0,
+    overdue: 0,
+    dueToday: 0,
+    withoutDueDate: 0,
+    byPriority: {},
+    avgHoursToAcknowledge: null,
+    avgHoursToResolve: null,
+    workload: [],
+  };
+
+  const { data, error } = await applyScope(
+    supabase.from("mk9_data_quality_issues").select(FOLLOWUP_COLUMNS).limit(5000),
+    scope,
+  );
+  if (error) return summary;
+
+  const now = new Date();
+  const load = new Map<string, { open: number; overdue: number }>();
+
+  for (const row of (data ?? []) as any[]) {
+    const open = OPEN_STATUSES.includes(row.status);
+    if (open) {
+      const late = isOverdue({ dueAt: row.due_at, status: row.status }, now);
+      if (!row.assigned_to_user_id) summary.unassigned += 1;
+      if (scope.userId && row.assigned_to_user_id === scope.userId) summary.mine += 1;
+      if (late) summary.overdue += 1;
+      if (isDueToday({ dueAt: row.due_at, status: row.status }, now)) summary.dueToday += 1;
+      if (!row.due_at) summary.withoutDueDate += 1;
+      const p = row.priority ?? "NORMAL";
+      summary.byPriority[p] = (summary.byPriority[p] ?? 0) + 1;
+      if (row.assigned_to_user_id) {
+        const entry = load.get(row.assigned_to_user_id) ?? { open: 0, overdue: 0 };
+        entry.open += 1;
+        if (late) entry.overdue += 1;
+        load.set(row.assigned_to_user_id, entry);
+      }
+    }
+  }
+
+  const averages = slaAverages(
+    (data ?? []).map((row: any) => ({
+      firstDetectedAt: row.first_detected_at,
+      acknowledgedAt: row.acknowledged_at,
+      resolvedAt: row.resolved_at,
+    })),
+  );
+  summary.avgHoursToAcknowledge = averages.hoursToAcknowledge;
+  summary.avgHoursToResolve = averages.hoursToResolve;
+
+  // Carga por responsável — apenas papéis internos veem nomes de pessoas.
+  if (load.size && scope.role !== "CLIENTE" && scope.role !== "PROMOTOR") {
+    const ids = Array.from(load.keys());
+    const { data: profiles } = await supabase
+      .from("mk9_profiles")
+      .select("user_id, name")
+      .in("user_id", ids);
+    const names = new Map<string, string>();
+    for (const p of (profiles ?? []) as any[]) names.set(p.user_id, p.name ?? "Sem nome");
+    summary.workload = ids
+      .map((userId) => ({
+        userId,
+        name: names.get(userId) ?? "Usuário",
+        open: load.get(userId)?.open ?? 0,
+        overdue: load.get(userId)?.overdue ?? 0,
+      }))
+      .sort((a, b) => b.overdue - a.overdue || b.open - a.open)
+      .slice(0, 8);
+  }
+
+  return summary;
+}
+
+/**
+ * Usuários que podem receber uma ocorrência. Devolve APENAS papéis internos
+ * ativos e, para SUPERVISOR, apenas quem compartilha o mesmo escopo.
+ * Nenhum e-mail ou telefone é exposto.
+ */
+export async function assignableUsers(
+  supabase: any,
+  scope: Mk9AccessScope,
+): Promise<Mk9QualityAssignableUser[]> {
+  if (scope.role === "CLIENTE" || scope.role === "PROMOTOR") return [];
+
+  const { data: roleRows, error } = await supabase
+    .from("mk9_user_roles")
+    .select("user_id, role")
+    .in("role", ["ADMIN", "AUDITOR", "SUPERVISOR"]);
+  if (error) return [];
+
+  const roleByUser = new Map<string, string>();
+  for (const r of (roleRows ?? []) as any[]) {
+    const current = roleByUser.get(r.user_id);
+    // Mantém o papel de maior privilégio quando houver mais de um.
+    const order = ["SUPERVISOR", "AUDITOR", "ADMIN"];
+    if (!current || order.indexOf(r.role) > order.indexOf(current)) {
+      roleByUser.set(r.user_id, r.role);
+    }
+  }
+  const ids = Array.from(roleByUser.keys());
+  if (!ids.length) return [];
+
+  const { data: profiles } = await supabase
+    .from("mk9_profiles")
+    .select("user_id, name, active")
+    .in("user_id", ids)
+    .eq("active", true);
+
+  return ((profiles ?? []) as any[])
+    .map((p) => ({
+      userId: p.user_id,
+      name: p.name ?? "Sem nome",
+      role: roleByUser.get(p.user_id) ?? "SUPERVISOR",
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+}
+
+/** Reexportado para o servidor validar escopo antes de atribuir. */
+export { scopeCoversIssue };
+

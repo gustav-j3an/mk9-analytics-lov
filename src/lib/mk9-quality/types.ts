@@ -38,7 +38,16 @@ export type Mk9QualityEventType =
   | "RESOLVED_AUTO"
   | "IGNORED"
   | "REOPENED"
-  | "EVIDENCE_UPDATED";
+  | "EVIDENCE_UPDATED"
+  | "ASSIGNED"
+  | "REASSIGNED"
+  | "UNASSIGNED"
+  | "DUE_DATE_SET"
+  | "DUE_DATE_CHANGED"
+  | "PRIORITY_CHANGED"
+  | "COMMENT_ADDED"
+  | "COMMENT_EDITED"
+  | "COMMENT_ARCHIVED";
 
 export type Mk9DetectorMode = "REALTIME" | "PERSISTED";
 
@@ -143,6 +152,23 @@ export interface Mk9QualityIssueView {
   resolvedAt: string | null;
   ignoredAt: string | null;
   reopenedAt: string | null;
+  // --- Fase 2B.4: acompanhamento operacional -------------------------------
+  assignedToUserId: string | null;
+  assignedToName: string | null;
+  assignedAt: string | null;
+  assignmentNote: string | null;
+  priority: string;
+  dueAt: string | null;
+  acknowledgedAt: string | null;
+  startedAt: string | null;
+  ignoreUntil: string | null;
+  resolutionType: string | null;
+  resolutionNote: string | null;
+  resolutionForced: boolean;
+  lastCommentAt: string | null;
+  lastCommentPreview: string | null;
+  /** Versão otimista: enviada de volta nas ações de escrita. */
+  updatedAt: string;
   /** Presente apenas para papéis administrativos. */
   fingerprint?: string;
 }
@@ -194,4 +220,35 @@ export interface Mk9QualityOverview {
   role: string;
   generatedAt: string;
 }
+
+// ---------------------------------------------------------------------------
+// Fase 2B.4 — painel de acompanhamento
+// ---------------------------------------------------------------------------
+
+export interface Mk9QualityFollowUpSummary {
+  /** ocorrências abertas sem responsável */
+  unassigned: number;
+  /** ocorrências abertas atribuídas ao usuário atual */
+  mine: number;
+  /** ocorrências abertas com prazo vencido */
+  overdue: number;
+  /** ocorrências abertas que vencem hoje */
+  dueToday: number;
+  /** ocorrências abertas sem prazo definido */
+  withoutDueDate: number;
+  byPriority: Record<string, number>;
+  /** horas médias entre detecção e primeiro reconhecimento */
+  avgHoursToAcknowledge: number | null;
+  /** horas médias entre detecção e resolução */
+  avgHoursToResolve: number | null;
+  /** responsáveis com carga aberta, do maior para o menor */
+  workload: Array<{ userId: string; name: string; open: number; overdue: number }>;
+}
+
+export interface Mk9QualityAssignableUser {
+  userId: string;
+  name: string;
+  role: string;
+}
+
 

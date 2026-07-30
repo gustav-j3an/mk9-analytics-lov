@@ -30,7 +30,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -39,13 +38,30 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import {
+  mk9QualityAddCommentFn,
+  mk9QualityArchiveCommentFn,
+  mk9QualityAssignFn,
   mk9QualityDetailFn,
+  mk9QualityEditCommentFn,
   mk9QualityFacetsFn,
+  mk9QualityFollowUpFn,
   mk9QualityListFn,
   mk9QualityOverviewFn,
+  mk9QualityPlanningFn,
+  mk9QualityReopenFn,
   mk9QualityRunFn,
   mk9QualityTransitionFn,
 } from "@/lib/mk9-quality.functions";
+import {
+  AssigneeBadge,
+  AssignmentSection,
+  CommentsSection,
+  DueBadge,
+  FollowUpPanel,
+  PriorityBadge,
+  TreatmentSection,
+} from "@/components/mk9/quality-follow-up";
+
 import {
   CATEGORY_LABEL,
   CATEGORY_ORDER,
@@ -53,7 +69,6 @@ import {
   SEVERITY_META,
   SEVERITY_ORDER,
   STATUS_META,
-  availableTransitions,
   competenceLabel,
   countLabel,
   dateTimeLabel,
@@ -97,6 +112,8 @@ interface Filters {
   status: string;
   industryId: string;
   uf: string;
+  assignedTo: string | null;
+  dueState: string | null;
   month: number;
   year: number;
   page: number;
@@ -175,6 +192,8 @@ export function Mk9QualityModule({ month, year, onNavigate }: Mk9QualityModulePr
     status: "__OPEN__",
     industryId: ALL,
     uf: ALL,
+    assignedTo: null,
+    dueState: null,
     month,
     year,
     page: 1,
@@ -203,6 +222,25 @@ export function Mk9QualityModule({ month, year, onNavigate }: Mk9QualityModulePr
   const detailFn = useServerFn(mk9QualityDetailFn);
   const runFn = useServerFn(mk9QualityRunFn);
   const transitionFn = useServerFn(mk9QualityTransitionFn);
+  const assignFn = useServerFn(mk9QualityAssignFn);
+  const planningFn = useServerFn(mk9QualityPlanningFn);
+  const reopenFn = useServerFn(mk9QualityReopenFn);
+  const addCommentFn = useServerFn(mk9QualityAddCommentFn);
+  const editCommentFn = useServerFn(mk9QualityEditCommentFn);
+  const archiveCommentFn = useServerFn(mk9QualityArchiveCommentFn);
+
+  const followUpQ = useQuery({
+    queryKey: ["mk9-quality-followup"],
+    queryFn: () => mk9QualityFollowUpFn({ data: {} } as any),
+    staleTime: 60_000,
+  });
+
+  async function refreshIssue(id: string) {
+    await queryClient.invalidateQueries({ queryKey: ["mk9-quality-detail", id] });
+    await queryClient.invalidateQueries({ queryKey: ["mk9-quality-list"] });
+    await queryClient.invalidateQueries({ queryKey: ["mk9-quality-followup"] });
+    await queryClient.invalidateQueries({ queryKey: ["mk9-quality-overview"] });
+  }
 
   const facetsQ = useQuery({
     queryKey: ["mk9-quality-facets"],
@@ -229,6 +267,8 @@ export function Mk9QualityModule({ month, year, onNavigate }: Mk9QualityModulePr
           issueType: filters.issueType === ALL ? null : filters.issueType,
           industryId: filters.industryId === ALL ? null : filters.industryId,
           uf: filters.uf === ALL ? null : filters.uf,
+          assignedTo: filters.assignedTo,
+          dueState: filters.dueState as any,
           search: filters.search || null,
           page: filters.page,
           pageSize: PAGE_SIZE,
@@ -402,6 +442,14 @@ export function Mk9QualityModule({ month, year, onNavigate }: Mk9QualityModulePr
             </button>
           ))}
         </div>
+      )}
+
+      {followUpQ.data?.summary && (
+        <FollowUpPanel
+          summary={followUpQ.data.summary}
+          activeFilter={{ assignedTo: filters.assignedTo, dueState: filters.dueState }}
+          onFilter={(next) => { setMode("PERSISTED"); patch(next as Partial<Filters>); }}
+        />
       )}
 
       {/* ---------------- Diagnóstico consolidado ---------------- */}
@@ -620,7 +668,14 @@ export function Mk9QualityModule({ month, year, onNavigate }: Mk9QualityModulePr
                     </td>
                     <td className="p-3 text-muted-foreground">{competenceLabel(issue.competenceMonth, issue.competenceYear)}</td>
                     <td className="p-3 text-muted-foreground" title={dateTimeLabel(issue.lastSeenAt)}>{relativeLabel(issue.lastSeenAt)}</td>
-                    <td className="p-3"><StatusBadge status={issue.status} /></td>
+                    <td className="p-3">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <StatusBadge status={issue.status} />
+                        <PriorityBadge priority={issue.priority} />
+                        <DueBadge issue={issue} />
+                      </div>
+                      <div className="mt-1"><AssigneeBadge name={issue.assignedToName} /></div>
+                    </td>
                     <td className="p-3 text-right">
                       <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelectedId(issue.id)}>
                         Detalhar
@@ -678,13 +733,54 @@ export function Mk9QualityModule({ month, year, onNavigate }: Mk9QualityModulePr
             <IssueDetail
               issue={selectedIssue}
               events={detailQ.data?.events ?? []}
+              comments={detailQ.data?.comments ?? []}
               role={role}
+              currentUserId={followUpQ.data?.currentUserId ?? null}
+              users={followUpQ.data?.users ?? []}
+              stillDetected={
+                selectedIssue.status === "OPEN" ||
+                selectedIssue.status === "ACKNOWLEDGED" ||
+                selectedIssue.status === "IN_PROGRESS" ||
+                selectedIssue.status === "REOPENED"
+              }
               onNavigate={onNavigate}
-              onTransition={async (target, reason) => {
-                await transitionFn({ data: { id: selectedIssue.id, toStatus: target, reason: reason || null } });
-                await queryClient.invalidateQueries({ queryKey: ["mk9-quality-detail", selectedIssue.id] });
-                await queryClient.invalidateQueries({ queryKey: ["mk9-quality-list"] });
-                await queryClient.invalidateQueries({ queryKey: ["mk9-quality-overview"] });
+              onTransition={async (input) => {
+                await transitionFn({
+                  data: {
+                    id: selectedIssue.id,
+                    toStatus: input.toStatus,
+                    reason: input.reason || null,
+                    resolutionType: input.resolutionType ?? null,
+                    forced: input.forced ?? false,
+                    ignoreUntil: input.ignoreUntil ?? null,
+                    expectedUpdatedAt: selectedIssue.updatedAt,
+                  } as any,
+                });
+                await refreshIssue(selectedIssue.id);
+              }}
+              onReopen={async (reason) => {
+                await reopenFn({ data: { id: selectedIssue.id, reason, expectedUpdatedAt: selectedIssue.updatedAt } as any });
+                await refreshIssue(selectedIssue.id);
+              }}
+              onAssign={async (assigneeId, note) => {
+                await assignFn({ data: { id: selectedIssue.id, assigneeId, note, expectedUpdatedAt: selectedIssue.updatedAt } as any });
+                await refreshIssue(selectedIssue.id);
+              }}
+              onPlanning={async (input) => {
+                await planningFn({ data: { id: selectedIssue.id, ...input, expectedUpdatedAt: selectedIssue.updatedAt } as any });
+                await refreshIssue(selectedIssue.id);
+              }}
+              onAddComment={async (body, visibility) => {
+                await addCommentFn({ data: { issueId: selectedIssue.id, body, visibility } as any });
+                await refreshIssue(selectedIssue.id);
+              }}
+              onEditComment={async (commentId, body) => {
+                await editCommentFn({ data: { issueId: selectedIssue.id, commentId, body } as any });
+                await refreshIssue(selectedIssue.id);
+              }}
+              onArchiveComment={async (commentId) => {
+                await archiveCommentFn({ data: { issueId: selectedIssue.id, commentId } as any });
+                await refreshIssue(selectedIssue.id);
               }}
             />
           ) : null}
@@ -803,51 +899,48 @@ function entityLabel(issue: Mk9QualityIssueView): string {
 function IssueDetail({
   issue,
   events,
+  comments,
   role,
+  currentUserId,
+  users,
+  stillDetected,
   onNavigate,
   onTransition,
+  onReopen,
+  onAssign,
+  onPlanning,
+  onAddComment,
+  onEditComment,
+  onArchiveComment,
 }: {
   issue: Mk9QualityIssueView;
   events: any[];
+  comments: any[];
   role: string;
+  currentUserId: string | null;
+  users: any[];
+  stillDetected: boolean;
   onNavigate?: (target: ResolvedNavigation) => void;
-  onTransition: (target: Mk9ManualTransition, reason: string) => Promise<void>;
+  onTransition: (input: {
+    toStatus: Mk9ManualTransition;
+    reason: string;
+    resolutionType?: string | null;
+    forced?: boolean;
+    ignoreUntil?: string | null;
+  }) => Promise<void>;
+  onReopen: (reason: string) => Promise<void>;
+  onAssign: (assigneeId: string | null, note: string | null) => Promise<void>;
+  onPlanning: (input: { priority?: string | null; dueAt?: string | null; clearDue?: boolean }) => Promise<void>;
+  onAddComment: (body: string, visibility: string) => Promise<void>;
+  onEditComment: (commentId: string, body: string) => Promise<void>;
+  onArchiveComment: (commentId: string) => Promise<void>;
 }) {
-  const [pending, setPending] = useState<Mk9ManualTransition | null>(null);
-  const [reason, setReason] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
   const [showTechnical, setShowTechnical] = useState(false);
 
   const rows = evidenceRows(issue.issueType, issue.evidence);
   const symptoms = issueSymptoms(issue.evidence);
   const nav = resolveIssueNavigation(issue);
   const isAdmin = role === "ADMIN" || role === "DEV" || role === "AUDITOR";
-  const transitions = availableTransitions({ role, status: issue.status, persisted: true });
-  const option = transitions.find((t) => t.target === pending);
-
-  async function confirm() {
-    if (!option) return;
-    if (option.reasonRequired && reason.trim().length < (option.target === "IGNORED" ? 5 : 3)) {
-      setError(
-        option.target === "IGNORED"
-          ? "Justificativa obrigatória (mínimo 5 caracteres)."
-          : "Nota de resolução obrigatória (mínimo 3 caracteres).",
-      );
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      await onTransition(option.target, reason.trim());
-      setPending(null);
-      setReason("");
-    } catch {
-      setError("Não foi possível registrar esta ação. Ela pode não ser permitida para o seu papel.");
-    } finally {
-      setBusy(false);
-    }
-  }
 
   return (
     <div className="space-y-5 p-6">
@@ -912,53 +1005,31 @@ function IssueDetail({
         </Button>
       </section>
 
-      {transitions.length > 0 && (
-        <section className="space-y-2">
-          <Separator />
-          <p className="text-sm font-semibold">Tratativa</p>
-          <div className="flex flex-wrap gap-2">
-            {transitions.map((t) => (
-              <Button
-                key={t.target}
-                size="sm"
-                variant={t.danger ? "destructive" : pending === t.target ? "default" : "outline"}
-                onClick={() => { setPending(pending === t.target ? null : t.target); setReason(""); setError(null); }}
-              >
-                {t.label}
-              </Button>
-            ))}
-          </div>
-          {option && (
-            <div className="space-y-2 rounded-lg border border-border/70 p-3">
-              {option.warning && (
-                <p className="flex items-start gap-2 text-xs text-destructive">
-                  <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {option.warning}
-                </p>
-              )}
-              <Textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={3}
-                placeholder={
-                  option.reasonRequired
-                    ? option.target === "IGNORED"
-                      ? "Justificativa obrigatória para ignorar…"
-                      : "Nota de resolução obrigatória: o que foi corrigido?"
-                    : "Comentário opcional…"
-                }
-              />
-              {error && <p className="text-xs text-destructive">{error}</p>}
-              <div className="flex justify-end gap-2">
-                <Button size="sm" variant="ghost" onClick={() => setPending(null)}>Cancelar</Button>
-                <Button size="sm" onClick={confirm} disabled={busy}>
-                  {busy ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : null}
-                  Confirmar {option.label.toLowerCase()}
-                </Button>
-              </div>
-            </div>
-          )}
-        </section>
-      )}
+      <AssignmentSection
+        issue={issue}
+        role={role}
+        currentUserId={currentUserId}
+        users={users}
+        onAssign={onAssign}
+        onPlanning={onPlanning}
+      />
+
+      <TreatmentSection
+        issue={issue}
+        role={role}
+        stillDetected={stillDetected}
+        onTransition={onTransition}
+        onReopen={onReopen}
+      />
+
+      <CommentsSection
+        comments={comments}
+        role={role}
+        currentUserId={currentUserId}
+        onAdd={onAddComment}
+        onEdit={onEditComment}
+        onArchive={onArchiveComment}
+      />
 
       <section className="space-y-2">
         <Separator />
