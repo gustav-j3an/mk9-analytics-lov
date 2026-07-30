@@ -92,7 +92,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   }
 
   // ---- indústrias e configurações de período --------------------------------
-  let indQuery = supabase.from("mk9_industries").select("id,name").order("name", { ascending: true });
+  let indQuery = supabase.from("mk9_industries").select("id,name,requires_checklist").order("name", { ascending: true });
   if (filters.industryId) indQuery = indQuery.eq("id", filters.industryId);
   if (scopeIndustryIds) indQuery = indQuery.in("id", scopeIndustryIds);
 
@@ -107,7 +107,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   if (indRes.error) throw new Error(indRes.error.message);
   if (cfgRes.error) throw new Error(cfgRes.error.message);
 
-  const industries = (indRes.data ?? []) as Array<{ id: string; name: string }>;
+  const industries = (indRes.data ?? []) as Array<{ id: string; name: string; requires_checklist?: boolean }>;
   const cfgByIndustry = new Map<string, PeriodConfig>();
   for (const c of cfgRes.data ?? []) {
     cfgByIndustry.set(c.industry_id, {
@@ -124,7 +124,15 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   const ctxs: IndustryContext[] = industries.map((ind) => {
     const win = resolveWindow(cfgByIndustry.get(ind.id) ?? DEFAULT_PERIOD_CONFIG(ind.id), year, month);
     const w = { startDate: win.startDate, endDate: win.endDate, totalDays: win.totalDays };
-    return { id: ind.id, name: ind.name, win: w, fraction: elapsedFraction(w, today), buckets: new Map(), checklistImports: 0 };
+    return {
+      id: ind.id,
+      name: ind.name,
+      requiresChecklist: ind.requires_checklist === true,
+      win: w,
+      fraction: elapsedFraction(w, today),
+      buckets: new Map(),
+      checklistImports: 0,
+    };
   });
   const ctxById = new Map(ctxs.map((c) => [c.id, c]));
   const industryIds = ctxs.map((c) => c.id);

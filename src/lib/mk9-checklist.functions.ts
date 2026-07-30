@@ -51,6 +51,10 @@ export const checklistPreview = createServerFn({ method: "POST" })
     const { requireMk9Role } = await import("./mk9-auth/require-role.server");
     await requireMk9Role(["ADMIN"]);
 
+    // Somente indústrias classificadas como "exige checklist" entram no fluxo.
+    const { assertIndustryRequiresChecklist } = await import("./mk9-checklist/industry-gate.server");
+    await assertIndustryRequiresChecklist(data.industryId);
+
     const { createChecklistDiagnostics } = await import("./mk9-checklist/diagnostics");
     const { runChecklistPreview } = await import("./mk9-checklist/preview.server");
     const diagnostics = createChecklistDiagnostics("preview-server-fn");
@@ -74,6 +78,8 @@ export const checklistCommit = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
+    const { assertIndustryRequiresChecklist } = await import("./mk9-checklist/industry-gate.server");
+    await assertIndustryRequiresChecklist(data.industryId);
     const { withRichErrors, buildRichError } = await import("./mk9-checklist/errors.server");
 
     const {

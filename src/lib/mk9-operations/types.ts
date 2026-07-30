@@ -118,6 +118,9 @@ export interface StoreBucket {
 export interface IndustryContext {
   id: string;
   name: string;
+  /** Participa do fluxo operacional de checklist (não indica indústria inativa). */
+  requiresChecklist: boolean;
+
   win: OperationWindow;
   fraction: number;
   buckets: Map<string, StoreBucket>;

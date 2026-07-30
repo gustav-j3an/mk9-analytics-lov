@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Mk9ImportModule } from "@/components/mk9-import-module";
 import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
@@ -14,6 +14,17 @@ import { Mk9RoutesModule } from "@/components/mk9-routes-module";
 import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
 import { Mk9UsersModule } from "@/components/mk9-users-module";
 import { useMk9Session, type Mk9Role } from "@/lib/mk9-auth/session";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import {
   AlertTriangle,
@@ -58,6 +69,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import {
   mk9ListIndustries,
+  mk9SetIndustryRequiresChecklist,
   mk9ListStores,
   mk9ListPromoters,
   mk9ListRoutesDetailed,
@@ -447,7 +459,7 @@ export function Mk9AnalyticsApp() {
                 }}
               />
             )}
-            {activeModule === "industrias" && <IndustriesModule industries={industries} loading={industriesQ.isLoading} />}
+            {activeModule === "industrias" && <IndustriesModule industries={industries} loading={industriesQ.isLoading} isAdmin={effectiveRoles.includes("ADMIN")} />}
             {activeModule === "lojas" && <StoresModule stores={stores} routes={routes} loading={storesQ.isLoading} />}
             {activeModule === "promotores" && <PromotersModule promoters={promoters} routes={routes} visits={visits} loading={promotersQ.isLoading} />}
             {activeModule === "roteiros" && (
@@ -508,31 +520,128 @@ export function Mk9AnalyticsApp() {
 }
 
 // -------------------- Indústrias --------------------
-function IndustriesModule({ industries, loading }: { industries: any[]; loading: boolean }) {
+function IndustriesModule({
+  industries,
+  loading,
+  isAdmin,
+}: {
+  industries: any[];
+  loading: boolean;
+  isAdmin: boolean;
+}) {
   const [filter, setFilter] = useState("");
-  const rows = industries.filter((i) => i.name.toLowerCase().includes(filter.toLowerCase()));
+  const [checklistFilter, setChecklistFilter] = useState<"all" | "yes" | "no">("all");
+  const [pending, setPending] = useState<{ id: string; name: string; next: boolean } | null>(null);
+  const queryClient = useQueryClient();
+  const setChecklistFn = useServerFn(mk9SetIndustryRequiresChecklist);
+
+  const setMut = useMutation({
+    mutationFn: (v: { industryId: string; value: boolean }) => setChecklistFn({ data: v }),
+    onSuccess: (_d, v) => {
+      toast.success(v.value ? "Indústria habilitada para checklist." : "Indústria desabilitada para novas importações de checklist.");
+      queryClient.invalidateQueries({ queryKey: ["mk9-industries"] });
+      queryClient.invalidateQueries({ queryKey: ["mk9-checklist-industries"] });
+      setPending(null);
+    },
+    onError: () => toast.error("Não foi possível alterar a classificação de checklist."),
+  });
+
+  const rows = industries
+    .filter((i) => i.name.toLowerCase().includes(filter.toLowerCase()))
+    .filter((i) =>
+      checklistFilter === "all" ? true : checklistFilter === "yes" ? i.requiresChecklist === true : i.requiresChecklist !== true,
+    );
+
   return (
     <div className="space-y-4">
-      <DataToolbar value={filter} onChange={setFilter} placeholder="Filtrar indústrias…" total={industries.length} />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex-1 min-w-[220px]">
+          <DataToolbar value={filter} onChange={setFilter} placeholder="Filtrar indústrias…" total={industries.length} />
+        </div>
+        <Select value={checklistFilter} onValueChange={(v) => setChecklistFilter(v as any)}>
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="Checklist" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            <SelectItem value="yes">Exigem checklist</SelectItem>
+            <SelectItem value="no">Não exigem checklist</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       {loading ? <LoadingBlock /> : industries.length === 0 ? (
         <EmptyState title="Nenhuma indústria cadastrada" hint="Importe a planilha MK9 para popular a base." />
       ) : (
-        <TableShell headers={["Indústria", "Freq. contratada", "Freq. estimada", "Diferença", "Status", "Atualizado em"]}>
+        <TableShell
+          headers={[
+            "Indústria",
+            "Checklist",
+            "Freq. contratada",
+            "Freq. estimada",
+            "Diferença",
+            "Status",
+            "Atualizado em",
+            ...(isAdmin ? ["Ação"] : []),
+          ]}
+        >
           {rows.map((i) => (
             <tr key={i.id} className="border-b last:border-0">
               <td className="p-3 font-medium">{i.name}</td>
+              <td className="p-3">
+                {i.requiresChecklist ? (
+                  <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/15">Exige checklist</Badge>
+                ) : (
+                  <Badge variant="outline">Não exige checklist</Badge>
+                )}
+              </td>
               <td className="p-3 tabular-nums">{i.monthlyContractedFrequency ?? "—"}</td>
               <td className="p-3 tabular-nums">{i.monthlyEstimatedFrequency ?? "—"}</td>
               <td className="p-3 tabular-nums">{i.frequencyDifference ?? "—"}</td>
               <td className="p-3"><Badge variant={i.frequencyStatus === "ABAIXO DA META" ? "destructive" : "secondary"}>{i.frequencyStatus ?? "SEM META"}</Badge></td>
               <td className="p-3 text-muted-foreground text-xs">{i.updatedAt ? new Date(i.updatedAt).toLocaleString("pt-BR") : "—"}</td>
+              {isAdmin && (
+                <td className="p-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setPending({ id: i.id, name: i.name, next: !i.requiresChecklist })}
+                  >
+                    {i.requiresChecklist ? "Desabilitar" : "Habilitar"}
+                  </Button>
+                </td>
+              )}
             </tr>
           ))}
         </TableShell>
       )}
+
+      <AlertDialog open={!!pending} onOpenChange={(o) => !o && setPending(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pending?.next ? "Habilitar checklist" : "Desabilitar checklist"} — {pending?.name}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pending?.next
+                ? "Esta indústria passará a aparecer no fluxo de checklist."
+                : "Esta indústria deixará de aparecer para novas importações de checklist. Checklists, visitas e histórico existentes serão preservados."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => pending && setMut.mutate({ industryId: pending.id, value: pending.next })}
+              disabled={setMut.isPending}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
 
 // -------------------- Lojas --------------------
 function StoresModule({ stores, routes, loading }: { stores: any[]; routes: any[]; loading: boolean }) {
