@@ -57,6 +57,17 @@ export const MK9_TECHNICAL_CATEGORIES: Mk9QualityCategory[] = [
   "IMPORTACAO", "INTEGRIDADE", "SEGURANCA",
 ];
 
+/** Evidência é sempre JSON puro — garante serialização segura pela rede. */
+export type Mk9JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | Mk9JsonValue[]
+  | { [key: string]: Mk9JsonValue };
+
+export type Mk9Evidence = Record<string, Mk9JsonValue>;
+
 export interface Mk9Competence {
   month: number | null;
   year: number | null;
