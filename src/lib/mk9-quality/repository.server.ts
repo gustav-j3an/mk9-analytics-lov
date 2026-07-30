@@ -13,10 +13,12 @@ import { evidenceForClient, sanitizeEvidence } from "./evidence";
 import type { FingerprintedIssue } from "./fingerprint";
 import type {
   Mk9Competence,
+  Mk9QualityDiagnostic,
   Mk9QualityIssueView,
   Mk9QualityOverview,
   Mk9QualityStatus,
 } from "./types";
+
 import { MK9_TECHNICAL_CATEGORIES } from "./types";
 
 const LIST_COLUMNS =
