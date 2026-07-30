@@ -35,3 +35,13 @@ export function checklistIndustryDisabledError(): Error {
 export function filterChecklistIndustries<T extends ChecklistIndustryFlag>(list: T[]): T[] {
   return list.filter((i) => isChecklistIndustryAllowed(i));
 }
+
+/**
+ * Contagem de "indústrias sem checklist na competência": considera SOMENTE as
+ * indústrias que exigem checklist. Quem não exige nunca gera alerta de ausência.
+ */
+export function countIndustriesMissingChecklist(
+  ctxs: Array<{ requiresChecklist: boolean; checklistImports: number }>,
+): number {
+  return ctxs.filter((c) => c.requiresChecklist === true && c.checklistImports === 0).length;
+}

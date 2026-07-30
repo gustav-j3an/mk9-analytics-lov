@@ -8,6 +8,7 @@
  * Ele acrescenta uma leitura: ocorrências abertas do Centro de Qualidade
  * (bloqueantes e vencidas), sempre respeitando o escopo do usuário.
  */
+import { countIndustriesMissingChecklist } from "@/lib/mk9-checklist/industry-gate";
 import { toWeeklySeries, buildDailySeries } from "@/lib/mk9-operations/buckets";
 import { loadOperationCore } from "@/lib/mk9-operations/core.server";
 import { addDays, elapsedDays, pct, periodLabel } from "@/lib/mk9-operations/periods";
@@ -339,7 +340,7 @@ export async function buildCockpitOverview(
       imports: core.checklistImportsTotal,
       failedImports,
       // Só indústrias classificadas como "exige checklist" podem gerar alerta de ausência.
-      industriesWithoutChecklist: core.ctxs.filter((c) => c.requiresChecklist && c.checklistImports === 0).length,
+      industriesWithoutChecklist: countIndustriesMissingChecklist(core.ctxs),
       lastImportAt: recentImports[0]?.at ?? null,
     },
     quality: {
