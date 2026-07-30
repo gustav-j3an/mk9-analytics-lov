@@ -1308,6 +1308,7 @@ export type Database = {
           p_actor?: string
           p_import_id?: string
           p_name: string
+          p_name_normalized: string
           p_source?: string
         }
         Returns: {
