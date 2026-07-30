@@ -258,7 +258,7 @@ const ALL_TRANSITIONS: TransitionOption[] = [
  * evita oferecer o que seria recusado.
  *
  * - REALTIME não tem histórico: não aceita ação de status;
- * - IGNORAR é exclusivo de ADMIN;
+ * - IGNORAR é decisão de risco: ADMIN/DEV/AUDITOR (mesma regra do servidor);
  * - CLIENTE e PROMOTOR são somente leitura;
  * - status finais não recebem novas transições manuais.
  */
@@ -273,7 +273,10 @@ export function availableTransitions(params: {
     return [];
   }
   return ALL_TRANSITIONS.filter((t) => {
-    if (t.target === "IGNORED") return params.role === "ADMIN" || params.role === "DEV";
+    if (t.target === "IGNORED") {
+      return params.role === "ADMIN" || params.role === "DEV" || params.role === "AUDITOR";
+    }
+
     if (t.target === "ACKNOWLEDGED") return params.status === "OPEN" || params.status === "REOPENED";
     if (t.target === "IN_PROGRESS") return params.status !== "IN_PROGRESS";
     return true;
