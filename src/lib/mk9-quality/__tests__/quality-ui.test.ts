@@ -68,7 +68,7 @@ describe("unidades e contagens nunca se misturam", () => {
 
   it("4. zero nunca vira frase vazia", () => {
     expect(countLabel(0, "ocorrencia")).toBe("0 ocorrências");
-    expect(describeIncompleteStores({ issues: 0, stores: 0, visits: 0 })).toContain("Nenhuma");
+    expect(describeIncompleteStores({ issues: 0, stores: 0, visits: 0 })).toMatch(/^Nenhum/);
   });
 });
 
