@@ -282,7 +282,7 @@ describe("cockpit — saúde geral", () => {
 
 // ---------------------------------------------------------------------------
 describe("cockpit — prioridades", () => {
-  const item = (kind: Mk9PriorityItem["kind"], impact: number, id = kind): Mk9PriorityItem => ({
+  const item = (kind: Mk9PriorityItem["kind"], impact: number, id: string = kind): Mk9PriorityItem => ({
     id,
     kind,
     score: scoreFor(kind, impact),
