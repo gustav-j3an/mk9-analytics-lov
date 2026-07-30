@@ -1,9 +1,13 @@
 /**
- * MK9 — Cockpit Operacional (Fase 3.1C): interface.
+ * MK9 — Cockpit Operacional: interface (Centro de Comando).
  *
  * Consome UM único payload fechado (`mk9CockpitOverviewFn`). A tela não
  * calcula nada e não decide permissão: apenas apresenta o que o servidor
- * autorizou, na ordem de leitura acordada (saúde → prioridades → ações).
+ * autorizou. Esta camada é 100% apresentação — nenhuma regra operacional,
+ * nenhum número derivado além de formatação e ordenação visual.
+ *
+ * Ordem de leitura (primeira dobra):
+ *   Resumo executivo → Saúde → O que fazer agora → Ações rápidas → KPIs
  */
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -11,17 +15,24 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   AlertOctagon,
   AlertTriangle,
+  ArrowDown,
   ArrowRight,
+  BarChart3,
   CheckCircle2,
   ClipboardCheck,
+  ClipboardList,
   Clock,
   Factory,
+  FileText,
   Gauge,
   Info,
+  Map as MapIcon,
   RefreshCw,
+  Search,
   ShieldCheck,
   Store as StoreIcon,
   TrendingUp,
+  Upload,
   Users,
 } from "lucide-react";
 import {
@@ -45,7 +56,12 @@ import { cn } from "@/lib/utils";
 import { mk9ListIndustries, mk9ListPromoters } from "@/lib/mk9-data.functions";
 import { mk9CockpitOverviewFn } from "@/lib/mk9-cockpit.functions";
 import { AMBIGUOUS_WARNING_THRESHOLD } from "@/lib/mk9-cockpit/view";
-import type { Mk9CockpitOverview, Mk9HealthLevel } from "@/lib/mk9-cockpit/types";
+import type {
+  Mk9CockpitOverview,
+  Mk9HealthLevel,
+  Mk9QuickActionId,
+} from "@/lib/mk9-cockpit/types";
+import type { IndustryStatusKey } from "@/lib/mk9-operations/types";
 import { INDUSTRY_STATUS_LABEL } from "@/lib/mk9-operations/types";
 
 const MONTHS_PT = [
@@ -54,14 +70,74 @@ const MONTHS_PT = [
 ];
 const ALL = "__ALL__";
 
-const HEALTH_STYLE: Record<Mk9HealthLevel, { label: string; className: string; Icon: typeof AlertTriangle }> = {
-  BLOQUEADA: { label: "OPERAÇÃO BLOQUEADA", className: "border-destructive/40 bg-destructive/10 text-destructive", Icon: AlertOctagon },
-  CRITICA: { label: "OPERAÇÃO CRÍTICA", className: "border-destructive/30 bg-destructive/5 text-destructive", Icon: AlertTriangle },
-  ATENCAO: { label: "OPERAÇÃO EM ATENÇÃO", className: "border-amber-500/40 bg-amber-500/10 text-amber-600", Icon: Info },
-  SAUDAVEL: { label: "OPERAÇÃO SAUDÁVEL", className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600", Icon: CheckCircle2 },
+/* ---------------------------------------------------------------------------
+ * Paleta padronizada (item 13): verde saudável · amarelo atenção ·
+ * laranja crítica · vermelho bloqueada · azul informativo.
+ * ------------------------------------------------------------------------ */
+const HEALTH_STYLE: Record<
+  Mk9HealthLevel,
+  { label: string; card: string; chip: string; dot: string; accent: string; Icon: typeof AlertTriangle }
+> = {
+  BLOQUEADA: {
+    label: "OPERAÇÃO BLOQUEADA",
+    card: "border-red-500/40 bg-red-500/10",
+    chip: "bg-red-500/15 text-red-600 border-red-500/30",
+    dot: "bg-red-500",
+    accent: "text-red-600",
+    Icon: AlertOctagon,
+  },
+  CRITICA: {
+    label: "OPERAÇÃO CRÍTICA",
+    card: "border-orange-500/40 bg-orange-500/10",
+    chip: "bg-orange-500/15 text-orange-600 border-orange-500/30",
+    dot: "bg-orange-500",
+    accent: "text-orange-600",
+    Icon: AlertTriangle,
+  },
+  ATENCAO: {
+    label: "OPERAÇÃO EM ATENÇÃO",
+    card: "border-amber-500/40 bg-amber-500/10",
+    chip: "bg-amber-500/15 text-amber-600 border-amber-500/30",
+    dot: "bg-amber-500",
+    accent: "text-amber-600",
+    Icon: Info,
+  },
+  SAUDAVEL: {
+    label: "OPERAÇÃO SAUDÁVEL",
+    card: "border-emerald-500/40 bg-emerald-500/10",
+    chip: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
+    dot: "bg-emerald-500",
+    accent: "text-emerald-600",
+    Icon: CheckCircle2,
+  },
+};
+
+const STATUS_STYLE: Record<IndustryStatusKey, string> = {
+  CONCLUIDA: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
+  EM_DIA: "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
+  ATENCAO: "bg-amber-500/15 text-amber-600 border-amber-500/30",
+  CRITICA: "bg-orange-500/15 text-orange-600 border-orange-500/30",
+  SEM_CHECKLIST: "bg-red-500/15 text-red-600 border-red-500/30",
+  SEM_FREQUENCIA: "bg-sky-500/15 text-sky-600 border-sky-500/30",
+};
+
+const HEALTH_SENTENCE: Record<Mk9HealthLevel, string> = {
+  BLOQUEADA: "bloqueada",
+  CRITICA: "crítica",
+  ATENCAO: "em atenção",
+  SAUDAVEL: "saudável",
 };
 
 const CONFIDENCE_LABEL: Record<string, string> = { ALTA: "Alta", MEDIA: "Média", BAIXA: "Baixa" };
+
+const ACTION_ICON: Record<Mk9QuickActionId, typeof Gauge> = {
+  IMPORT_BASE: Upload,
+  IMPORT_CHECKLIST: ClipboardList,
+  AUDIT: Search,
+  QUALITY: ShieldCheck,
+  ROUTES: MapIcon,
+  REPORTS: FileText,
+};
 
 function shortDate(value: string | null) {
   if (!value) return "—";
@@ -78,6 +154,40 @@ function timeOf(iso: string) {
   }
 }
 
+/**
+ * Resumo executivo 100% determinístico: só reescreve, em frases, números que
+ * já vieram prontos no payload. Sem IA, sem cálculo novo.
+ */
+function executiveSummary(data: Mk9CockpitOverview): string[] {
+  const lines: string[] = [];
+  lines.push(`A operação está ${HEALTH_SENTENCE[data.health.level].toUpperCase()}.`);
+  lines.push(`A cobertura atual é de ${data.kpis.coberturaPct}%.`);
+  lines.push(
+    data.kpis.pendentes === 1
+      ? "Existe 1 visita pendente."
+      : `Existem ${data.kpis.pendentes} visitas pendentes.`,
+  );
+
+  const names = data.priorities
+    .map((p) => p.title)
+    .filter((t, i, arr) => arr.indexOf(t) === i)
+    .slice(0, 3);
+  if (names.length > 0) {
+    const list =
+      names.length === 1
+        ? names[0]
+        : `${names.slice(0, -1).join(", ")} e ${names[names.length - 1]}`;
+    lines.push(`${names.length === 1 ? "A maior prioridade é" : "As maiores prioridades são"} ${list}.`);
+  } else {
+    lines.push("Nenhuma prioridade aberta nos filtros atuais.");
+  }
+
+  lines.push(
+    `Mantendo o ritmo atual, a projeção é de aproximadamente ${data.forecast.projectedCoveragePct}%.`,
+  );
+  return lines;
+}
+
 export interface Mk9CockpitModuleProps {
   /** Navegação de drill-down usando SEMPRE o destino devolvido pelo servidor. */
   onNavigate?: (target: string) => void;
@@ -90,6 +200,8 @@ export function Mk9CockpitModule({ onNavigate }: Mk9CockpitModuleProps) {
   const [industryId, setIndustryId] = useState<string>(ALL);
   const [uf, setUf] = useState<string>(ALL);
   const [promoterId, setPromoterId] = useState<string>(ALL);
+  const [showAllTimeline, setShowAllTimeline] = useState(false);
+  const [showQualityDetails, setShowQualityDetails] = useState(false);
 
   const overviewFn = useServerFn(mk9CockpitOverviewFn);
   const industriesFn = useServerFn(mk9ListIndustries);
@@ -123,6 +235,8 @@ export function Mk9CockpitModule({ onNavigate }: Mk9CockpitModuleProps) {
       })),
     [data?.series],
   );
+
+  const summary = useMemo(() => (data ? executiveSummary(data) : []), [data]);
 
   const go = (target: string | null) => {
     if (!target) return;
@@ -160,22 +274,22 @@ export function Mk9CockpitModule({ onNavigate }: Mk9CockpitModuleProps) {
   const health = HEALTH_STYLE[data.health.level];
   const HealthIcon = health.Icon;
   const isClient = data.viewer.role === "CLIENTE";
+  const topRisk = data.priorities[0]?.title ?? "—";
+  const timeline = showAllTimeline ? data.timeline : data.timeline.slice(0, 5);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       {/* ---------- cabeçalho + filtros ---------- */}
-      <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 lg:flex lg:flex-wrap lg:items-end lg:justify-between">
         <div className="min-w-0">
-          <h2 className="text-xl font-semibold tracking-tight">Cockpit Operacional</h2>
-          <p className="text-sm text-muted-foreground">
-            {data.periodLabel} · Período: {shortDate(data.windowStart)} a {shortDate(data.windowEnd)}
-          </p>
+          <h2 className="truncate text-xl font-semibold tracking-tight">Cockpit Operacional</h2>
           <p className="text-xs text-muted-foreground">
-            Atualizado às {timeOf(data.generatedAt)} · escopo: {data.viewer.role}
+            {data.periodLabel} · {shortDate(data.windowStart)} a {shortDate(data.windowEnd)} · atualizado às{" "}
+            {timeOf(data.generatedAt)} · escopo {data.viewer.role}
             {q.isFetching && <span className="ml-2 italic">atualizando…</span>}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="col-span-2 flex flex-wrap items-center gap-2 lg:col-auto">
           <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
             <SelectTrigger className="h-9 w-[130px]" aria-label="Competência: mês"><SelectValue /></SelectTrigger>
             <SelectContent>{MONTHS_PT.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}</SelectContent>
@@ -217,49 +331,84 @@ export function Mk9CockpitModule({ onNavigate }: Mk9CockpitModuleProps) {
         </div>
       </header>
 
-      {/* ---------- saúde geral ---------- */}
-      <section className={cn("rounded-xl border p-4", health.className)} aria-label="Saúde geral da operação">
-        <div className="flex flex-wrap items-center gap-3">
-          <HealthIcon className="h-5 w-5" aria-hidden />
-          <p className="text-sm font-semibold tracking-wide">{health.label}</p>
-          <Badge variant="outline" className="border-current text-[11px]">Ritmo {data.health.pacePercentage}%</Badge>
-          {data.health.blockingIssues > 0 && (
-            <Badge variant="outline" className="border-current text-[11px]">{data.health.blockingIssues} bloqueante(s)</Badge>
-          )}
-          {data.health.overdueIssues > 0 && (
-            <Badge variant="outline" className="border-current text-[11px]">{data.health.overdueIssues} vencida(s)</Badge>
-          )}
-        </div>
-        <p className="mt-2 text-sm text-foreground/80">{data.health.reason}</p>
+      {/* ---------- 1ª DOBRA · resumo executivo ---------- */}
+      <section
+        aria-label="Resumo executivo"
+        className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-4 py-3"
+      >
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-600">Resumo executivo</p>
+        <p className="mt-1 text-sm leading-relaxed text-foreground/90">{summary.join(" ")}</p>
       </section>
 
-      {/* ---------- prioridades + ações rápidas ---------- */}
+      {/* ---------- 1ª DOBRA · saúde operacional ---------- */}
+      <section className={cn("rounded-xl border p-4", health.card)} aria-label="Saúde operacional">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", health.dot)} aria-hidden />
+            <HealthIcon className={cn("h-5 w-5 shrink-0", health.accent)} aria-hidden />
+            <p className={cn("truncate text-sm font-bold tracking-wide sm:text-base", health.accent)}>
+              {health.label}
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-1.5">
+            {data.health.blockingIssues > 0 && (
+              <Badge variant="outline" className={cn("text-[11px]", HEALTH_STYLE.BLOQUEADA.chip)}>
+                {data.health.blockingIssues} bloqueante(s)
+              </Badge>
+            )}
+            {data.health.overdueIssues > 0 && (
+              <Badge variant="outline" className={cn("text-[11px]", HEALTH_STYLE.ATENCAO.chip)}>
+                {data.health.overdueIssues} vencida(s)
+              </Badge>
+            )}
+            {data.health.failedImports > 0 && !isClient && (
+              <Badge variant="outline" className={cn("text-[11px]", HEALTH_STYLE.BLOQUEADA.chip)}>
+                {data.health.failedImports} importação(ões) com falha
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <HealthMetric label="Cobertura" value={`${data.kpis.coberturaPct}%`} accent={health.accent} />
+          <HealthMetric label="Pendentes" value={String(data.kpis.pendentes)} accent={health.accent} />
+          <HealthMetric label="Maior risco" value={topRisk} accent={health.accent} small />
+          <HealthMetric label="Ritmo" value={`${data.health.pacePercentage}%`} accent={health.accent} />
+        </div>
+
+        <p className="mt-3 text-xs leading-relaxed text-foreground/70">{data.health.reason}</p>
+      </section>
+
+      {/* ---------- 1ª DOBRA · o que fazer agora + ações rápidas ---------- */}
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <Card>
+        <Card className="order-1">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Prioridades do dia</CardTitle>
+            <CardTitle className="text-sm font-semibold uppercase tracking-wide">
+              🚨 O que fazer agora
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
             {data.priorities.length === 0 && (
               <p className="text-sm text-muted-foreground">Nenhuma prioridade aberta para os filtros atuais.</p>
             )}
             {data.priorities.map((p, index) => (
-              <div key={p.id} className="flex flex-col gap-2 rounded-lg border border-border/70 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div
+                key={p.id}
+                className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border/70 px-3 py-2.5"
+              >
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-muted text-xs font-semibold tabular-nums">
+                  {index + 1}
+                </span>
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="grid h-6 w-6 place-items-center rounded-md bg-muted text-xs font-semibold">{index + 1}</span>
-                    <p className="truncate text-sm font-medium">{p.title}</p>
-                    <Badge variant="outline" className="text-[10px]">{p.kind.replaceAll("_", " ").toLowerCase()}</Badge>
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">{p.description}</p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground/80">
-                    Impacto {p.impact} · pontuação {p.score}
-                  </p>
+                  <p className="truncate text-sm font-semibold">{p.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">{p.description}</p>
                 </div>
-                {p.deepLink && (
-                  <Button size="sm" variant="ghost" className="shrink-0" onClick={() => go(p.deepLink)}>
+                {p.deepLink ? (
+                  <Button size="sm" variant="secondary" className="shrink-0" onClick={() => go(p.deepLink)}>
                     Abrir <ArrowRight className="ml-1 h-4 w-4" />
                   </Button>
+                ) : (
+                  <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{p.impact}</span>
                 )}
               </div>
             ))}
@@ -269,19 +418,29 @@ export function Mk9CockpitModule({ onNavigate }: Mk9CockpitModuleProps) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Ações rápidas</CardTitle></CardHeader>
+        <Card className="order-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold uppercase tracking-wide">Ações rápidas</CardTitle>
+          </CardHeader>
           <CardContent className="grid grid-cols-2 gap-2">
-            {data.quickActions.map((a) => (
-              <Button key={a.id} variant="outline" size="sm" className="justify-start" onClick={() => go(a.target)}>
-                {a.label}
-              </Button>
-            ))}
+            {data.quickActions.map((a) => {
+              const Icon = ACTION_ICON[a.id] ?? BarChart3;
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => go(a.target)}
+                  className="flex h-[72px] flex-col items-start justify-between rounded-lg border border-border/70 bg-card p-3 text-left transition-colors hover:border-primary/40 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                >
+                  <Icon className="h-4 w-4 text-primary" aria-hidden />
+                  <span className="text-xs font-medium leading-tight">{a.label}</span>
+                </button>
+              );
+            })}
           </CardContent>
         </Card>
       </div>
 
-      {/* ---------- KPIs ---------- */}
+      {/* ---------- 1ª DOBRA · KPIs ---------- */}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6" aria-label="Indicadores principais">
         <Kpi label="Contratadas" value={data.kpis.contratadas} Icon={ClipboardCheck} />
         <Kpi label="Realizadas" value={data.kpis.realizadas} Icon={CheckCircle2} />
@@ -291,37 +450,72 @@ export function Mk9CockpitModule({ onNavigate }: Mk9CockpitModuleProps) {
         <Kpi label="Indústrias em risco" value={data.kpis.industriasEmRisco} Icon={Factory} onClick={() => go("/?module=audit")} />
       </section>
 
+      {/* ================= ABAIXO DA DOBRA ================= */}
+
       {/* ---------- previsão + checklists + qualidade ---------- */}
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Previsão de fechamento</CardTitle></CardHeader>
-          <CardContent className="flex flex-col gap-1.5 text-sm">
-            <p className="text-xs text-muted-foreground">Projeção com base no ritmo registrado — não é garantia.</p>
-            <Row label="Cobertura atual" value={`${data.kpis.coberturaPct}%`} />
-            <Row label="Cobertura projetada" value={`${data.forecast.projectedCoveragePct}%`} />
-            <Row label="Realizadas projetadas" value={String(data.forecast.projected)} />
-            <Row label="Pendentes projetadas" value={String(Math.max(0, -data.forecast.gap))} />
-            <Row label="Ritmo recente/dia" value={String(data.forecast.dailyPaceRecent)} />
-            <Row label="Ritmo necessário/dia" value={String(data.forecast.requiredDailyPace)} />
-            <Row label="Confiança" value={CONFIDENCE_LABEL[data.forecast.confidence] ?? data.forecast.confidence} />
-            <p className="mt-1 text-xs text-muted-foreground">
-              {data.forecast.daysRemaining} dia(s) restantes no período. Confiança{" "}
-              {(CONFIDENCE_LABEL[data.forecast.confidence] ?? "").toLowerCase()} porque o cálculo pondera 60% do ritmo das
-              últimas 2 semanas e 40% do ritmo do período.
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold uppercase tracking-wide">Previsão de fechamento</CardTitle></CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex items-center justify-around gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-3">
+              <div className="text-center">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Hoje</p>
+                <p className="text-2xl font-bold tabular-nums">{data.kpis.coberturaPct}%</p>
+              </div>
+              <ArrowDown className="h-5 w-5 shrink-0 rotate-[-90deg] text-muted-foreground" aria-hidden />
+              <div className="text-center">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Projeção</p>
+                <p
+                  className={cn(
+                    "text-2xl font-bold tabular-nums",
+                    data.forecast.projectedCoveragePct >= data.kpis.coberturaPct ? "text-emerald-600" : "text-orange-600",
+                  )}
+                >
+                  {data.forecast.projectedCoveragePct}%
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Confiança</p>
+                <p className="text-base font-semibold">
+                  {CONFIDENCE_LABEL[data.forecast.confidence] ?? data.forecast.confidence}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Ritmo necessário</p>
+                <p className="text-base font-semibold tabular-nums">{data.forecast.requiredDailyPace} / dia</p>
+              </div>
+            </div>
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+              {data.forecast.daysRemaining} dia(s) restantes. A projeção pondera 60% do ritmo das últimas 2 semanas e
+              40% do ritmo do período — é estimativa, não garantia.
             </p>
           </CardContent>
         </Card>
 
         {!isClient && (
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-base">Checklists e importações</CardTitle></CardHeader>
-            <CardContent className="flex flex-col gap-1.5 text-sm">
-              <Row label="Importações da competência" value={String(data.checklists.imports)} />
-              <Row label="Importações com falha" value={String(data.checklists.failedImports)} />
-              <Row label="Indústrias sem checklist" value={String(data.checklists.industriesWithoutChecklist)} />
-              <Row label="Última importação" value={shortDate(data.checklists.lastImportAt)} />
+            <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold uppercase tracking-wide">Checklists e importações</CardTitle></CardHeader>
+            <CardContent className="pt-0">
+              <div className="flex flex-col gap-1.5">
+                <StatusLine
+                  tone="ok"
+                  label="Importações da competência"
+                  value={data.checklists.imports}
+                />
+                <StatusLine
+                  tone="warn"
+                  label="Indústrias sem checklist"
+                  value={data.checklists.industriesWithoutChecklist}
+                />
+                <StatusLine tone="fail" label="Importações com falha" value={data.checklists.failedImports} />
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Última importação: {shortDate(data.checklists.lastImportAt)}
+              </p>
               {data.viewer.canViewImports && (
-                <Button size="sm" variant="outline" className="mt-2 self-start" onClick={() => go("/?module=checklists")}>
+                <Button size="sm" variant="outline" className="mt-2" onClick={() => go("/?module=checklists")}>
                   Abrir Checklists
                 </Button>
               )}
@@ -330,13 +524,26 @@ export function Mk9CockpitModule({ onNavigate }: Mk9CockpitModuleProps) {
         )}
 
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Qualidade dos dados</CardTitle></CardHeader>
-          <CardContent className="flex flex-col gap-1.5 text-sm">
-            <Row label="Abertas" value={String(data.quality.open)} />
-            <Row label="Bloqueantes" value={String(data.quality.blocking)} />
-            <Row label="Vencidas" value={String(data.quality.overdue)} />
-            <Row label="Sem responsável" value={String(data.quality.unassigned)} />
-            <Button size="sm" variant="outline" className="mt-2 self-start" onClick={() => go("/?module=quality")}>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold uppercase tracking-wide">Qualidade dos dados</CardTitle></CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <QualityStat label="Bloqueantes" value={data.quality.blocking} tone="fail" />
+              <QualityStat label="Críticas" value={data.quality.overdue} tone="warn" />
+              <QualityStat label="Abertas" value={data.quality.open} tone="info" />
+            </div>
+            <button
+              className="mt-2 text-[11px] text-muted-foreground underline-offset-2 hover:underline"
+              onClick={() => setShowQualityDetails((v) => !v)}
+            >
+              {showQualityDetails ? "Ocultar detalhes" : "Ver detalhes"}
+            </button>
+            {showQualityDetails && (
+              <div className="mt-1.5 flex flex-col gap-1 text-xs text-muted-foreground">
+                <Row label="Sem responsável" value={String(data.quality.unassigned)} />
+                <Row label="Com prazo vencido" value={String(data.quality.overdue)} />
+              </div>
+            )}
+            <Button size="sm" variant="outline" className="mt-2" onClick={() => go("/?module=quality")}>
               <ShieldCheck className="mr-2 h-4 w-4" /> Abrir Centro de Qualidade
             </Button>
           </CardContent>
@@ -345,73 +552,46 @@ export function Mk9CockpitModule({ onNavigate }: Mk9CockpitModuleProps) {
 
       {/* ---------- indústrias ---------- */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-base">Situação das indústrias</CardTitle></CardHeader>
-        <CardContent>
+        <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold uppercase tracking-wide">Situação das indústrias</CardTitle></CardHeader>
+        <CardContent className="pt-0">
           {data.industries.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma indústria no escopo/filtros atuais.</p>
           ) : (
-            <>
-              <div className="hidden overflow-x-auto md:block">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
-                      <th className="py-2 pr-3">Indústria</th>
-                      <th className="py-2 pr-3">Status</th>
-                      <th className="py-2 pr-3 text-right">Contratadas</th>
-                      <th className="py-2 pr-3 text-right">Realizadas</th>
-                      <th className="py-2 pr-3 text-right">Cobertura</th>
-                      <th className="py-2 pr-3 text-right">Ritmo</th>
-                      <th className="py-2 pr-3 text-right">Ocorrências</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.industries.slice(0, 10).map((i) => (
-                      <tr
-                        key={i.industryId}
-                        tabIndex={0}
-                        role="button"
-                        onClick={() => go(`/?module=audit&industry=${i.industryId}`)}
-                        onKeyDown={(e) => e.key === "Enter" && go(`/?module=audit&industry=${i.industryId}`)}
-                        className="cursor-pointer border-b border-border/60 outline-none last:border-0 hover:bg-muted/40 focus-visible:bg-muted/60"
-                      >
-                        <td className="py-2 pr-3 font-medium">{i.industryName}</td>
-                        <td className="py-2 pr-3"><Badge variant="outline" className="text-[10px]">{INDUSTRY_STATUS_LABEL[i.status]}</Badge></td>
-                        <td className="py-2 pr-3 text-right">{i.contratadas}</td>
-                        <td className="py-2 pr-3 text-right">{i.realizadas}</td>
-                        <td className="py-2 pr-3 text-right">{i.coberturaPct}%</td>
-                        <td className="py-2 pr-3 text-right">{i.pacePercentage}%</td>
-                        <td className="py-2 pr-3 text-right">{i.openIssues}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="flex flex-col gap-2 md:hidden">
-                {data.industries.slice(0, 10).map((i) => (
-                  <button
-                    key={i.industryId}
-                    onClick={() => go(`/?module=audit&industry=${i.industryId}`)}
-                    className="rounded-lg border border-border/70 p-3 text-left"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="truncate font-medium">{i.industryName}</span>
-                      <Badge variant="outline" className="text-[10px]">{INDUSTRY_STATUS_LABEL[i.status]}</Badge>
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {i.realizadas}/{i.contratadas} · cobertura {i.coberturaPct}% · ritmo {i.pacePercentage}%
+            <div className="flex flex-col gap-1.5">
+              {data.industries.slice(0, 10).map((i) => (
+                <button
+                  key={i.industryId}
+                  onClick={() => go(`/?module=audit&industry=${i.industryId}`)}
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border/60 px-3 py-2 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:grid-cols-[minmax(0,1.6fr)_auto_auto_auto]"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{i.industryName}</p>
+                    <p className="truncate text-[11px] text-muted-foreground">
+                      {i.realizadas}/{i.contratadas} visitas · ritmo {i.pacePercentage}% · {i.openIssues} ocorrência(s)
                     </p>
-                  </button>
-                ))}
-              </div>
-            </>
+                  </div>
+                  <Badge variant="outline" className={cn("shrink-0 text-[10px]", STATUS_STYLE[i.status])}>
+                    {INDUSTRY_STATUS_LABEL[i.status]}
+                  </Badge>
+                  <div className="hidden w-16 text-right sm:block">
+                    <p className="text-sm font-bold tabular-nums">{i.coberturaPct}%</p>
+                    <p className="text-[10px] uppercase text-muted-foreground">cobertura</p>
+                  </div>
+                  <div className="hidden w-16 text-right sm:block">
+                    <p className="text-sm font-bold tabular-nums">{Math.max(0, i.contratadas - i.realizadas)}</p>
+                    <p className="text-[10px] uppercase text-muted-foreground">pendentes</p>
+                  </div>
+                </button>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
 
       {/* ---------- tendência ---------- */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-base">Tendência semanal</CardTitle></CardHeader>
-        <CardContent className="h-[260px]" aria-label="Gráfico semanal de esperado versus realizado">
+        <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold uppercase tracking-wide">Tendência semanal</CardTitle></CardHeader>
+        <CardContent className="h-[220px] pt-0" aria-label="Gráfico semanal de esperado versus realizado">
           {series.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sem série disponível para o período.</p>
           ) : (
@@ -437,65 +617,148 @@ export function Mk9CockpitModule({ onNavigate }: Mk9CockpitModuleProps) {
       <div className="grid gap-4 lg:grid-cols-2">
         {data.viewer.canViewPersonalData && (
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-base">Promotores que exigem atenção</CardTitle></CardHeader>
-            <CardContent className="flex flex-col gap-2 text-sm">
-              {data.promoters.length === 0 && <p className="text-muted-foreground">Nenhum promotor em atenção.</p>}
-              {data.promoters.map((p) => (
-                <div key={p.promoterId} className="rounded-lg border border-border/70 p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-medium"><Users className="mr-1 inline h-4 w-4" aria-hidden />{p.promoterName}</span>
-                    <span className="text-xs text-muted-foreground">Última atividade: {shortDate(p.lastVisit)}</span>
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Cobertura {p.coberturaPct}% · {p.pendentes} pendentes · {p.lojasSemVisita} loja(s) sem visita ·{" "}
-                    {p.industries.join(", ") || "—"}
-                  </p>
-                  {p.ambiguousShare > AMBIGUOUS_WARNING_THRESHOLD && (
-                    <p className="mt-1 text-xs text-amber-600">
-                      Atribuição pouco confiável: {p.ambiguousShare}% das lojas vêm de roteiro ambíguo.
+            <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold uppercase tracking-wide">Promotores que exigem atenção</CardTitle></CardHeader>
+            <CardContent className="pt-0">
+              {data.promoters.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhum promotor em atenção.</p>
+              )}
+              <div className="grid gap-2 sm:grid-cols-2">
+                {data.promoters.map((p) => (
+                  <div key={p.promoterId} className="rounded-lg border border-border/60 p-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Users className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                      <span className="truncate text-sm font-semibold">{p.promoterName}</span>
+                    </div>
+                    <div className="mt-2 flex gap-4">
+                      <div>
+                        <p className="text-base font-bold tabular-nums">{p.coberturaPct}%</p>
+                        <p className="text-[10px] uppercase text-muted-foreground">cobertura</p>
+                      </div>
+                      <div>
+                        <p className="text-base font-bold tabular-nums">{p.pendentes}</p>
+                        <p className="text-[10px] uppercase text-muted-foreground">pendentes</p>
+                      </div>
+                    </div>
+                    <p className="mt-2 truncate text-[11px] text-muted-foreground">
+                      Última atividade: {shortDate(p.lastVisit)}
                     </p>
-                  )}
-                </div>
-              ))}
+                    <p className="truncate text-[11px] text-muted-foreground">{p.industries.join(", ") || "—"}</p>
+                    {p.ambiguousShare > AMBIGUOUS_WARNING_THRESHOLD && (
+                      <Badge variant="outline" className={cn("mt-2 text-[10px]", HEALTH_STYLE.ATENCAO.chip)}>
+                        Atribuição parcial
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}
 
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Supervisores</CardTitle></CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            {data.supervisors.available ? (
-              <p>Indicador disponível.</p>
-            ) : (
-              <p>{data.supervisors.reason}</p>
-            )}
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold uppercase tracking-wide">Supervisores</CardTitle></CardHeader>
+          <CardContent className="pt-0 text-sm text-muted-foreground">
+            {data.supervisors.available ? <p>Indicador disponível.</p> : <p>{data.supervisors.reason}</p>}
           </CardContent>
         </Card>
       </div>
 
       {/* ---------- timeline ---------- */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-base">Linha do tempo</CardTitle></CardHeader>
-        <CardContent className="flex flex-col gap-2 text-sm">
-          {data.timeline.length === 0 && <p className="text-muted-foreground">Nenhum evento registrado no escopo atual.</p>}
-          {data.timeline.map((e) => (
-            <div key={e.id} className="flex items-start gap-3 border-b border-border/50 pb-2 last:border-0">
-              <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+        <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold uppercase tracking-wide">Linha do tempo</CardTitle></CardHeader>
+        <CardContent className="flex flex-col gap-1.5 pt-0 text-sm">
+          {data.timeline.length === 0 && (
+            <p className="text-muted-foreground">Nenhum evento registrado no escopo atual.</p>
+          )}
+          {timeline.map((e) => (
+            <div key={e.id} className="flex items-start gap-2.5 border-b border-border/40 pb-1.5 last:border-0">
+              <TrendingUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
               <div className="min-w-0">
-                <p className="truncate">{e.description}</p>
-                <p className="text-xs text-muted-foreground">
-                  {shortDate(e.at)} {timeOf(e.at)} · {e.kind.replaceAll("_", " ").toLowerCase()}
+                <p className="truncate text-xs">{e.description}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {shortDate(e.at)} {timeOf(e.at)}
                   {e.industryName ? ` · ${e.industryName}` : ""}
                 </p>
               </div>
             </div>
           ))}
+          {data.timeline.length > 5 && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="self-start"
+              onClick={() => setShowAllTimeline((v) => !v)}
+            >
+              {showAllTimeline ? "Mostrar menos" : "Ver histórico"}
+            </Button>
+          )}
         </CardContent>
       </Card>
 
       <p className="text-right text-[11px] text-muted-foreground">
         Payload gerado em {data.perf.totalMs} ms · {data.perf.queryCount} consultas
       </p>
+    </div>
+  );
+}
+
+function HealthMetric({
+  label,
+  value,
+  accent,
+  small,
+}: {
+  label: string;
+  value: string;
+  accent: string;
+  small?: boolean;
+}) {
+  return (
+    <div className="min-w-0 rounded-lg bg-background/60 px-3 py-2">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className={cn("truncate font-bold tabular-nums", small ? "text-base" : "text-2xl", accent)}>{value}</p>
+    </div>
+  );
+}
+
+function StatusLine({
+  tone,
+  label,
+  value,
+}: {
+  tone: "ok" | "warn" | "fail";
+  label: string;
+  value: number;
+}) {
+  const mark = tone === "ok" ? "✔" : tone === "warn" ? "⚠" : "✖";
+  const color =
+    tone === "ok" ? "text-emerald-600" : tone === "warn" ? "text-amber-600" : "text-red-600";
+  return (
+    <div className="flex items-center justify-between gap-3 text-sm">
+      <span className="flex min-w-0 items-center gap-2 text-muted-foreground">
+        <span className={cn("shrink-0", color)} aria-hidden>{mark}</span>
+        <span className="truncate">{label}</span>
+      </span>
+      <span className="shrink-0 font-semibold tabular-nums">{value}</span>
+    </div>
+  );
+}
+
+function QualityStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "fail" | "warn" | "info";
+}) {
+  const color =
+    tone === "fail" ? "text-red-600" : tone === "warn" ? "text-amber-600" : "text-sky-600";
+  return (
+    <div className="rounded-lg border border-border/60 px-2 py-2">
+      <p className={cn("text-2xl font-bold tabular-nums", color)}>{value}</p>
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -525,14 +788,14 @@ function Kpi({
     <Comp
       onClick={onClick}
       className={cn(
-        "rounded-lg border border-border/70 bg-card p-3 text-left",
-        onClick && "transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-primary/30",
+        "rounded-xl border border-border/70 bg-card px-3 py-3 text-left",
+        onClick && "transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
       )}
     >
-      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-        <Icon className="h-3.5 w-3.5" aria-hidden /> {label}
+      <p className="text-2xl font-bold leading-none tabular-nums sm:text-3xl">{value}</p>
+      <div className="mt-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+        <Icon className="h-3 w-3 shrink-0" aria-hidden /> <span className="truncate">{label}</span>
       </div>
-      <p className="mt-1 text-xl font-semibold tabular-nums">{value}</p>
     </Comp>
   );
 }
@@ -540,15 +803,15 @@ function Kpi({
 function CockpitSkeleton() {
   return (
     <div className="flex flex-col gap-4" aria-busy="true" aria-label="Carregando cockpit">
-      <Skeleton className="h-16 w-full" />
+      <Skeleton className="h-14 w-full" />
+      <Skeleton className="h-28 w-full" />
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <Skeleton className="h-64 w-full" />
-        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-56 w-full" />
+        <Skeleton className="h-56 w-full" />
       </div>
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-6">
         {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
       </div>
-      <Skeleton className="h-64 w-full" />
     </div>
   );
 }
