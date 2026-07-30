@@ -73,10 +73,11 @@ export const mk9SetIndustryRequiresChecklist = createServerFn({ method: "POST" }
     const { requireMk9Role, logAudit } = await import("@/lib/mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.rpc("mk9_set_industry_requires_checklist" as any, {
+    const { error } = await supabaseAdmin.rpc("mk9_admin_set_industry_requires_checklist" as any, {
       p_industry_id: data.industryId,
       p_value: data.value,
       p_reason: data.reason ?? null,
+      p_actor: ctx.userId,
     } as any);
     if (error) throw new Error("Não foi possível alterar a classificação de checklist desta indústria.");
     await logAudit(ctx, "mk9.industry.requires_checklist.change", "mk9_industries", data.industryId, {
