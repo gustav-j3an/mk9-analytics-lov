@@ -901,51 +901,48 @@ function entityLabel(issue: Mk9QualityIssueView): string {
 function IssueDetail({
   issue,
   events,
+  comments,
   role,
+  currentUserId,
+  users,
+  stillDetected,
   onNavigate,
   onTransition,
+  onReopen,
+  onAssign,
+  onPlanning,
+  onAddComment,
+  onEditComment,
+  onArchiveComment,
 }: {
   issue: Mk9QualityIssueView;
   events: any[];
+  comments: any[];
   role: string;
+  currentUserId: string | null;
+  users: any[];
+  stillDetected: boolean;
   onNavigate?: (target: ResolvedNavigation) => void;
-  onTransition: (target: Mk9ManualTransition, reason: string) => Promise<void>;
+  onTransition: (input: {
+    toStatus: Mk9ManualTransition;
+    reason: string;
+    resolutionType?: string | null;
+    forced?: boolean;
+    ignoreUntil?: string | null;
+  }) => Promise<void>;
+  onReopen: (reason: string) => Promise<void>;
+  onAssign: (assigneeId: string | null, note: string | null) => Promise<void>;
+  onPlanning: (input: { priority?: string | null; dueAt?: string | null; clearDue?: boolean }) => Promise<void>;
+  onAddComment: (body: string, visibility: string) => Promise<void>;
+  onEditComment: (commentId: string, body: string) => Promise<void>;
+  onArchiveComment: (commentId: string) => Promise<void>;
 }) {
-  const [pending, setPending] = useState<Mk9ManualTransition | null>(null);
-  const [reason, setReason] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
   const [showTechnical, setShowTechnical] = useState(false);
 
   const rows = evidenceRows(issue.issueType, issue.evidence);
   const symptoms = issueSymptoms(issue.evidence);
   const nav = resolveIssueNavigation(issue);
   const isAdmin = role === "ADMIN" || role === "DEV" || role === "AUDITOR";
-  const transitions = availableTransitions({ role, status: issue.status, persisted: true });
-  const option = transitions.find((t) => t.target === pending);
-
-  async function confirm() {
-    if (!option) return;
-    if (option.reasonRequired && reason.trim().length < (option.target === "IGNORED" ? 5 : 3)) {
-      setError(
-        option.target === "IGNORED"
-          ? "Justificativa obrigatória (mínimo 5 caracteres)."
-          : "Nota de resolução obrigatória (mínimo 3 caracteres).",
-      );
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      await onTransition(option.target, reason.trim());
-      setPending(null);
-      setReason("");
-    } catch {
-      setError("Não foi possível registrar esta ação. Ela pode não ser permitida para o seu papel.");
-    } finally {
-      setBusy(false);
-    }
-  }
 
   return (
     <div className="space-y-5 p-6">
@@ -1010,53 +1007,31 @@ function IssueDetail({
         </Button>
       </section>
 
-      {transitions.length > 0 && (
-        <section className="space-y-2">
-          <Separator />
-          <p className="text-sm font-semibold">Tratativa</p>
-          <div className="flex flex-wrap gap-2">
-            {transitions.map((t) => (
-              <Button
-                key={t.target}
-                size="sm"
-                variant={t.danger ? "destructive" : pending === t.target ? "default" : "outline"}
-                onClick={() => { setPending(pending === t.target ? null : t.target); setReason(""); setError(null); }}
-              >
-                {t.label}
-              </Button>
-            ))}
-          </div>
-          {option && (
-            <div className="space-y-2 rounded-lg border border-border/70 p-3">
-              {option.warning && (
-                <p className="flex items-start gap-2 text-xs text-destructive">
-                  <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {option.warning}
-                </p>
-              )}
-              <Textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={3}
-                placeholder={
-                  option.reasonRequired
-                    ? option.target === "IGNORED"
-                      ? "Justificativa obrigatória para ignorar…"
-                      : "Nota de resolução obrigatória: o que foi corrigido?"
-                    : "Comentário opcional…"
-                }
-              />
-              {error && <p className="text-xs text-destructive">{error}</p>}
-              <div className="flex justify-end gap-2">
-                <Button size="sm" variant="ghost" onClick={() => setPending(null)}>Cancelar</Button>
-                <Button size="sm" onClick={confirm} disabled={busy}>
-                  {busy ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : null}
-                  Confirmar {option.label.toLowerCase()}
-                </Button>
-              </div>
-            </div>
-          )}
-        </section>
-      )}
+      <AssignmentSection
+        issue={issue}
+        role={role}
+        currentUserId={currentUserId}
+        users={users}
+        onAssign={onAssign}
+        onPlanning={onPlanning}
+      />
+
+      <TreatmentSection
+        issue={issue}
+        role={role}
+        stillDetected={stillDetected}
+        onTransition={onTransition}
+        onReopen={onReopen}
+      />
+
+      <CommentsSection
+        comments={comments}
+        role={role}
+        currentUserId={currentUserId}
+        onAdd={onAddComment}
+        onEdit={onEditComment}
+        onArchive={onArchiveComment}
+      />
 
       <section className="space-y-2">
         <Separator />
