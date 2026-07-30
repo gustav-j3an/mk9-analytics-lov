@@ -338,7 +338,8 @@ export async function buildCockpitOverview(
     checklists: {
       imports: core.checklistImportsTotal,
       failedImports,
-      industriesWithoutChecklist: core.ctxs.filter((c) => c.checklistImports === 0).length,
+      // Só indústrias classificadas como "exige checklist" podem gerar alerta de ausência.
+      industriesWithoutChecklist: core.ctxs.filter((c) => c.requiresChecklist && c.checklistImports === 0).length,
       lastImportAt: recentImports[0]?.at ?? null,
     },
     quality: {
