@@ -1,33 +1,30 @@
 // Tipos do Dashboard Operacional MK9 (compartilhados server/client).
+//
+// Fase 3.1B: as linhas operacionais passaram a viver no núcleo compartilhado
+// (`src/lib/mk9-operations/types.ts`). Aqui apenas re-exportamos com os nomes
+// históricos — a interface existente não muda.
 
-export type IndustryStatusKey =
-  | "CONCLUIDA"
-  | "EM_DIA"
-  | "ATENCAO"
-  | "CRITICA"
-  | "SEM_CHECKLIST"
-  | "SEM_FREQUENCIA";
+export {
+  INDUSTRY_STATUS_LABEL,
+  INDUSTRY_STATUS_ORDER,
+} from "@/lib/mk9-operations/types";
 
-export const INDUSTRY_STATUS_LABEL: Record<IndustryStatusKey, string> = {
-  CONCLUIDA: "Concluída",
-  EM_DIA: "Em dia",
-  ATENCAO: "Atenção",
-  CRITICA: "Crítica",
-  SEM_CHECKLIST: "Sem checklist",
-  SEM_FREQUENCIA: "Sem frequência",
-};
+export type {
+  IndustryStatusKey,
+  StoreExecStatus,
+  PromoterResolution,
+  OperationStoreRow as DashboardStoreRow,
+  OperationIndustryRow as DashboardIndustryRow,
+  OperationFilters as DashboardFilters,
+} from "@/lib/mk9-operations/types";
 
-export const INDUSTRY_STATUS_ORDER: IndustryStatusKey[] = [
-  "CRITICA",
-  "SEM_CHECKLIST",
-  "ATENCAO",
-  "EM_DIA",
-  "CONCLUIDA",
-  "SEM_FREQUENCIA",
-];
+import type {
+  IndustryStatusKey,
+  OperationIndustryRow,
+  OperationStoreRow,
+  StoreExecStatus,
+} from "@/lib/mk9-operations/types";
 
-export type StoreExecStatus = "INTEGRAL" | "PARCIAL" | "NAO_ATENDIDA";
-export type PromoterResolution = "MATCHED_ROUTE" | "AMBIGUOUS_ROUTE" | "UNASSIGNED_ROUTE";
 export type AlertSeverity = "CRITICA" | "ALTA" | "MEDIA" | "BAIXA";
 
 export type AlertKind =
@@ -40,24 +37,6 @@ export type AlertKind =
   | "FREQUENCIA_NAO_CADASTRADA"
   | "INDUSTRIA_ABAIXO_META"
   | "PROMOTOR_CRITICO";
-
-export interface DashboardFilters {
-  year: number;
-  month: number;
-  industryId?: string | null;
-  uf?: string | null;
-  promoterId?: string | null;
-  supervisorUserId?: string | null;
-  /** Escopo de acesso resolvido no servidor (Fase 0.2). Nunca vem do navegador. */
-  access?: {
-    allowedIndustryIds: string[] | null;
-    allowedUfs: string[] | null;
-    allowedStoreIds: string[] | null;
-    allowedPromoterIds: string[] | null;
-    canViewPersonalData: boolean;
-  } | null;
-}
-
 
 export interface PaceBlock {
   contractedTotal: number;
@@ -78,48 +57,6 @@ export interface DashboardKpis extends PaceBlock {
   industriasTotal: number;
   industriasEmRisco: number;
   visitasSemPromotor: number;
-}
-
-export interface DashboardIndustryRow {
-  industryId: string;
-  industryName: string;
-  windowStart: string;
-  windowEnd: string;
-  totalDays: number;
-  elapsedDays: number;
-  isHistorical: boolean;
-  lojasContratadas: number;
-  lojasAtendidas: number;
-  contratadas: number;
-  expectedToDate: number;
-  realizadas: number;
-  pendentes: number;
-  coberturaPct: number;
-  deviation: number;
-  pacePercentage: number;
-  status: IndustryStatusKey;
-  checklistImports: number;
-}
-
-export interface DashboardStoreRow {
-  storeId: string;
-  storeName: string;
-  chain: string | null;
-  uf: string | null;
-  industryId: string;
-  industryName: string;
-  weeklyFrequency: number | null;
-  monthlyFrequency: number | null;
-  contratadas: number;
-  expectedToDate: number;
-  realizadas: number;
-  pendentes: number;
-  lastVisit: string | null;
-  daysWithoutVisit: number | null;
-  promoterId: string | null;
-  promoterName: string | null;
-  promoterResolution: PromoterResolution;
-  status: StoreExecStatus;
 }
 
 export interface DashboardPromoterRow {
@@ -163,8 +100,8 @@ export interface DashboardOverview {
   usesHistoricalFrequency: boolean;
   checklistImports: number;
   kpis: DashboardKpis;
-  industries: DashboardIndustryRow[];
-  criticalStores: DashboardStoreRow[];
+  industries: OperationIndustryRow[];
+  criticalStores: OperationStoreRow[];
   criticalStoresTotal: number;
   promoters: DashboardPromoterRow[];
   series: DashboardSeriesPoint[];
