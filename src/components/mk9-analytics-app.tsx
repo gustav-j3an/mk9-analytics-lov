@@ -6,6 +6,7 @@ import { Mk9ImportModule } from "@/components/mk9-import-module";
 import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
 import { Mk9AuditModule, type Mk9AuditInitialFilters } from "@/components/mk9-audit-module";
 import { Mk9QualityModule } from "@/components/mk9-quality-module";
+import { Gauge } from "lucide-react";
 import { Mk9CockpitModule } from "@/components/mk9-cockpit-module";
 import type { ResolvedNavigation } from "@/lib/mk9-quality/evidence-view";
 import { Mk9DashboardModule } from "@/components/mk9-dashboard-module";
