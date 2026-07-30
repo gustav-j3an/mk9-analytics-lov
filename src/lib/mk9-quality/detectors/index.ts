@@ -9,6 +9,7 @@ export { pendingImportConflictDetector } from "./pending-import-conflict";
 export { industryPeriodConfigDetector } from "./industry-period-config";
 export { checklistValidationDetector } from "./checklist-validation";
 export { incompleteStoreExecutionDetector } from "./incomplete-store-execution";
+export { contractTotalDistributionDivergenceDetector } from "./contract-total-distribution-divergence";
 
 import { projectionFrequencyDivergenceDetector } from "./projection-frequency-divergence";
 import { frequencyWeeklyMonthlyInconsistencyDetector } from "./frequency-weekly-monthly-inconsistency";
@@ -21,6 +22,7 @@ import { pendingImportConflictDetector } from "./pending-import-conflict";
 import { industryPeriodConfigDetector } from "./industry-period-config";
 import { checklistValidationDetector } from "./checklist-validation";
 import { incompleteStoreExecutionDetector } from "./incomplete-store-execution";
+import { contractTotalDistributionDivergenceDetector } from "./contract-total-distribution-divergence";
 import type { Mk9DataQualityDetector } from "../types";
 
 /**
@@ -40,6 +42,7 @@ export const MK9_QUALITY_DETECTORS: Mk9DataQualityDetector[] = [
   industryPeriodConfigDetector,
   operationPairIntegrityDetector,
   frequencyWeeklyMonthlyInconsistencyDetector,
+  contractTotalDistributionDivergenceDetector,
   excelDatabaseDivergenceDetector,
   checklistValidationDetector,
   pendingImportConflictDetector,

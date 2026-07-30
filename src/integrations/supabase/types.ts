@@ -627,6 +627,74 @@ export type Database = {
         }
         Relationships: []
       }
+      mk9_industry_contract_totals: {
+        Row: {
+          archived_at: string | null
+          competence_month: number
+          competence_year: number
+          contracted_total: number
+          created_at: string
+          created_by: string | null
+          id: string
+          industry_id: string
+          notes: string | null
+          period_end: string | null
+          period_start: string | null
+          source_import_id: string | null
+          source_type: string
+          updated_at: string
+          updated_by: string | null
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          competence_month: number
+          competence_year: number
+          contracted_total: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          industry_id: string
+          notes?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          source_import_id?: string | null
+          source_type?: string
+          updated_at?: string
+          updated_by?: string | null
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          competence_month?: number
+          competence_year?: number
+          contracted_total?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          industry_id?: string
+          notes?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          source_import_id?: string | null
+          source_type?: string
+          updated_at?: string
+          updated_by?: string | null
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_industry_contract_totals_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mk9_industry_period_config: {
         Row: {
           active: boolean
@@ -1341,6 +1409,20 @@ export type Database = {
           updated_at: string
         }[]
       }
+      mk9_admin_contract_total_set: {
+        Args: {
+          _actor?: string
+          _expected_updated_at?: string
+          _industry_id: string
+          _month: number
+          _notes?: string
+          _period_end?: string
+          _period_start?: string
+          _total: number
+          _year: number
+        }
+        Returns: Json
+      }
       mk9_admin_create_checklist_industry: {
         Args: {
           p_actor?: string
@@ -1375,6 +1457,16 @@ export type Database = {
           requires_checklist: boolean
           updated_at: string
         }[]
+      }
+      mk9_admin_frequency_bulk_apply: {
+        Args: {
+          _actor?: string
+          _allow_retroactive?: boolean
+          _industry_id: string
+          _items: Json
+          _reason?: string
+        }
+        Returns: Json
       }
       mk9_admin_frequency_close: {
         Args: {
