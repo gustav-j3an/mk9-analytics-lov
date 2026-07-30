@@ -102,10 +102,63 @@ export function parseWeekdayHeader(header: string | null | undefined): 0 | 1 | 2
   return WEEKDAY_MAP[key] ?? null;
 }
 
+/**
+ * Converte um valor de célula em número, aceitando os formatos que aparecem nas
+ * planilhas MK9 (pt-BR e en-US), sem nunca deturpar frequências decimais.
+ *
+ *   0.5      → 0.5      (célula numérica, inclusive resultado de fórmula)
+ *   "0,5"    → 0.5
+ *   "0.5"    → 0.5
+ *   "0,50"   → 0.5
+ *   "0.50"   → 0.5
+ *   " 0,5 "  → 0.5
+ *   "1,5"    → 1.5      (nunca vira 0,5)
+ *   "1.234"  → 1234     (ponto como separador de milhar)
+ *   "1.234,5"→ 1234.5
+ *   "1,234.5"→ 1234.5
+ */
 export function parseNumber(value: unknown): number | null {
-  if (value === null || value === undefined || value === "") return null;
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  const raw = String(value).replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : null;
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "boolean") return null;
+
+  let raw = String(value).trim();
+  if (!raw) return null;
+
+  // Mantém apenas dígitos, separadores e sinal.
+  raw = raw.replace(/[^\d.,-]/g, "");
+  if (!raw || !/\d/.test(raw)) return null;
+
+  const negative = raw.startsWith("-");
+  raw = raw.replace(/-/g, "");
+
+  const lastComma = raw.lastIndexOf(",");
+  const lastDot = raw.lastIndexOf(".");
+
+  let normalized: string;
+  if (lastComma >= 0 && lastDot >= 0) {
+    // Ambos presentes: o ÚLTIMO é o separador decimal.
+    const decimalSep = lastComma > lastDot ? "," : ".";
+    const thousandSep = decimalSep === "," ? "." : ",";
+    normalized = raw.split(thousandSep).join("");
+    normalized = normalized.replace(decimalSep, ".");
+  } else if (lastComma >= 0) {
+    // Só vírgula: decimal em pt-BR (milhar com vírgula é raro e ambíguo,
+    // só é tratado como milhar em grupos exatos de 3 dígitos).
+    normalized = /^\d{1,3}(,\d{3})+$/.test(raw) ? raw.split(",").join("") : raw.replace(/,/g, ".");
+  } else if (lastDot >= 0) {
+    // Só ponto: decimal, EXCETO quando forma grupos de milhar (1.234 / 1.234.567).
+    normalized = /^\d{1,3}(\.\d{3})+$/.test(raw) ? raw.split(".").join("") : raw;
+  } else {
+    normalized = raw;
+  }
+
+  // Sobrou mais de um ponto? Trata os anteriores como milhar.
+  const parts = normalized.split(".");
+  if (parts.length > 2) normalized = `${parts.slice(0, -1).join("")}.${parts[parts.length - 1]}`;
+
+  const n = Number(normalized);
+  if (!Number.isFinite(n)) return null;
+  return negative ? -n : n;
 }
+
