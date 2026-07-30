@@ -5,6 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Mk9ImportModule } from "@/components/mk9-import-module";
 import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
 import { Mk9AuditModule, type Mk9AuditInitialFilters } from "@/components/mk9-audit-module";
+import { Mk9QualityModule } from "@/components/mk9-quality-module";
+import type { ResolvedNavigation } from "@/lib/mk9-quality/evidence-view";
 import { Mk9DashboardModule } from "@/components/mk9-dashboard-module";
 import { Mk9RoutesModule } from "@/components/mk9-routes-module";
 import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
@@ -436,15 +438,16 @@ export function Mk9AnalyticsApp() {
               <Mk9QualityModule
                 month={month}
                 year={year}
-                onNavigate={(target) => {
+                onNavigate={(target: ResolvedNavigation) => {
                   // Deep-link: o Centro de Qualidade só troca de módulo e pré-filtra;
                   // nenhuma correção automática acontece aqui.
                   if (target.month) setMonth(target.month);
                   if (target.year) setYear(target.year);
                   if (target.module === "audit") {
                     setAuditFilters({
-                      industryId: target.industryId ?? undefined,
-                      storeId: target.storeId ?? undefined,
+                      month: target.month ?? month,
+                      year: target.year ?? year,
+                      industryId: target.industryId ?? null,
                     });
                     setAuditKey((k) => k + 1);
                     setActiveModule("conciliacao");
