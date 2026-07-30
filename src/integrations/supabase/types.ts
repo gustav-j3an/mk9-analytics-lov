@@ -1376,6 +1376,30 @@ export type Database = {
           updated_at: string
         }[]
       }
+      mk9_admin_frequency_close: {
+        Args: {
+          _actor?: string
+          _end_date: string
+          _expected_updated_at?: string
+          _reason?: string
+          _version_id: string
+        }
+        Returns: Json
+      }
+      mk9_admin_frequency_set: {
+        Args: {
+          _actor?: string
+          _allow_retroactive?: boolean
+          _effective_date: string
+          _expected_updated_at?: string
+          _industry_id: string
+          _monthly: number
+          _reason?: string
+          _store_id: string
+          _weekly: number
+        }
+        Returns: Json
+      }
       mk9_admin_reactivate_industry: {
         Args: {
           p_actor: string
