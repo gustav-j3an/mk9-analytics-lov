@@ -47,10 +47,39 @@ const SYMPTOM_LABEL: Record<OperationPairSymptom, string> = {
 };
 
 /**
- * Ordem de gravidade (a maior vence):
- *   BLOQUEANTE → execução acontecendo totalmente fora do contrato
- *   CRITICO    → contratado sem meio de executar (frequência sem roteiro)
- *   ATENCAO    → inconsistência de cadastro sem impacto imediato no número
+ * Volume a partir do qual "visita sem roteiro" deixa de ser exceção
+ * operacional e passa a distorcer o número do período.
+ */
+export const VISITS_WITHOUT_ROUTE_CRITICAL_VOLUME = 4;
+
+const SEVERITY_WEIGHT: Record<Mk9QualitySeverity, number> = {
+  INFO: 1, AVISO: 2, ATENCAO: 3, CRITICO: 4, BLOQUEANTE: 5,
+};
+
+function worst(a: Mk9QualitySeverity, b: Mk9QualitySeverity): Mk9QualitySeverity {
+  return SEVERITY_WEIGHT[b] > SEVERITY_WEIGHT[a] ? b : a;
+}
+
+/**
+ * REGRA FINAL DE GRAVIDADE (Fase 2B.3 — item 0.A).
+ *
+ * Visita sem roteiro NÃO é automaticamente BLOQUEANTE: na operação real é o
+ * sintoma mais comum e classificá-lo sempre como bloqueante torna o painel
+ * inútil. A regra passa a ser graduada, e a gravidade final é a PIOR entre
+ * os sintomas presentes:
+ *
+ *   ATENCAO    → sintoma isolado de cadastro, sem impacto imediato no número
+ *                (ex.: frequência zerada, poucas visitas sem roteiro dentro de
+ *                um par que tem contrato).
+ *   CRITICO    → contratado sem meio de executar (frequência sem roteiro);
+ *                roteiro ativo sem frequência contratada;
+ *                volume de visitas sem roteiro ≥ 4 no período (distorce o
+ *                indicador de execução do período).
+ *   BLOQUEANTE → execução acontecendo TOTALMENTE fora do contrato: existem
+ *                visitas realizadas, não existe roteiro e não existe
+ *                frequência vigente. Nesse cenário a importação/conciliação
+ *                não consegue decidir a que contrato a visita pertence, o que
+ *                gera divergência de dados — por isso bloqueia.
  */
 export function evaluateOperationPair(facts: OperationPairFacts): OperationPairEvaluation | null {
   const symptoms: OperationPairSymptom[] = [];
@@ -70,9 +99,21 @@ export function evaluateOperationPair(facts: OperationPairFacts): OperationPairE
   if (!facts.hasFrequency && facts.routeCount === 0 && facts.executedVisits === 0) return null;
 
   let severity: Mk9QualitySeverity = "ATENCAO";
-  if (symptoms.includes("VISITS_WITHOUT_ROUTE")) severity = "BLOQUEANTE";
-  else if (facts.hasFrequency && facts.contractedVisits > 0 && facts.routeCount === 0) severity = "CRITICO";
-  else if (symptoms.includes("ROUTE_WITHOUT_FREQUENCY")) severity = "CRITICO";
+  if (facts.hasFrequency && facts.contractedVisits > 0 && facts.routeCount === 0) {
+    severity = worst(severity, "CRITICO");
+  }
+  if (symptoms.includes("ROUTE_WITHOUT_FREQUENCY")) severity = worst(severity, "CRITICO");
+  if (symptoms.includes("VISITS_WITHOUT_ROUTE")) {
+    severity = worst(
+      severity,
+      !facts.hasFrequency
+        ? "BLOQUEANTE"
+        : facts.executedVisits >= VISITS_WITHOUT_ROUTE_CRITICAL_VOLUME
+          ? "CRITICO"
+          : "ATENCAO",
+    );
+  }
+
 
   const description =
     `Par indústria × loja com inconsistência operacional: ` +
