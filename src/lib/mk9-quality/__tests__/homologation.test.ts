@@ -109,26 +109,24 @@ describe("2B.5 — comentários e evidência", () => {
 });
 
 describe("2B.5 — resolução, reabertura e SLA", () => {
-  it("resolução OTHER exige nota longa", () => {
-    expect(validateResolution({ role: "ADMIN", type: "OTHER", note: "ok", stillDetected: false })).toContain(
-      "NOTE_TOO_SHORT",
-    );
+  it("resolução OTHER exige nota detalhada", () => {
+    expect(validateResolution({ resolutionType: "OTHER", note: "ok mesmo" })).toContain("DETAIL_REQUIRED");
+    expect(
+      validateResolution({ resolutionType: "OTHER", note: "acordo comercial documentado com a indústria" }),
+    ).toHaveLength(0);
   });
 
-  it("não-admin não resolve problema ainda detectado", () => {
-    const problems = validateResolution({
-      role: "SUPERVISOR",
-      type: "FIXED",
-      note: "corrigido no cadastro",
-      stillDetected: true,
-      force: true,
-    });
-    expect(problems.length).toBeGreaterThan(0);
+  it("resolução sem tipo ou sem nota é recusada", () => {
+    expect(validateResolution({ note: "corrigido" })).toContain("TYPE_REQUIRED");
+    expect(validateResolution({ resolutionType: "DATA_FIXED", note: "" })).toContain("NOTE_REQUIRED");
   });
 
-  it("veredito de revalidação distingue corrigido de ainda existente", () => {
-    expect(revalidationVerdict({ stillDetected: false, role: "SUPERVISOR" }).canResolve).toBe(true);
-    expect(revalidationVerdict({ stillDetected: true, role: "SUPERVISOR" }).requiresForce).toBe(true);
+  it("problema ainda detectado só é forçado por ADMIN", () => {
+    expect(revalidationVerdict({ stillDetected: false, role: "SUPERVISOR" }).requiresForceJustification).toBe(false);
+    const supervisor = revalidationVerdict({ stillDetected: true, role: "SUPERVISOR" });
+    expect(supervisor.canForce).toBe(false);
+    expect(supervisor.requiresForceJustification).toBe(true);
+    expect(revalidationVerdict({ stillDetected: true, role: "ADMIN" }).canForce).toBe(true);
     expect(FORCE_MIN_JUSTIFICATION).toBeGreaterThanOrEqual(20);
   });
 
