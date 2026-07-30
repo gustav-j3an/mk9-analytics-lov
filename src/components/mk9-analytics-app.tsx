@@ -6,6 +6,8 @@ import { Mk9ImportModule } from "@/components/mk9-import-module";
 import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
 import { Mk9AuditModule, type Mk9AuditInitialFilters } from "@/components/mk9-audit-module";
 import { Mk9QualityModule } from "@/components/mk9-quality-module";
+import { Gauge } from "lucide-react";
+import { Mk9CockpitModule } from "@/components/mk9-cockpit-module";
 import type { ResolvedNavigation } from "@/lib/mk9-quality/evidence-view";
 import { Mk9DashboardModule } from "@/components/mk9-dashboard-module";
 import { Mk9RoutesModule } from "@/components/mk9-routes-module";
@@ -65,6 +67,7 @@ import {
 
 type ModuleId =
   | "dashboard"
+  | "cockpit"
   | "industrias"
   | "lojas"
   | "promotores"
@@ -80,6 +83,7 @@ type ModuleId =
 type ModuleGroup = "Visão geral" | "Operação" | "Relatórios" | "Dados" | "Importações" | "Administração";
 const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; group: ModuleGroup; roles: Mk9Role[] }> = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3, group: "Visão geral", roles: ["ADMIN", "SUPERVISOR", "AUDITOR"] },
+  { id: "cockpit", label: "Cockpit Operacional", icon: Gauge, group: "Visão geral", roles: ["ADMIN", "SUPERVISOR", "AUDITOR"] },
   { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação", roles: ["ADMIN", "SUPERVISOR", "PROMOTOR", "AUDITOR"] },
   // "Visitas" ocultada do menu — datas planejadas não representam execução real (checklist é fonte da verdade). Componente/backend preservados.
   { id: "conciliacao", label: "Auditoria de Execução", icon: CheckCircle2, group: "Operação", roles: ["ADMIN", "SUPERVISOR"] },
@@ -413,6 +417,33 @@ export function Mk9AnalyticsApp() {
                   });
                   setAuditKey((k) => k + 1);
                   setActiveModule("conciliacao");
+                }}
+              />
+            )}
+            {activeModule === "cockpit" && (
+              <Mk9CockpitModule
+                onNavigate={(target) => {
+                  const params = new URLSearchParams(target.split("?")[1] ?? "");
+                  const map: Record<string, ModuleId> = {
+                    audit: "conciliacao",
+                    quality: "qualidade",
+                    checklists: "checklists",
+                    importacoes: "importacoes",
+                    roteiros: "roteiros",
+                    relatorio_industria: "relatorio_industria",
+                  };
+                  const next = map[params.get("module") ?? ""] ?? "dashboard";
+                  if (next === "conciliacao") {
+                    setAuditFilters({
+                      month,
+                      year,
+                      industryId: params.get("industry"),
+                      uf: null,
+                      promoterId: null,
+                    });
+                    setAuditKey((k) => k + 1);
+                  }
+                  setActiveModule(next);
                 }}
               />
             )}
