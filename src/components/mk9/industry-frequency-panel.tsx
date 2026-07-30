@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
+import { IndustryContractSummary } from "@/components/mk9/industry-contract-summary";
 import {
   FREQUENCY_ADMIN_CACHE_KEYS,
   FREQUENCY_STATUS_LABEL,
@@ -142,7 +143,10 @@ function FrequencyPanel({ industryId, isAdmin }: { industryId: string; isAdmin: 
 
   return (
     <div className="space-y-4">
+      <IndustryContractSummary industryId={industryId} isAdmin={isAdmin} />
+
       <div className="flex flex-wrap items-center gap-2">
+        <p className="w-full text-sm font-semibold">Exceções por loja</p>
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
