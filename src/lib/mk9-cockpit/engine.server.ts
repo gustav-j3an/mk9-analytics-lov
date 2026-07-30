@@ -16,7 +16,14 @@ import type { OperationFilters } from "@/lib/mk9-operations/types";
 import { evaluateHealth } from "./health";
 import { forecastClose } from "./forecast";
 import { rankPriorities, scoreFor } from "./priorities";
-import type { Mk9CockpitIndustry, Mk9CockpitOverview, Mk9PriorityItem } from "./types";
+import { buildPromoterAttention, quickActionsForRole } from "./view";
+import type {
+  Mk9CockpitIndustry,
+  Mk9CockpitOverview,
+  Mk9CockpitViewer,
+  Mk9PriorityItem,
+  Mk9TimelineEvent,
+} from "./types";
 
 const OPEN_STATUSES = ["OPEN", "ACKNOWLEDGED", "IN_PROGRESS", "REOPENED"];
 
@@ -24,7 +31,9 @@ interface QualitySnapshot {
   open: number;
   overdue: number;
   blocking: number;
+  unassigned: number;
   openByIndustry: Map<string, number>;
+  recent?: Array<{ id: string; at: string; kind: "OCORRENCIA_DETECTADA"; description: string; industryId: string | null }>;
   topItems: Array<{
     id: string;
     title: string;
@@ -46,6 +55,7 @@ async function loadQuality(
     open: 0,
     overdue: 0,
     blocking: 0,
+    unassigned: 0,
     openByIndustry: new Map(),
     topItems: [],
   };
@@ -53,7 +63,7 @@ async function loadQuality(
 
   let q = supabase
     .from("mk9_data_quality_issues")
-    .select("id, title, severity, status, due_at, industry_id, store_id, competence_month, competence_year")
+    .select("id, title, severity, status, due_at, industry_id, store_id, assigned_to_user_id, first_detected_at, competence_month, competence_year")
     .in("status", OPEN_STATUSES)
     .is("archived_at", null)
     .in("industry_id", industryIds)
@@ -67,6 +77,7 @@ async function loadQuality(
 
   for (const row of data ?? []) {
     snap.open += 1;
+    if (!row.assigned_to_user_id) snap.unassigned += 1;
     if (row.industry_id) {
       snap.openByIndustry.set(row.industry_id, (snap.openByIndustry.get(row.industry_id) ?? 0) + 1);
     }
@@ -87,7 +98,35 @@ async function loadQuality(
       });
     }
   }
+  snap.recent = (data ?? [])
+    .filter((r: any) => r.first_detected_at)
+    .sort((a: any, b: any) => String(b.first_detected_at).localeCompare(String(a.first_detected_at)))
+    .slice(0, 8)
+    .map((r: any) => ({
+      id: `issue-${r.id}`,
+      at: String(r.first_detected_at),
+      kind: "OCORRENCIA_DETECTADA" as const,
+      description: String(r.title),
+      industryId: r.industry_id ?? null,
+    }));
   return snap;
+}
+
+async function loadRecentImports(supabase: any, industryIds: string[]) {
+  if (!industryIds.length) return [] as Array<{ id: string; at: string; status: string; industryId: string | null }>;
+  const { data, error } = await supabase
+    .from("mk9_checklist_imports")
+    .select("id, industry_id, status, created_at")
+    .in("industry_id", industryIds)
+    .order("created_at", { ascending: false })
+    .limit(8);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r: any) => ({
+    id: `import-${r.id}`,
+    at: String(r.created_at),
+    status: String(r.status),
+    industryId: r.industry_id ?? null,
+  }));
 }
 
 async function countFailedImports(supabase: any, filters: OperationFilters, industryIds: string[]): Promise<number> {
@@ -106,14 +145,16 @@ async function countFailedImports(supabase: any, filters: OperationFilters, indu
 export async function buildCockpitOverview(
   supabase: any,
   filters: OperationFilters,
+  viewer: Mk9CockpitViewer = { role: "ADMIN", canViewImports: true, canViewPersonalData: true },
 ): Promise<Mk9CockpitOverview> {
   const startedAt = Date.now();
   const core = await loadOperationCore(supabase, filters);
   const { today, storeRows, industryRows, ctxs } = core;
 
-  const [quality, failedImports] = await Promise.all([
+  const [quality, failedImports, recentImports] = await Promise.all([
     loadQuality(supabase, filters, core.industryIds, today),
     countFailedImports(supabase, filters, core.industryIds),
+    viewer.canViewImports ? loadRecentImports(supabase, core.industryIds) : Promise.resolve([]),
   ]);
 
   const contratadas = storeRows.reduce((a, s) => a + s.contratadas, 0);
@@ -238,6 +279,25 @@ export async function buildCockpitOverview(
     openIssues: quality.openByIndustry.get(i.industryId) ?? 0,
   }));
 
+  const timeline: Mk9TimelineEvent[] = [
+    ...recentImports.map((imp: any) => ({
+      id: imp.id,
+      at: imp.at,
+      kind: "IMPORTACAO" as const,
+      description: `Importação de checklist (${imp.status})`,
+      industryName: imp.industryId ? industryName(imp.industryId) : null,
+    })),
+    ...(quality.recent ?? []).map((ev) => ({
+      id: ev.id,
+      at: ev.at,
+      kind: ev.kind,
+      description: ev.description,
+      industryName: ev.industryId ? industryName(ev.industryId) : null,
+    })),
+  ]
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .slice(0, 8);
+
   const series = toWeeklySeries(
     buildDailySeries({
       ctxs,
@@ -269,9 +329,31 @@ export async function buildCockpitOverview(
     },
     forecast,
     priorities: rankPriorities(candidates),
+    priorityMoreCount: Math.max(0, candidates.length - 5),
     industries,
     series,
     availableUfs: core.availableUfs,
+    viewer,
+    quickActions: quickActionsForRole(viewer.role),
+    checklists: {
+      imports: core.checklistImportsTotal,
+      failedImports,
+      industriesWithoutChecklist: core.ctxs.filter((c) => c.checklistImports === 0).length,
+      lastImportAt: recentImports[0]?.at ?? null,
+    },
+    quality: {
+      open: quality.open,
+      blocking: quality.blocking,
+      overdue: quality.overdue,
+      unassigned: quality.unassigned,
+    },
+    promoters: viewer.canViewPersonalData ? buildPromoterAttention(storeRows) : [],
+    supervisors: {
+      available: false,
+      reason:
+        "Indicador indisponível. Cadastre os escopos dos supervisores para acompanhar a equipe.",
+    },
+    timeline,
     perf: { totalMs: Math.round(Date.now() - startedAt), coreMs: core.coreMs, queryCount: core.queryCount + 2 },
   };
 }
