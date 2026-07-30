@@ -107,7 +107,8 @@ export const frequencyWeeklyMonthlyInconsistencyDetector: Mk9DataQualityDetector
           validUntil: row.valid_until ?? null,
           sourceType: row.source_type ?? null,
           sourceImportId: row.source_import_id ?? null,
-          navigationTarget: navigationTarget("frequency", {
+          navigationTarget: navigationTarget({
+            module: "frequency",
             industryId,
             storeId,
             month,
