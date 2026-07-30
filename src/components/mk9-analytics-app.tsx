@@ -559,6 +559,7 @@ function IndustriesModule({
   const [editing, setEditing] = useState<any | null>(null);
   const [archiving, setArchiving] = useState<any | null>(null);
   const [reactivating, setReactivating] = useState<any | null>(null);
+  const [frequencyFor, setFrequencyFor] = useState<{ id: string; name: string } | null>(null);
   const queryClient = useQueryClient();
   const setChecklistFn = useServerFn(mk9SetIndustryRequiresChecklist);
 
@@ -654,6 +655,9 @@ function IndustriesModule({
                     <Button size="sm" variant="outline" onClick={() => setConfigId(i.id)}>
                       Configurar
                     </Button>
+                    <Button size="sm" variant="outline" onClick={() => setFrequencyFor({ id: i.id, name: i.name })}>
+                      Frequências
+                    </Button>
                     {i.archivedAt ? (
                       <Button size="sm" variant="outline" onClick={() => setReactivating(i)}>
                         Reativar
@@ -682,6 +686,11 @@ function IndustriesModule({
           <IndustryEditDialog industry={editing} onClose={() => setEditing(null)} />
           <IndustryArchiveDialog industry={archiving} onClose={() => setArchiving(null)} />
           <IndustryReactivateDialog industry={reactivating} onClose={() => setReactivating(null)} />
+          <IndustryFrequencyDialog
+            industry={frequencyFor}
+            isAdmin={isAdmin}
+            onClose={() => setFrequencyFor(null)}
+          />
         </>
       )}
 
