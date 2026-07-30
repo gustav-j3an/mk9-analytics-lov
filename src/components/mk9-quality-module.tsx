@@ -114,6 +114,8 @@ interface Filters {
   status: string;
   industryId: string;
   uf: string;
+  assignedTo: string | null;
+  dueState: string | null;
   month: number;
   year: number;
   page: number;
@@ -192,6 +194,8 @@ export function Mk9QualityModule({ month, year, onNavigate }: Mk9QualityModulePr
     status: "__OPEN__",
     industryId: ALL,
     uf: ALL,
+    assignedTo: null,
+    dueState: null,
     month,
     year,
     page: 1,
@@ -220,6 +224,25 @@ export function Mk9QualityModule({ month, year, onNavigate }: Mk9QualityModulePr
   const detailFn = useServerFn(mk9QualityDetailFn);
   const runFn = useServerFn(mk9QualityRunFn);
   const transitionFn = useServerFn(mk9QualityTransitionFn);
+  const assignFn = useServerFn(mk9QualityAssignFn);
+  const planningFn = useServerFn(mk9QualityPlanningFn);
+  const reopenFn = useServerFn(mk9QualityReopenFn);
+  const addCommentFn = useServerFn(mk9QualityAddCommentFn);
+  const editCommentFn = useServerFn(mk9QualityEditCommentFn);
+  const archiveCommentFn = useServerFn(mk9QualityArchiveCommentFn);
+
+  const followUpQ = useQuery({
+    queryKey: ["mk9-quality-followup"],
+    queryFn: () => mk9QualityFollowUpFn({ data: {} } as any),
+    staleTime: 60_000,
+  });
+
+  async function refreshIssue(id: string) {
+    await queryClient.invalidateQueries({ queryKey: ["mk9-quality-detail", id] });
+    await queryClient.invalidateQueries({ queryKey: ["mk9-quality-list"] });
+    await queryClient.invalidateQueries({ queryKey: ["mk9-quality-followup"] });
+    await queryClient.invalidateQueries({ queryKey: ["mk9-quality-overview"] });
+  }
 
   const facetsQ = useQuery({
     queryKey: ["mk9-quality-facets"],
@@ -246,6 +269,8 @@ export function Mk9QualityModule({ month, year, onNavigate }: Mk9QualityModulePr
           issueType: filters.issueType === ALL ? null : filters.issueType,
           industryId: filters.industryId === ALL ? null : filters.industryId,
           uf: filters.uf === ALL ? null : filters.uf,
+          assignedTo: filters.assignedTo,
+          dueState: filters.dueState as any,
           search: filters.search || null,
           page: filters.page,
           pageSize: PAGE_SIZE,
@@ -419,6 +444,14 @@ export function Mk9QualityModule({ month, year, onNavigate }: Mk9QualityModulePr
             </button>
           ))}
         </div>
+      )}
+
+      {followUpQ.data?.summary && (
+        <FollowUpPanel
+          summary={followUpQ.data.summary}
+          activeFilter={{ assignedTo: filters.assignedTo, dueState: filters.dueState }}
+          onFilter={(next) => { setMode("PERSISTED"); patch(next as Partial<Filters>); }}
+        />
       )}
 
       {/* ---------------- Diagnóstico consolidado ---------------- */}
@@ -637,7 +670,14 @@ export function Mk9QualityModule({ month, year, onNavigate }: Mk9QualityModulePr
                     </td>
                     <td className="p-3 text-muted-foreground">{competenceLabel(issue.competenceMonth, issue.competenceYear)}</td>
                     <td className="p-3 text-muted-foreground" title={dateTimeLabel(issue.lastSeenAt)}>{relativeLabel(issue.lastSeenAt)}</td>
-                    <td className="p-3"><StatusBadge status={issue.status} /></td>
+                    <td className="p-3">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <StatusBadge status={issue.status} />
+                        <PriorityBadge priority={issue.priority} />
+                        <DueBadge issue={issue} />
+                      </div>
+                      <div className="mt-1"><AssigneeBadge name={issue.assignedToName} /></div>
+                    </td>
                     <td className="p-3 text-right">
                       <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelectedId(issue.id)}>
                         Detalhar
@@ -695,13 +735,54 @@ export function Mk9QualityModule({ month, year, onNavigate }: Mk9QualityModulePr
             <IssueDetail
               issue={selectedIssue}
               events={detailQ.data?.events ?? []}
+              comments={detailQ.data?.comments ?? []}
               role={role}
+              currentUserId={followUpQ.data?.currentUserId ?? null}
+              users={followUpQ.data?.users ?? []}
+              stillDetected={
+                selectedIssue.status === "OPEN" ||
+                selectedIssue.status === "ACKNOWLEDGED" ||
+                selectedIssue.status === "IN_PROGRESS" ||
+                selectedIssue.status === "REOPENED"
+              }
               onNavigate={onNavigate}
-              onTransition={async (target, reason) => {
-                await transitionFn({ data: { id: selectedIssue.id, toStatus: target, reason: reason || null } });
-                await queryClient.invalidateQueries({ queryKey: ["mk9-quality-detail", selectedIssue.id] });
-                await queryClient.invalidateQueries({ queryKey: ["mk9-quality-list"] });
-                await queryClient.invalidateQueries({ queryKey: ["mk9-quality-overview"] });
+              onTransition={async (input) => {
+                await transitionFn({
+                  data: {
+                    id: selectedIssue.id,
+                    toStatus: input.toStatus,
+                    reason: input.reason || null,
+                    resolutionType: input.resolutionType ?? null,
+                    forced: input.forced ?? false,
+                    ignoreUntil: input.ignoreUntil ?? null,
+                    expectedUpdatedAt: selectedIssue.updatedAt,
+                  } as any,
+                });
+                await refreshIssue(selectedIssue.id);
+              }}
+              onReopen={async (reason) => {
+                await reopenFn({ data: { id: selectedIssue.id, reason, expectedUpdatedAt: selectedIssue.updatedAt } as any });
+                await refreshIssue(selectedIssue.id);
+              }}
+              onAssign={async (assigneeId, note) => {
+                await assignFn({ data: { id: selectedIssue.id, assigneeId, note, expectedUpdatedAt: selectedIssue.updatedAt } as any });
+                await refreshIssue(selectedIssue.id);
+              }}
+              onPlanning={async (input) => {
+                await planningFn({ data: { id: selectedIssue.id, ...input, expectedUpdatedAt: selectedIssue.updatedAt } as any });
+                await refreshIssue(selectedIssue.id);
+              }}
+              onAddComment={async (body, visibility) => {
+                await addCommentFn({ data: { issueId: selectedIssue.id, body, visibility } as any });
+                await refreshIssue(selectedIssue.id);
+              }}
+              onEditComment={async (commentId, body) => {
+                await editCommentFn({ data: { issueId: selectedIssue.id, commentId, body } as any });
+                await refreshIssue(selectedIssue.id);
+              }}
+              onArchiveComment={async (commentId) => {
+                await archiveCommentFn({ data: { issueId: selectedIssue.id, commentId } as any });
+                await refreshIssue(selectedIssue.id);
               }}
             />
           ) : null}
