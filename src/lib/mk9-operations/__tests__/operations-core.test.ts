@@ -42,6 +42,8 @@ function ctx(overrides: Partial<IndustryContext> = {}): IndustryContext {
   return {
     id: "ind-1",
     name: "KING",
+    requiresChecklist: true,
+
     win: WIN,
     fraction: 0.5,
     buckets: new Map(),
