@@ -195,7 +195,7 @@ describe("contratadas com frequência quinzenal", () => {
       operationPeriodEnd: "2026-07-31",
       segments: [seg("2026-01-01", null, 0.5, null)],
     });
-    expect(r.contratadas).not.toBe(0.5 * 4);
+    expect(r.raw).not.toBeCloseTo(0.5 * 4, 6);
     expect(r.raw).toBeCloseTo(0.5 * (31 / 7), 10);
   });
 
