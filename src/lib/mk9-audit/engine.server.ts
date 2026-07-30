@@ -333,17 +333,21 @@ export async function auditByPromoter(supabase: any, scope: AuditScope): Promise
   }
   return Array.from(map.entries())
     .map(([pid, v]) => {
-      // Fase 1B.4: métricas sempre pelo agregador canônico (paridade entre módulos).
+      // Fase 1B.4: mesma regra dos totais por indústria (bruto no agregado,
+      // canônico por loja) — evita divergência entre as abas da auditoria.
       const agg = aggregateVisitMetrics(v.pairs);
+      const pendentes = Math.max(0, agg.contratadas - agg.executadas);
+      const coberturaPct =
+        agg.contratadas > 0 ? Math.min(100, Math.round((agg.executadas / agg.contratadas) * 100)) : 0;
       return {
         promoterId: pid === "__NONE__" ? null : pid,
         promoterName: v.name,
         storesCount: v.pairs.length,
         contratadas: agg.contratadas,
         realizadas: agg.executadas,
-        pendentes: agg.pendencias,
+        pendentes,
         extras: agg.extras,
-        coberturaPct: agg.coberturaPct,
+        coberturaPct,
       };
     })
     .sort((a, b) => a.promoterName.localeCompare(b.promoterName, "pt-BR"));
