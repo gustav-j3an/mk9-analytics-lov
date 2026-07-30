@@ -484,6 +484,53 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
               </SelectContent>
             </Select>
           </div>
+          {isAdmin && (
+            <div className="rounded-lg border border-dashed border-border/60 p-3 space-y-2">
+              <p className="text-xs text-muted-foreground">
+                A indústria do arquivo não está cadastrada? Cadastre-a aqui — ela nasce habilitada
+                para checklist, com registro de quem cadastrou.
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  placeholder="Nome da indústria"
+                  value={newIndustryName}
+                  onChange={(e) => {
+                    setNewIndustryName(e.target.value);
+                    setCandidates(null);
+                  }}
+                />
+                <Button
+                  variant="outline"
+                  disabled={newIndustryName.trim().length < 2 || createIndustryMut.isPending}
+                  onClick={() => createIndustryMut.mutate(!!candidates)}
+                >
+                  {createIndustryMut.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : null}
+                  {candidates ? "Cadastrar mesmo assim" : "Cadastrar indústria"}
+                </Button>
+              </div>
+              {candidates && (
+                <div className="space-y-1 text-xs">
+                  <p className="text-amber-500">Indústrias semelhantes já cadastradas:</p>
+                  {candidates.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className="block w-full rounded border border-border/60 px-2 py-1 text-left hover:bg-muted/40"
+                      onClick={() => {
+                        setIndustryId(c.id);
+                        setCandidates(null);
+                        setNewIndustryName("");
+                      }}
+                    >
+                      Vincular a “{c.name}”
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           <div className="flex gap-2">
             <Button onClick={() => previewMut.mutate()} disabled={!file || !industryId || previewMut.isPending}>
               {previewMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
@@ -503,6 +550,30 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
 
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!gate} onOpenChange={(o) => !o && setGate(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Esta indústria ainda não está habilitada para checklist.</AlertDialogTitle>
+            <AlertDialogDescription>
+              {gate?.industryName}. Ao habilitar, ela passa a aparecer no fluxo de checklist e a
+              prévia continua com o arquivo já enviado — sem novo upload. {MISSING_PERIOD_WARNING}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                enableAndContinueMut.mutate();
+              }}
+              disabled={enableAndContinueMut.isPending}
+            >
+              Habilitar e continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {rejected && (
         <Card className="glass-panel border-destructive/40">
