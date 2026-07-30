@@ -79,6 +79,7 @@ export const mk9QualityListFn = createServerFn({ method: "POST" })
       status: data.status ?? null,
       category: data.category ?? null,
       severity: data.severity ?? null,
+      issueType: data.issueType ?? null,
       industryId: data.industryId ?? null,
       storeId: data.storeId ?? null,
       competenceMonth: data.month ?? null,
@@ -86,6 +87,7 @@ export const mk9QualityListFn = createServerFn({ method: "POST" })
       page: data.page,
       pageSize: data.pageSize,
     });
+
   });
 
 /** Detalhe de uma ocorrência + linha do tempo (histórico só para papéis internos). */
