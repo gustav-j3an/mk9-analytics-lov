@@ -37,7 +37,19 @@ import {
   checklistReprocessValidation,
   checklistGetValidation,
 } from "@/lib/mk9-checklist.functions";
-import { mk9ListChecklistIndustries } from "@/lib/mk9-data.functions";
+import {
+  mk9CreateChecklistIndustry,
+  mk9ListChecklistIndustries,
+  mk9SetIndustryRequiresChecklist,
+} from "@/lib/mk9-data.functions";
+import { useMk9Session } from "@/lib/mk9-auth/session";
+import {
+  INDUSTRY_CHECKLIST_DISABLED,
+  canManageChecklistIndustries,
+  NON_ADMIN_DISABLED_MESSAGE,
+  MISSING_PERIOD_WARNING,
+  CHECKLIST_INDUSTRY_CACHE_KEYS,
+} from "@/lib/mk9-checklist/industry-admin-ui";
 import { detectMk9FileKind } from "@/lib/mk9/detect-file-kind";
 import type { ChecklistPreview } from "@/lib/mk9-checklist/types";
 
@@ -108,7 +120,8 @@ function parseServerError(e: any): RichError {
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === "object" && parsed.__mk9Error) return parsed as RichError;
   } catch {}
-  return { message: raw || "Erro desconhecido", raw };
+  const code = e?.code ?? e?.name;
+  return { message: raw || "Erro desconhecido", raw, ...(code ? { code } : {}) } as RichError;
 }
 
 async function requestChecklistPreview(input: {
@@ -164,11 +177,19 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const phaseTimersRef = useRef<number[]>([]);
   const ackRef = useRef<HTMLLabelElement | null>(null);
 
+  const [gate, setGate] = useState<{ industryId: string; industryName: string } | null>(null);
+  const [newIndustryName, setNewIndustryName] = useState("");
+  const [candidates, setCandidates] = useState<Array<{ id: string; name: string }> | null>(null);
+  const { roles } = useMk9Session();
+  const isAdmin = canManageChecklistIndustries(roles);
+
   const commitFn = useServerFn(checklistCommit);
   const listFn = useServerFn(checklistList);
   const deleteFn = useServerFn(checklistDelete);
   const cancelFn = useServerFn(checklistCancel);
   const industriesFn = useServerFn(mk9ListChecklistIndustries);
+  const enableIndustryFn = useServerFn(mk9SetIndustryRequiresChecklist);
+  const createIndustryFn = useServerFn(mk9CreateChecklistIndustry);
   const qc = useQueryClient();
 
   const clearPhaseTimers = () => {
@@ -206,9 +227,74 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     },
     onError: (e: any) => {
       const rich = parseServerError(e);
+      // Indústria não habilitada: ADMIN pode habilitar e continuar sem reenviar o arquivo.
+      if ((rich as any).code === INDUSTRY_CHECKLIST_DISABLED) {
+        const name =
+          (industriesQ.data ?? []).find((i) => i.id === industryId)?.name ?? "Indústria selecionada";
+        if (isAdmin) {
+          setGate({ industryId: (rich as any).industryId ?? industryId, industryName: name });
+          return;
+        }
+        toast.error(NON_ADMIN_DISABLED_MESSAGE, { duration: 10000 });
+        return;
+      }
       setLastError(rich);
       toast.error(rich.message ?? "Falha ao gerar prévia", { duration: 10000 });
     },
+  });
+
+  const invalidateChecklistCaches = () => {
+    for (const key of CHECKLIST_INDUSTRY_CACHE_KEYS) qc.invalidateQueries({ queryKey: [key] });
+  };
+
+  // "Habilitar e continuar": habilita no servidor (ADMIN revalidado lá) e retoma
+  // a prévia com o MESMO arquivo já selecionado — sem novo upload.
+  const enableAndContinueMut = useMutation({
+    mutationFn: async () => {
+      if (!gate) throw new Error("Nenhuma indústria pendente");
+      await enableIndustryFn({
+        data: { industryId: gate.industryId, value: true, source: "IMPORT" as const },
+      });
+      return gate.industryId;
+    },
+    onSuccess: (id: string) => {
+      invalidateChecklistCaches();
+      setGate(null);
+      setIndustryId(id);
+      toast.success("Indústria habilitada para checklist", { description: MISSING_PERIOD_WARNING });
+      previewMut.mutate();
+    },
+    onError: (e: any) => toast.error(parseServerError(e).message ?? "Falha ao habilitar indústria"),
+  });
+
+  // Indústria inexistente: cadastro explícito, com candidatos semelhantes antes de criar.
+  const createIndustryMut = useMutation({
+    mutationFn: async (confirmed: boolean) =>
+      createIndustryFn({
+        data: { name: newIndustryName, confirmed, importId: importId ?? null },
+      }),
+    onSuccess: (res: any) => {
+      if (res.status === "candidates") {
+        setCandidates(res.candidates);
+        toast.warning("Existem indústrias com nome parecido. Confirme antes de cadastrar.");
+        return;
+      }
+      if (res.status === "duplicate") {
+        toast.error("Já existe uma indústria cadastrada com este nome.");
+        setIndustryId(res.match.id);
+        setCandidates(null);
+        return;
+      }
+      invalidateChecklistCaches();
+      setCandidates(null);
+      setNewIndustryName("");
+      setIndustryId(res.industry.id);
+      toast.success("Indústria cadastrada e habilitada para checklist", {
+        description: MISSING_PERIOD_WARNING,
+      });
+      if (file) previewMut.mutate();
+    },
+    onError: (e: any) => toast.error(parseServerError(e).message ?? "Falha ao cadastrar indústria"),
   });
 
   const commitMut = useMutation({
