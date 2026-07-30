@@ -44,6 +44,10 @@ export interface ChecklistPreviewCounters {
   invalidDates: number;
   frequenciesNotImported: number;
   duplicateStoreNames: number;
+  /** Lojas com 0,5x/semana e 2x/mês (quinzenal). */
+  biweeklyFrequencies?: number;
+  /** Lojas cuja semanal e mensal divergem da regra comercial. */
+  inconsistentFrequencies?: number;
 }
 
 export interface ChecklistStoreFrequency {
@@ -57,6 +61,10 @@ export interface ChecklistStoreFrequency {
   weeklyFrequency: number | null;
   monthlyFrequency: number | null;
   excelRow?: number;
+  /** Texto pt-BR pronto para o preview (ex.: "Frequência quinzenal: 0,5x/semana · 2x/mês"). */
+  frequencyLabel?: string;
+  /** true quando semanal × mensal fogem da regra comercial canônica. */
+  frequencyInconsistent?: boolean;
 }
 
 export type ChecklistValidationStatus = "CONSISTENT" | "COMPLETED_WITH_ALERTS" | "INCONSISTENT" | "FAILED";
