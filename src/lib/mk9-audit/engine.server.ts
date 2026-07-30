@@ -61,6 +61,7 @@ export interface AuditPromoterLine {
   contratadas: number;
   realizadas: number;
   pendentes: number;
+  extras: number;
   coberturaPct: number;
 }
 
@@ -72,6 +73,7 @@ export interface AuditIndustryLine {
   contratadas: number;
   realizadas: number;
   pendentes: number;
+  extras: number;
   coberturaPct: number;
 }
 
@@ -297,17 +299,19 @@ export async function auditByStore(supabase: any, scope: AuditScope): Promise<{ 
 
     if (scope.promoterId) stores = stores.filter((s) => s.promoterId === scope.promoterId);
     for (const s of stores) all.push(s);
+    // Fase 1B.4: paridade total com o Relatório da Indústria — todas as
+    // métricas vêm do agregador canônico (validas por loja, nunca bruto).
     const agg = aggregateVisitMetrics(stores.map((s) => ({ contratadas: s.contratadas, executadas: s.realizadas })));
-    const realizadas = agg.executadas;
-    const contratadas = agg.contratadas;
-    const pendentes = Math.max(0, contratadas - realizadas);
-    const coberturaPct = contratadas > 0 ? Math.min(100, Math.round((realizadas / contratadas) * 100)) : 0;
     totals.push({
       industryId: c.industryId,
       industryName: c.industryName,
       window: { startDate: c.window.startDate, endDate: c.window.endDate, totalDays: c.window.totalDays },
       storesCount: stores.length,
-      contratadas, realizadas, pendentes, coberturaPct,
+      contratadas: agg.contratadas,
+      realizadas: agg.executadas,
+      pendentes: agg.pendencias,
+      extras: agg.extras,
+      coberturaPct: agg.coberturaPct,
     });
   }
   return { stores: all, totals };
@@ -315,27 +319,26 @@ export async function auditByStore(supabase: any, scope: AuditScope): Promise<{ 
 
 export async function auditByPromoter(supabase: any, scope: AuditScope): Promise<AuditPromoterLine[]> {
   const { stores } = await auditByStore(supabase, scope);
-  const map = new Map<string, { name: string; storesCount: number; contratadas: number; realizadas: number }>();
+  const map = new Map<string, { name: string; pairs: Array<{ contratadas: number; executadas: number }> }>();
   for (const s of stores) {
     const key = s.promoterId ?? "__NONE__";
-    const cur = map.get(key) ?? { name: s.promoterName ?? "Não atribuído", storesCount: 0, contratadas: 0, realizadas: 0 };
-    cur.storesCount += 1;
-    cur.contratadas += s.contratadas;
-    cur.realizadas += s.realizadas;
+    const cur = map.get(key) ?? { name: s.promoterName ?? "Não atribuído", pairs: [] };
+    cur.pairs.push({ contratadas: s.contratadas, executadas: s.realizadas });
     map.set(key, cur);
   }
   return Array.from(map.entries())
     .map(([pid, v]) => {
-      const pendentes = Math.max(0, v.contratadas - v.realizadas);
-      const coberturaPct = v.contratadas > 0 ? Math.min(100, Math.round((v.realizadas / v.contratadas) * 100)) : 0;
+      // Fase 1B.4: métricas sempre pelo agregador canônico (paridade entre módulos).
+      const agg = aggregateVisitMetrics(v.pairs);
       return {
         promoterId: pid === "__NONE__" ? null : pid,
         promoterName: v.name,
-        storesCount: v.storesCount,
-        contratadas: v.contratadas,
-        realizadas: v.realizadas,
-        pendentes,
-        coberturaPct,
+        storesCount: v.pairs.length,
+        contratadas: agg.contratadas,
+        realizadas: agg.executadas,
+        pendentes: agg.pendencias,
+        extras: agg.extras,
+        coberturaPct: agg.coberturaPct,
       };
     })
     .sort((a, b) => a.promoterName.localeCompare(b.promoterName, "pt-BR"));
