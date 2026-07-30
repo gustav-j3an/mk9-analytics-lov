@@ -274,7 +274,7 @@ describe("exceções por loja recalculam o total automaticamente", () => {
     const check = evaluateContract({ contractedTotal: 18, rows });
     expect(check.distributedTotal).toBe(4 + 4 + 2 + 8);
     expect(check.status).toBe("CONFERIDO");
-    expect(groupDistribution(rows).map((g) => g.label)).toEqual(["8x/mês", "4x/mês", "2x/mês"]);
+    expect(groupDistribution(rows).map((g) => g.label)).toEqual(["4x/mês", "8x/mês", "2x/mês"]);
   });
 });
 
