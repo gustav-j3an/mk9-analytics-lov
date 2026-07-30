@@ -24,11 +24,14 @@ const listSchema = competenceSchema.extend({
     .enum(["CADASTRO", "FREQUENCIA", "ROTEIRO", "VISITA", "IMPORTACAO", "INTEGRIDADE", "SEGURANCA"])
     .nullish(),
   severity: z.enum(["INFO", "AVISO", "ATENCAO", "CRITICO", "BLOQUEANTE"]).nullish(),
+  // Tipo é uma constante do catálogo de detectores: formato restrito.
+  issueType: z.string().trim().regex(/^[A-Z0-9_]{3,64}$/).nullish(),
   industryId: z.string().uuid().nullish(),
   storeId: z.string().uuid().nullish(),
   page: z.number().int().min(1).max(500).default(1),
   pageSize: z.number().int().min(1).max(100).default(25),
 });
+
 
 const transitionSchema = z.object({
   id: z.string().uuid(),
