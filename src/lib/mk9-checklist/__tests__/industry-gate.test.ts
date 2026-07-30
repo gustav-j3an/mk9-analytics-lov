@@ -116,3 +116,36 @@ describe("desabilitação preserva histórico", () => {
     expect(paraRelatorio.length).toBe(CADASTRO.length);
   });
 });
+
+describe("countIndustriesMissingChecklist — regra temporal", () => {
+  const base = { requiresChecklist: true, checklistImports: 0 };
+
+  it("não cobra checklist em competência anterior à habilitação", () => {
+    const n = countIndustriesMissingChecklist(
+      [{ ...base, checklistEnabledAt: "2026-07-10T00:00:00Z" }],
+      { month: 6, year: 2026 },
+    );
+    expect(n).toBe(0);
+  });
+
+  it("cobra a partir da competência de habilitação", () => {
+    const ctxs = [{ ...base, checklistEnabledAt: "2026-07-10T00:00:00Z" }];
+    expect(countIndustriesMissingChecklist(ctxs, { month: 7, year: 2026 })).toBe(1);
+    expect(countIndustriesMissingChecklist(ctxs, { month: 8, year: 2026 })).toBe(1);
+  });
+
+  it("sem data registrada mantém o comportamento anterior", () => {
+    expect(
+      countIndustriesMissingChecklist([{ ...base, checklistEnabledAt: null }], { month: 1, year: 2026 }),
+    ).toBe(1);
+  });
+
+  it("ignora indústria que já importou checklist na competência", () => {
+    expect(
+      countIndustriesMissingChecklist(
+        [{ ...base, checklistImports: 2, checklistEnabledAt: null }],
+        { month: 7, year: 2026 },
+      ),
+    ).toBe(0);
+  });
+});
