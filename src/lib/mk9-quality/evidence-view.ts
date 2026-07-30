@@ -56,6 +56,19 @@ const RENDERERS: Record<string, (e: Mk9Evidence) => EvidenceRow[]> = {
     { label: "Motivo da suspeita", value: TEXT(e.reason ?? "Nomes equivalentes na mesma UF e rede") },
   ],
 
+  FREQUENCY_WEEKLY_MONTHLY_INCONSISTENCY: (e) => [
+    { label: "Loja", value: TEXT(e.storeName), emphasis: true },
+    { label: "Indústria", value: TEXT(e.industryName) },
+    { label: "UF", value: TEXT(e.storeUf) },
+    { label: "Frequência semanal", value: NUM(e.weeklyFrequency), emphasis: true },
+    { label: "Frequência mensal", value: NUM(e.monthlyFrequency), emphasis: true },
+    { label: "Mensal esperado pela regra comercial", value: NUM(e.expectedMonthly) },
+    { label: "Diferença", value: NUM(e.difference), emphasis: true },
+    { label: "Vigência a partir de", value: TEXT(e.validFrom) },
+    { label: "Vigência até", value: TEXT(e.validUntil ?? "Sem término") },
+    { label: "Origem do cadastro", value: TEXT(e.sourceType) },
+  ],
+
   OPERATION_PAIR_INTEGRITY: (e) => [
     { label: "Possui frequência vigente?", value: BOOL(e.hasFrequency) },
     { label: "Possui roteiro vigente?", value: BOOL(e.hasRoute) },
@@ -147,6 +160,13 @@ const KEY_LABEL: Record<string, string> = {
   similarity: "Similaridade",
   missing: "Campos ausentes",
   peerStoreName: "Loja comparada",
+  weeklyFrequency: "Frequência semanal",
+  monthlyFrequency: "Frequência mensal",
+  expectedMonthly: "Mensal esperado",
+  difference: "Diferença",
+  validFrom: "Vigência a partir de",
+  validUntil: "Vigência até",
+  sourceType: "Origem do cadastro",
 };
 
 function humanKey(key: string): string {

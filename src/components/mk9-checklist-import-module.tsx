@@ -482,6 +482,34 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
               </div>
             </div>
 
+            {(preview.storeFrequencies?.length ?? 0) > 0 && (
+              <div className="rounded-lg border bg-card/60 p-3">
+                <div className="mb-2 flex items-center justify-between gap-2 text-sm font-medium">
+                  <span>Frequências identificadas</span>
+                  <span className="text-xs font-normal text-muted-foreground">
+                    Quinzenais (0,5x/semana · 2x/mês): {preview.counters.biweeklyFrequencies ?? 0}
+                  </span>
+                </div>
+                {(preview.counters.inconsistentFrequencies ?? 0) > 0 && (
+                  <div className="mb-2 flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-2 text-xs text-amber-800 dark:text-amber-300">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Frequência semanal e mensal divergentes em {preview.counters.inconsistentFrequencies} loja(s).
+                    Revise o cadastro — nada é corrigido automaticamente.
+                  </div>
+                )}
+                <div className="max-h-48 space-y-1 overflow-auto text-xs">
+                  {preview.storeFrequencies.slice(0, 60).map((f, i) => (
+                    <div key={`${f.storeNormalized}-${i}`} className="flex items-center justify-between gap-3 rounded px-1 py-0.5">
+                      <span className="truncate">{f.storeName}{f.uf ? ` · ${f.uf}` : ""}</span>
+                      <span className={f.frequencyInconsistent ? "shrink-0 text-amber-700 dark:text-amber-300" : "shrink-0 text-muted-foreground"}>
+                        {f.frequencyLabel ?? "Frequência não informada"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {preview.counters.storesNew > 0 && (
               <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-300">
                 Esta importação poderá cadastrar automaticamente {preview.counters.storesNew} nova(s) loja(s) na Base MK9.

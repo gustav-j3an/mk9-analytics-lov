@@ -1,4 +1,5 @@
 export { projectionFrequencyDivergenceDetector } from "./projection-frequency-divergence";
+export { frequencyWeeklyMonthlyInconsistencyDetector } from "./frequency-weekly-monthly-inconsistency";
 export { frequencyOverlapGuardDetector } from "./frequency-overlap-guard";
 export { legacyOperationalDataDetector } from "./legacy-operational-data";
 export { probableStoreDuplicateDetector } from "./probable-store-duplicate";
@@ -10,6 +11,7 @@ export { checklistValidationDetector } from "./checklist-validation";
 export { incompleteStoreExecutionDetector } from "./incomplete-store-execution";
 
 import { projectionFrequencyDivergenceDetector } from "./projection-frequency-divergence";
+import { frequencyWeeklyMonthlyInconsistencyDetector } from "./frequency-weekly-monthly-inconsistency";
 import { frequencyOverlapGuardDetector } from "./frequency-overlap-guard";
 import { legacyOperationalDataDetector } from "./legacy-operational-data";
 import { probableStoreDuplicateDetector } from "./probable-store-duplicate";
@@ -37,6 +39,7 @@ export const MK9_QUALITY_DETECTORS: Mk9DataQualityDetector[] = [
   incompleteStoreExecutionDetector,
   industryPeriodConfigDetector,
   operationPairIntegrityDetector,
+  frequencyWeeklyMonthlyInconsistencyDetector,
   excelDatabaseDivergenceDetector,
   checklistValidationDetector,
   pendingImportConflictDetector,

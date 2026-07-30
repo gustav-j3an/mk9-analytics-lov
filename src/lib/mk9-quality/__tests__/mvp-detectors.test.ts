@@ -238,8 +238,8 @@ describe("volume, competência e navegação", () => {
     expect(Object.keys(client).sort()).toEqual(["navigationTarget", "storeName", "symptoms"]);
   });
 
-  it("AB. o catálogo expõe 10 detectores, cada um com id e tipos únicos", () => {
-    expect(MK9_QUALITY_DETECTORS).toHaveLength(10);
+  it("AB. o catálogo expõe 11 detectores, cada um com id e tipos únicos", () => {
+    expect(MK9_QUALITY_DETECTORS).toHaveLength(11);
     const ids = MK9_QUALITY_DETECTORS.map((d) => d.id);
     expect(new Set(ids).size).toBe(ids.length);
     const types = MK9_QUALITY_DETECTORS.flatMap((d) => d.issueTypes);

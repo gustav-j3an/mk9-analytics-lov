@@ -169,6 +169,8 @@ export const ISSUE_TYPE_LABEL: Record<string, string> = {
   PENDING_IMPORT_CONFLICT: "Importação travada ou com falha",
   INDUSTRY_WITHOUT_PERIOD_CONFIG: "Indústria sem período configurado",
   CHECKLIST_IMPORT_WITHOUT_VALIDATION: "Checklist importado sem validação",
+  FREQUENCY_WEEKLY_MONTHLY_INCONSISTENCY: "Frequência semanal e mensal divergentes",
+  FREQUENCY_WEEKLY_MONTHLY_INCONSISTENCY_SUMMARY: "Muitas frequências semanais e mensais divergentes",
   PROJECTION_FREQUENCY_DIVERGENCE: "Projeção de frequência divergente",
   FREQUENCY_OVERLAP_GUARD_STATUS: "Proteção de vigência de frequência",
   LEGACY_OPERATIONAL_DATA: "Dado operacional legado",

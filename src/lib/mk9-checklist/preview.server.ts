@@ -5,6 +5,7 @@ import { parseChecklistWorkbook } from "./parser";
 import { diceCoefficient } from "./similarity";
 import { storeCompactKey, storeTokenSetKey } from "@/lib/mk9/normalization";
 import { buildValidationReport } from "./validation";
+import { describeFrequency, evaluateFrequencyConsistency, FREQUENCY_INCONSISTENCY_WARNING } from "@/lib/mk9-frequency/canonical";
 import {
   cancelPreviousPreviews,
   createChecklistImport,
@@ -254,6 +255,19 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
   const storeFrequencies = Array.from(storeFrequencyByKey.values());
   const frequenciesNotImported = storeFrequencies.filter((s) => s.monthlyFrequency === null).length;
 
+  // Apresentação canônica da frequência (missão preventiva): rótulo pt-BR e
+  // sinalização de divergência semanal × mensal. NÃO bloqueia o preview e NÃO
+  // altera nenhum número — é apenas leitura.
+  for (const f of storeFrequencies) {
+    const state = evaluateFrequencyConsistency(f.weeklyFrequency, f.monthlyFrequency);
+    f.frequencyLabel = describeFrequency(f.weeklyFrequency, f.monthlyFrequency);
+    f.frequencyInconsistent = state.evaluable && !state.consistent;
+  }
+  const biweeklyFrequencies = storeFrequencies.filter(
+    (s) => evaluateFrequencyConsistency(s.weeklyFrequency, s.monthlyFrequency).isBiweekly,
+  ).length;
+  const inconsistentFrequencies = storeFrequencies.filter((s) => s.frequencyInconsistent).length;
+
   const preview: ChecklistPreview = {
     filename: input.filename,
     industryId: industry.id,
@@ -272,6 +286,8 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
       invalidDates,
       frequenciesNotImported,
       duplicateStoreNames: parsed.duplicateStores.length,
+      biweeklyFrequencies,
+      inconsistentFrequencies,
     },
     items,
     storeFrequencies,
@@ -284,6 +300,9 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
         : []),
       ...(parsed.duplicateStores.length
         ? [`Duplicidades de loja detectadas: ${parsed.duplicateStores.length}. Verifique linhas: ${parsed.duplicateStores.slice(0, 10).map((d) => `${d.storeName} (${d.uf ?? "—"}) linha ${d.excelRow}`).join(", ")}${parsed.duplicateStores.length > 10 ? "…" : ""}.`]
+        : []),
+      ...(inconsistentFrequencies > 0
+        ? [`${FREQUENCY_INCONSISTENCY_WARNING}: ${inconsistentFrequencies} loja(s). Revise o cadastro — a importação não altera esses números automaticamente.`]
         : []),
       ...parsed.warnings,
     ],
