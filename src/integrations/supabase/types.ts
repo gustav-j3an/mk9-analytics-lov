@@ -1303,19 +1303,50 @@ export type Database = {
         Returns: boolean
       }
       is_mk9_admin: { Args: never; Returns: boolean }
-      mk9_admin_set_industry_requires_checklist: {
+      mk9_admin_create_checklist_industry: {
         Args: {
           p_actor?: string
-          p_industry_id: string
-          p_reason?: string
-          p_value: boolean
+          p_import_id?: string
+          p_name: string
+          p_source?: string
         }
         Returns: {
+          checklist_enabled_at: string
           id: string
           name: string
           requires_checklist: boolean
         }[]
       }
+      mk9_admin_set_industry_requires_checklist:
+        | {
+            Args: {
+              p_actor?: string
+              p_industry_id: string
+              p_reason?: string
+              p_value: boolean
+            }
+            Returns: {
+              id: string
+              name: string
+              requires_checklist: boolean
+            }[]
+          }
+        | {
+            Args: {
+              p_actor?: string
+              p_import_id?: string
+              p_industry_id: string
+              p_reason?: string
+              p_source?: string
+              p_value: boolean
+            }
+            Returns: {
+              checklist_enabled_at: string
+              id: string
+              name: string
+              requires_checklist: boolean
+            }[]
+          }
       mk9_apply_frequency_diff: {
         Args: {
           _actor?: string
