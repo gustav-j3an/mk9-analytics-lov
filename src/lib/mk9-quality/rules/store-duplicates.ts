@@ -62,8 +62,14 @@ function branchMarkersOf(normalized: string): string {
   return Array.from(new Set(tokens)).sort().join(",");
 }
 
+/**
+ * Bloco = UF. A rede NÃO entra na chave porque, na base real, `chain` está
+ * ausente em boa parte dos cadastros criados por importação — bloquear por
+ * rede esconderia justamente as duplicatas mais comuns (uma com rede, outra
+ * sem). A divergência de rede é tratada como defesa dentro do par.
+ */
 function blockKey(store: DuplicateCandidateStore): string {
-  return `${normalizeText(store.chain) || "-"}|${(store.uf ?? "").toUpperCase() || "-"}`;
+  return (store.uf ?? "").toUpperCase() || "-";
 }
 
 function round2(value: number): number {
@@ -81,10 +87,12 @@ export function findProbableStoreDuplicates(
   const threshold = options.threshold ?? DUPLICATE_THRESHOLD;
   const maxPairs = options.maxPairs ?? 200;
 
-  // Bloco = rede + UF. Reduz o custo e já elimina falsos positivos óbvios.
   const blocks = new Map<string, DuplicateCandidateStore[]>();
   for (const store of stores) {
     if (!store?.id || !store.name) continue;
+    // Sem UF não há como afirmar que é o mesmo estabelecimento: fica para o
+    // detector de cadastro incompleto, não para o de duplicidade.
+    if (!store.uf) continue;
     const key = blockKey(store);
     const list = blocks.get(key) ?? [];
     list.push(store);
@@ -101,6 +109,7 @@ export function findProbableStoreDuplicates(
       return {
         store,
         normalized,
+        chain: normalizeText(store.chain),
         compact: storeCompactKey(normalized),
         tokens: storeTokenSetKey(normalized),
         digits: digitsOf(normalized),
@@ -113,10 +122,13 @@ export function findProbableStoreDuplicates(
         const a = prepared[i];
         const b = prepared[j];
 
+        // Defesa 2: redes informadas e diferentes ⇒ estabelecimentos distintos.
+        if (a.chain && b.chain && a.chain !== b.chain) continue;
         // Defesa 3: numeração de filial diferente ⇒ nunca é duplicata.
         if (a.digits !== b.digits) continue;
         // Defesa 4: marcador de filial presente em apenas um dos nomes.
         if (a.markers !== b.markers) continue;
+
 
         let rule: DuplicateRule | null = null;
         let score = 0;
