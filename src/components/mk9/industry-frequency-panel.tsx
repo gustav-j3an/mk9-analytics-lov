@@ -85,7 +85,7 @@ export function IndustryFrequencyDialog({
 }) {
   return (
     <Dialog open={!!industry} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-6xl">
+      <DialogContent className="max-w-6xl max-h-[92vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Frequências contratadas</DialogTitle>
           <DialogDescription>{industry?.name}</DialogDescription>
