@@ -27,6 +27,7 @@ import {
   IndustryEditDialog,
   IndustryReactivateDialog,
 } from "@/components/mk9/industry-admin-dialogs";
+import { IndustryFrequencyDialog } from "@/components/mk9/industry-frequency-panel";
 import {
   Dialog,
   DialogContent,
