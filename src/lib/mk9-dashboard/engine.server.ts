@@ -1,7 +1,7 @@
 // Motor agregado do Dashboard Operacional MK9.
 // Uma única chamada devolve KPIs, séries, rankings, alertas e tabelas resumidas.
 //
-// FONTE DA VERDADE (Fase 1B.3)
+// FONTE DA VERDADE (Fase 1B.3 / núcleo compartilhado da Fase 3.1B)
 //   contratadas = frequência VERSIONADA vigente no período
 //                 (mk9_industry_store_frequency_versions), calculada por
 //                 segmentos de vigência via contractedVisitsForFrequencySegments.
@@ -11,466 +11,44 @@
 //   cobertura   = min(100, realizadas / contratadas)
 //   roteiro     = mk9_planned_routes versionado (apenas auditoria de promotor).
 //
-// mk9_planned_visits NÃO é usada aqui.
-// A projeção mk9_industry_store_frequency NÃO é mais lida por este motor.
-
-
-import { resolveWindow, type PeriodConfig } from "@/lib/mk9-reports/period.server";
-import {
-  contractedVisitsForFrequencySegments,
-  type ContractedResult,
-  type FrequencySegmentInput,
-} from "@/lib/mk9-frequency/segments";
-import { freqKey, loadFrequencyVersionsForPeriod, segmentsForWindow } from "@/lib/mk9-frequency/versions.server";
+// Toda a carga de dados e as agregações por loja/indústria vivem em
+// `src/lib/mk9-operations` — Dashboard e Cockpit compartilham o MESMO núcleo.
+import { buildDailySeries, classifyIndustry } from "@/lib/mk9-operations/buckets";
+import { loadOperationCore } from "@/lib/mk9-operations/core.server";
+import { pct, periodLabel, todayIso } from "@/lib/mk9-operations/periods";
+import type {
+  IndustryContext,
+  OperationIndustryRow,
+  OperationStoreRow,
+  RouteInfo,
+} from "@/lib/mk9-operations/types";
 
 import {
   INDUSTRY_STATUS_LABEL,
   INDUSTRY_STATUS_ORDER,
   type DashboardAlert,
   type DashboardFilters,
-  type DashboardIndustryRow,
   type DashboardOverview,
   type DashboardPromoterRow,
   type DashboardSeriesPoint,
-  type DashboardStoreRow,
   type IndustryStatusKey,
-  type PromoterResolution,
   type StoreExecStatus,
 } from "./types";
 
-const MONTHS_PT = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
-];
-
-const DEFAULT_CONFIG = (industryId: string): PeriodConfig => ({
-  industryId,
-  periodType: "CALENDAR_MONTH",
-  startDay: 1,
-  endDay: 31,
-  usesPreviousMonth: false,
-  weekGrouping: "CALENDAR_WEEK",
-  active: true,
-});
-
-function todayIso(): string {
-  // Data operacional em São Paulo (fuso da operação).
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Sao_Paulo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-  return parts;
-}
-
-function dayDiff(a: string, b: string) {
-  const da = new Date(`${a}T00:00:00Z`).getTime();
-  const db = new Date(`${b}T00:00:00Z`).getTime();
-  return Math.round((db - da) / 86400000);
-}
-
-function addDays(iso: string, n: number) {
-  const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-}
-
-/**
- * Contratadas de uma loja na janela a partir das vigências versionadas.
- * Centralizado em @/lib/mk9-frequency/segments — nunca `weekly × 4`.
- */
-function contractedForStore(
-  segments: FrequencySegmentInput[],
-  win: { startDate: string; endDate: string },
-  untilDate?: string | null,
-): ContractedResult {
-  return contractedVisitsForFrequencySegments({
-    segments,
-    operationPeriodStart: win.startDate,
-    operationPeriodEnd: win.endDate,
-    untilDate: untilDate ?? null,
-  });
-}
-
-
-/**
- * Fração do período já transcorrida até hoje.
- *   período futuro   -> 0
- *   período encerrado-> 1
- *   período corrente -> dias transcorridos / total de dias
- */
-function elapsedFraction(win: { startDate: string; endDate: string; totalDays: number }, today: string) {
-  if (today < win.startDate) return 0;
-  if (today > win.endDate) return 1;
-  const elapsed = dayDiff(win.startDate, today) + 1;
-  return Math.min(1, Math.max(0, elapsed / Math.max(1, win.totalDays)));
-}
-
-function pct(part: number, total: number) {
-  if (total <= 0) return 0;
-  return Math.round((part / total) * 100);
-}
-
-interface StoreBucket {
-  storeId: string;
-  storeName: string;
-  chain: string | null;
-  uf: string | null;
-  weekly: number | null;
-  monthly: number | null;
-  /** vigências que interceptam a janela desta indústria */
-  segments: FrequencySegmentInput[];
-  visits: string[];
-}
-
-
-interface IndustryCtx {
-  id: string;
-  name: string;
-  win: { startDate: string; endDate: string; totalDays: number };
-  fraction: number;
-  buckets: Map<string, StoreBucket>;
-  checklistImports: number;
-}
+export { classifyIndustry };
 
 export async function buildDashboardOverview(
   supabase: any,
   filters: DashboardFilters,
 ): Promise<DashboardOverview> {
-  const today = todayIso();
+  const core = await loadOperationCore(supabase, filters);
   const { year, month } = filters;
 
-  // ---- escopo do supervisor (mk9_user_scopes) --------------------------------
-  let scopeIndustryIds: string[] | null = null;
-  let scopeUfs: string[] | null = null;
-  if (filters.supervisorUserId) {
-    const { data: scopes, error } = await supabase
-      .from("mk9_user_scopes")
-      .select("scope_type, scope_value")
-      .eq("user_id", filters.supervisorUserId);
-    if (error) throw new Error(error.message);
-    const inds = (scopes ?? []).filter((s: any) => s.scope_type === "INDUSTRY").map((s: any) => s.scope_value);
-    const ufs = (scopes ?? []).filter((s: any) => s.scope_type === "UF").map((s: any) => s.scope_value);
-    if (inds.length) scopeIndustryIds = inds;
-    if (ufs.length) scopeUfs = ufs;
-  }
-  // Escopo de acesso do usuário (Fase 0.2) — sempre intersectado, nunca ampliado.
-  const access = filters.access ?? null;
-  if (access?.allowedIndustryIds) {
-    scopeIndustryIds = scopeIndustryIds
-      ? scopeIndustryIds.filter((id) => access.allowedIndustryIds!.includes(id))
-      : access.allowedIndustryIds;
-  }
-  if (access?.allowedUfs) {
-    scopeUfs = scopeUfs ? scopeUfs.filter((u) => access.allowedUfs!.includes(u)) : access.allowedUfs;
-  }
-  const accessStoreIds = access?.allowedStoreIds ?? null;
-  const accessPromoterIds = access?.allowedPromoterIds ?? null;
-  const ufFilter = filters.uf ?? null;
-  if (
-    (filters.industryId && access?.allowedIndustryIds && !access.allowedIndustryIds.includes(filters.industryId)) ||
-    (ufFilter && access?.allowedUfs && !access.allowedUfs.includes(ufFilter)) ||
-    (filters.promoterId && accessPromoterIds && !accessPromoterIds.includes(filters.promoterId)) ||
-    scopeIndustryIds?.length === 0 ||
-    scopeUfs?.length === 0 ||
-    accessStoreIds?.length === 0
-  ) {
-    return emptyOverview(todayIso(), year, month, `${year}-01-01`, `${year}-12-31`);
+  if (core.empty) {
+    return emptyOverview(core.today, year, month, core.globalStart, core.globalEnd);
   }
 
-  // ---- indústrias e configurações de período --------------------------------
-  let indQuery = supabase.from("mk9_industries").select("id,name").order("name", { ascending: true });
-  if (filters.industryId) indQuery = indQuery.eq("id", filters.industryId);
-  if (scopeIndustryIds) indQuery = indQuery.in("id", scopeIndustryIds);
-
-  const [indRes, cfgRes] = await Promise.all([
-    indQuery,
-    supabase
-      .from("mk9_industry_period_config")
-      .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping, active")
-      .eq("active", true),
-  ]);
-  if (indRes.error) throw new Error(indRes.error.message);
-  if (cfgRes.error) throw new Error(cfgRes.error.message);
-
-  const industries = (indRes.data ?? []) as Array<{ id: string; name: string }>;
-  const cfgByIndustry = new Map<string, PeriodConfig>();
-  for (const c of cfgRes.data ?? []) {
-    cfgByIndustry.set(c.industry_id, {
-      industryId: c.industry_id,
-      periodType: c.period_type,
-      startDay: c.start_day,
-      endDay: c.end_day,
-      usesPreviousMonth: c.uses_previous_month,
-      weekGrouping: c.week_grouping,
-      active: c.active,
-    });
-  }
-
-  const ctxs: IndustryCtx[] = industries.map((ind) => {
-    const win = resolveWindow(cfgByIndustry.get(ind.id) ?? DEFAULT_CONFIG(ind.id), year, month);
-    return {
-      id: ind.id,
-      name: ind.name,
-      win: { startDate: win.startDate, endDate: win.endDate, totalDays: win.totalDays },
-      fraction: elapsedFraction(win, today),
-      buckets: new Map(),
-      checklistImports: 0,
-    };
-  });
-  const ctxById = new Map(ctxs.map((c) => [c.id, c]));
-  const industryIds = ctxs.map((c) => c.id);
-
-  const globalStart = ctxs.length ? ctxs.reduce((a, c) => (c.win.startDate < a ? c.win.startDate : a), ctxs[0].win.startDate) : `${year}-01-01`;
-  const globalEnd = ctxs.length ? ctxs.reduce((a, c) => (c.win.endDate > a ? c.win.endDate : a), ctxs[0].win.endDate) : `${year}-12-31`;
-
-  if (!industryIds.length) {
-    return emptyOverview(today, year, month, globalStart, globalEnd);
-  }
-
-  // ---- consultas em paralelo (mesmo número de round-trips de antes) ----------
-  const [freqVersions, visitRes, routeRes, importRes, storeRes] = await Promise.all([
-    // Fase 1B.3: frequências VERSIONADAS que interceptam a janela global.
-    loadFrequencyVersionsForPeriod(supabase, {
-      industryIds,
-      storeIds: accessStoreIds,
-      periodStart: globalStart,
-      periodEnd: globalEnd,
-      accessScope: access,
-    }),
-
-    supabase
-      .from("mk9_actual_visits")
-      .select("industry_id, store_id, scheduled_date, store:mk9_stores(id,name,chain,uf)")
-      .in("industry_id", industryIds)
-      .gte("scheduled_date", globalStart)
-      .lte("scheduled_date", globalEnd)
-      .limit(100000),
-    supabase
-      .from("mk9_planned_routes")
-      .select("industry_id, store_id, promoter_id, weekday, valid_from, valid_until, promoter:mk9_promoters(id,name)")
-      .in("industry_id", industryIds)
-      .eq("is_active", true)
-      .is("archived_at", null)
-      .lte("valid_from", globalEnd)
-      .or(`valid_until.is.null,valid_until.gte.${globalStart}`)
-      .limit(100000),
-    supabase
-      .from("mk9_checklist_imports")
-      .select("id, industry_id, status")
-      .in("industry_id", industryIds)
-      .eq("operation_month", month)
-      .eq("operation_year", year)
-      .in("status", ["done", "confirmed", "committing"])
-      .limit(5000),
-    (() => {
-      let q = supabase.from("mk9_stores").select("uf").not("uf", "is", null).limit(50000);
-      if (scopeUfs) q = q.in("uf", scopeUfs);
-      if (accessStoreIds) q = q.in("id", accessStoreIds);
-      return q;
-    })(),
-  ]);
-  for (const r of [visitRes, routeRes, importRes, storeRes]) {
-    if (r.error) throw new Error(r.error.message);
-  }
-
-
-  const availableUfs = Array.from(
-    new Set((storeRes.data ?? []).map((s: any) => s.uf).filter(Boolean) as string[]),
-  ).sort();
-
-  for (const imp of importRes.data ?? []) {
-    const ctx = ctxById.get(imp.industry_id);
-    if (ctx) ctx.checklistImports += 1;
-  }
-
-  // ---- roteiro vigente: promotor + dias previstos por (indústria, loja) ------
-  interface RouteInfo {
-    votes: Map<string, { name: string; count: number }>;
-    weekdays: Set<number>;
-  }
-  const routeByKey = new Map<string, RouteInfo>();
-  for (const r of routeRes.data ?? []) {
-    if (!r.store_id) continue;
-    const key = `${r.industry_id}|${r.store_id}`;
-    const info = routeByKey.get(key) ?? { votes: new Map(), weekdays: new Set<number>() };
-    info.weekdays.add(Number(r.weekday));
-    if (r.promoter_id) {
-      const cur = info.votes.get(r.promoter_id) ?? { name: r.promoter?.name ?? "—", count: 0 };
-      cur.count += 1;
-      info.votes.set(r.promoter_id, cur);
-    }
-    routeByKey.set(key, info);
-  }
-  function resolvePromoter(key: string): { id: string | null; name: string | null; resolution: PromoterResolution } {
-    const info = routeByKey.get(key);
-    if (!info || info.votes.size === 0) return { id: null, name: null, resolution: "UNASSIGNED_ROUTE" };
-    let best: { id: string; name: string; count: number } | null = null;
-    for (const [pid, v] of info.votes) {
-      if (!best || v.count > best.count) best = { id: pid, name: v.name, count: v.count };
-    }
-    return {
-      id: best!.id,
-      name: best!.name,
-      resolution: info.votes.size > 1 ? "AMBIGUOUS_ROUTE" : "MATCHED_ROUTE",
-    };
-  }
-
-  // ---- montagem dos buckets por (indústria, loja) ---------------------------
-  const passesUf = (uf: string | null) => {
-    if (ufFilter && uf !== ufFilter) return false;
-    if (scopeUfs && (!uf || !scopeUfs.includes(uf))) return false;
-    return true;
-  };
-  const passesStore = (storeId: string) => !accessStoreIds || accessStoreIds.includes(storeId);
-  const touch = (ctx: IndustryCtx, storeId: string, store: any): StoreBucket => {
-    let b = ctx.buckets.get(storeId);
-    if (!b) {
-      b = {
-        storeId,
-        storeName: store?.name ?? "—",
-        chain: store?.chain ?? null,
-        uf: store?.uf ?? null,
-        weekly: null,
-        monthly: null,
-        segments: [],
-        visits: [],
-      };
-      ctx.buckets.set(storeId, b);
-    }
-    return b;
-  };
-
-  // Frequência versionada: cada (indústria, loja) recebe as vigências que
-  // interceptam a janela DAQUELA indústria (KING 23→22, demais 01→fim do mês).
-  for (const [key, segs] of freqVersions) {
-    const [industryId, storeId] = key.split("|");
-    const ctx = ctxById.get(industryId);
-    if (!ctx || !storeId) continue;
-    const inWindow = segmentsForWindow(segs, ctx.win.startDate, ctx.win.endDate);
-    if (!inWindow.length) continue;
-    const store = inWindow[0].store;
-    if (!passesUf(store?.uf ?? null)) continue;
-    if (!passesStore(storeId)) continue;
-    const b = touch(ctx, storeId, store);
-    b.segments = inWindow.map((s) => ({
-      validFrom: s.validFrom,
-      validUntil: s.validUntil,
-      weeklyFrequency: s.weeklyFrequency,
-      monthlyFrequency: s.monthlyFrequency,
-    }));
-    // valores da vigência mais recente — apenas exibição/compatibilidade
-    const last = inWindow[inWindow.length - 1];
-    b.weekly = last.weeklyFrequency;
-    b.monthly = last.monthlyFrequency;
-  }
-
-  for (const v of visitRes.data ?? []) {
-    const ctx = ctxById.get(v.industry_id);
-    if (!ctx || !v.store_id) continue;
-    const d = String(v.scheduled_date);
-    if (d < ctx.win.startDate || d > ctx.win.endDate) continue; // respeita a janela da indústria
-    if (!passesUf(v.store?.uf ?? null)) continue;
-    if (!passesStore(v.store_id)) continue;
-    const b = touch(ctx, v.store_id, v.store);
-    b.visits.push(d);
-  }
-
-  // ---- linhas por loja -------------------------------------------------------
-  const storeRows: DashboardStoreRow[] = [];
-  for (const ctx of ctxs) {
-    for (const b of ctx.buckets.values()) {
-      const key = `${ctx.id}|${b.storeId}`;
-      const promo = resolvePromoter(key);
-      if (filters.promoterId && promo.id !== filters.promoterId) continue;
-      if (accessPromoterIds && (!promo.id || !accessPromoterIds.includes(promo.id))) continue;
-
-      const contracted = contractedForStore(b.segments, ctx.win);
-      const contratadas = contracted.contratadas;
-      const realizadas = b.visits.length;
-      // Meta até hoje: recorta a janela na data atual respeitando cada vigência
-      // (uma troca de frequência no meio do mês reflete corretamente).
-      const expectedToDate =
-        today >= ctx.win.endDate
-          ? contratadas
-          : contractedForStore(b.segments, ctx.win, today).contratadas;
-
-      const lastVisit = b.visits.length ? b.visits.slice().sort()[b.visits.length - 1] : null;
-      const status: StoreExecStatus =
-        realizadas === 0 ? "NAO_ATENDIDA" : contratadas > 0 && realizadas >= contratadas ? "INTEGRAL" : "PARCIAL";
-      storeRows.push({
-        storeId: b.storeId,
-        storeName: b.storeName,
-        chain: b.chain,
-        uf: b.uf,
-        industryId: ctx.id,
-        industryName: ctx.name,
-        weeklyFrequency: b.weekly,
-        monthlyFrequency: b.monthly,
-        contratadas,
-        expectedToDate,
-        realizadas,
-        pendentes: Math.max(0, contratadas - realizadas),
-        lastVisit,
-        daysWithoutVisit: lastVisit ? Math.max(0, dayDiff(lastVisit, today)) : null,
-        promoterId: promo.id,
-        promoterName: promo.name,
-        promoterResolution: promo.resolution,
-        status,
-      });
-    }
-  }
-
-  // ---- linhas por indústria --------------------------------------------------
-  // Indústrias sem qualquer operação no período (sem frequência, sem execução e
-  // sem roteiro vigente) são cadastros inativos e ficam fora do painel.
-  const industriesWithRoute = new Set(Array.from(routeByKey.keys()).map((k) => k.split("|")[0]));
-  const industryRows: DashboardIndustryRow[] = ctxs
-    .filter((ctx) => {
-      const rows = storeRows.filter((s) => s.industryId === ctx.id);
-      const hasAny =
-        rows.some((s) => s.contratadas > 0 || s.realizadas > 0) ||
-        industriesWithRoute.has(ctx.id) ||
-        ctx.checklistImports > 0;
-      return hasAny;
-    })
-    .map((ctx) => {
-    const rows = storeRows.filter((s) => s.industryId === ctx.id);
-    const contratadas = rows.reduce((a, s) => a + s.contratadas, 0);
-    const realizadas = rows.reduce((a, s) => a + s.realizadas, 0);
-    const expectedToDate = Math.round(contratadas * ctx.fraction);
-    const lojasAtendidas = rows.filter((s) => s.realizadas > 0).length;
-    const lojasContratadas = rows.filter((s) => s.contratadas > 0).length;
-    const status = classifyIndustry({
-      contratadas,
-      realizadas,
-      expectedToDate,
-      lojasContratadas,
-      checklistImports: ctx.checklistImports,
-      hasExecutionOrRoute: realizadas > 0 || industriesWithRoute.has(ctx.id),
-    });
-    return {
-      industryId: ctx.id,
-      industryName: ctx.name,
-      windowStart: ctx.win.startDate,
-      windowEnd: ctx.win.endDate,
-      totalDays: ctx.win.totalDays,
-      elapsedDays: Math.round(ctx.win.totalDays * ctx.fraction),
-      isHistorical: ctx.win.endDate < today,
-      lojasContratadas,
-      lojasAtendidas,
-      contratadas,
-      expectedToDate,
-      realizadas,
-      pendentes: Math.max(0, contratadas - realizadas),
-      coberturaPct: contratadas > 0 ? Math.min(100, pct(realizadas, contratadas)) : 0,
-      deviation: realizadas - expectedToDate,
-      pacePercentage: expectedToDate > 0 ? pct(realizadas, expectedToDate) : realizadas > 0 ? 100 : 0,
-      status,
-      checklistImports: ctx.checklistImports,
-    };
-  });
+  const { today, storeRows, industryRows, ctxs, routeByKey } = core;
 
   industryRows.sort((a, b) => {
     const d = INDUSTRY_STATUS_ORDER.indexOf(a.status) - INDUSTRY_STATUS_ORDER.indexOf(b.status);
@@ -512,13 +90,16 @@ export async function buildDashboardOverview(
     visitasSemPromotor,
   };
 
-  // ---- série acumulada: esperado (proporcional) × realizado ------------------
-  const series = buildSeries(ctxs, industryRows, storeRows, globalStart, globalEnd, today);
+  const series: DashboardSeriesPoint[] = buildDailySeries({
+    ctxs,
+    industryRows,
+    storeRows,
+    globalStart: core.globalStart,
+    globalEnd: core.globalEnd,
+  });
 
-  // ---- promotores ------------------------------------------------------------
   const promoters = buildPromoters(storeRows, ctxs, routeByKey);
 
-  // ---- lojas críticas --------------------------------------------------------
   const criticalAll = storeRows
     .filter((s) => s.pendentes > 0 || s.realizadas === 0)
     .sort((a, b) => {
@@ -531,7 +112,6 @@ export async function buildDashboardOverview(
       return (b.daysWithoutVisit ?? 9999) - (a.daysWithoutVisit ?? 9999);
     });
 
-  // ---- alertas ---------------------------------------------------------------
   const alerts = buildAlerts(industryRows, storeRows, promoters);
 
   const storeExecutionDistribution = [
@@ -548,11 +128,11 @@ export async function buildDashboardOverview(
   return {
     generatedAt: new Date().toISOString(),
     today,
-    periodLabel: `${MONTHS_PT[month - 1]}/${year}`,
-    windowStart: globalStart,
-    windowEnd: globalEnd,
-    usesHistoricalFrequency: globalEnd < today,
-    checklistImports: ctxs.reduce((a, c) => a + c.checklistImports, 0),
+    periodLabel: periodLabel(year, month),
+    windowStart: core.globalStart,
+    windowEnd: core.globalEnd,
+    usesHistoricalFrequency: core.globalEnd < today,
+    checklistImports: core.checklistImportsTotal,
     kpis,
     industries: industryRows,
     criticalStores: criticalAll.slice(0, 15),
@@ -563,88 +143,16 @@ export async function buildDashboardOverview(
     alertsTotal: alerts.length,
     storeExecutionDistribution,
     industryStatusDistribution,
-    availableUfs,
+    availableUfs: core.availableUfs,
   };
 }
 
 // ---------------------------------------------------------------------------
 
-export function classifyIndustry(input: {
-  contratadas: number;
-  realizadas: number;
-  expectedToDate: number;
-  lojasContratadas: number;
-  checklistImports: number;
-  hasExecutionOrRoute: boolean;
-}): IndustryStatusKey {
-  const { contratadas, realizadas, expectedToDate, lojasContratadas, checklistImports, hasExecutionOrRoute } = input;
-  // Sem frequência configurada, mas com execução ou roteiro vigente.
-  if (contratadas <= 0 && lojasContratadas <= 0) return "SEM_FREQUENCIA";
-  if (realizadas === 0 && checklistImports === 0) return "SEM_CHECKLIST";
-  if (realizadas >= contratadas) return "CONCLUIDA";
-  if (expectedToDate <= 0) return "EM_DIA";
-  if (realizadas >= expectedToDate) return "EM_DIA";
-  const ratio = realizadas / expectedToDate;
-  if (ratio >= 0.9) return "ATENCAO";
-  return "CRITICA";
-}
-
-function buildSeries(
-  ctxs: IndustryCtx[],
-  industryRows: DashboardIndustryRow[],
-  storeRows: DashboardStoreRow[],
-  globalStart: string,
-  globalEnd: string,
-  today: string,
-): DashboardSeriesPoint[] {
-  const contractedByIndustry = new Map<string, number>();
-  for (const i of industryRows) contractedByIndustry.set(i.industryId, i.contratadas);
-
-  // realizadas por dia (todas as indústrias no escopo já filtrado)
-  const realizedByDay = new Map<string, number>();
-  const visitsByStoreRow = storeRows; // já filtrado por UF/promotor
-  const ctxWindows = new Map(ctxs.map((c) => [c.id, c.win]));
-  for (const s of visitsByStoreRow) {
-    // reconstroi datas a partir do bucket original
-    const ctx = ctxs.find((c) => c.id === s.industryId);
-    const bucket = ctx?.buckets.get(s.storeId);
-    for (const d of bucket?.visits ?? []) {
-      realizedByDay.set(d, (realizedByDay.get(d) ?? 0) + 1);
-    }
-  }
-
-  const points: DashboardSeriesPoint[] = [];
-  const totalDaysSpan = dayDiff(globalStart, globalEnd);
-  if (totalDaysSpan < 0 || totalDaysSpan > 400) return points;
-
-  let realizedAcc = 0;
-  for (let i = 0; i <= totalDaysSpan; i += 1) {
-    const date = addDays(globalStart, i);
-    realizedAcc += realizedByDay.get(date) ?? 0;
-    // esperado acumulado: meta contratada distribuída linearmente na janela de cada indústria
-    let expectedAcc = 0;
-    for (const [industryId, contracted] of contractedByIndustry) {
-      const win = ctxWindows.get(industryId);
-      if (!win) continue;
-      if (date < win.startDate) continue;
-      const frac = date >= win.endDate ? 1 : (dayDiff(win.startDate, date) + 1) / Math.max(1, win.totalDays);
-      expectedAcc += contracted * frac;
-    }
-    const expected = Math.round(expectedAcc);
-    points.push({
-      date,
-      expected,
-      realized: date > today ? realizedAcc : realizedAcc,
-      diff: realizedAcc - expected,
-    });
-  }
-  return points;
-}
-
 function buildPromoters(
-  storeRows: DashboardStoreRow[],
-  ctxs: IndustryCtx[],
-  routeByKey: Map<string, { votes: Map<string, { name: string; count: number }>; weekdays: Set<number> }>,
+  storeRows: OperationStoreRow[],
+  ctxs: IndustryContext[],
+  routeByKey: Map<string, RouteInfo>,
 ): DashboardPromoterRow[] {
   interface Acc {
     name: string;
@@ -681,7 +189,6 @@ function buildPromoters(
     acc.realized += s.realizadas;
     if (s.contratadas > 0 && s.realizadas === 0) acc.withoutVisit += 1;
 
-    // visitas fora do dia previsto pelo roteiro vigente
     const info = routeByKey.get(`${s.industryId}|${s.storeId}`);
     if (info && info.weekdays.size > 0) {
       const ctx = ctxs.find((c) => c.id === s.industryId);
@@ -722,8 +229,8 @@ function buildPromoters(
 const SEVERITY_RANK: Record<DashboardAlert["severity"], number> = { CRITICA: 0, ALTA: 1, MEDIA: 2, BAIXA: 3 };
 
 function buildAlerts(
-  industries: DashboardIndustryRow[],
-  stores: DashboardStoreRow[],
+  industries: OperationIndustryRow[],
+  stores: OperationStoreRow[],
   promoters: DashboardPromoterRow[],
 ): DashboardAlert[] {
   const alerts: DashboardAlert[] = [];
@@ -838,8 +345,8 @@ function emptyOverview(
 ): DashboardOverview {
   return {
     generatedAt: new Date().toISOString(),
-    today,
-    periodLabel: `${MONTHS_PT[month - 1]}/${year}`,
+    today: today || todayIso(),
+    periodLabel: periodLabel(year, month),
     windowStart: start,
     windowEnd: end,
     usesHistoricalFrequency: false,
