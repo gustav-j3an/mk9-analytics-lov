@@ -56,18 +56,37 @@ async function safeExecute(
   }
 }
 
+/**
+ * Persistência só é permitida em execuções com visão COMPLETA do escopo.
+ *
+ * Motivo de segurança/integridade: a RPC de sincronização auto-resolve tudo
+ * que o detector não devolveu. Se um usuário restrito executasse a persistência,
+ * ocorrências de indústrias/UFs que ele não enxerga seriam marcadas como
+ * resolvidas indevidamente. Execuções restritas continuam vendo o resultado em
+ * memória — apenas não escrevem histórico.
+ */
+export function canPersistDetections(scope: Mk9AccessScope): boolean {
+  const privileged = scope.role === "ADMIN" || scope.role === "DEV" || scope.role === "AUDITOR";
+  return privileged && scope.canViewAll;
+}
+
 export async function runQualityDetectors(
   params: RunDetectorsParams,
 ): Promise<RunDetectorsResult> {
   const detectors = params.detectors ?? MK9_QUALITY_DETECTORS;
   const ctx = { supabase: params.supabase, scope: params.scope, competence: params.competence };
+  const persist = params.persist !== false && canPersistDetections(params.scope);
 
   const realtime: FingerprintedIssue[] = [];
   const persistedSummary: RunDetectorsResult["persistedSummary"] = [];
   const failedDetectors: string[] = [];
 
-  for (const detector of detectors) {
-    const issues = await safeExecute(detector, ctx);
+  // Detectores são independentes: rodam em paralelo, cada um isolado de falhas.
+  const executed = await Promise.all(
+    detectors.map(async (detector) => ({ detector, issues: await safeExecute(detector, ctx) })),
+  );
+
+  for (const { detector, issues } of executed) {
     if (issues === null) {
       failedDetectors.push(detector.id);
       continue;
@@ -79,7 +98,11 @@ export async function runQualityDetectors(
       continue;
     }
 
-    if (params.persist === false) continue;
+    if (!persist) {
+      // Sem escrita: o resultado ainda é útil em memória para a interface.
+      realtime.push(...fingerprinted);
+      continue;
+    }
 
     try {
       const result = await syncDetections(params.supabase, {
@@ -96,6 +119,7 @@ export async function runQualityDetectors(
 
   return { realtime, persistedSummary, failedDetectors };
 }
+
 
 /**
  * Overview: contagens agregadas das ocorrências persistidas + sinais REALTIME

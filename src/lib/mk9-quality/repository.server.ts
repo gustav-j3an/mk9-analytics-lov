@@ -157,6 +157,8 @@ export interface ListFilters {
   status?: Mk9QualityStatus[] | null;
   category?: string | null;
   severity?: string | null;
+  /** Filtro por tipo de problema (ex.: OPERATION_PAIR_INTEGRITY). */
+  issueType?: string | null;
   industryId?: string | null;
   storeId?: string | null;
   competenceMonth?: number | null;
@@ -164,6 +166,15 @@ export interface ListFilters {
   page: number;
   pageSize: number;
 }
+
+/** Peso de gravidade — usado para ordenar a página já carregada. */
+const SEVERITY_WEIGHT: Record<string, number> = {
+  BLOQUEANTE: 5,
+  CRITICO: 4,
+  ATENCAO: 3,
+  AVISO: 2,
+  INFO: 1,
+};
 
 export async function listIssues(
   supabase: any,
@@ -178,6 +189,7 @@ export async function listIssues(
   if (filters.status?.length) q = q.in("status", filters.status);
   if (filters.category) q = q.eq("category", filters.category);
   if (filters.severity) q = q.eq("severity", filters.severity);
+  if (filters.issueType) q = q.eq("issue_type", filters.issueType);
   // Filtros do cliente só ESTREITAM: já validados contra o escopo pelo chamador.
   if (filters.industryId) q = q.eq("industry_id", filters.industryId);
   if (filters.storeId) q = q.eq("store_id", filters.storeId);
@@ -190,13 +202,24 @@ export async function listIssues(
     .range(from, from + filters.pageSize - 1);
   if (error) throw new Error("MK9_DQ_LIST_FAILED");
 
+  // Paginação estável no banco (last_seen_at) + gravidade primeiro na página
+  // entregue à interface. Sem coluna de rank, evita-se mudar o schema.
+  const items = (data ?? [])
+    .map((row: any) => projectIssue(scope, row))
+    .sort(
+      (a: Mk9QualityIssueView, b: Mk9QualityIssueView) =>
+        (SEVERITY_WEIGHT[b.severity] ?? 0) - (SEVERITY_WEIGHT[a.severity] ?? 0) ||
+        b.lastSeenAt.localeCompare(a.lastSeenAt),
+    );
+
   return {
-    items: (data ?? []).map((row: any) => projectIssue(scope, row)),
+    items,
     total: count ?? 0,
     page: filters.page,
     pageSize: filters.pageSize,
   };
 }
+
 
 export async function getIssue(
   supabase: any,

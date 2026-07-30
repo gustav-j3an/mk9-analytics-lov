@@ -76,7 +76,10 @@ const CLIENT_SAFE_KEYS = new Set([
   "hasFrequency", "hasRoute", "visitsWithoutRoute", "routeCandidateCount", "symptoms",
   "contractedVisits", "executedVisits", "pendingVisits", "storeName", "storeUf",
   "industryName", "competence", "expected", "found", "count",
+  // Fase 2B.2 — campos operacionais dos detectores do MVP.
+  "peerStoreName", "chain", "missing", "navigationTarget", "similarity",
 ]);
+
 
 export function evidenceForClient(evidence: Mk9Evidence): Mk9Evidence {
   const out: Mk9Evidence = {};
