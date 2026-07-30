@@ -81,6 +81,7 @@ export const Route = createFileRoute("/api/checklists/preview")({
                   __mk9Error: true,
                   step: "industry-gate",
                   code: INDUSTRY_CHECKLIST_DISABLED,
+                  industryId: fields.industryId,
                   message: INDUSTRY_CHECKLIST_DISABLED_MESSAGE,
                 },
               },
