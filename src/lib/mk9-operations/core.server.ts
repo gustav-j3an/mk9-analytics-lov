@@ -92,7 +92,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   }
 
   // ---- indústrias e configurações de período --------------------------------
-  let indQuery = supabase.from("mk9_industries").select("id,name,requires_checklist").order("name", { ascending: true });
+  let indQuery = supabase.from("mk9_industries").select("id,name,requires_checklist,checklist_enabled_at").order("name", { ascending: true });
   if (filters.industryId) indQuery = indQuery.eq("id", filters.industryId);
   if (scopeIndustryIds) indQuery = indQuery.in("id", scopeIndustryIds);
 
@@ -107,7 +107,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   if (indRes.error) throw new Error(indRes.error.message);
   if (cfgRes.error) throw new Error(cfgRes.error.message);
 
-  const industries = (indRes.data ?? []) as Array<{ id: string; name: string; requires_checklist?: boolean }>;
+  const industries = (indRes.data ?? []) as Array<{ id: string; name: string; requires_checklist?: boolean; checklist_enabled_at?: string | null }>;
   const cfgByIndustry = new Map<string, PeriodConfig>();
   for (const c of cfgRes.data ?? []) {
     cfgByIndustry.set(c.industry_id, {
@@ -128,6 +128,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       id: ind.id,
       name: ind.name,
       requiresChecklist: ind.requires_checklist === true,
+      checklistEnabledAt: ind.checklist_enabled_at ?? null,
       win: w,
       fraction: elapsedFraction(w, today),
       buckets: new Map(),
