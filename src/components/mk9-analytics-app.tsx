@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Mk9ImportModule } from "@/components/mk9-import-module";
 import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
@@ -14,6 +14,17 @@ import { Mk9RoutesModule } from "@/components/mk9-routes-module";
 import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
 import { Mk9UsersModule } from "@/components/mk9-users-module";
 import { useMk9Session, type Mk9Role } from "@/lib/mk9-auth/session";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import {
   AlertTriangle,
@@ -58,6 +69,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import {
   mk9ListIndustries,
+  mk9SetIndustryRequiresChecklist,
   mk9ListStores,
   mk9ListPromoters,
   mk9ListRoutesDetailed,
@@ -447,7 +459,7 @@ export function Mk9AnalyticsApp() {
                 }}
               />
             )}
-            {activeModule === "industrias" && <IndustriesModule industries={industries} loading={industriesQ.isLoading} />}
+            {activeModule === "industrias" && <IndustriesModule industries={industries} loading={industriesQ.isLoading} isAdmin={effectiveRoles.includes("ADMIN")} />}
             {activeModule === "lojas" && <StoresModule stores={stores} routes={routes} loading={storesQ.isLoading} />}
             {activeModule === "promotores" && <PromotersModule promoters={promoters} routes={routes} visits={visits} loading={promotersQ.isLoading} />}
             {activeModule === "roteiros" && (
