@@ -1240,6 +1240,21 @@ export type Database = {
         Returns: undefined
       }
       mk9_normalize_store_name: { Args: { input: string }; Returns: string }
+      mk9_quality_guard_status: { Args: never; Returns: Json }
+      mk9_quality_legacy_counts: { Args: never; Returns: Json }
+      mk9_quality_projection_divergence: {
+        Args: never
+        Returns: {
+          industry_id: string
+          kind: string
+          projection_monthly: number
+          projection_weekly: number
+          store_id: string
+          version_id: string
+          version_monthly: number
+          version_weekly: number
+        }[]
+      }
       mk9_quality_sync_detections: {
         Args: {
           _competence_month?: number
