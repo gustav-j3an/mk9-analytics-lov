@@ -32,7 +32,7 @@ function scrubString(value: string): string {
   return cleaned.length > MAX_STRING ? `${cleaned.slice(0, MAX_STRING)}…` : cleaned;
 }
 
-function sanitizeValue(value: unknown, depth: number): unknown {
+function sanitizeValue(value: unknown, depth: number): Mk9JsonValue {
   if (value === null || value === undefined) return null;
   if (typeof value === "string") return scrubString(value);
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
@@ -43,8 +43,8 @@ function sanitizeValue(value: unknown, depth: number): unknown {
   return null;
 }
 
-function sanitizeRecord(input: Record<string, unknown>, depth: number): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
+function sanitizeRecord(input: Record<string, unknown>, depth: number): Mk9Evidence {
+  const out: Mk9Evidence = {};
   let count = 0;
   for (const [key, value] of Object.entries(input ?? {})) {
     if (count >= MAX_KEYS) break;
@@ -57,12 +57,12 @@ function sanitizeRecord(input: Record<string, unknown>, depth: number): Record<s
 }
 
 /** Sanitização obrigatória antes de qualquer persistência de evidência. */
-export function sanitizeEvidence(evidence: Record<string, unknown> | null | undefined) {
+export function sanitizeEvidence(evidence: Record<string, unknown> | null | undefined): Mk9Evidence {
   return sanitizeRecord(evidence ?? {}, 0);
 }
 
 /** Erros técnicos viram código controlado + contexto mínimo (nunca a mensagem crua). */
-export function technicalErrorEvidence(code: string, context: Record<string, unknown> = {}) {
+export function technicalErrorEvidence(code: string, context: Record<string, unknown> = {}): Mk9Evidence {
   return sanitizeEvidence({ errorCode: String(code).slice(0, 60).toUpperCase(), ...context });
 }
 
@@ -76,8 +76,8 @@ const CLIENT_SAFE_KEYS = new Set([
   "industryName", "competence", "expected", "found", "count",
 ]);
 
-export function evidenceForClient(evidence: Record<string, unknown>): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
+export function evidenceForClient(evidence: Mk9Evidence): Mk9Evidence {
+  const out: Mk9Evidence = {};
   for (const [k, v] of Object.entries(evidence ?? {})) {
     if (CLIENT_SAFE_KEYS.has(k)) out[k] = v;
   }
