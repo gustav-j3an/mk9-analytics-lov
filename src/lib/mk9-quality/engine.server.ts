@@ -129,10 +129,14 @@ export async function buildQualityOverview(params: {
   supabase: any;
   scope: Mk9AccessScope;
   competence: Mk9Competence;
+  /** false = não escreve histórico (usuário de escopo restrito). */
+  persist?: boolean;
 }): Promise<Mk9QualityOverview> {
-  const [counts, run] = await Promise.all([
+  const persist = params.persist !== false && canPersistDetections(params.scope);
+  const [counts, diagnostic, run] = await Promise.all([
     overviewCounts(params.supabase, params.scope),
-    runQualityDetectors({ ...params, persist: true }),
+    diagnosticSummary(params.supabase, params.scope),
+    runQualityDetectors({ ...params, persist }),
   ]);
 
   const grouped = new Map<string, Mk9QualityOverview["realtime"][number]>();
@@ -151,8 +155,14 @@ export async function buildQualityOverview(params: {
 
   return {
     ...counts,
+    diagnostic,
     realtime: Array.from(grouped.values()),
+    failedDetectors: run.failedDetectors,
+    detectorsExecuted: (params as any).detectors?.length ?? MK9_QUALITY_DETECTORS.length,
+    persisted: persist,
     scopeHash: params.scope.scopeHash,
+    role: params.scope.role,
     generatedAt: new Date().toISOString(),
   };
 }
+
