@@ -28,9 +28,12 @@ const listSchema = competenceSchema.extend({
   issueType: z.string().trim().regex(/^[A-Z0-9_]{3,64}$/).nullish(),
   industryId: z.string().uuid().nullish(),
   storeId: z.string().uuid().nullish(),
+  uf: z.string().trim().max(20).nullish(),
+  search: z.string().trim().max(80).nullish(),
   page: z.number().int().min(1).max(500).default(1),
   pageSize: z.number().int().min(1).max(100).default(25),
 });
+
 
 
 const transitionSchema = z.object({
