@@ -179,6 +179,189 @@ export type Database = {
           },
         ]
       }
+      mk9_data_quality_issue_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          from_status: string | null
+          id: string
+          issue_id: string
+          metadata: Json
+          reason: string | null
+          to_status: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          from_status?: string | null
+          id?: string
+          issue_id: string
+          metadata?: Json
+          reason?: string | null
+          to_status?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          issue_id?: string
+          metadata?: Json
+          reason?: string | null
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_data_quality_issue_events_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_data_quality_issues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mk9_data_quality_issues: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          archived_at: string | null
+          category: string
+          competence_month: number | null
+          competence_year: number | null
+          context_hash: string
+          created_at: string
+          description: string
+          entity_id: string | null
+          entity_type: string
+          evidence: Json
+          fingerprint: string
+          first_detected_at: string
+          id: string
+          ignore_reason: string | null
+          ignored_at: string | null
+          ignored_by: string | null
+          import_id: string | null
+          industry_id: string | null
+          issue_type: string
+          last_seen_at: string
+          peer_entity_id: string | null
+          promoter_id: string | null
+          reopened_at: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source: string
+          status: string
+          store_id: string | null
+          suggested_action: string | null
+          supervisor_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          archived_at?: string | null
+          category: string
+          competence_month?: number | null
+          competence_year?: number | null
+          context_hash: string
+          created_at?: string
+          description: string
+          entity_id?: string | null
+          entity_type: string
+          evidence?: Json
+          fingerprint: string
+          first_detected_at?: string
+          id?: string
+          ignore_reason?: string | null
+          ignored_at?: string | null
+          ignored_by?: string | null
+          import_id?: string | null
+          industry_id?: string | null
+          issue_type: string
+          last_seen_at?: string
+          peer_entity_id?: string | null
+          promoter_id?: string | null
+          reopened_at?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          source: string
+          status?: string
+          store_id?: string | null
+          suggested_action?: string | null
+          supervisor_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          archived_at?: string | null
+          category?: string
+          competence_month?: number | null
+          competence_year?: number | null
+          context_hash?: string
+          created_at?: string
+          description?: string
+          entity_id?: string | null
+          entity_type?: string
+          evidence?: Json
+          fingerprint?: string
+          first_detected_at?: string
+          id?: string
+          ignore_reason?: string | null
+          ignored_at?: string | null
+          ignored_by?: string | null
+          import_id?: string | null
+          industry_id?: string | null
+          issue_type?: string
+          last_seen_at?: string
+          peer_entity_id?: string | null
+          promoter_id?: string | null
+          reopened_at?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source?: string
+          status?: string
+          store_id?: string | null
+          suggested_action?: string | null
+          supervisor_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_data_quality_issues_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_data_quality_issues_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_promoters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_data_quality_issues_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mk9_import_items: {
         Row: {
           action: string
@@ -1057,6 +1240,73 @@ export type Database = {
         Returns: undefined
       }
       mk9_normalize_store_name: { Args: { input: string }; Returns: string }
+      mk9_quality_sync_detections: {
+        Args: {
+          _competence_month?: number
+          _competence_year?: number
+          _detections: Json
+          _issue_types: string[]
+          _source: string
+        }
+        Returns: {
+          auto_resolved: number
+          created: number
+          reopened: number
+          seen: number
+        }[]
+      }
+      mk9_quality_transition_issue: {
+        Args: {
+          _actor_id: string
+          _issue_id: string
+          _reason?: string
+          _to_status: string
+        }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          archived_at: string | null
+          category: string
+          competence_month: number | null
+          competence_year: number | null
+          context_hash: string
+          created_at: string
+          description: string
+          entity_id: string | null
+          entity_type: string
+          evidence: Json
+          fingerprint: string
+          first_detected_at: string
+          id: string
+          ignore_reason: string | null
+          ignored_at: string | null
+          ignored_by: string | null
+          import_id: string | null
+          industry_id: string | null
+          issue_type: string
+          last_seen_at: string
+          peer_entity_id: string | null
+          promoter_id: string | null
+          reopened_at: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source: string
+          status: string
+          store_id: string | null
+          suggested_action: string | null
+          supervisor_id: string | null
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "mk9_data_quality_issues"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       mk9_resolve_frequency: {
         Args: {
           p_industry_id: string
