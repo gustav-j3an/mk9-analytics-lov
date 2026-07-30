@@ -92,7 +92,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   }
 
   // ---- indústrias e configurações de período --------------------------------
-  let indQuery = supabase.from("mk9_industries").select("id,name,requires_checklist").order("name", { ascending: true });
+  let indQuery = supabase.from("mk9_industries").select("id,name,requires_checklist,checklist_enabled_at").order("name", { ascending: true });
   if (filters.industryId) indQuery = indQuery.eq("id", filters.industryId);
   if (scopeIndustryIds) indQuery = indQuery.in("id", scopeIndustryIds);
 

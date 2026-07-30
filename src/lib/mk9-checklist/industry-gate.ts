@@ -7,6 +7,8 @@
  * e relatórios continuam valendo normalmente.
  */
 
+import { isChecklistChargeable } from "./industry-admin";
+
 export const INDUSTRY_CHECKLIST_DISABLED = "INDUSTRY_CHECKLIST_DISABLED";
 
 export const INDUSTRY_CHECKLIST_DISABLED_MESSAGE =
@@ -48,7 +50,6 @@ export function countIndustriesMissingChecklist(
   return ctxs.filter((c) => {
     if (c.checklistImports !== 0) return false;
     if (!competence) return c.requiresChecklist === true;
-    // Import dinâmico evitado: regra pura reimplementada via helper compartilhado.
-    return isChargeable(c, competence);
+    return isChecklistChargeable(c, competence);
   }).length;
 }

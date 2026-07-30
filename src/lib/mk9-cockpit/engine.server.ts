@@ -340,7 +340,7 @@ export async function buildCockpitOverview(
       imports: core.checklistImportsTotal,
       failedImports,
       // Só indústrias classificadas como "exige checklist" podem gerar alerta de ausência.
-      industriesWithoutChecklist: countIndustriesMissingChecklist(core.ctxs),
+      industriesWithoutChecklist: countIndustriesMissingChecklist(core.ctxs, { month, year }),
       lastImportAt: recentImports[0]?.at ?? null,
     },
     quality: {
