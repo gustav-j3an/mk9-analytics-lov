@@ -39,13 +39,30 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import {
+  mk9QualityAddCommentFn,
+  mk9QualityArchiveCommentFn,
+  mk9QualityAssignFn,
   mk9QualityDetailFn,
+  mk9QualityEditCommentFn,
   mk9QualityFacetsFn,
+  mk9QualityFollowUpFn,
   mk9QualityListFn,
   mk9QualityOverviewFn,
+  mk9QualityPlanningFn,
+  mk9QualityReopenFn,
   mk9QualityRunFn,
   mk9QualityTransitionFn,
 } from "@/lib/mk9-quality.functions";
+import {
+  AssigneeBadge,
+  AssignmentSection,
+  CommentsSection,
+  DueBadge,
+  FollowUpPanel,
+  PriorityBadge,
+  TreatmentSection,
+} from "@/components/mk9/quality-follow-up";
+
 import {
   CATEGORY_LABEL,
   CATEGORY_ORDER,
