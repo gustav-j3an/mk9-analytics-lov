@@ -299,9 +299,14 @@ export async function auditByStore(supabase: any, scope: AuditScope): Promise<{ 
 
     if (scope.promoterId) stores = stores.filter((s) => s.promoterId === scope.promoterId);
     for (const s of stores) all.push(s);
-    // Fase 1B.4: paridade total com o Relatório da Indústria — todas as
-    // métricas vêm do agregador canônico (validas por loja, nunca bruto).
+    // Fase 1B.4 — paridade total com o Relatório da Indústria:
+    //   • contratadas/realizadas/extras vêm do agregador canônico por loja;
+    //   • pendentes e cobertura do TOTAL seguem a regra operacional oficial
+    //     (bruto: contratadas − realizadas), idêntica ao relatório e ao PDF.
     const agg = aggregateVisitMetrics(stores.map((s) => ({ contratadas: s.contratadas, executadas: s.realizadas })));
+    const pendentes = Math.max(0, agg.contratadas - agg.executadas);
+    const coberturaPct =
+      agg.contratadas > 0 ? Math.min(100, Math.round((agg.executadas / agg.contratadas) * 100)) : 0;
     totals.push({
       industryId: c.industryId,
       industryName: c.industryName,
@@ -309,9 +314,9 @@ export async function auditByStore(supabase: any, scope: AuditScope): Promise<{ 
       storesCount: stores.length,
       contratadas: agg.contratadas,
       realizadas: agg.executadas,
-      pendentes: agg.pendencias,
+      pendentes,
       extras: agg.extras,
-      coberturaPct: agg.coberturaPct,
+      coberturaPct,
     });
   }
   return { stores: all, totals };
