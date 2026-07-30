@@ -111,11 +111,23 @@ describe("par indústria × loja — sintomas consolidados", () => {
     expect(out?.symptoms).toContain("NO_ROUTE");
   });
 
-  it("M. visita realizada sem roteiro é BLOQUEANTE", () => {
-    const out = evaluateOperationPair({ ...base, routeCount: 0, executedVisits: 3 });
-    expect(out?.severity).toBe("BLOQUEANTE");
-    expect(out?.symptoms).toContain("VISITS_WITHOUT_ROUTE");
+  it("M. visita sem roteiro é graduada: só é BLOQUEANTE sem frequência nem roteiro", () => {
+    // Há frequência contratada: o problema é grave, mas não bloqueia o relatório.
+    const comFrequencia = evaluateOperationPair({ ...base, routeCount: 0, executedVisits: 3 });
+    expect(comFrequencia?.symptoms).toContain("VISITS_WITHOUT_ROUTE");
+    expect(comFrequencia?.severity).toBe("CRITICO");
+
+    // Sem frequência e sem roteiro: a visita não tem nenhum respaldo contratual.
+    const semRespaldo = evaluateOperationPair({
+      ...base,
+      hasFrequency: false,
+      contractedVisits: 0,
+      routeCount: 0,
+      executedVisits: 3,
+    });
+    expect(semRespaldo?.severity).toBe("BLOQUEANTE");
   });
+
 
   it("N. roteiro sem frequência contratada é CRÍTICO", () => {
     const out = evaluateOperationPair({ ...base, hasFrequency: false, contractedVisits: 0 });

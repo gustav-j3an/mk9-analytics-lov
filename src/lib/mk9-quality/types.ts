@@ -147,11 +147,36 @@ export interface Mk9QualityIssueView {
   fingerprint?: string;
 }
 
+/**
+ * Resumo do diagnóstico (Fase 2B.3, item 18).
+ *
+ * Cada campo tem UMA unidade explícita — a interface nunca pode somar
+ * ocorrências com lojas, visitas ou sintomas.
+ */
+export interface Mk9QualityDiagnostic {
+  /** ocorrências consolidadas do par indústria × loja */
+  pairIssues: number;
+  /** sintomas somados dentro dessas ocorrências */
+  pairSymptoms: number;
+  noFrequency: number;
+  zeroFrequency: number;
+  noRoute: number;
+  routeWithoutFrequency: number;
+  /** visitas (não ocorrências) realizadas sem roteiro */
+  visitsWithoutRoute: number;
+  incompleteStoreIssues: number;
+  /** lojas DISTINTAS por trás das ocorrências de cadastro incompleto */
+  incompleteStores: number;
+  incompleteStoreVisits: number;
+}
+
 export interface Mk9QualityOverview {
   total: number;
   byStatus: Record<string, number>;
   bySeverity: Record<string, number>;
   byCategory: Record<string, number>;
+  byIssueType: Record<string, number>;
+  diagnostic: Mk9QualityDiagnostic;
   /** Sinais REALTIME (não persistidos) desta execução. */
   realtime: Array<{
     issueType: string;
@@ -160,6 +185,13 @@ export interface Mk9QualityOverview {
     count: number;
     title: string;
   }>;
+  /** Detectores que falharam na última execução (interface avisa sem erro técnico). */
+  failedDetectors: string[];
+  detectorsExecuted: number;
+  /** Ciclo com histórico foi persistido nesta execução? */
+  persisted: boolean;
   scopeHash: string;
+  role: string;
   generatedAt: string;
 }
+

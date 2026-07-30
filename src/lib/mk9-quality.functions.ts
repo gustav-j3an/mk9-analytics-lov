@@ -28,9 +28,12 @@ const listSchema = competenceSchema.extend({
   issueType: z.string().trim().regex(/^[A-Z0-9_]{3,64}$/).nullish(),
   industryId: z.string().uuid().nullish(),
   storeId: z.string().uuid().nullish(),
+  uf: z.string().trim().max(20).nullish(),
+  search: z.string().trim().max(80).nullish(),
   page: z.number().int().min(1).max(500).default(1),
   pageSize: z.number().int().min(1).max(100).default(25),
 });
+
 
 
 const transitionSchema = z.object({
@@ -75,6 +78,19 @@ export const mk9QualityListFn = createServerFn({ method: "POST" })
       return { items: [], total: 0, page: data.page, pageSize: data.pageSize };
     }
 
+    // UF é resolvida no servidor para uma lista de lojas do próprio escopo:
+    // o navegador nunca escolhe diretamente quais lojas serão consultadas.
+    let storeIds: string[] | null = null;
+    const requestedUf = (data.uf ?? "").trim().toUpperCase();
+    if (/^[A-Z]{2}$/.test(requestedUf)) {
+      const { ufFilter } = await import("@/lib/mk9-auth/access-scope.server");
+      const uf = ufFilter(scope, requestedUf);
+      if (uf.outOfScope) return { items: [], total: 0, page: data.page, pageSize: data.pageSize };
+      const { loadScopedStores } = await import("./mk9-quality/detectors/context.server");
+      const stores = await loadScopedStores(supabaseAdmin, scope);
+      storeIds = stores.filter((s) => (s.uf ?? "").toUpperCase() === requestedUf).map((s) => s.id);
+    }
+
     return listIssues(supabaseAdmin, scope, {
       status: data.status ?? null,
       category: data.category ?? null,
@@ -82,13 +98,44 @@ export const mk9QualityListFn = createServerFn({ method: "POST" })
       issueType: data.issueType ?? null,
       industryId: data.industryId ?? null,
       storeId: data.storeId ?? null,
+      storeIds,
+      search: data.search ?? null,
       competenceMonth: data.month ?? null,
       competenceYear: data.year ?? null,
       page: data.page,
       pageSize: data.pageSize,
     });
-
   });
+
+/**
+ * Opções de filtro dentro do escopo do usuário (indústrias e UFs).
+ * Nunca devolve a lista completa de lojas: a busca de loja é assíncrona.
+ */
+export const mk9QualityFacetsFn = createServerFn({ method: "POST" })
+  .inputValidator(() => ({}))
+  .handler(async () => {
+    const { scope } = await qualitySession();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { loadScopedIndustries, loadScopedStores } = await import(
+      "./mk9-quality/detectors/context.server"
+    );
+    const [industries, stores] = await Promise.all([
+      loadScopedIndustries(supabaseAdmin, scope),
+      loadScopedStores(supabaseAdmin, scope),
+    ]);
+    const ufs = Array.from(
+      new Set(stores.map((s) => (s.uf ?? "").toUpperCase()).filter((u) => /^[A-Z]{2}$/.test(u))),
+    ).sort();
+    return {
+      industries: industries.map((i) => ({ id: i.id, name: i.name })),
+      ufs,
+      role: scope.role,
+      canViewAll: scope.canViewAll,
+      canRunPersistentCycle:
+        (scope.role === "ADMIN" || scope.role === "DEV" || scope.role === "AUDITOR") && scope.canViewAll,
+    };
+  });
+
 
 /** Detalhe de uma ocorrência + linha do tempo (histórico só para papéis internos). */
 export const mk9QualityDetailFn = createServerFn({ method: "POST" })

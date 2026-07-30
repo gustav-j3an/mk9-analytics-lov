@@ -13,10 +13,12 @@ import { evidenceForClient, sanitizeEvidence } from "./evidence";
 import type { FingerprintedIssue } from "./fingerprint";
 import type {
   Mk9Competence,
+  Mk9QualityDiagnostic,
   Mk9QualityIssueView,
   Mk9QualityOverview,
   Mk9QualityStatus,
 } from "./types";
+
 import { MK9_TECHNICAL_CATEGORIES } from "./types";
 
 const LIST_COLUMNS =
@@ -26,11 +28,25 @@ const LIST_COLUMNS =
   "first_detected_at, last_seen_at, resolved_at, ignored_at, reopened_at";
 
 /** Colunas leves do overview — evidência NUNCA é carregada para gerar cards. */
-const OVERVIEW_COLUMNS = "category, severity, status, industry_id, store_id";
+const OVERVIEW_COLUMNS = "category, severity, status, issue_type, industry_id, store_id";
 
 function isAdminLike(scope: Mk9AccessScope): boolean {
   return scope.role === "ADMIN" || scope.role === "DEV" || scope.role === "AUDITOR";
 }
+
+/**
+ * Neutraliza os metacaracteres do `ilike` e a vírgula/parênteses do parser do
+ * PostgREST, impedindo que um termo de busca altere a estrutura do filtro.
+ */
+export function escapeLike(term: string): string {
+  return term
+    .trim()
+    .slice(0, 80)
+    .replace(/[\\%_(),*]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 
 /** Aplica o escopo do servidor a uma query PostgREST. */
 function applyScope(query: any, scope: Mk9AccessScope) {
@@ -161,11 +177,16 @@ export interface ListFilters {
   issueType?: string | null;
   industryId?: string | null;
   storeId?: string | null;
+  /** Restrição adicional de lojas (ex.: filtro por UF já resolvido no servidor). */
+  storeIds?: string[] | null;
+  /** Busca livre no título/descrição (nunca na evidência). */
+  search?: string | null;
   competenceMonth?: number | null;
   competenceYear?: number | null;
   page: number;
   pageSize: number;
 }
+
 
 /** Peso de gravidade — usado para ordenar a página já carregada. */
 const SEVERITY_WEIGHT: Record<string, number> = {
@@ -193,8 +214,20 @@ export async function listIssues(
   // Filtros do cliente só ESTREITAM: já validados contra o escopo pelo chamador.
   if (filters.industryId) q = q.eq("industry_id", filters.industryId);
   if (filters.storeId) q = q.eq("store_id", filters.storeId);
+  if (filters.storeIds) {
+    q = filters.storeIds.length
+      ? q.in("store_id", filters.storeIds)
+      : q.eq("store_id", "00000000-0000-0000-0000-000000000000");
+  }
+  if (filters.search) {
+    // Busca só em texto já projetado (título/descrição). Nunca na evidência,
+    // que pode conter contexto técnico não destinado a todos os papéis.
+    const term = escapeLike(filters.search);
+    q = q.or(`title.ilike.%${term}%,description.ilike.%${term}%`);
+  }
   if (filters.competenceMonth) q = q.eq("competence_month", filters.competenceMonth);
   if (filters.competenceYear) q = q.eq("competence_year", filters.competenceYear);
+
 
   const from = (filters.page - 1) * filters.pageSize;
   const { data, error, count } = await q
@@ -253,7 +286,9 @@ export async function getIssue(
 export async function overviewCounts(
   supabase: any,
   scope: Mk9AccessScope,
-): Promise<Pick<Mk9QualityOverview, "total" | "byStatus" | "bySeverity" | "byCategory">> {
+): Promise<
+  Pick<Mk9QualityOverview, "total" | "byStatus" | "bySeverity" | "byCategory" | "byIssueType">
+> {
   const { data, error } = await applyScope(
     supabase.from("mk9_data_quality_issues").select(OVERVIEW_COLUMNS),
     scope,
@@ -263,13 +298,74 @@ export async function overviewCounts(
   const byStatus: Record<string, number> = {};
   const bySeverity: Record<string, number> = {};
   const byCategory: Record<string, number> = {};
+  const byIssueType: Record<string, number> = {};
   for (const row of data ?? []) {
     byStatus[row.status] = (byStatus[row.status] ?? 0) + 1;
     bySeverity[row.severity] = (bySeverity[row.severity] ?? 0) + 1;
     byCategory[row.category] = (byCategory[row.category] ?? 0) + 1;
+    byIssueType[row.issue_type] = (byIssueType[row.issue_type] ?? 0) + 1;
   }
-  return { total: (data ?? []).length, byStatus, bySeverity, byCategory };
+  return { total: (data ?? []).length, byStatus, bySeverity, byCategory, byIssueType };
 }
+
+/**
+ * Resumo do diagnóstico (item 18). Consulta LIMITADA a dois tipos de
+ * ocorrência que precisam de leitura de evidência para separar as unidades
+ * (ocorrência × loja × visita × sintoma). Nada disso vai para os cards de
+ * contagem, que continuam usando apenas colunas leves.
+ */
+export async function diagnosticSummary(
+  supabase: any,
+  scope: Mk9AccessScope,
+): Promise<Mk9QualityDiagnostic> {
+  const empty: Mk9QualityDiagnostic = {
+    pairIssues: 0,
+    pairSymptoms: 0,
+    noFrequency: 0,
+    zeroFrequency: 0,
+    noRoute: 0,
+    routeWithoutFrequency: 0,
+    visitsWithoutRoute: 0,
+    incompleteStoreIssues: 0,
+    incompleteStores: 0,
+    incompleteStoreVisits: 0,
+  };
+
+  const { data, error } = await applyScope(
+    supabase
+      .from("mk9_data_quality_issues")
+      .select("issue_type, store_id, evidence")
+      .limit(2000),
+    scope,
+  )
+    .in("status", ["OPEN", "ACKNOWLEDGED", "IN_PROGRESS", "REOPENED"])
+    .in("issue_type", ["OPERATION_PAIR_INTEGRITY", "INCOMPLETE_STORE_WITH_EXECUTION"]);
+  if (error) return empty;
+
+  const stores = new Set<string>();
+  for (const row of (data ?? []) as any[]) {
+    const evidence = (row.evidence ?? {}) as Record<string, any>;
+    if (row.issue_type === "OPERATION_PAIR_INTEGRITY") {
+      empty.pairIssues += 1;
+      const symptoms: string[] = Array.isArray(evidence.symptoms) ? evidence.symptoms : [];
+      empty.pairSymptoms += symptoms.length;
+      if (symptoms.includes("NO_FREQUENCY")) empty.noFrequency += 1;
+      if (symptoms.includes("ZERO_FREQUENCY")) empty.zeroFrequency += 1;
+      if (symptoms.includes("NO_ROUTE")) empty.noRoute += 1;
+      if (symptoms.includes("ROUTE_WITHOUT_FREQUENCY")) empty.routeWithoutFrequency += 1;
+      if (symptoms.includes("VISITS_WITHOUT_ROUTE")) {
+        empty.visitsWithoutRoute += Number(evidence.visitsWithoutRoute ?? 0) || 0;
+      }
+      continue;
+    }
+    empty.incompleteStoreIssues += 1;
+    if (row.store_id) stores.add(row.store_id);
+    empty.incompleteStoreVisits += Number(evidence.executedVisits ?? 0) || 0;
+  }
+  empty.incompleteStores = stores.size;
+  return empty;
+}
+
 
 export async function transitionIssue(
   supabase: any,

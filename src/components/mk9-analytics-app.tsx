@@ -5,6 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Mk9ImportModule } from "@/components/mk9-import-module";
 import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
 import { Mk9AuditModule, type Mk9AuditInitialFilters } from "@/components/mk9-audit-module";
+import { Mk9QualityModule } from "@/components/mk9-quality-module";
+import type { ResolvedNavigation } from "@/lib/mk9-quality/evidence-view";
 import { Mk9DashboardModule } from "@/components/mk9-dashboard-module";
 import { Mk9RoutesModule } from "@/components/mk9-routes-module";
 import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
@@ -28,6 +30,7 @@ import {
   Route,
   Search,
   Shield,
+  ShieldCheck,
   Store,
   Upload,
   Users,
@@ -68,6 +71,7 @@ type ModuleId =
   | "roteiros"
   | "visitas"
   | "conciliacao"
+  | "qualidade"
   | "relatorio_industria"
   | "importacoes"
   | "checklists"
@@ -79,6 +83,7 @@ const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; grou
   { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação", roles: ["ADMIN", "SUPERVISOR", "PROMOTOR", "AUDITOR"] },
   // "Visitas" ocultada do menu — datas planejadas não representam execução real (checklist é fonte da verdade). Componente/backend preservados.
   { id: "conciliacao", label: "Auditoria de Execução", icon: CheckCircle2, group: "Operação", roles: ["ADMIN", "SUPERVISOR"] },
+  { id: "qualidade", label: "Qualidade dos Dados", icon: ShieldCheck, group: "Operação", roles: ["ADMIN", "SUPERVISOR", "AUDITOR", "CLIENTE"] },
   { id: "relatorio_industria", label: "Indústrias (PDF)", icon: PackageCheck, group: "Relatórios", roles: ["ADMIN", "SUPERVISOR", "CLIENTE", "AUDITOR"] },
   { id: "industrias", label: "Indústrias", icon: Factory, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
   { id: "lojas", label: "Lojas", icon: Store, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
@@ -87,6 +92,7 @@ const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; grou
   { id: "checklists", label: "Checklists", icon: ClipboardCheck, group: "Importações", roles: ["ADMIN"] },
   { id: "usuarios", label: "Usuários", icon: UserCog, group: "Administração", roles: ["ADMIN"] },
 ];
+
 const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Relatórios", "Dados", "Importações", "Administração"];
 
 const MONTHS_PT = [
@@ -428,6 +434,39 @@ export function Mk9AnalyticsApp() {
               <Mk9ChecklistImportModule onSwitchToBase={() => setActiveModule("importacoes")} />
             )}
             {activeModule === "conciliacao" && <Mk9AuditModule key={auditKey} initialFilters={auditFilters} />}
+            {activeModule === "qualidade" && (
+              <Mk9QualityModule
+                month={month}
+                year={year}
+                onNavigate={(target: ResolvedNavigation) => {
+                  // Deep-link: o Centro de Qualidade só troca de módulo e pré-filtra;
+                  // nenhuma correção automática acontece aqui.
+                  if (target.month) setMonth(target.month);
+                  if (target.year) setYear(target.year);
+                  if (target.module === "audit") {
+                    setAuditFilters({
+                      month: target.month ?? month,
+                      year: target.year ?? year,
+                      industryId: target.industryId ?? null,
+                    });
+                    setAuditKey((k) => k + 1);
+                    setActiveModule("conciliacao");
+                    return;
+                  }
+                  const map: Record<string, ModuleId> = {
+                    stores: "lojas",
+                    routes: "roteiros",
+                    frequency: "roteiros",
+                    imports: "importacoes",
+                    checklists: "checklists",
+                    industries: "industrias",
+                    reports: "relatorio_industria",
+                  };
+                  setActiveModule(map[target.module] ?? "dashboard");
+                }}
+              />
+            )}
+
             {activeModule === "relatorio_industria" && <Mk9IndustryReportModule />}
             {activeModule === "usuarios" && <Mk9UsersModule currentUserId={user?.id ?? null} />}
           </div>
