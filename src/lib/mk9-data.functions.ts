@@ -58,7 +58,83 @@ export const mk9ListChecklistIndustries = createServerFn({ method: "GET" }).hand
   }));
 });
 
-/** Alteração da classificação: exclusiva de ADMIN, aplicada via RPC com audit log. */
+/**
+ * Busca assíncrona de indústrias habilitadas para checklist (seletores do fluxo).
+ * Não carrega tudo: filtro no servidor, escopo aplicado, no máximo 20 resultados.
+ */
+export const mk9SearchChecklistIndustries = createServerFn({ method: "GET" })
+  .inputValidator((data: unknown) =>
+    z.object({ q: z.string().max(120).optional() }).parse(data ?? {}),
+  )
+  .handler(async ({ data }) => {
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (scope.allowedIndustryIds?.length === 0) return [];
+    let q = supabaseAdmin
+      .from("mk9_industries")
+      .select("id, name")
+      .eq("requires_checklist", true)
+      .order("name", { ascending: true })
+      .limit(20);
+    const term = (data.q ?? "").trim();
+    if (term) q = q.ilike("name", `%${term}%`);
+    if (scope.allowedIndustryIds) q = q.in("id", scope.allowedIndustryIds);
+    const { data: rows, error } = await q;
+    if (error) throw new Error("Não foi possível buscar as indústrias.");
+    return (rows ?? []).map((r: any) => ({ id: r.id as string, name: r.name as string }));
+  });
+
+/** Configuração operacional de uma indústria (modal "Configurar operação"). */
+export const mk9GetIndustryOperationConfig = createServerFn({ method: "GET" })
+  .inputValidator((data: unknown) => z.object({ industryId: z.string().uuid() }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
+    if (scope.allowedIndustryIds && !scope.allowedIndustryIds.includes(data.industryId)) {
+      const { mk9IndustryError } = await import("@/lib/mk9-checklist/industry-admin");
+      throw mk9IndustryError("FORBIDDEN", 403);
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: ind, error } = await supabaseAdmin
+      .from("mk9_industries")
+      .select("id, name, requires_checklist, checklist_enabled_at")
+      .eq("id", data.industryId)
+      .maybeSingle();
+    if (error) throw new Error("Não foi possível carregar a indústria.");
+    if (!ind) {
+      const { mk9IndustryError } = await import("@/lib/mk9-checklist/industry-admin");
+      throw mk9IndustryError("INDUSTRY_NOT_FOUND", 404);
+    }
+    const { data: cfg } = await supabaseAdmin
+      .from("mk9_industry_period_config")
+      .select("period_type, start_day, end_day, uses_previous_month, week_grouping, active")
+      .eq("industry_id", data.industryId)
+      .maybeSingle();
+    return {
+      id: ind.id as string,
+      name: ind.name as string,
+      requiresChecklist: (ind as any).requires_checklist === true,
+      checklistEnabledAt: ((ind as any).checklist_enabled_at ?? null) as string | null,
+      periodType: ((cfg as any)?.period_type ?? "CALENDAR_MONTH") as "CALENDAR_MONTH" | "CUSTOM_CYCLE",
+      hasCustomPeriod: !!cfg && (cfg as any).period_type === "CUSTOM_CYCLE" && (cfg as any).active === true,
+      period: cfg
+        ? {
+            startDay: (cfg as any).start_day as number,
+            endDay: (cfg as any).end_day as number,
+            usesPreviousMonth: (cfg as any).uses_previous_month === true,
+            weekGrouping: (cfg as any).week_grouping as string,
+            active: (cfg as any).active === true,
+          }
+        : null,
+    };
+  });
+
+/**
+ * Alteração da classificação: exclusiva de ADMIN, aplicada via RPC com audit log.
+ * `source` distingue a origem (tela administrativa × durante a importação) e
+ * `importId` amarra o evento à importação que disparou a habilitação.
+ */
 export const mk9SetIndustryRequiresChecklist = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
     z
@@ -66,27 +142,112 @@ export const mk9SetIndustryRequiresChecklist = createServerFn({ method: "POST" }
         industryId: z.string().uuid(),
         value: z.boolean(),
         reason: z.string().max(500).optional(),
+        source: z.enum(["ADMIN_UI", "IMPORT"]).optional(),
+        importId: z.string().uuid().nullable().optional(),
       })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    const { requireMk9Role, logAudit } = await import("@/lib/mk9-auth/require-role.server");
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
+    const { mk9IndustryError } = await import("@/lib/mk9-checklist/industry-admin");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.rpc("mk9_admin_set_industry_requires_checklist" as any, {
-      p_industry_id: data.industryId,
-      p_value: data.value,
-      p_reason: data.reason ?? null,
-      p_actor: ctx.userId,
-    } as any);
-    if (error) throw new Error("Não foi possível alterar a classificação de checklist desta indústria.");
-    await logAudit(ctx, "mk9.industry.requires_checklist.change", "mk9_industries", data.industryId, {
-      value: data.value,
-      reason: data.reason ?? null,
-    });
-    return { ok: true, industryId: data.industryId, requiresChecklist: data.value };
+    const { data: rows, error } = await supabaseAdmin.rpc(
+      "mk9_admin_set_industry_requires_checklist" as any,
+      {
+        p_industry_id: data.industryId,
+        p_value: data.value,
+        p_reason: data.reason ?? null,
+        p_actor: ctx.userId,
+        p_source: data.source ?? "ADMIN_UI",
+        p_import_id: data.importId ?? null,
+      } as any,
+    );
+    if (error) {
+      const raw = error.message ?? "";
+      if (raw.includes("MK9_INDUSTRY_NOT_FOUND")) throw mk9IndustryError("INDUSTRY_NOT_FOUND", 404);
+      if (raw.includes("MK9_INDUSTRY_ALREADY_ENABLED")) throw mk9IndustryError("INDUSTRY_ALREADY_ENABLED", 409);
+      throw new Error("Não foi possível alterar a classificação de checklist desta indústria.");
+    }
+    const row = Array.isArray(rows) ? (rows[0] as any) : (rows as any);
+    return {
+      ok: true,
+      industryId: data.industryId,
+      name: (row?.name ?? null) as string | null,
+      requiresChecklist: data.value,
+      checklistEnabledAt: (row?.checklist_enabled_at ?? null) as string | null,
+    };
   });
 
+/**
+ * Cadastro de indústria durante a importação de checklist.
+ * Nunca cria em silêncio: exige confirmação quando há nomes semelhantes e
+ * bloqueia duplicidade por nome normalizado.
+ */
+export const mk9CreateChecklistIndustry = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        name: z.string().min(2).max(120),
+        confirmed: z.boolean().optional(),
+        importId: z.string().uuid().nullable().optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
+    const { decideIndustryCreation, mk9IndustryError } = await import(
+      "@/lib/mk9-checklist/industry-admin"
+    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing, error: listErr } = await supabaseAdmin
+      .from("mk9_industries")
+      .select("id, name, name_normalized, requires_checklist");
+    if (listErr) throw new Error("Não foi possível validar o nome da indústria.");
+    const decision = decideIndustryCreation(
+      data.name,
+      (existing ?? []).map((r: any) => ({
+        id: r.id as string,
+        name: r.name as string,
+        nameNormalized: r.name_normalized as string,
+        requiresChecklist: r.requires_checklist === true,
+      })),
+      { confirmed: data.confirmed },
+    );
+    if (decision.kind === "duplicate") {
+      return { status: "duplicate" as const, match: decision.match };
+    }
+    if (decision.kind === "needs_confirmation") {
+      return { status: "candidates" as const, candidates: decision.candidates };
+    }
+    const { data: rows, error } = await supabaseAdmin.rpc(
+      "mk9_admin_create_checklist_industry" as any,
+      {
+        p_name: decision.name,
+        p_name_normalized: decision.nameNormalized,
+        p_actor: ctx.userId,
+        p_import_id: data.importId ?? null,
+        p_source: "IMPORT",
+      } as any,
+    );
+    if (error) {
+      if ((error.message ?? "").includes("MK9_DUPLICATE_INDUSTRY")) {
+        throw mk9IndustryError("DUPLICATE_INDUSTRY", 409);
+      }
+      throw new Error("Não foi possível cadastrar a indústria.");
+    }
+    const row = Array.isArray(rows) ? (rows[0] as any) : (rows as any);
+    return {
+      status: "created" as const,
+      industry: {
+        id: row?.id as string,
+        name: row?.name as string,
+        requiresChecklist: true,
+        checklistEnabledAt: (row?.checklist_enabled_at ?? null) as string | null,
+      },
+    };
+  });
 
 export const mk9ListStores = createServerFn({ method: "GET" }).handler(async () => {
   const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
