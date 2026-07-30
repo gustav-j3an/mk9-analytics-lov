@@ -37,11 +37,18 @@ export function filterChecklistIndustries<T extends ChecklistIndustryFlag>(list:
 }
 
 /**
- * Contagem de "indústrias sem checklist na competência": considera SOMENTE as
- * indústrias que exigem checklist. Quem não exige nunca gera alerta de ausência.
+ * Contagem de "indústrias sem checklist na competência".
+ * Considera SOMENTE indústrias que exigem checklist E cuja habilitação já valia
+ * na competência analisada (regra temporal: nada de cobrança retroativa).
  */
 export function countIndustriesMissingChecklist(
-  ctxs: Array<{ requiresChecklist: boolean; checklistImports: number }>,
+  ctxs: Array<{ requiresChecklist: boolean; checklistImports: number; checklistEnabledAt?: string | null }>,
+  competence?: { month: number; year: number },
 ): number {
-  return ctxs.filter((c) => c.requiresChecklist === true && c.checklistImports === 0).length;
+  return ctxs.filter((c) => {
+    if (c.checklistImports !== 0) return false;
+    if (!competence) return c.requiresChecklist === true;
+    // Import dinâmico evitado: regra pura reimplementada via helper compartilhado.
+    return isChargeable(c, competence);
+  }).length;
 }

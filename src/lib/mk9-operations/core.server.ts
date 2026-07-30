@@ -107,7 +107,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   if (indRes.error) throw new Error(indRes.error.message);
   if (cfgRes.error) throw new Error(cfgRes.error.message);
 
-  const industries = (indRes.data ?? []) as Array<{ id: string; name: string; requires_checklist?: boolean }>;
+  const industries = (indRes.data ?? []) as Array<{ id: string; name: string; requires_checklist?: boolean; checklist_enabled_at?: string | null }>;
   const cfgByIndustry = new Map<string, PeriodConfig>();
   for (const c of cfgRes.data ?? []) {
     cfgByIndustry.set(c.industry_id, {
@@ -128,6 +128,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       id: ind.id,
       name: ind.name,
       requiresChecklist: ind.requires_checklist === true,
+      checklistEnabledAt: ind.checklist_enabled_at ?? null,
       win: w,
       fraction: elapsedFraction(w, today),
       buckets: new Map(),

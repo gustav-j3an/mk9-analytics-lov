@@ -120,6 +120,8 @@ export interface IndustryContext {
   name: string;
   /** Participa do fluxo operacional de checklist (não indica indústria inativa). */
   requiresChecklist: boolean;
+  /** Data de habilitação: impede cobrança de checklist em competências anteriores. */
+  checklistEnabledAt: string | null;
 
   win: OperationWindow;
   fraction: number;
