@@ -198,8 +198,20 @@ export async function listIssues(
   // Filtros do cliente só ESTREITAM: já validados contra o escopo pelo chamador.
   if (filters.industryId) q = q.eq("industry_id", filters.industryId);
   if (filters.storeId) q = q.eq("store_id", filters.storeId);
+  if (filters.storeIds) {
+    q = filters.storeIds.length
+      ? q.in("store_id", filters.storeIds)
+      : q.eq("store_id", "00000000-0000-0000-0000-000000000000");
+  }
+  if (filters.search) {
+    // Busca só em texto já projetado (título/descrição). Nunca na evidência,
+    // que pode conter contexto técnico não destinado a todos os papéis.
+    const term = escapeLike(filters.search);
+    q = q.or(`title.ilike.%${term}%,description.ilike.%${term}%`);
+  }
   if (filters.competenceMonth) q = q.eq("competence_month", filters.competenceMonth);
   if (filters.competenceYear) q = q.eq("competence_year", filters.competenceYear);
+
 
   const from = (filters.page - 1) * filters.pageSize;
   const { data, error, count } = await q
