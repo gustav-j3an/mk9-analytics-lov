@@ -548,6 +548,8 @@ export type Database = {
       }
       mk9_industries: {
         Row: {
+          checklist_enabled_at: string | null
+          checklist_enabled_by: string | null
           created_at: string
           frequency_difference: number | null
           frequency_status:
@@ -559,10 +561,13 @@ export type Database = {
           monthly_estimated_frequency: number | null
           name: string
           name_normalized: string
+          requires_checklist: boolean
           updated_at: string
           weeks_count: number | null
         }
         Insert: {
+          checklist_enabled_at?: string | null
+          checklist_enabled_by?: string | null
           created_at?: string
           frequency_difference?: number | null
           frequency_status?:
@@ -574,10 +579,13 @@ export type Database = {
           monthly_estimated_frequency?: number | null
           name: string
           name_normalized: string
+          requires_checklist?: boolean
           updated_at?: string
           weeks_count?: number | null
         }
         Update: {
+          checklist_enabled_at?: string | null
+          checklist_enabled_by?: string | null
           created_at?: string
           frequency_difference?: number | null
           frequency_status?:
@@ -589,6 +597,7 @@ export type Database = {
           monthly_estimated_frequency?: number | null
           name?: string
           name_normalized?: string
+          requires_checklist?: boolean
           updated_at?: string
           weeks_count?: number | null
         }
@@ -1777,6 +1786,14 @@ export type Database = {
           _weekly: number
         }
         Returns: string
+      }
+      mk9_set_industry_requires_checklist: {
+        Args: { p_industry_id: string; p_reason?: string; p_value: boolean }
+        Returns: {
+          id: string
+          name: string
+          requires_checklist: boolean
+        }[]
       }
       mk9_sync_planned_visits: {
         Args: { _archive_ids: string[]; _import_id: string; _rows: Json }
