@@ -68,6 +68,7 @@ type ModuleId =
   | "roteiros"
   | "visitas"
   | "conciliacao"
+  | "qualidade"
   | "relatorio_industria"
   | "importacoes"
   | "checklists"
@@ -79,6 +80,7 @@ const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; grou
   { id: "roteiros", label: "Roteiros", icon: Route, group: "Operação", roles: ["ADMIN", "SUPERVISOR", "PROMOTOR", "AUDITOR"] },
   // "Visitas" ocultada do menu — datas planejadas não representam execução real (checklist é fonte da verdade). Componente/backend preservados.
   { id: "conciliacao", label: "Auditoria de Execução", icon: CheckCircle2, group: "Operação", roles: ["ADMIN", "SUPERVISOR"] },
+  { id: "qualidade", label: "Qualidade dos Dados", icon: ShieldCheck, group: "Operação", roles: ["ADMIN", "SUPERVISOR", "AUDITOR", "CLIENTE"] },
   { id: "relatorio_industria", label: "Indústrias (PDF)", icon: PackageCheck, group: "Relatórios", roles: ["ADMIN", "SUPERVISOR", "CLIENTE", "AUDITOR"] },
   { id: "industrias", label: "Indústrias", icon: Factory, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
   { id: "lojas", label: "Lojas", icon: Store, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
@@ -87,6 +89,7 @@ const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; grou
   { id: "checklists", label: "Checklists", icon: ClipboardCheck, group: "Importações", roles: ["ADMIN"] },
   { id: "usuarios", label: "Usuários", icon: UserCog, group: "Administração", roles: ["ADMIN"] },
 ];
+
 const moduleGroups: ModuleGroup[] = ["Visão geral", "Operação", "Relatórios", "Dados", "Importações", "Administração"];
 
 const MONTHS_PT = [
