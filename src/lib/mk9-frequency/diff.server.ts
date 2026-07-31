@@ -44,16 +44,38 @@ function coversDate(row: DbVersionRow, date: string): boolean {
   return true;
 }
 
-// Dedup por loja: quando linhas distintas do Excel apontam para a mesma loja,
-// soma para preservar o total contratado da planilha (comportamento herdado).
+// Dedup por loja.
+//
+// REGRA (correção ATACADÃO ARAGUAÍNA × KING, Agosto/2026):
+//   - linhas do Excel com a MESMA chave de origem (mesma loja repetida no
+//     arquivo) continuam sendo somadas — comportamento herdado e correto;
+//   - linhas com chaves DIFERENTES que caem na mesma loja (tipicamente um
+//     vínculo por similaridade, como "ATACADÃO ARAGUAÍNA 2" → "ATACADÃO -
+//     ARAGUAÍNA") NUNCA são somadas: isso inventava 8x/mês onde o Excel
+//     informa 4x/mês. Nesse caso vence a linha de correspondência exata; sem
+//     ela, vence a de maior frequência mensal. Nada é inflado silenciosamente.
 export function dedupIncoming(rows: IncomingFrequency[]): IncomingFrequency[] {
-  const map = new Map<string, IncomingFrequency>();
-  for (const r of rows) {
-    const prev = map.get(r.storeId);
+  const byStore = new Map<string, Map<string, IncomingFrequency>>();
+  const order: string[] = [];
+
+  for (const [index, r] of rows.entries()) {
+    // Sem chave de origem (chamadas legadas/testes) cada linha mantém a chave
+    // implícita da própria loja → soma, como antes.
+    const key = r.storeKey ?? "__legacy__";
+    let group = byStore.get(r.storeId);
+    if (!group) {
+      group = new Map();
+      byStore.set(r.storeId, group);
+      order.push(r.storeId);
+    }
+    const prev = group.get(key);
     const weekly = num(r.weeklyFrequency);
     const monthly = num(r.monthlyFrequency);
-    map.set(r.storeId, {
+    group.set(key, {
       storeId: r.storeId,
+      storeKey: r.storeKey,
+      matchKind: prev?.matchKind === "EXACT" ? "EXACT" : r.matchKind,
+      sourceIndex: prev?.sourceIndex ?? index,
       weeklyFrequency:
         weekly != null || prev?.weeklyFrequency != null
           ? (prev?.weeklyFrequency ?? 0) + (weekly ?? 0)
@@ -64,10 +86,31 @@ export function dedupIncoming(rows: IncomingFrequency[]): IncomingFrequency[] {
           : null,
     });
   }
+
+  const out: IncomingFrequency[] = [];
+  for (const storeId of order) {
+    const candidates = Array.from(byStore.get(storeId)!.values());
+    let winner = candidates[0];
+    if (candidates.length > 1) {
+      const exact = candidates.filter((c) => c.matchKind !== "SIMILARITY");
+      const pool = exact.length ? exact : candidates;
+      winner = pool.reduce((best, c) => {
+        const a = num(c.monthlyFrequency) ?? -1;
+        const b = num(best.monthlyFrequency) ?? -1;
+        if (a !== b) return a > b ? c : best;
+        return (c.sourceIndex ?? 0) < (best.sourceIndex ?? 0) ? c : best;
+      });
+    }
+    out.push({
+      storeId,
+      weeklyFrequency: winner.weeklyFrequency,
+      monthlyFrequency: winner.monthlyFrequency,
+    });
+  }
+
   // A tabela de versões exige ao menos um valor não nulo.
-  return Array.from(map.values()).filter(
-    (r) => r.weeklyFrequency != null || r.monthlyFrequency != null,
-  );
+  return out.filter((r) => r.weeklyFrequency != null || r.monthlyFrequency != null);
+
 }
 
 export async function buildFrequencyDiff(

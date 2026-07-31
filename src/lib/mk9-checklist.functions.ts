@@ -179,11 +179,23 @@ export const checklistCommit = createServerFn({ method: "POST" })
         const rows = freqs
           .map((f) => ({
             storeId: storeIdByKey.get(`${f.storeNormalized}|${f.uf ?? ""}`) ?? null,
+            // Preserva a origem da linha para que o dedup NUNCA some frequências
+            // de nomes diferentes do Excel vinculados à mesma loja.
+            storeKey: `${f.storeNormalized}|${f.uf ?? ""}`,
+            matchKind:
+              f.status === "linked_by_similarity" ? ("SIMILARITY" as const) : ("EXACT" as const),
             weeklyFrequency: f.weeklyFrequency,
             monthlyFrequency: f.monthlyFrequency,
           }))
-          .filter((r): r is { storeId: string; weeklyFrequency: number | null; monthlyFrequency: number | null } => !!r.storeId);
+          .filter((r): r is {
+            storeId: string;
+            storeKey: string;
+            matchKind: "EXACT" | "SIMILARITY";
+            weeklyFrequency: number | null;
+            monthlyFrequency: number | null;
+          } => !!r.storeId);
         frequenciesNotImported = freqs.length - rows.length;
+
         const { upserted, report, applied } = await withRichErrors(
           { step: "upsert-industry-store-frequencies", function: "checklistCommit", extra: { rows: rows.length, frequenciesNotImported } },
           () =>

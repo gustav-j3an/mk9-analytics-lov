@@ -13,6 +13,12 @@ export interface IncomingFrequency {
   storeId: string;
   weeklyFrequency: number | null;
   monthlyFrequency: number | null;
+  /** Chave da linha de origem no Excel (`storeNormalized|uf`), quando conhecida. */
+  storeKey?: string;
+  /** Como a linha foi associada à loja: correspondência exata ou por similaridade. */
+  matchKind?: "EXACT" | "SIMILARITY";
+  /** Uso interno do dedup para desempate estável. */
+  sourceIndex?: number;
 }
 
 export interface FrequencyVersionPayload {
