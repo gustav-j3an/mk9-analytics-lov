@@ -124,6 +124,7 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
     console.log("[CLEANUP SCOPE OK]");
 
     const { industryId, month, year } = data;
+    // Usar UTC para evitar problemas de fuso horário que podem deslocar a data
     const startDate = new Date(Date.UTC(year, month - 1, 1)).toISOString();
     const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999)).toISOString();
     console.log("[CLEANUP PERIOD RESOLVED]", { startDate, endDate });
