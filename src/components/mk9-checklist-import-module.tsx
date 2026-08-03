@@ -23,7 +23,9 @@ import {
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { checklistBatchPreview } from "@/lib/mk9-checklist-batch.functions";
+import { checklistBatchCommit } from "@/lib/mk9-checklist-batch-commit.functions";
 import type { ChecklistBatchFile } from "@/lib/mk9-checklist/batch-types";
+
 
 
 import { Button } from "@/components/ui/button";
@@ -499,14 +501,19 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
 }
 
 function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
-  const [files, setFiles] = useState<ChecklistBatchFile[]>([]);
+  const [files, setFiles] = useState<any[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
+  const [committing, setCommitting] = useState(false);
+  const [batchId, setBatchId] = useState<string | null>(null);
+
   const now = new Date();
   const [month, setMonth] = useState<number>(now.getMonth() + 1);
   const [year, setYear] = useState<number>(now.getFullYear());
   const qc = useQueryClient();
 
   const previewMut = useServerFn(checklistBatchPreview);
+  const commitBatchFn = useServerFn(checklistBatchCommit);
+
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const newFiles: ChecklistBatchFile[] = acceptedFiles.map(f => ({
