@@ -169,11 +169,6 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2 glass-panel">
-              <CardHeader>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
-                  <History className="h-4 w-4" /> Importações Localizadas
-                </CardTitle>
-              </CardHeader>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
                   <History className="h-4 w-4" /> Importações Localizadas
