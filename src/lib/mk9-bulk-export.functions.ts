@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireSupabaseAuth } from "../integrations/supabase/auth-middleware";
 import { buildIndustryReport } from "./mk9-reports/industry-report.server";
 import { loadPeriodConfig, resolveWindow } from "./mk9-reports/period.server";
 
