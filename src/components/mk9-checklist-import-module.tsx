@@ -543,59 +543,105 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
   const startAnalysis = async () => {
     if (files.length === 0) return;
     setAnalyzing(true);
-    try {
-      const fileData = await Promise.all(files.map(async f => {
-        const reader = new FileReader();
-        const base64 = await new Promise<string>((resolve) => {
-          reader.onload = () => resolve((reader.result as string).split(',')[1]);
-          reader.readAsDataURL((f as any).rawFile);
-        });
-        return { filename: f.filename, base64 };
-      }));
+    
+    console.log("[BATCH ANALYZE START]", { count: files.length });
 
-      const res = await previewMut({
-        data: {
-          files: fileData,
-          operationMonth: month,
-          operationYear: year,
-        }
-      });
+    // Atualiza todos para QUEUED
+    setFiles(prev => prev.map(f => 
+      f.status === "PENDING" ? { ...f, status: "QUEUED" } : f
+    ) as any);
 
-      setBatchId(res.batchId);
-      // Mapeia resultados de volta para os arquivos locais
-
-      setFiles(prev => prev.map(f => {
-        const found = res.results.find((r: any) => r.filename === f.filename);
-        if (found) {
-          return {
-            ...f,
-            id: found.importId || f.id,
-            status: found.status,
-            industryId: found.industryId,
-            industryName: found.industryName,
-            preview: found.preview,
-            error: found.error,
-          } as any;
-        }
-        return f;
-      }));
+    // Processa com concorrência limitada (máx 3)
+    const BATCH_SIZE = 3;
+    const pending = [...files.filter(f => f.status === "PENDING" || f.status === "QUEUED")];
+    
+    const processFile = async (f: any) => {
+      const targetId = f.id;
       
-      toast.success("Análise de lote concluída");
-      qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
-    } catch (e: any) {
-      toast.error("Falha ao analisar lote: " + (e?.message ?? String(e)));
-    } finally {
-      setAnalyzing(false);
+      const updateFileStatus = (status: string, extra = {}) => {
+        setFiles(current => current.map(file => 
+          file.id === targetId ? { ...file, status, ...extra } : file
+        ) as any);
+      };
+
+      try {
+        console.log(`[BATCH FILE UPLOAD START] ${f.filename}`);
+        updateFileStatus("UPLOADING");
+
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error("Timeout lendo arquivo local")), 30000);
+          reader.onload = () => {
+            clearTimeout(timeout);
+            resolve((reader.result as string).split(',')[1]);
+          };
+          reader.onerror = () => {
+            clearTimeout(timeout);
+            reject(new Error("Erro ao ler arquivo local"));
+          };
+          reader.readAsDataURL(f.rawFile);
+        });
+
+        console.log(`[BATCH FILE PREVIEW START] ${f.filename}`);
+        updateFileStatus("ANALYZING");
+
+        // Timeout individual de 120s para a server function
+        const analysisPromise = previewMut({
+          data: {
+            files: [{ filename: f.filename, base64 }],
+            operationMonth: month,
+            operationYear: year,
+          }
+        });
+
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("BATCH_FILE_TIMEOUT: O arquivo demorou mais que o esperado.")), 120000)
+        );
+
+        const res = (await Promise.race([analysisPromise, timeoutPromise])) as any;
+        if (res.batchId) setBatchId(res.batchId);
+        const result = res.results[0];
+
+        if (!result) throw new Error("Servidor não retornou resultado para este arquivo");
+
+        console.log(`[BATCH FILE PREVIEW END] ${f.filename} -> ${result.status}`);
+        updateFileStatus(result.status, {
+          id: result.importId || targetId,
+          industryId: result.industryId,
+          industryName: result.industryName,
+          preview: result.preview,
+          error: result.error || result.message,
+          message: result.message,
+        });
+
+      } catch (e: any) {
+        console.error(`[BATCH FILE FAILED] ${f.filename}`, e);
+        updateFileStatus("ERROR", { 
+          error: e?.message?.includes("BATCH_FILE_TIMEOUT") 
+            ? "O arquivo demorou mais que o esperado para ser analisado. Tente novamente individualmente."
+            : (e?.message ?? String(e)) 
+        });
+      }
+    };
+
+    // Executa em pequenos blocos para não sobrecarregar
+    for (let i = 0; i < pending.length; i += BATCH_SIZE) {
+      const chunk = pending.slice(i, i + BATCH_SIZE);
+      await Promise.allSettled(chunk.map(f => processFile(f)));
     }
+
+    console.log("[BATCH ANALYZE END]");
+    setAnalyzing(false);
+    qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
   };
 
   const runBatchImport = async () => {
-    if (!batchId || readyToImport.length === 0) return;
+    if (readyToImport.length === 0) return;
     setCommitting(true);
     try {
       const res = await commitBatchFn({
         data: {
-          batchId,
+          batchId: batchId || "00000000-0000-0000-0000-000000000000",
           importIds: readyToImport.map(f => f.id),
         }
       });
@@ -675,16 +721,29 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
                   <Button variant="ghost" size="sm" onClick={() => setFiles([])} disabled={analyzing}>
                     Limpar tudo
                   </Button>
-                  <Button size="sm" onClick={startAnalysis} disabled={analyzing || files.every(f => f.status !== "PENDING")}>
-                    {analyzing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSearch className="h-4 w-4 mr-2" />}
-                    Analisar arquivos
+                  <Button 
+                    size="sm" 
+                    onClick={startAnalysis} 
+                    disabled={analyzing || files.every(f => f.status !== "PENDING" && f.status !== "ERROR")}
+                  >
+                    {analyzing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Analisando {files.filter(f => ["UPLOADING", "ANALYZING", "READY", "ERROR", "NEEDS_REVIEW"].includes(f.status)).length} de {files.length}
+                      </>
+                    ) : (
+                      <>
+                        <FileSearch className="h-4 w-4 mr-2" />
+                        Analisar arquivos
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
 
               <div className="grid gap-2 max-h-[400px] overflow-y-auto pr-2">
                 {files.map((file) => (
-                  <BatchFileRow key={file.id} file={file} onRemove={() => removeFile(file.id)} />
+                  <BatchFileRow key={file.id} file={file} onRemove={() => removeFile(file.id)} setFiles={setFiles} />
                 ))}
               </div>
             </div>
@@ -705,11 +764,13 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
   );
 }
 
-function BatchFileRow({ file, onRemove }: { file: any; onRemove: () => void }) {
+function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () => void; setFiles: any }) {
   const [expanded, setOpen] = useState(false);
   
   const statusConfig: Record<string, { icon: any, color: string, label: string }> = {
     PENDING: { icon: Clock, color: "text-muted-foreground", label: "Aguardando análise" },
+    QUEUED: { icon: Clock, color: "text-blue-400 animate-pulse", label: "Na fila" },
+    UPLOADING: { icon: Upload, color: "text-blue-500 animate-bounce", label: "Enviando..." },
     ANALYZING: { icon: Loader2, color: "text-primary animate-spin", label: "Analisando..." },
     READY: { icon: CheckCircle2, color: "text-emerald-500", label: "Pronto" },
     NEEDS_REVIEW: { icon: AlertCircle, color: "text-amber-500", label: "Revisão necessária" },
@@ -734,12 +795,24 @@ function BatchFileRow({ file, onRemove }: { file: any; onRemove: () => void }) {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {file.status === "ERROR" && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => {
+                setFiles((prev: any) => prev.map((f: any) => f.id === file.id ? { ...f, status: "PENDING" } : f));
+              }}
+              title="Tentar novamente"
+            >
+              <Clock className="h-4 w-4 text-primary" />
+            </Button>
+          )}
           {file.preview && (
             <Button variant="ghost" size="sm" onClick={() => setOpen(!expanded)}>
               {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={onRemove}>
+          <Button variant="ghost" size="sm" onClick={onRemove} disabled={file.status === "ANALYZING" || file.status === "UPLOADING"}>
             <X className="h-4 w-4 text-muted-foreground" />
           </Button>
         </div>
