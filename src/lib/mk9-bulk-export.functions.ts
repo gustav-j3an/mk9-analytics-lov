@@ -98,7 +98,7 @@ async function computeSingleIndustryResult(
     return {
       industryId,
       industryName,
-      periodLabel: "Erro no cálculo",
+      periodLabel: "—",
       contractedStores: null,
       attendedStores: null,
       unattendedStores: null,
