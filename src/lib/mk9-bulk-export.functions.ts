@@ -1,9 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { buildIndustryReport } from "./mk9-reports/industry-report.server";
-import { getPeriodWindow } from "./mk9-reports/period.server";
+import { loadPeriodConfig, resolveWindow } from "./mk9-reports/period.server";
 
 export interface BulkExportFilters {
   uf?: string | null;
@@ -44,16 +43,24 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
   .validator((data: unknown) => previewInput.parse(data))
   .handler(async ({ data, context }) => {
     const { industryIds, month, year, filters } = data;
-    const { supabase: sbAdmin } = await import("@/integrations/supabase/client.server");
-    const { resolveAccessScope } = await import("@/lib/mk9-auth/access-scope.server");
-    const access = await resolveAccessScope(sbAdmin, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { resolveMk9AccessScope } = await import("@/lib/mk9-auth/access-scope.server");
+    
+    // Auth context for the resolver
+    const authContext = {
+      userId: context.userId,
+      roles: (context as any).claims?.user_roles || [],
+      devBypass: false
+    };
+    
+    const access = await resolveMk9AccessScope(authContext as any);
 
     const results: BulkExportPreview["items"] = [];
     let totalUnattended = 0;
     let totalContractedVisits = 0;
 
     // Fetch industries to get names and verify access
-    const { data: industries, error: eInd } = await sbAdmin
+    const { data: industries, error: eInd } = await supabaseAdmin
       .from("mk9_industries")
       .select("id, name, requires_checklist")
       .in("id", industryIds);
@@ -62,8 +69,10 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
 
     for (const industry of industries || []) {
       try {
-        const window = await getPeriodWindow(sbAdmin, industry.id, year, month);
-        const report = await buildIndustryReport(sbAdmin, {
+        const config = await loadPeriodConfig(supabaseAdmin, industry.id);
+        const window = resolveWindow(config, year, month);
+        
+        const report = await buildIndustryReport(supabaseAdmin, {
           industryId: industry.id,
           month,
           year,
@@ -125,10 +134,10 @@ export const startBulkExport = createServerFn({ method: "POST" })
     includeEmpty: z.boolean().optional(),
   }).parse(data))
   .handler(async ({ data, context }) => {
-    const { supabase: sbAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     
     // 1. Create export record
-    const { data: exportRecord, error: eExp } = await sbAdmin
+    const { data: exportRecord, error: eExp } = await supabaseAdmin
       .from("mk9_bulk_exports")
       .insert({
         user_id: context.userId,
@@ -152,7 +161,7 @@ export const startBulkExport = createServerFn({ method: "POST" })
       status: "QUEUED",
     }));
 
-    const { error: eItems } = await sbAdmin
+    const { error: eItems } = await supabaseAdmin
       .from("mk9_bulk_export_items")
       .insert(items);
 
@@ -165,9 +174,9 @@ export const getBulkExportStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => z.object({ exportId: z.string() }).parse(data))
   .handler(async ({ data }) => {
-    const { supabase: sbAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     
-    const { data: exportRecord, error: eExp } = await sbAdmin
+    const { data: exportRecord, error: eExp } = await supabaseAdmin
       .from("mk9_bulk_exports")
       .select(`
         *,
