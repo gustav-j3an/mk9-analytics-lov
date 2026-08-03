@@ -162,9 +162,9 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
       results.push(...chunkResults);
     }
 
-    const totalUnattended = results.reduce((sum, r) => sum + r.unattendedStores, 0);
-    const totalContractedVisits = results.reduce((sum, r) => sum + r.contractedVisitsUnattended, 0);
-    const withPendingCount = results.filter(r => r.unattendedStores > 0).length;
+    const totalUnattended = results.reduce((sum, r) => sum + (r.unattendedStores || 0), 0);
+    const totalContractedVisits = results.reduce((sum, r) => sum + (r.contractedVisitsUnattended || 0), 0);
+    const withPendingCount = results.filter(r => (r.unattendedStores || 0) > 0).length;
 
     console.log(`[UNVISITED MASS END] industries=${results.length} totalUnattended=${totalUnattended}`);
 
