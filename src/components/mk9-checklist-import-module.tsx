@@ -592,10 +592,11 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
 
         console.log(`[BATCH FILE REQUEST START] ${f.filename} -> /api/checklists/preview`);
         
+        const { mk9AuthHeaders } = await import("@/lib/mk9-auth/fetch-headers");
         const response = await fetch("/api/checklists/preview", {
           method: "POST",
+          headers: await mk9AuthHeaders(),
           body: formData,
-          // Content-Type NÃO deve ser definido manualmente para multipart/form-data
         });
 
         console.log(`[BATCH FILE RESPONSE] ${f.filename} -> ${response.status}`);
@@ -612,13 +613,15 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
         }
 
         if (!response.ok) {
-          const errorMsg = result.error?.message || result.message || "Erro desconhecido no servidor";
-          const errorCode = result.error?.code || response.status;
+          const richError = result.error || {
+            message: result.message || `Erro ${response.status}`,
+            code: response.status
+          };
           
           if (response.status === 401) throw new Error("Sessão expirada. Faça login novamente.");
           if (response.status === 403) throw new Error("Usuário sem permissão para importar checklists.");
           
-          throw new Error(`Falha na análise (${errorCode}): ${errorMsg}`);
+          throw new Error(`Falha na análise (${richError.code || response.status}): ${richError.message}`);
         }
 
         console.log(`[BATCH FILE PREVIEW SUCCESS] ${f.filename}`);
@@ -632,8 +635,9 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
 
       } catch (e: any) {
         console.error(`[BATCH FILE ERROR] ${f.filename}`, e);
+        const rich = parseServerError(e);
         updateFileStatus("ERROR", { 
-          error: e.message || "Falha técnica ao processar arquivo."
+          error: rich.message || "Falha técnica ao processar arquivo."
         });
       }
     };
