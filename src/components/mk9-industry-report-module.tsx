@@ -154,7 +154,11 @@ export function Mk9IndustryReportModule() {
           <p className="text-sm text-muted-foreground">Documento consolidado para envio ao cliente. Números calculados a partir das visitas planejadas e realizadas.</p>
         </div>
         <div className="flex items-center gap-2">
-          <BulkExportModal />
+          {/* 
+            Exportação em massa ocultada temporariamente por erros 403 persistentes.
+            O código e componentes (BulkExportModal) foram preservados para futura reconstrução.
+            <BulkExportModal /> 
+          */}
           <PeriodConfigDialog industryId={industryId} />
         </div>
       </div>
