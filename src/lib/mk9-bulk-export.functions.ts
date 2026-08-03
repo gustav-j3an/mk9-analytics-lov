@@ -120,12 +120,12 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("../integrations/supabase/client.server");
     const { resolveMk9AccessScope } = await import("./mk9-auth/access-scope.server");
     
-    console.log(`[UNVISITED MASS START] user=${context.userId} industries=${industryIds.length}`);
+    console.log(`[UNVISITED MASS START] user=${context?.userId} industries=${industryIds.length}`);
 
     // Resolve escopo uma única vez
     const authContext = {
-      userId: context.userId,
-      roles: (context as any).claims?.user_roles || [],
+      userId: context?.userId ?? null,
+      roles: (context as any)?.claims?.user_roles || [],
       devBypass: false
     };
     
@@ -195,7 +195,7 @@ export const startBulkExport = createServerFn({ method: "POST" })
     const { data: exportRecord, error: eExp } = await supabaseAdmin
       .from("mk9_bulk_exports")
       .insert({
-        user_id: context.userId,
+        user_id: context?.userId,
         competence_month: data.month,
         competence_year: data.year,
         format: data.format,
@@ -283,8 +283,8 @@ export const processBulkExport = createServerFn({ method: "POST" })
 
     // 3. Resolve access scope
     const authContext = {
-      userId: context.userId,
-      roles: (context as any).claims?.user_roles || [],
+      userId: context?.userId ?? null,
+      roles: (context as any)?.claims?.user_roles || [],
       devBypass: false
     };
     const access = await resolveMk9AccessScope(authContext as any);
