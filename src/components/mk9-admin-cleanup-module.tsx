@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { 
@@ -45,7 +45,8 @@ import { toast } from "sonner";
 import { getCleanupDiagnosis, executeGranularCleanup } from "@/lib/mk9-cleanup.functions";
 import { mk9ListChecklistIndustries } from "@/lib/mk9-data.functions";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
+
+
 
 const MONTHS = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -134,7 +135,7 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
     }),
     onSuccess: (res: any) => {
       toast.success("Limpeza executada com sucesso", {
-        description: `${res.visitsAffected} visitas removidas, ${res.frequenciesAffected} frequências arquivadas.`
+        description: `Antes: ${res.before.contracted}c / ${res.before.actual}r. Depois: ${res.after.contracted}c / ${res.after.actual}r.`
       });
       previewMut.reset();
       setIndustryId("");
@@ -229,11 +230,64 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
 
       {previewData && (
         <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
+          {/* TRACE DO RELATÓRIO (PDF) */}
+          <Card className="glass-panel border-sky-500/20 bg-sky-500/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-sky-700 dark:text-sky-400">
+                <FileText className="h-3 w-3" /> Trace de Origem do Relatório (PDF)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <div className="p-3 rounded-lg bg-background/50 border border-sky-500/10">
+                  <p className="text-[10px] text-muted-foreground uppercase">Contratadas (PDF)</p>
+                  <p className="text-xl font-bold">{previewData.trace?.totals?.contracted ?? 0}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-background/50 border border-sky-500/10">
+                  <p className="text-[10px] text-muted-foreground uppercase">Realizadas (PDF)</p>
+                  <p className="text-xl font-bold">{previewData.trace?.totals?.actual ?? 0}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-background/50 border border-sky-500/10">
+                  <p className="text-[10px] text-muted-foreground uppercase">Lojas no PDF</p>
+                  <p className="text-xl font-bold">{previewData.trace?.stores?.length ?? 0}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-background/50 border border-sky-500/10">
+                  <p className="text-[10px] text-muted-foreground uppercase">Status</p>
+                  <Badge variant="outline" className="mt-1 bg-sky-500/10 text-sky-700 border-sky-500/20">
+                    {previewData.trace?.totals?.contracted > 0 || previewData.trace?.totals?.actual > 0 ? "ATIVO NO PDF" : "SEM DADOS"}
+                  </Badge>
+                </div>
+              </div>
+
+              {previewData.trace?.stores?.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold uppercase text-muted-foreground px-1">Fontes identificadas pelo motor do PDF</p>
+                  <div className="max-h-[120px] overflow-auto border rounded-lg divide-y bg-background/30">
+                    {previewData.trace.stores.slice(0, 10).map((s: any) => (
+                      <div key={s.id} className="p-2 flex items-center justify-between text-[11px]">
+                        <span className="font-medium truncate max-w-[200px]">{s.name}</span>
+                        <div className="flex gap-2">
+                          <Badge variant="outline" className="text-[9px]">{s.frequencyLabel ?? 'Sem freq'}</Badge>
+                          <Badge variant="outline" className="text-[9px] bg-emerald-500/5 text-emerald-700">{s.actual} visitas</Badge>
+                        </div>
+                      </div>
+                    ))}
+                    {previewData.trace.stores.length > 10 && (
+                      <div className="p-2 text-center text-[10px] text-muted-foreground">
+                        + {previewData.trace.stores.length - 10} lojas não listadas no resumo
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <StatCard label="Importações" value={(previewData.imports ?? []).length} />
             <StatCard label="Visitas" value={(previewData.visits ?? []).length} tone="red" />
             <StatCard label="Frequências" value={(previewData.frequencies ?? []).length} tone="amber" />
-            <StatCard label="Meses Afetados" value={previewData.summary?.futureAffected || previewData.impact?.futureAffected || 0} tone="amber" />
+            <StatCard label="Meses Afetados" value={previewData.summary?.futureAffected || 0} tone="amber" />
           </div>
 
           <Tabs defaultValue="overview" className="space-y-4">
@@ -243,6 +297,7 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
               <TabsTrigger value="frequencies">Frequências ({(previewData.frequencies ?? []).length})</TabsTrigger>
               <TabsTrigger value="routes">Roteiros/Plan ({(previewData.routes ?? []).length})</TabsTrigger>
             </TabsList>
+
 
             <TabsContent value="overview">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
