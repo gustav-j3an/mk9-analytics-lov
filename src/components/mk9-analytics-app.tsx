@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Mk9ImportModule } from "@/components/mk9-import-module";
@@ -13,14 +12,12 @@ import { Mk9DashboardModule } from "@/components/mk9-dashboard-module";
 import { Mk9RoutesModule } from "@/components/mk9-routes-module";
 import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
 import { Mk9UsersModule } from "@/components/mk9-users-module";
-import { useMk9Session, type Mk9Role } from "@/lib/mk9-auth/session";
+import { useMk9Session } from "@/lib/mk9-auth/session";
 import { toast } from "sonner";
 import { Mk9AdminCleanupModule } from "@/components/mk9-admin-cleanup-module";
 import { Mk9SyncModule } from "@/components/mk9-sync-module";
 import {
   CHECKLIST_INDUSTRY_CACHE_KEYS,
-  DISABLE_CONFIRMATION_MESSAGE,
-  MISSING_PERIOD_WARNING,
 } from "@/lib/mk9-checklist/industry-admin-ui";
 import { matchesStatusFilter, type IndustryStatusFilter } from "@/lib/mk9-industries/admin";
 import {
@@ -30,28 +27,10 @@ import {
   IndustryReactivateDialog,
 } from "@/components/mk9/industry-admin-dialogs";
 import { IndustryFrequencyDialog } from "@/components/mk9/industry-frequency-panel";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 import {
   AlertTriangle,
   BarChart3,
-  Bell,
   Calendar,
   CheckCircle2,
   ChevronsLeft,
@@ -64,27 +43,14 @@ import {
   PackageCheck,
   Route,
   Search,
-  Shield,
   ShieldAlert,
   ShieldCheck,
   Store,
   Upload,
   Users,
-  UserCog,
   Layers,
   Cloud
 } from "lucide-react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -93,14 +59,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
-  mk9GetIndustryOperationConfig,
   mk9ListIndustries,
   mk9SetIndustryRequiresChecklist,
-  mk9ListStores,
-  mk9ListPromoters,
-  mk9ListRoutesDetailed,
-  mk9ListVisitsDetailed,
-  mk9DashboardContractMetrics,
   mk9GetSyncOverview,
 } from "@/lib/mk9-data.functions";
 
@@ -118,13 +78,17 @@ type ModuleId =
   | "usuarios";
 
 export function Mk9AnalyticsApp() {
-  const { user, isAdmin, isAuditor, isSupervisor, loading: sessionLoading, signOut } = useMk9Session();
+  const { user, roles, loading: sessionLoading, signOut } = useMk9Session();
   const [activeModule, setActiveModule] = useState<ModuleId>("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [auditFilters, setAuditFilters] = useState<Mk9AuditInitialFilters>({});
   const [auditKey, setAuditKey] = useState(0);
+
+  const isAdmin = roles.includes("admin");
+  const isSupervisor = roles.includes("supervisor");
+  const isAuditor = roles.includes("auditor");
 
   if (sessionLoading) {
     return (
@@ -135,7 +99,7 @@ export function Mk9AnalyticsApp() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-[#f8fafc] dark:bg-[#020617] text-foreground flex overflow-hidden">
+    <main className="min-h-screen w-full bg-[#f8fafc] dark:bg-[#020617] text-foreground flex overflow-hidden font-sans">
       {/* Sidebar */}
       <aside
         className={cn(
@@ -232,22 +196,20 @@ export function Mk9AnalyticsApp() {
         </div>
 
         <div className="p-4 border-t space-y-2">
-          <Button
-            variant="ghost"
-            className={cn("w-full justify-start gap-3 text-muted-foreground hover:text-foreground", collapsed && "justify-center px-0")}
+          <button
             onClick={() => setCollapsed(!collapsed)}
+            className={cn("w-full flex items-center gap-3 px-4 py-2 text-muted-foreground hover:text-foreground transition-colors", collapsed && "justify-center px-0")}
           >
             {collapsed ? <ChevronsRight className="h-5 w-5" /> : <ChevronsLeft className="h-5 w-5" />}
             {!collapsed && "Recolher"}
-          </Button>
-          <Button
-            variant="ghost"
-            className={cn("w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-500/5", collapsed && "justify-center px-0")}
-            onClick={signOut}
+          </button>
+          <button
+            className={cn("w-full flex items-center gap-3 px-4 py-2 text-red-500 hover:text-red-600 hover:bg-red-500/5 transition-colors", collapsed && "justify-center px-0")}
+            onClick={() => signOut()}
           >
             <LogOut className="h-5 w-5" />
             {!collapsed && "Sair"}
-          </Button>
+          </button>
         </div>
       </aside>
 
@@ -308,12 +270,12 @@ export function Mk9AnalyticsApp() {
 
         <section className="flex-1 overflow-y-auto custom-scrollbar relative">
           <div className="p-8">
-            {activeModule === "dashboard" && <Mk9DashboardModule month={month} year={year} />}
-            {activeModule === "cockpit" && <Mk9CockpitModule month={month} year={year} />}
+            {activeModule === "dashboard" && <Mk9DashboardModule onDrillDown={() => {}} />}
+            {activeModule === "cockpit" && <Mk9CockpitModule />}
             {activeModule === "importacoes" && (
-              <Mk9ImportModule onSwitchToChecklist={() => setActiveModule("checklists")} />
+              <Mk9ImportModule onSwitchToChecklists={() => setActiveModule("checklists")} />
             )}
-            {activeModule === "roteiros" && <Mk9RoutesModule month={month} year={year} />}
+            {activeModule === "roteiros" && <Mk9RoutesModule />}
             {activeModule === "checklists" && (
               <Mk9ChecklistImportModule onSwitchToBase={() => setActiveModule("importacoes")} />
             )}
@@ -336,12 +298,12 @@ export function Mk9AnalyticsApp() {
                     return;
                   }
                   const map: Record<string, ModuleId> = {
-                    stores: "lojas",
+                    stores: "importacoes",
                     routes: "roteiros",
                     frequency: "roteiros",
                     imports: "importacoes",
                     checklists: "checklists",
-                    industries: "industrias",
+                    industries: "importacoes",
                     reports: "relatorio_industria",
                   };
                   setActiveModule(map[target.module] ?? "dashboard");
