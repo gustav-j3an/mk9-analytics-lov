@@ -570,7 +570,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
 
         // Detecção de indústria pelo nome do arquivo no cliente (otimização)
         const filenameLower = f.filename.toLowerCase();
-        const matchedIndustry = (industriesQ.data ?? []).find((i: any) => 
+        const matchedIndustry = (industries || []).find((i: any) => 
           filenameLower.includes(i.name.toLowerCase())
         );
 
