@@ -119,17 +119,28 @@ export const executeCleanup = createServerFn({ method: "POST" })
 export const getCleanupDiagnosis = createServerFn({ method: "POST" })
   .inputValidator((data) => cleanupFilterSchema.parse(data))
   .handler(async ({ data }) => {
-    console.log("[CLEANUP LOAD START]", { industryId: data.industryId, month: data.month, year: data.year });
+    console.log("[CLEANUP DIAGNOSIS START]", { industryId: data.industryId, month: data.month, year: data.year });
     await requireMk9Role(["ADMIN"]);
-    console.log("[CLEANUP SCOPE OK]");
-
+    
     const { industryId, month, year } = data;
-    // Usar UTC para evitar problemas de fuso horário que podem deslocar a data
-    const startDate = new Date(Date.UTC(year, month - 1, 1)).toISOString();
-    const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999)).toISOString();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { loadPeriodConfig, resolveWindow } = await import("@/lib/mk9-reports/period.server");
+    const { buildIndustryReport } = await import("@/lib/mk9-reports/industry-report.server");
+
+    // 1. Resolver janela exata do PDF
+    const cfg = await loadPeriodConfig(supabaseAdmin, industryId);
+    const window = resolveWindow(cfg, year, month);
+    const startDate = window.startDate;
+    const endDate = window.endDate;
+    
     console.log("[CLEANUP PERIOD RESOLVED]", { startDate, endDate });
 
-    console.log("[CLEANUP SOURCE START]");
+    // 2. Executar o motor do relatório para pegar os números oficiais
+    const report = await buildIndustryReport(supabaseAdmin, {
+      industryId, year, month
+    }, window);
+
+    // 3. Cruzar com fontes de dados para o Trace
     const results = await Promise.allSettled([
       supabaseAdmin
         .from("mk9_checklist_imports")
@@ -158,43 +169,12 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
         .or(`valid_until.is.null,and(valid_until.gte.${startDate},valid_from.lte.${endDate})`),
 
       supabaseAdmin
-        .from("mk9_visit_reconciliations")
-        .select("id, actual_visit_id, planned_visit_id, created_at")
-        .eq("industry_id", industryId),
-
-      supabaseAdmin
         .from("mk9_data_quality_issues")
         .select("id, store_id, detector_id, status, created_at, severity")
         .eq("industry_id", industryId)
         .eq("competence_month", month)
         .eq("competence_year", year),
-      
-      supabaseAdmin
-        .from("mk9_industry_period_config")
-        .select("*")
-        .eq("industry_id", industryId)
-        .maybeSingle(),
-
-      supabaseAdmin
-        .from("mk9_industry_contract_totals")
-        .select("*")
-        .eq("industry_id", industryId)
-        .eq("competence_month", month)
-        .eq("competence_year", year)
-        .maybeSingle(),
     ]);
-
-    results.forEach((res, i) => {
-      if (res.status === 'fulfilled') {
-        if (res.value.error) {
-          console.error(`[CLEANUP SOURCE FAILED] Source index ${i}:`, res.value.error.message);
-        } else {
-          console.log(`[CLEANUP SOURCE SUCCESS] Source index ${i}`);
-        }
-      } else {
-        console.error(`[CLEANUP SOURCE FAILED] Promise rejected at index ${i}:`, res.reason);
-      }
-    });
 
     const getValue = <T>(res: PromiseSettledResult<T>, defaultValue: any = []) => 
       res.status === 'fulfilled' ? (res.value as any).data || defaultValue : null;
@@ -203,40 +183,36 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
     const visits = getValue(results[1]) || [];
     const frequencies = getValue(results[2]) || [];
     const routes = getValue(results[3]) || [];
-    const reconciliations = getValue(results[4]) || [];
-    const qualityIssues = getValue(results[5]) || [];
-    const periodConfig = getValue(results[6], null);
-    const contractTotal = getValue(results[7], null);
+    const qualityIssues = getValue(results[4]) || [];
+
+    // 4. Montar DTO de Trace do Relatório
+    const trace = {
+      period: { start: startDate, end: endDate, is_custom: cfg.periodType === 'CUSTOM_CYCLE' },
+      stores: report.stores.map(s => ({
+        id: s.storeId,
+        name: s.storeName,
+        expected: s.expected,
+        actual: s.actual,
+        frequencyLabel: s.frequencyLabel,
+        contractedSource: s.contractedSource
+      })),
+      totals: report.totals
+    };
 
     return {
-      period: {
-        start: periodConfig?.start_date || startDate,
-        end: periodConfig?.end_date || endDate,
-        is_custom: !!periodConfig
-      },
-      imports: (imports || []).map((i: any) => ({ ...i, started_at: i.started_at ? new Date(i.started_at).toISOString() : null })),
-      visits: (visits || []).map((v: any) => ({ ...v, visit_date: v.visit_date ? new Date(v.visit_date).toISOString() : null })),
-      frequencies: (frequencies || []).map((f: any) => ({ ...f, valid_from: f.valid_from ? new Date(f.valid_from).toISOString() : null, valid_until: f.valid_until ? new Date(f.valid_until).toISOString() : null })),
-      routes: (routes || []).map((r: any) => ({ ...r, valid_from: r.valid_from ? new Date(r.valid_from).toISOString() : null, valid_until: r.valid_until ? new Date(r.valid_until).toISOString() : null })),
-      reconciliations: (reconciliations || []).map((r: any) => ({ ...r, created_at: r.created_at ? new Date(r.created_at).toISOString() : null })),
-      qualityIssues: (qualityIssues || []).map((q: any) => ({ ...q, created_at: q.created_at ? new Date(q.created_at).toISOString() : null })),
-      contract: contractTotal ? { ...contractTotal, created_at: contractTotal.created_at ? new Date(contractTotal.created_at).toISOString() : null } : null,
+      trace,
+      imports: imports.map((i: any) => ({ ...i, started_at: i.started_at ? new Date(i.started_at).toISOString() : null })),
+      visits: visits.map((v: any) => ({ ...v, visit_date: v.visit_date ? new Date(v.visit_date).toISOString() : null })),
+      frequencies: frequencies.map((f: any) => ({ ...f, valid_from: f.valid_from ? new Date(f.valid_from).toISOString() : null, valid_until: f.valid_until ? new Date(f.valid_until).toISOString() : null })),
+      routes: routes.map((r: any) => ({ ...r, valid_from: r.valid_from ? new Date(r.valid_from).toISOString() : null, valid_until: r.valid_until ? new Date(r.valid_until).toISOString() : null })),
+      qualityIssues: qualityIssues.map((q: any) => ({ ...q, created_at: q.created_at ? new Date(q.created_at).toISOString() : null })),
       summary: {
         totalImports: imports.length,
         totalVisits: visits.length,
-        visitsWithoutOrigin: visits.filter((v: any) => !v.source_import_id).length,
         affectedStores: new Set([...visits, ...frequencies, ...routes].map((x: any) => x.store_id)).size,
         openFrequencies: frequencies.filter((f: any) => !f.valid_until && !f.archived_at).length,
-        openRoutes: routes.filter((r: any) => !r.valid_until).length,
         activeIssues: qualityIssues.filter((i: any) => i.status !== 'resolved').length
-      },
-      errors: results
-        .map((res, i) => {
-          if (res.status === 'fulfilled' && res.value.error) return { source: i, message: res.value.error.message };
-          if (res.status === 'rejected') return { source: i, message: String(res.reason) };
-          return null;
-        })
-        .filter(Boolean)
+      }
     };
   });
 
