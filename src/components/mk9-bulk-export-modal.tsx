@@ -1,17 +1,14 @@
-import { useState, useMemo, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { 
   Download, 
   Loader2, 
   Search, 
-  Check, 
   FileText, 
   Archive, 
   AlertCircle,
   Clock,
-  ExternalLink,
-  ChevronRight,
   Filter
 } from "lucide-react";
 import { toast } from "sonner";
@@ -46,7 +43,8 @@ import {
   startBulkExport, 
   getBulkExportStatus, 
   processBulkExport,
-  type BulkExportPreview 
+  type BulkExportPreview,
+  type BulkExportPreviewItem
 } from "@/lib/mk9-bulk-export.functions";
 
 const MONTHS_PT = [
@@ -96,17 +94,17 @@ export function BulkExportModal() {
   // Filtered list
   const filteredIndustries = useMemo(() => {
     let list = industriesQ.data ?? [];
-    if (checklistOnly) list = list.filter(i => i.requiresChecklist);
+    if (checklistOnly) list = list.filter((i: any) => i.requiresChecklist);
     if (search) {
       const s = search.toLowerCase();
-      list = list.filter(i => i.name.toLowerCase().includes(s));
+      list = list.filter((i: any) => i.name.toLowerCase().includes(s));
     }
     return list;
   }, [industriesQ.data, checklistOnly, search]);
 
   const toggleAll = () => {
     if (selectedIds.length === filteredIndustries.length) setSelectedIds([]);
-    else setSelectedIds(filteredIndustries.map(i => i.id));
+    else setSelectedIds(filteredIndustries.map((i: any) => i.id));
   };
 
   const [preview, setPreview] = useState<BulkExportPreview | null>(null);
@@ -205,7 +203,7 @@ export function BulkExportModal() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
+    <Dialog open={open} onOpenChange={(o: boolean) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Archive className="mr-2 h-4 w-4" />
@@ -292,7 +290,7 @@ export function BulkExportModal() {
                       <Checkbox 
                         id={`ind-${ind.id}`} 
                         checked={selectedIds.includes(ind.id)}
-                        onCheckedChange={(checked) => {
+                        onCheckedChange={(checked: boolean) => {
                           if (checked) setSelectedIds([...selectedIds, ind.id]);
                           else setSelectedIds(selectedIds.filter(id => id !== ind.id));
                         }}
