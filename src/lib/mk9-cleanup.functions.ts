@@ -119,12 +119,17 @@ export const executeCleanup = createServerFn({ method: "POST" })
 export const getCleanupDiagnosis = createServerFn({ method: "POST" })
   .inputValidator((data) => cleanupFilterSchema.parse(data))
   .handler(async ({ data }) => {
+    console.log("[CLEANUP LOAD START]", { industryId: data.industryId, month: data.month, year: data.year });
     await requireMk9Role(["ADMIN"]);
+    console.log("[CLEANUP SCOPE OK]");
 
     const { industryId, month, year } = data;
-    const startDate = new Date(year, month - 1, 1).toISOString();
-    const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+    // Usar UTC para evitar problemas de fuso horário que podem deslocar a data
+    const startDate = new Date(Date.UTC(year, month - 1, 1)).toISOString();
+    const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999)).toISOString();
+    console.log("[CLEANUP PERIOD RESOLVED]", { startDate, endDate });
 
+    console.log("[CLEANUP SOURCE START]");
     const results = await Promise.allSettled([
       supabaseAdmin
         .from("mk9_checklist_imports")
@@ -179,15 +184,27 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
         .maybeSingle(),
     ]);
 
-    const getValue = <T>(res: PromiseSettledResult<T>, defaultValue: any = []) => 
-      res.status === 'fulfilled' ? (res.value as any).data || defaultValue : defaultValue;
+    results.forEach((res, i) => {
+      if (res.status === 'fulfilled') {
+        if (res.value.error) {
+          console.error(`[CLEANUP SOURCE FAILED] Source index ${i}:`, res.value.error.message);
+        } else {
+          console.log(`[CLEANUP SOURCE SUCCESS] Source index ${i}`);
+        }
+      } else {
+        console.error(`[CLEANUP SOURCE FAILED] Promise rejected at index ${i}:`, res.reason);
+      }
+    });
 
-    const imports = getValue(results[0]);
-    const visits = getValue(results[1]);
-    const frequencies = getValue(results[2]);
-    const routes = getValue(results[3]);
-    const reconciliations = getValue(results[4]);
-    const qualityIssues = getValue(results[5]);
+    const getValue = <T>(res: PromiseSettledResult<T>, defaultValue: any = []) => 
+      res.status === 'fulfilled' ? (res.value as any).data || defaultValue : null;
+
+    const imports = getValue(results[0]) || [];
+    const visits = getValue(results[1]) || [];
+    const frequencies = getValue(results[2]) || [];
+    const routes = getValue(results[3]) || [];
+    const reconciliations = getValue(results[4]) || [];
+    const qualityIssues = getValue(results[5]) || [];
     const periodConfig = getValue(results[6], null);
     const contractTotal = getValue(results[7], null);
 
@@ -197,13 +214,13 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
         end: periodConfig?.end_date || endDate,
         is_custom: !!periodConfig
       },
-      imports,
-      visits,
-      frequencies,
-      routes,
-      reconciliations,
-      qualityIssues,
-      contract: contractTotal,
+      imports: (imports || []).map((i: any) => ({ ...i, started_at: i.started_at ? new Date(i.started_at).toISOString() : null })),
+      visits: (visits || []).map((v: any) => ({ ...v, visit_date: v.visit_date ? new Date(v.visit_date).toISOString() : null })),
+      frequencies: (frequencies || []).map((f: any) => ({ ...f, valid_from: f.valid_from ? new Date(f.valid_from).toISOString() : null, valid_until: f.valid_until ? new Date(f.valid_until).toISOString() : null })),
+      routes: (routes || []).map((r: any) => ({ ...r, valid_from: r.valid_from ? new Date(r.valid_from).toISOString() : null, valid_until: r.valid_until ? new Date(r.valid_until).toISOString() : null })),
+      reconciliations: (reconciliations || []).map((r: any) => ({ ...r, created_at: r.created_at ? new Date(r.created_at).toISOString() : null })),
+      qualityIssues: (qualityIssues || []).map((q: any) => ({ ...q, created_at: q.created_at ? new Date(q.created_at).toISOString() : null })),
+      contract: contractTotal ? { ...contractTotal, created_at: contractTotal.created_at ? new Date(contractTotal.created_at).toISOString() : null } : null,
       summary: {
         totalImports: imports.length,
         totalVisits: visits.length,
@@ -212,7 +229,14 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
         openFrequencies: frequencies.filter((f: any) => !f.valid_until && !f.archived_at).length,
         openRoutes: routes.filter((r: any) => !r.valid_until).length,
         activeIssues: qualityIssues.filter((i: any) => i.status !== 'resolved').length
-      }
+      },
+      errors: results
+        .map((res, i) => {
+          if (res.status === 'fulfilled' && res.value.error) return { source: i, message: res.value.error.message };
+          if (res.status === 'rejected') return { source: i, message: String(res.reason) };
+          return null;
+        })
+        .filter(Boolean)
     };
   });
 

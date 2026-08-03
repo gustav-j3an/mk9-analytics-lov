@@ -84,15 +84,43 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
   });
 
   const previewMut = useMutation({
-    mutationFn: () => diagnosisFn({ data: { industryId, month, year } }),
+    mutationFn: async () => {
+      try {
+        const res = await diagnosisFn({ data: { industryId, month, year } });
+        return res;
+      } catch (err: any) {
+        console.error("[CLEANUP UI ERROR]", err);
+        throw err;
+      }
+    },
     onSuccess: (res: any) => {
+      if (!res) return;
       setSelections({
-        importIds: res.imports.map((i: any) => i.id),
-        visitIds: res.visits.map((v: any) => v.id),
-        frequencyIds: res.frequencies.filter((f: any) => !f.archived_at).map((f: any) => f.id),
-        routeIds: res.routes.filter((r: any) => !r.valid_until).map((r: any) => r.id),
+        importIds: (res.imports ?? []).map((i: any) => i.id),
+        visitIds: (res.visits ?? []).map((v: any) => v.id),
+        frequencyIds: (res.frequencies ?? []).filter((f: any) => !f.archived_at).map((f: any) => f.id),
+        routeIds: (res.routes ?? []).filter((r: any) => !r.valid_until).map((r: any) => r.id),
       });
-      toast.success("Diagnóstico concluído");
+      
+      if (res.errors?.length > 0) {
+        toast.warning("Algumas fontes falharam ao carregar", {
+          description: "O diagnóstico pode estar incompleto."
+        });
+      } else {
+        toast.success("Diagnóstico concluído");
+      }
+    },
+    onError: (err: any) => {
+      const msg = err?.message || "Erro desconhecido";
+      if (msg.includes("401") || msg.includes("Unauthorized")) {
+        toast.error("Sessão expirada. Por favor, faça login novamente.");
+      } else if (msg.includes("403") || msg.includes("Forbidden")) {
+        toast.error("Você não possui acesso a esta indústria.");
+      } else {
+        toast.error("Erro ao carregar diagnóstico", {
+          description: "A página não caiu, mas a consulta falhou. Tente novamente."
+        });
+      }
     }
   });
 
@@ -118,6 +146,27 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
 
   const industries = industriesQ.data ?? [];
   const previewData = previewMut.data;
+
+  if (previewMut.isError && !previewData) {
+    return (
+      <div className="space-y-6 max-w-5xl mx-auto">
+        <Card className="glass-panel border-red-500/20 bg-red-500/5 p-8 text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-bold mb-2">Erro Crítico no Carregamento</h3>
+          <p className="text-sm text-muted-foreground mb-6">
+            Não foi possível carregar o diagnóstico desta competência. A página não caiu, mas o servidor retornou um erro.
+          </p>
+          <div className="flex justify-center gap-4">
+            <Button variant="outline" onClick={() => {
+              previewMut.reset();
+              setIndustryId("");
+            }}>Voltar</Button>
+            <Button onClick={() => previewMut.mutate()}>Tentar Novamente</Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -181,18 +230,18 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
       {previewData && (
         <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <StatCard label="Importações" value={previewData.imports.length} />
-            <StatCard label="Visitas" value={previewData.visits.length} tone="red" />
-            <StatCard label="Frequências" value={previewData.frequencies.length} tone="amber" />
-            <StatCard label="Meses Afetados" value={previewData.impact.futureAffected} tone="amber" />
+            <StatCard label="Importações" value={(previewData.imports ?? []).length} />
+            <StatCard label="Visitas" value={(previewData.visits ?? []).length} tone="red" />
+            <StatCard label="Frequências" value={(previewData.frequencies ?? []).length} tone="amber" />
+            <StatCard label="Meses Afetados" value={previewData.summary?.futureAffected || previewData.impact?.futureAffected || 0} tone="amber" />
           </div>
 
           <Tabs defaultValue="overview" className="space-y-4">
             <TabsList className="bg-background/50 p-1">
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-              <TabsTrigger value="visits">Visitas ({previewData.visits.length})</TabsTrigger>
-              <TabsTrigger value="frequencies">Frequências ({previewData.frequencies.length})</TabsTrigger>
-              <TabsTrigger value="routes">Roteiros/Plan ({previewData.routes.length})</TabsTrigger>
+              <TabsTrigger value="visits">Visitas ({(previewData.visits ?? []).length})</TabsTrigger>
+              <TabsTrigger value="frequencies">Frequências ({(previewData.frequencies ?? []).length})</TabsTrigger>
+              <TabsTrigger value="routes">Roteiros/Plan ({(previewData.routes ?? []).length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -209,19 +258,19 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <p className="text-[10px] text-muted-foreground uppercase">Visitas sem Check-in</p>
-                          <p className="text-lg font-bold">{previewData.visits.filter((v: any) => !v.source_import_id).length}</p>
+                          <p className="text-lg font-bold">{(previewData.visits ?? []).filter((v: any) => !v.source_import_id).length}</p>
                         </div>
                         <div className="space-y-1">
                           <p className="text-[10px] text-muted-foreground uppercase">Roteiros Planejados</p>
-                          <p className="text-lg font-bold">{previewData.routes.length}</p>
+                          <p className="text-lg font-bold">{(previewData.routes ?? []).length}</p>
                         </div>
                         <div className="space-y-1">
                           <p className="text-[10px] text-muted-foreground uppercase">Reconciliações</p>
-                          <p className="text-lg font-bold">{previewData.reconciliations.length}</p>
+                          <p className="text-lg font-bold">{(previewData.reconciliations ?? []).length}</p>
                         </div>
                         <div className="space-y-1">
                           <p className="text-[10px] text-muted-foreground uppercase">Problemas de Qualidade</p>
-                          <p className="text-lg font-bold text-red-500">{previewData.qualityIssues.length}</p>
+                          <p className="text-lg font-bold text-red-500">{(previewData.qualityIssues ?? []).length}</p>
                         </div>
                       </div>
                     </div>
@@ -229,7 +278,7 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
                     <div className="space-y-2">
                       <h4 className="text-xs font-bold uppercase text-muted-foreground tracking-widest">Importações Relacionadas</h4>
                       <div className="space-y-2 max-h-[200px] overflow-auto">
-                        {previewData.imports.map((imp: any) => (
+                        {(previewData.imports ?? []).map((imp: any) => (
                           <div key={imp.id} className="flex items-center justify-between p-2 rounded-lg bg-background/40 border text-xs">
                             <span className="truncate max-w-[200px]">{imp.filename}</span>
                             <Badge variant="outline" className="text-[9px] uppercase">{imp.status}</Badge>
@@ -281,7 +330,7 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
               <Card className="glass-panel">
                 <CardContent className="pt-6">
                   <div className="space-y-2 max-h-[500px] overflow-auto">
-                    {previewData.visits.map((v: any) => (
+                    {(previewData.visits ?? []).map((v: any) => (
                       <div key={v.id} className="flex items-center justify-between p-3 rounded-lg border bg-background/40">
                         <div className="flex items-center gap-3">
                           <Checkbox 
@@ -308,7 +357,7 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
               <Card className="glass-panel">
                 <CardContent className="pt-6">
                   <div className="space-y-2 max-h-[500px] overflow-auto">
-                    {previewData.frequencies.map((f: any) => (
+                    {(previewData.frequencies ?? []).map((f: any) => (
                       <div key={f.id} className="flex items-center justify-between p-3 rounded-lg border bg-background/40">
                         <div className="flex items-center gap-3">
                           <Checkbox 
@@ -335,7 +384,7 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
               <Card className="glass-panel">
                 <CardContent className="pt-6">
                   <div className="space-y-2 max-h-[500px] overflow-auto">
-                    {previewData.routes.map((r: any) => (
+                    {(previewData.routes ?? []).map((r: any) => (
                       <div key={r.id} className="flex items-center justify-between p-3 rounded-lg border bg-background/40">
                         <div className="flex items-center gap-3">
                           <Checkbox 
