@@ -565,61 +565,75 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
       };
 
       try {
-        console.log(`[BATCH FILE UPLOAD START] ${f.filename}`);
+        console.log(`[BATCH FILE START] ${f.filename}`);
         updateFileStatus("UPLOADING");
 
-        const reader = new FileReader();
-        const base64 = await new Promise<string>((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error("Timeout lendo arquivo local")), 30000);
-          reader.onload = () => {
-            clearTimeout(timeout);
-            resolve((reader.result as string).split(',')[1]);
-          };
-          reader.onerror = () => {
-            clearTimeout(timeout);
-            reject(new Error("Erro ao ler arquivo local"));
-          };
-          reader.readAsDataURL(f.rawFile);
-        });
-
-        console.log(`[BATCH FILE PREVIEW START] ${f.filename}`);
-        updateFileStatus("ANALYZING");
-
-        // Timeout individual de 120s para a server function
-        const analysisPromise = previewMut({
-          data: {
-            files: [{ filename: f.filename, base64 }],
-            operationMonth: month,
-            operationYear: year,
-          }
-        });
-
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("BATCH_FILE_TIMEOUT: O arquivo demorou mais que o esperado.")), 120000)
+        // Detecção de indústria pelo nome do arquivo no cliente (otimização)
+        const filenameLower = f.filename.toLowerCase();
+        const matchedIndustry = (industriesQ.data ?? []).find((i: any) => 
+          filenameLower.includes(i.name.toLowerCase())
         );
 
-        const res = (await Promise.race([analysisPromise, timeoutPromise])) as any;
-        if (res.batchId) setBatchId(res.batchId);
-        const result = res.results[0];
+        if (!matchedIndustry) {
+          console.log(`[BATCH FILE NEEDS_REVIEW] ${f.filename} - Indústria não identificada`);
+          updateFileStatus("NEEDS_REVIEW", {
+            message: "Indústria não identificada pelo nome do arquivo. Selecione manualmente."
+          });
+          return;
+        }
 
-        if (!result) throw new Error("Servidor não retornou resultado para este arquivo");
+        console.log(`[BATCH FILE FORM DATA CREATED] ${f.filename}`);
+        const formData = new FormData();
+        formData.append("file", f.rawFile);
+        formData.append("industryId", matchedIndustry.id);
+        formData.append("operationMonth", String(month));
+        formData.append("operationYear", String(year));
+        if (batchId) formData.append("batchId", batchId);
 
-        console.log(`[BATCH FILE PREVIEW END] ${f.filename} -> ${result.status}`);
-        updateFileStatus(result.status, {
+        console.log(`[BATCH FILE REQUEST START] ${f.filename} -> /api/checklists/preview`);
+        
+        const response = await fetch("/api/checklists/preview", {
+          method: "POST",
+          body: formData,
+          // Content-Type NÃO deve ser definido manualmente para multipart/form-data
+        });
+
+        console.log(`[BATCH FILE RESPONSE] ${f.filename} -> ${response.status}`);
+        
+        const contentType = response.headers.get("content-type");
+        let result: any;
+        
+        if (contentType?.includes("application/json")) {
+          result = await response.json();
+        } else {
+          const text = await response.text();
+          console.error(`[BATCH FILE ERROR] Resposta não-JSON: ${text.slice(0, 100)}`);
+          throw new Error(`Resposta inválida do servidor (HTTP ${response.status}).`);
+        }
+
+        if (!response.ok) {
+          const errorMsg = result.error?.message || result.message || "Erro desconhecido no servidor";
+          const errorCode = result.error?.code || response.status;
+          
+          if (response.status === 401) throw new Error("Sessão expirada. Faça login novamente.");
+          if (response.status === 403) throw new Error("Usuário sem permissão para importar checklists.");
+          
+          throw new Error(`Falha na análise (${errorCode}): ${errorMsg}`);
+        }
+
+        console.log(`[BATCH FILE PREVIEW SUCCESS] ${f.filename}`);
+        updateFileStatus("READY", {
           id: result.importId || targetId,
-          industryId: result.industryId,
-          industryName: result.industryName,
+          industryId: matchedIndustry.id,
+          industryName: matchedIndustry.name,
           preview: result.preview,
-          error: result.error || result.message,
-          message: result.message,
+          message: result.message
         });
 
       } catch (e: any) {
-        console.error(`[BATCH FILE FAILED] ${f.filename}`, e);
+        console.error(`[BATCH FILE ERROR] ${f.filename}`, e);
         updateFileStatus("ERROR", { 
-          error: e?.message?.includes("BATCH_FILE_TIMEOUT") 
-            ? "O arquivo demorou mais que o esperado para ser analisado. Tente novamente individualmente."
-            : (e?.message ?? String(e)) 
+          error: e.message || "Falha técnica ao processar arquivo."
         });
       }
     };
