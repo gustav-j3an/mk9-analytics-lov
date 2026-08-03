@@ -257,8 +257,8 @@ export function promoterFilter(scope: Mk9AccessScope, requested?: string | null)
  * Usado em relatórios, PDFs e exportações em massa.
  */
 export function canReadIndustry(scope: Mk9AccessScope, industryId: string): boolean {
-  // ADMIN ou usuários com canViewAll=true (visão total) enxergam todas as indústrias.
-  if (scope.canViewAll || scope.allowedIndustryIds === null) return true;
+  // ADMIN ou usuários com visão total (canViewAll=true ou allowedIndustryIds=null) enxergam tudo.
+  if (scope.canViewAll === true || scope.allowedIndustryIds === null) return true;
   return scope.allowedIndustryIds.includes(industryId);
 }
 
