@@ -212,16 +212,16 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
                           key={imp.id} 
                           className={cn(
                             "flex items-center justify-between p-3 rounded-lg border transition-colors",
-                            selectedImports.includes(imp.id) ? "bg-amber-50/50 border-amber-200" : "bg-background/40 hover:bg-background/60"
+                            selections.importIds.includes(imp.id) ? "bg-amber-50/50 border-amber-200" : "bg-background/40 hover:bg-background/60"
                           )}
                         >
                           <div className="flex items-center gap-3">
                             <Checkbox 
                               id={`imp-${imp.id}`}
-                              checked={selectedImports.includes(imp.id)}
+                              checked={selections.importIds.includes(imp.id)}
                               onCheckedChange={(checked) => {
-                                if (checked) setSelectedImports([...selectedImports, imp.id]);
-                                else setSelectedImports(selectedImports.filter(id => id !== imp.id));
+                                if (checked) setSelections({...selections, importIds: [...selections.importIds, imp.id]});
+                                else setSelections({...selections, importIds: selections.importIds.filter((id: string) => id !== imp.id)});
                               }}
                             />
                             <div className="min-w-0">
