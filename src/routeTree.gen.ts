@@ -13,6 +13,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CockpitRouteImport } from './routes/cockpit'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiReportsIndustryUnattendedPdfRouteImport } from './routes/api/reports/industry-unattended-pdf'
 import { Route as ApiReportsIndustryPdfRouteImport } from './routes/api/reports/industry-pdf'
 import { Route as ApiChecklistsPreviewRouteImport } from './routes/api/checklists/preview'
 
@@ -36,6 +37,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiReportsIndustryUnattendedPdfRoute =
+  ApiReportsIndustryUnattendedPdfRouteImport.update({
+    id: '/api/reports/industry-unattended-pdf',
+    path: '/api/reports/industry-unattended-pdf',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiReportsIndustryPdfRoute = ApiReportsIndustryPdfRouteImport.update({
   id: '/api/reports/industry-pdf',
   path: '/api/reports/industry-pdf',
@@ -54,6 +61,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
+  '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +70,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
+  '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +80,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
+  '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +91,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
+    | '/api/reports/industry-unattended-pdf'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +100,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
+    | '/api/reports/industry-unattended-pdf'
   id:
     | '__root__'
     | '/'
@@ -97,6 +109,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
+    | '/api/reports/industry-unattended-pdf'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +119,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiChecklistsPreviewRoute: typeof ApiChecklistsPreviewRoute
   ApiReportsIndustryPdfRoute: typeof ApiReportsIndustryPdfRoute
+  ApiReportsIndustryUnattendedPdfRoute: typeof ApiReportsIndustryUnattendedPdfRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -138,6 +152,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/reports/industry-unattended-pdf': {
+      id: '/api/reports/industry-unattended-pdf'
+      path: '/api/reports/industry-unattended-pdf'
+      fullPath: '/api/reports/industry-unattended-pdf'
+      preLoaderRoute: typeof ApiReportsIndustryUnattendedPdfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/reports/industry-pdf': {
       id: '/api/reports/industry-pdf'
       path: '/api/reports/industry-pdf'
@@ -162,6 +183,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ApiChecklistsPreviewRoute: ApiChecklistsPreviewRoute,
   ApiReportsIndustryPdfRoute: ApiReportsIndustryPdfRoute,
+  ApiReportsIndustryUnattendedPdfRoute: ApiReportsIndustryUnattendedPdfRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
