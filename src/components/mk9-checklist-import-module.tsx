@@ -727,7 +727,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
                     {analyzing ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Analisando...
+                        Analisando {files.filter(f => ["UPLOADING", "ANALYZING", "READY", "ERROR", "NEEDS_REVIEW"].includes(f.status)).length} de {files.length}
                       </>
                     ) : (
                       <>
