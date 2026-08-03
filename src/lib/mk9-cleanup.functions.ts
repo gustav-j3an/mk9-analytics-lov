@@ -128,6 +128,7 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
     const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999)).toISOString();
     console.log("[CLEANUP PERIOD RESOLVED]", { startDate, endDate });
 
+    console.log("[CLEANUP SOURCE START]");
     const results = await Promise.allSettled([
       supabaseAdmin
         .from("mk9_checklist_imports")
@@ -181,6 +182,18 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
         .eq("competence_year", year)
         .maybeSingle(),
     ]);
+
+    results.forEach((res, i) => {
+      if (res.status === 'fulfilled') {
+        if (res.value.error) {
+          console.error(`[CLEANUP SOURCE FAILED] Source index ${i}:`, res.value.error.message);
+        } else {
+          console.log(`[CLEANUP SOURCE SUCCESS] Source index ${i}`);
+        }
+      } else {
+        console.error(`[CLEANUP SOURCE FAILED] Promise rejected at index ${i}:`, res.reason);
+      }
+    });
 
     const getValue = <T>(res: PromiseSettledResult<T>, defaultValue: any = []) => 
       res.status === 'fulfilled' ? (res.value as any).data || defaultValue : null;
