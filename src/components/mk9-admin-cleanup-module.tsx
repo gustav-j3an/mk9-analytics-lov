@@ -86,7 +86,12 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
   const previewMut = useMutation({
     mutationFn: () => diagnosisFn({ data: { industryId, month, year } }),
     onSuccess: (res: any) => {
-      setSelectedImports(res.imports.map((i: any) => i.id));
+      setSelections({
+        importIds: res.imports.map((i: any) => i.id),
+        visitIds: res.visits.map((v: any) => v.id),
+        frequencyIds: res.frequencies.filter((f: any) => !f.archived_at).map((f: any) => f.id),
+        routeIds: res.routes.filter((r: any) => !r.valid_until).map((r: any) => r.id),
+      });
       toast.success("Diagnóstico concluído");
     }
   });
@@ -95,9 +100,8 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
     mutationFn: () => executeFn({ 
       data: { 
         industryId, month, year, 
-        importIds: selectedImports, 
         justification, 
-        options 
+        selections
       } 
     }),
     onSuccess: (res: any) => {
