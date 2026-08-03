@@ -157,7 +157,10 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
             Não foi possível carregar o diagnóstico desta competência. A página não caiu, mas o servidor retornou um erro.
           </p>
           <div className="flex justify-center gap-4">
-            <Button variant="outline" onClick={() => setIndustryId("")}>Voltar</Button>
+            <Button variant="outline" onClick={() => {
+              previewMut.reset();
+              setIndustryId("");
+            }}>Voltar</Button>
             <Button onClick={() => previewMut.mutate()}>Tentar Novamente</Button>
           </div>
         </Card>
