@@ -44,15 +44,16 @@ export async function traceIndustryReportSources(params: {
     .is("archived_at", null);
 
   // 5. Identificar Importações Únicas das Fontes
-  const importIds = new Set<string>();
-  visits?.forEach(v => v.source_import_id && importIds.add(v.source_import_id));
-  frequencies?.forEach(f => f.source_import_id && importIds.add(f.source_import_id));
+  const importIdsSet = new Set<string>();
+  visits?.forEach(v => v.source_import_id && importIdsSet.add(v.source_import_id));
+  frequencies?.forEach(f => f.source_import_id && importIdsSet.add(f.source_import_id));
 
-  const { data: imports } = importIds.size > 0 
+  const importIds = Array.from(importIdsSet);
+  const { data: imports } = importIds.length > 0 
     ? await supabaseAdmin
         .from("mk9_checklist_imports")
         .select("id, filename, started_at, status, operation_month, operation_year")
-        .in("id", Array.from(importIds))
+        .in("id", importIds)
     : { data: [] };
 
   // 6. Projeções legadas (apenas para invalidar)
