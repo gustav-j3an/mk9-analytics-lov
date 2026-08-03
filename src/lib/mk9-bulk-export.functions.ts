@@ -13,22 +13,28 @@ export interface BulkExportFilters {
   withVigenteRouteOnly?: boolean;
 }
 
+export interface BulkExportPreviewItem {
+  industryId: string;
+  industryName: string;
+  periodLabel: string;
+  contractedStores: number;
+  attendedStores: number;
+  unattendedStores: number;
+  contractedVisitsUnattended: number;
+  status: "READY" | "EMPTY" | "ERROR";
+  errorCode?: string;
+  errorMessage?: string;
+  httpStatus?: number;
+  errorStage?: string;
+}
+
 export interface BulkExportPreview {
   selectedCount: number;
   withPendingCount: number;
   totalUnattendedStores: number;
   totalContractedVisits: number;
   pdfCount: number;
-  items: Array<{
-    industryId: string;
-    industryName: string;
-    periodLabel: string;
-    contractedStores: number;
-    attendedStores: number;
-    unattendedStores: number;
-    contractedVisitsUnattended: number;
-    status: "READY" | "EMPTY" | "ERROR";
-  }>;
+  items: BulkExportPreviewItem[];
 }
 
 const previewInput = z.object({
@@ -68,7 +74,11 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
     if (eInd) throw new Error(eInd.message);
 
     for (const industry of industries || []) {
+      const startTime = Date.now();
       try {
+        console.log(`[UNVISITED INDUSTRY START] industryId=${industry.id} name=${industry.name}`);
+        
+        console.log(`[UNVISITED REPORT LOAD] industryId=${industry.id}`);
         const config = await loadPeriodConfig(supabaseAdmin, industry.id);
         const window = resolveWindow(config, year, month);
         
@@ -80,7 +90,8 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
           access,
         }, window);
 
-        // Filter only unattended stores (contracted > 0 AND actual === 0)
+        console.log(`[UNVISITED REPORT SUCCESS] industryId=${industry.id} duration=${Date.now() - startTime}ms`);
+
         const unattended = report.stores.filter(s => s.expected > 0 && s.actual === 0);
         const unattendedCount = unattended.length;
         const contractedSum = unattended.reduce((sum, s) => sum + s.expected, 0);
@@ -98,17 +109,26 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
           contractedVisitsUnattended: contractedSum,
           status: unattendedCount > 0 ? "READY" : "EMPTY",
         });
-      } catch (err) {
-        console.error(`Error calculating preview for ${industry.name}:`, err);
+      } catch (err: any) {
+        const duration = Date.now() - startTime;
+        const errorCode = err.name === "Mk9ScopeError" ? "FORBIDDEN" : (err.code || "REPORT_ENGINE_FAILED");
+        const httpStatus = err.statusCode || (err.name === "Mk9ScopeError" ? 403 : 500);
+        
+        console.error(`[UNVISITED INDUSTRY FAILED] industryId=${industry.id} code=${errorCode} status=${httpStatus} duration=${duration}ms error=${err.message}`);
+
         results.push({
           industryId: industry.id,
           industryName: industry.name,
-          periodLabel: "Erro ao calcular",
+          periodLabel: "Erro no cálculo",
           contractedStores: 0,
           attendedStores: 0,
           unattendedStores: 0,
           contractedVisitsUnattended: 0,
           status: "ERROR",
+          errorCode,
+          errorMessage: err.message,
+          httpStatus,
+          errorStage: "BUILD_REPORT"
         });
       }
     }

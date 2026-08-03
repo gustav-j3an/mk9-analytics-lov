@@ -13,13 +13,17 @@ export async function processBulkExportItem(
   filters: any,
   access: any
 ): Promise<{ pdfBuffer: Buffer | null; industryName: string; report: IndustryReport | null }> {
+  const startTime = Date.now();
   try {
+    console.log(`[UNVISITED INDUSTRY START] industryId=${industryId} itemId=${itemId}`);
+
     // 1. Update status to CALCULATING
     await supabaseAdmin
       .from("mk9_bulk_export_items")
       .update({ status: "CALCULATING" })
       .eq("id", itemId);
 
+    console.log(`[UNVISITED REPORT LOAD] industryId=${industryId}`);
     const config = await loadPeriodConfig(supabaseAdmin, industryId);
     const window = resolveWindow(config, year, month);
     
@@ -30,6 +34,8 @@ export async function processBulkExportItem(
       uf: filters?.uf,
       access,
     }, window);
+
+    console.log(`[UNVISITED REPORT SUCCESS] industryId=${industryId} duration=${Date.now() - startTime}ms`);
 
     const unattended = report.stores.filter(s => s.expected > 0 && s.actual === 0);
     const unattendedCount = unattended.length;
@@ -63,10 +69,23 @@ export async function processBulkExportItem(
 
     return { pdfBuffer, industryName: report.industry.name, report };
   } catch (err: any) {
-    console.error(`Error processing bulk item ${itemId}:`, err);
+    const duration = Date.now() - startTime;
+    const errorCode = err.name === "Mk9ScopeError" ? "FORBIDDEN" : (err.code || "REPORT_ENGINE_FAILED");
+    const httpStatus = err.statusCode || (err.name === "Mk9ScopeError" ? 403 : 500);
+    
+    console.error(`[UNVISITED INDUSTRY FAILED] industryId=${industryId} code=${errorCode} status=${httpStatus} duration=${duration}ms error=${err.message}`);
+
     await supabaseAdmin
       .from("mk9_bulk_export_items")
-      .update({ status: "ERROR", error_details: err.message })
+      .update({ 
+        status: "ERROR", 
+        error_details: JSON.stringify({
+          code: errorCode,
+          message: err.message,
+          status: httpStatus,
+          stage: "PROCESS_ITEM"
+        })
+      })
       .eq("id", itemId);
     return { pdfBuffer: null, industryName: "Erro", report: null };
   }

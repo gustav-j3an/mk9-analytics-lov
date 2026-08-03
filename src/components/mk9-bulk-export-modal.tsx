@@ -112,20 +112,47 @@ export function BulkExportModal() {
   const [preview, setPreview] = useState<BulkExportPreview | null>(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
 
-  async function handleGeneratePreview() {
-    if (selectedIds.length === 0) return toast.error("Selecione pelo menos uma indústria");
+  async function handleGeneratePreview(retryIds?: string[]) {
+    const idsToFetch = retryIds || selectedIds;
+    if (idsToFetch.length === 0) return toast.error("Selecione pelo menos uma indústria");
+    
     setLoadingPreview(true);
     try {
       const res = await previewFn({ 
-        data: { industryIds: selectedIds, month, year, filters: { uf: uf || null } } 
+        data: { industryIds: idsToFetch, month, year, filters: { uf: uf || null } } 
       });
-      setPreview(res);
-      setStep("preview");
+      
+      if (retryIds) {
+        setPreview(prev => {
+          if (!prev) return res;
+          const updatedItems = [...prev.items];
+          res.items.forEach(newItem => {
+            const idx = updatedItems.findIndex(i => i.industryId === newItem.industryId);
+            if (idx >= 0) updatedItems[idx] = newItem;
+            else updatedItems.push(newItem);
+          });
+          
+          return {
+            ...res,
+            selectedCount: prev.selectedCount, // Keep original total selected
+            items: updatedItems
+          };
+        });
+      } else {
+        setPreview(res);
+        setStep("preview");
+      }
     } catch (e: any) {
       toast.error(e.message || "Erro ao gerar prévia");
     } finally {
       setLoadingPreview(false);
     }
+  }
+
+  function handleRetryErrorItems() {
+    if (!preview) return;
+    const errorIds = preview.items.filter(i => i.status === "ERROR").map(i => i.industryId);
+    if (errorIds.length > 0) handleGeneratePreview(errorIds);
   }
 
   async function handleStartExport() {
@@ -303,6 +330,22 @@ export function BulkExportModal() {
               <PreviewKpi label="PDFs p/ gerar" value={preview.pdfCount} icon={Check} tone="good" />
             </div>
 
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold">Detalhamento por Indústria</h4>
+              {preview.items.some(i => i.status === "ERROR") && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                  onClick={handleRetryErrorItems}
+                  disabled={loadingPreview}
+                >
+                  {loadingPreview ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Clock className="mr-1 h-3 w-3" />}
+                  Tentar novamente todas com erro
+                </Button>
+              )}
+            </div>
+
             <ScrollArea className="h-64 rounded-md border">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-muted/50 border-b text-xs uppercase text-muted-foreground">
@@ -317,18 +360,70 @@ export function BulkExportModal() {
                 <tbody>
                   {preview.items.map(item => (
                     <tr key={item.industryId} className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="p-2 font-medium">{item.industryName}</td>
+                      <td className="p-2">
+                        <div className="font-medium">{item.industryName}</div>
+                        <div className="text-[10px] text-muted-foreground">{item.periodLabel}</div>
+                      </td>
                       <td className="p-2 text-center">{item.contractedStores}</td>
                       <td className="p-2 text-center text-emerald-600">{item.attendedStores}</td>
                       <td className="p-2 text-center font-semibold text-rose-600">{item.unattendedStores}</td>
                       <td className="p-2 text-right">
-                        {item.status === "READY" ? (
-                          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Pronto</Badge>
-                        ) : item.status === "EMPTY" ? (
-                          <Badge variant="outline" className="text-muted-foreground">Sem pendência</Badge>
-                        ) : (
-                          <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200">Erro</Badge>
-                        )}
+                        <div className="flex flex-col items-end gap-1">
+                          {item.status === "READY" ? (
+                            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Pronto</Badge>
+                          ) : item.status === "EMPTY" ? (
+                            <Badge variant="outline" className="text-muted-foreground">Sem pendência</Badge>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[10px] text-rose-600">
+                                    Ver detalhes
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2 text-rose-600">
+                                      <AlertCircle className="h-5 w-5" />
+                                      Erro: {item.industryName}
+                                    </DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4 py-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div className="space-y-1">
+                                        <Label className="text-xs text-muted-foreground uppercase tracking-wider">Código</Label>
+                                        <div className="font-mono text-sm font-semibold">{item.errorCode || "ENGINE_ERROR"}</div>
+                                      </div>
+                                      <div className="space-y-1">
+                                        <Label className="text-xs text-muted-foreground uppercase tracking-wider">Status HTTP</Label>
+                                        <div className="font-mono text-sm font-semibold">{item.httpStatus || 500}</div>
+                                      </div>
+                                      <div className="space-y-1">
+                                        <Label className="text-xs text-muted-foreground uppercase tracking-wider">Etapa</Label>
+                                        <div className="text-sm font-semibold">{item.errorStage || "PREVIEW"}</div>
+                                      </div>
+                                    </div>
+                                    <div className="space-y-1 rounded-md bg-muted/50 p-3">
+                                      <Label className="text-xs text-muted-foreground uppercase tracking-wider">Mensagem</Label>
+                                      <div className="text-sm font-medium leading-relaxed">{item.errorMessage || "Não foi possível calcular o relatório desta indústria."}</div>
+                                    </div>
+                                  </div>
+                                  <DialogFooter>
+                                    <Button 
+                                      className="w-full" 
+                                      onClick={() => handleGeneratePreview([item.industryId])}
+                                      disabled={loadingPreview}
+                                    >
+                                      {loadingPreview ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Clock className="mr-2 h-4 w-4" />}
+                                      Tentar novamente
+                                    </Button>
+                                  </DialogFooter>
+                                </DialogContent>
+                              </Dialog>
+                              <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 cursor-default">Erro</Badge>
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -338,8 +433,12 @@ export function BulkExportModal() {
 
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={() => setStep("setup")}>Voltar</Button>
-              <Button className="flex-1" onClick={handleStartExport} disabled={preview.pdfCount === 0 && format === "zip"}>
-                Gerar relatórios
+              <Button 
+                className="flex-1" 
+                onClick={handleStartExport} 
+                disabled={preview.pdfCount === 0 && format === "zip"}
+              >
+                Gerar relatórios ({preview.pdfCount})
               </Button>
             </DialogFooter>
           </div>
