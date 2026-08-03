@@ -30,7 +30,7 @@ export const getCleanupPreview = createServerFn({ method: "POST" })
     // 1. Localiza importações
     const { data: imports } = await supabaseAdmin
       .from("mk9_checklist_imports")
-      .select("id, filename, started_at, user_id, status, counters, batch_id, is_operational_current")
+      .select("id, filename, started_at, user_id, status, counters, batch_id, is_operational_current" as any)
       .eq("industry_id", data.industryId)
       .eq("operation_month", data.month)
       .eq("operation_year", data.year)
