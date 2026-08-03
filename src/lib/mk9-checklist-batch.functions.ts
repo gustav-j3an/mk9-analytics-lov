@@ -25,6 +25,8 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
     await updateBatchStatus(batch.id, "ANALYZING");
 
     const results = [];
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     for (const file of data.files) {
       const diagnostics = createChecklistDiagnostics("batch-preview");
       try {
@@ -49,7 +51,6 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
           );
 
           // Vincula o import individual ao batch
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           await (supabaseAdmin as any).from("mk9_checklist_imports").update({ batch_id: batch.id }).eq("id", res.importId);
 
           results.push({
@@ -61,10 +62,12 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
             preview: res.preview,
           });
         } else {
+          // Quando a indústria não é identificada, criamos o registro de importação como 'failed'
+          // mas com o status NEEDS_REVIEW para a UI, permitindo auditoria futura se necessário.
           results.push({
             filename: file.filename,
             status: "NEEDS_REVIEW",
-            message: "Indústria não identificada pelo nome do arquivo",
+            message: "Indústria não identificada pelo nome do arquivo. Verifique se o nome do arquivo contém o nome exato da indústria cadastrada.",
           });
         }
       } catch (e: any) {
@@ -76,6 +79,13 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
       }
     }
 
-    await updateBatchStatus(batch.id, "READY");
+    const hasErrors = results.some(r => r.status === "ERROR");
+    const hasNeedsReview = results.some(r => r.status === "NEEDS_REVIEW");
+    
+    let finalStatus: "READY" | "PARTIAL" | "FAILED" = "READY";
+    if (hasErrors) finalStatus = "FAILED";
+    else if (hasNeedsReview) finalStatus = "PARTIAL";
+
+    await updateBatchStatus(batch.id, finalStatus);
     return { batchId: batch.id, results };
   });
