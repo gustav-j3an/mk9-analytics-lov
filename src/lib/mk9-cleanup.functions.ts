@@ -9,6 +9,113 @@ const cleanupFilterSchema = z.object({
   year: z.number().int().min(2020).max(2100),
 });
 
+const cleanupExecuteSchema = z.object({
+  industryId: z.string().uuid(),
+  month: z.number().int().min(1).max(12),
+  year: z.number().int().min(2020).max(2100),
+  importIds: z.array(z.string().uuid()),
+  justification: z.string().min(10),
+  options: z.object({
+    revertVisits: z.boolean(),
+    archiveFrequencies: z.boolean(),
+    closeFutureVigencies: z.boolean(),
+  }),
+});
+
+export const getCleanupPreview = createServerFn({ method: "POST" })
+  .inputValidator((data) => cleanupFilterSchema.parse(data))
+  .handler(async ({ data }) => {
+    await requireMk9Role(["ADMIN"]);
+
+    // 1. Localiza importações
+    const { data: imports, error } = await supabaseAdmin
+      .from("mk9_checklist_imports")
+      .select("id, filename, started_at, user_id, status, counters, batch_id")
+      .eq("industry_id", data.industryId)
+      .eq("operation_month", data.month)
+      .eq("operation_year", data.year)
+      .order("started_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+
+    const importIds = (imports || []).map(i => i.id);
+
+    // 2. Impacto de visitas
+    const { count: visitsCount } = await supabaseAdmin
+      .from("mk9_actual_visits")
+      .select("*", { count: 'exact', head: true })
+      .in("source_import_id", importIds);
+
+    // 3. Frequências afetadas
+    const { data: freqs } = await supabaseAdmin
+      .from("mk9_industry_store_frequency_versions")
+      .select("id, valid_from, valid_until, source_type")
+      .eq("industry_id", data.industryId)
+      .in("source_import_id", importIds)
+      .is("archived_at", null);
+
+    return {
+      imports: (imports || []).map(i => ({
+        ...i,
+        is_operational_current: false // Placeholder for type safety until migration is confirmed
+      })),
+      impact: {
+        visits: visitsCount || 0,
+        frequencies: freqs?.length || 0,
+        futureAffected: freqs?.filter(f => !f.valid_until).length || 0,
+      }
+    };
+  });
+
+export const executeCleanup = createServerFn({ method: "POST" })
+  .inputValidator((data) => cleanupExecuteSchema.parse(data))
+  .handler(async ({ data }) => {
+    const ctx = await requireMk9Role(["ADMIN"]);
+    
+    // 1. Reverte visitas
+    let visitsRemoved = 0;
+    if (data.options.revertVisits) {
+      const { count } = await supabaseAdmin
+        .from("mk9_actual_visits")
+        .delete({ count: 'exact' })
+        .in("source_import_id", data.importIds);
+      visitsRemoved = count || 0;
+    }
+
+    // 2. Arquiva frequências
+    let frequenciesArchived = 0;
+    if (data.options.archiveFrequencies) {
+      const { count } = await supabaseAdmin
+        .from("mk9_industry_store_frequency_versions")
+        .update({ 
+          archived_at: new Date().toISOString()
+        } as any)
+        .in("source_import_id", data.importIds);
+      frequenciesArchived = count || 0;
+    }
+
+    // 3. Marca importações como revertidas
+    await supabaseAdmin
+      .from("mk9_checklist_imports")
+      .update({ 
+        status: "reverted", 
+        error_message: `Limpeza administrativa: ${data.justification}`
+      } as any)
+      .in("id", data.importIds);
+
+    await logAudit(ctx, "mk9.admin.cleanup", "mk9_checklist_imports", data.industryId, {
+      industryId: data.industryId,
+      month: data.month,
+      year: data.year,
+      justification: data.justification,
+      importIds: data.importIds,
+      visitsRemoved,
+      frequenciesArchived
+    });
+
+    return { success: true, visitsRemoved, frequenciesArchived };
+  });
+
 export const getCleanupDiagnosis = createServerFn({ method: "POST" })
   .inputValidator((data) => cleanupFilterSchema.parse(data))
   .handler(async ({ data }) => {
@@ -18,9 +125,7 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
     const startDate = new Date(year, month - 1, 1).toISOString();
     const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
 
-    // Consultas em paralelo usando Promise.allSettled para não travar se uma falhar
     const results = await Promise.allSettled([
-      // 1. Importações e Lotes
       supabaseAdmin
         .from("mk9_checklist_imports")
         .select("id, filename, started_at, user_id, status, counters, batch_id")
@@ -29,34 +134,29 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
         .eq("operation_year", year)
         .order("started_at", { ascending: false }),
 
-      // 2. Visitas (Ativas e sem origem)
       supabaseAdmin
         .from("mk9_actual_visits")
         .select("id, store_id, visit_date, source_import_id, competence_month, competence_year, created_at, status")
         .eq("industry_id", industryId)
         .or(`and(competence_month.eq.${month},competence_year.eq.${year}),and(visit_date.gte.${startDate},visit_date.lte.${endDate})`),
 
-      // 3. Frequências (Versões e vigências)
       supabaseAdmin
         .from("mk9_industry_store_frequency_versions")
         .select("id, store_id, valid_from, valid_until, source_type, source_import_id, created_at, archived_at")
         .eq("industry_id", industryId)
         .or(`valid_until.is.null,and(valid_until.gte.${startDate},valid_from.lte.${endDate})`),
 
-      // 4. Roteiros Planejados
       supabaseAdmin
         .from("mk9_planned_routes")
         .select("id, store_id, valid_from, valid_until, source_type, created_at")
         .eq("industry_id", industryId)
         .or(`valid_until.is.null,and(valid_until.gte.${startDate},valid_from.lte.${endDate})`),
 
-      // 5. Planejamento e Reconciliação
       supabaseAdmin
         .from("mk9_visit_reconciliations")
         .select("id, actual_visit_id, planned_visit_id, created_at")
-        .eq("industry_id", industryId), // Nota: Esta tabela pode precisar de join ou filtro por data se crescer muito
+        .eq("industry_id", industryId),
 
-      // 6. Qualidade (Ocorrências)
       supabaseAdmin
         .from("mk9_data_quality_issues")
         .select("id, store_id, detector_id, status, created_at, severity")
@@ -64,14 +164,12 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
         .eq("competence_month", month)
         .eq("competence_year", year),
       
-      // 7. Configuração de Período
       supabaseAdmin
         .from("mk9_industry_period_config")
         .select("*")
         .eq("industry_id", industryId)
         .maybeSingle(),
 
-      // 8. Contrato / Total Contratado
       supabaseAdmin
         .from("mk9_industry_contract_totals")
         .select("*")
@@ -134,10 +232,6 @@ export const executeGranularCleanup = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(["ADMIN"]);
     
-    // Implementação transacional por categoria para garantir segurança
-    // Aqui usaríamos RPCs específicas ou execuções sequenciais seguras
-    
-    // 1. Visitas
     let visitsAffected = 0;
     if (data.selections.visitIds.length > 0) {
       const { count } = await supabaseAdmin
@@ -147,7 +241,6 @@ export const executeGranularCleanup = createServerFn({ method: "POST" })
       visitsAffected = count || 0;
     }
 
-    // 2. Frequências
     let frequenciesAffected = 0;
     if (data.selections.frequencyIds.length > 0) {
       const { count } = await supabaseAdmin
@@ -157,7 +250,6 @@ export const executeGranularCleanup = createServerFn({ method: "POST" })
       frequenciesAffected = count || 0;
     }
 
-    // 3. Roteiros
     let routesAffected = 0;
     if (data.selections.routeIds.length > 0) {
       const { count } = await supabaseAdmin
@@ -167,7 +259,6 @@ export const executeGranularCleanup = createServerFn({ method: "POST" })
       routesAffected = count || 0;
     }
 
-    // 4. Importações (Marcar como revertidas)
     if (data.selections.importIds.length > 0) {
       await supabaseAdmin
         .from("mk9_checklist_imports")
@@ -185,7 +276,3 @@ export const executeGranularCleanup = createServerFn({ method: "POST" })
 
     return { success: true, visitsAffected, frequenciesAffected, routesAffected };
   });
-
-// Mantemos as funções antigas temporariamente para compatibilidade se necessário, 
-// mas a UI deve migrar para getCleanupDiagnosis
-export { getCleanupPreview, executeCleanup } from "./mk9-cleanup.functions";
