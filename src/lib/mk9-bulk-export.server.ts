@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { resolveWindow, loadPeriodConfig } from "./mk9-reports/period.server";
 import { buildIndustryReport, type IndustryReport } from "./mk9-reports/industry-report.server";
-import { generateUnattendedPdf } from "./reports/unattended-pdf.server";
+import { renderUnattendedPdf } from "./reports/unattended-pdf.server";
 import JSZip from "jszip";
 
 export async function processBulkExportItem(
@@ -52,7 +52,7 @@ export async function processBulkExportItem(
     }
 
     // 3. Generate PDF
-    const pdfBytes = await generateUnattendedPdf(report);
+    const pdfBytes = await renderUnattendedPdf(report, year, month);
     const pdfBuffer = Buffer.from(pdfBytes);
 
     // 4. Update status to COMPLETED
@@ -84,7 +84,10 @@ export async function generateBulkZip(
   
   for (const res of results) {
     if (res.pdfBuffer) {
-      const filename = `LOJAS_NAO_ATENDIDAS_${res.industryName.replace(/\s+/g, "_").toUpperCase()}_${monthLabel}_${exportRecord.competence_year}.pdf`;
+      const name = res.industryName
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase().replace(/[^A-Z0-9]+/g, "_");
+      const filename = `LOJAS_NAO_ATENDIDAS_${name}_${monthLabel}_${exportRecord.competence_year}.pdf`;
       zip.file(filename, res.pdfBuffer);
     }
   }
@@ -96,8 +99,6 @@ export async function generateBulkConsolidatedPdf(
   exportRecord: any,
   results: Array<{ pdfBuffer: Buffer | null; industryName: string; report: IndustryReport | null }>
 ): Promise<Buffer> {
-  // For now, I'll implement a basic version using pdf-lib to merge or create a new one.
-  // The requirement asks for a cover, summary, and sections.
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const doc = await PDFDocument.create();
   const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -123,8 +124,7 @@ export async function generateBulkConsolidatedPdf(
   const totalStores = validResults.reduce((sum, r) => sum + (r.report?.stores.filter(s => s.expected > 0 && s.actual === 0).length || 0), 0);
   page.drawText(`Total de lojas com zero visitas: ${totalStores}`, { x: 50, y: 590, size: 12, font: fontRegular });
 
-  // Merge PDFs or generate sections
-  // Merging is easier for consistency.
+  // Merge PDFs
   for (const res of validResults) {
     if (res.pdfBuffer) {
       const externalDoc = await PDFDocument.load(res.pdfBuffer);
