@@ -117,8 +117,8 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
   .validator((data: unknown) => previewInput.parse(data))
   .handler(async ({ data, context }) => {
     const { industryIds, month, year, filters } = data;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { resolveMk9AccessScope } = await import("@/lib/mk9-auth/access-scope.server");
+    const { supabaseAdmin } = await import("../integrations/supabase/client.server");
+    const { resolveMk9AccessScope } = await import("./mk9-auth/access-scope.server");
     
     console.log(`[UNVISITED MASS START] user=${context.userId} industries=${industryIds.length}`);
 
