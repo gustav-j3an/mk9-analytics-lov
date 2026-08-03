@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -11,7 +11,16 @@ import {
   Trash2,
   ClipboardCheck,
   XCircle,
+  Files,
+  X,
+  FileText,
+  Check,
+  AlertCircle,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
+import { useDropzone } from "react-dropzone";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -158,22 +167,9 @@ async function requestChecklistPreview(input: {
 }
 
 export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: () => void } = {}) {
+  const [viewMode, setViewMode] = useState<"individual" | "batch">("individual");
   const now = new Date();
-  const [file, setFile] = useState<File | null>(null);
-  const [month, setMonth] = useState<number>(now.getMonth() + 1);
-  const [year, setYear] = useState<number>(now.getFullYear());
-  const [industryId, setIndustryId] = useState<string>("");
-  const [preview, setPreview] = useState<ChecklistPreview | null>(null);
-  const [importId, setImportId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "found" | "linked_by_similarity" | "new_store" | "invalid_date">("all");
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [ackNewStores, setAckNewStores] = useState(false);
-  const [lastError, setLastError] = useState<RichError | null>(null);
-  const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
-  const [highlightAck, setHighlightAck] = useState(false);
-  const [phase, setPhase] = useState<
-    "idle" | "confirming" | "stores" | "visits" | "reconcile" | "done" | "failed"
-  >("idle");
+
   const phaseTimersRef = useRef<number[]>([]);
   const ackRef = useRef<HTMLLabelElement | null>(null);
 
@@ -421,6 +417,72 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Button 
+          variant={viewMode === "individual" ? "default" : "outline"} 
+          onClick={() => setViewMode("individual")}
+          size="sm"
+        >
+          Importação individual
+        </Button>
+        <Button 
+          variant={viewMode === "batch" ? "default" : "outline"} 
+          onClick={() => setViewMode("batch")}
+          size="sm"
+        >
+          Importar checklists em lote
+        </Button>
+      </div>
+
+      {viewMode === "individual" ? (
+        <IndividualImport 
+          onSwitchToBase={onSwitchToBase} 
+          now={now}
+          industriesQ={industriesQ}
+          historyQ={historyQ}
+          isAdmin={isAdmin}
+          previewMut={previewMut}
+          commitMut={commitMut}
+          deleteMut={deleteMut}
+          discardMut={discardMut}
+          enableAndContinueMut={enableAndContinueMut}
+          createIndustryMut={createIndustryMut}
+          file={file} setFile={setFile}
+          month={month} setMonth={setMonth}
+          year={year} setYear={setYear}
+          industryId={industryId} setIndustryId={setIndustryId}
+          preview={preview} setPreview={setPreview}
+          importId={importId} setImportId={setImportId}
+          filter={filter} setFilter={setFilter}
+          confirmOpen={confirmOpen} setConfirmOpen={setConfirmOpen}
+          ackNewStores={ackNewStores} setAckNewStores={setAckNewStores}
+          lastError={lastError} setLastError={setLastError}
+          rejected={rejected} setRejected={setRejected}
+          highlightAck={highlightAck} setHighlightAck={setHighlightAck}
+          phase={phase} setPhase={setPhase}
+          gate={gate} setGate={setGate}
+          newIndustryName={newIndustryName} setNewIndustryName={setNewIndustryName}
+          candidates={candidates} setCandidates={setCandidates}
+          ackRef={ackRef}
+          flashAck={flashAck}
+        />
+      ) : (
+        <Mk9ChecklistBatchModule industries={industriesQ.data ?? []} />
+      )}
+    </div>
+  );
+}
+
+function IndividualImport({ 
+  onSwitchToBase, now, industriesQ, historyQ, isAdmin, previewMut, commitMut, deleteMut, discardMut,
+  enableAndContinueMut, createIndustryMut, file, setFile, month, setMonth, year, setYear,
+  industryId, setIndustryId, preview, setPreview, importId, setImportId, filter, setFilter,
+  confirmOpen, setConfirmOpen, ackNewStores, setAckNewStores, lastError, setLastError,
+  rejected, setRejected, highlightAck, setHighlightAck, phase, setPhase, gate, setGate,
+  newIndustryName, setNewIndustryName, candidates, setCandidates, ackRef, flashAck
+}: any) {
+  return (
+    <div className="space-y-6">
       <Card className="glass-panel">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -428,6 +490,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
             Importar checklist mensal
           </CardTitle>
         </CardHeader>
+
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
