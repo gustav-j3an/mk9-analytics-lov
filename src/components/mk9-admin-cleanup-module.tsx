@@ -43,6 +43,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { getCleanupDiagnosis, executeGranularCleanup } from "@/lib/mk9-cleanup.functions";
+import { getBananaHotfixTrace } from "@/lib/mk9-hotfix.functions";
 import { mk9ListChecklistIndustries } from "@/lib/mk9-data.functions";
 import { cn } from "@/lib/utils";
 
@@ -176,6 +177,30 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
           <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
             <ShieldAlert className="h-5 w-5" />
             Limpeza Manual por Competência (ADMIN)
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="ml-auto text-[10px] h-7 gap-1.5 border-red-500/30 text-red-600 hover:bg-red-50"
+                onClick={async () => {
+                  const confirmed = window.confirm("ATENÇÃO: Isso removerá TODOS os dados de BANANA CORRENTE em Julho/2026 usando o motor do PDF. Confirmar?");
+                  if (!confirmed) return;
+                  
+                  const toastId = toast.loading("Executando Hotfix BANANA...");
+                  try {
+                    const traceFn = (await import("@/lib/mk9-hotfix.functions")).getBananaHotfixTrace;
+                    const res = (await traceFn()) as any;
+                    console.log("[HOTFIX RESULTS]", res);
+                    toast.success("Hotfix BANANA executado com sucesso!", { 
+                      id: toastId,
+                      description: `Antes: ${res.before?.contracted ?? 0}c/${res.before?.actual ?? 0}r. Depois: ${res.after?.contracted ?? 0}c/${res.after?.actual ?? 0}r.`
+                    });
+                  } catch (e: any) {
+                    toast.error(e?.message || "Erro no Hotfix", { id: toastId });
+                  }
+                }}
+              >
+                <Zap className="h-3 w-3" /> Executar Hotfix BANANA
+              </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
