@@ -719,9 +719,22 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
                   <Button variant="ghost" size="sm" onClick={() => setFiles([])} disabled={analyzing}>
                     Limpar tudo
                   </Button>
-                  <Button size="sm" onClick={startAnalysis} disabled={analyzing || files.every(f => f.status !== "PENDING")}>
-                    {analyzing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSearch className="h-4 w-4 mr-2" />}
-                    Analisar arquivos
+                  <Button 
+                    size="sm" 
+                    onClick={startAnalysis} 
+                    disabled={analyzing || files.every(f => f.status !== "PENDING" && f.status !== "ERROR")}
+                  >
+                    {analyzing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Analisando...
+                      </>
+                    ) : (
+                      <>
+                        <FileSearch className="h-4 w-4 mr-2" />
+                        Analisar arquivos
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
