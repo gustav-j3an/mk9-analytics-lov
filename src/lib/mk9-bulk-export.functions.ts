@@ -189,7 +189,7 @@ export const startBulkExport = createServerFn({ method: "POST" })
     includeEmpty: z.boolean().optional(),
   }).parse(data))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } = await import("../integrations/supabase/client.server");
     
     // 1. Create export record
     const { data: exportRecord, error: eExp } = await supabaseAdmin
