@@ -254,7 +254,9 @@ export function promoterFilter(scope: Mk9AccessScope, requested?: string | null)
 
 /** Lança 403 quando a indústria pedida está fora do escopo (usado em relatórios/PDF). */
 export function assertIndustryAllowed(scope: Mk9AccessScope, industryId: string): void {
-  if (scope.allowedIndustryIds === null) return;
+  // ADMIN ou usuários com canViewAll=true (visão total) enxergam todas as indústrias.
+  if (scope.canViewAll || scope.allowedIndustryIds === null) return;
+  
   if (!scope.allowedIndustryIds.includes(industryId)) {
     throw new Mk9ScopeError("Indústria fora do seu escopo de acesso.");
   }
