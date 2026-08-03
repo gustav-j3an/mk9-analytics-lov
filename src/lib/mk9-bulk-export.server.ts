@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabaseAdmin } from "../integrations/supabase/client.server";
 import { resolveWindow, loadPeriodConfig } from "./mk9-reports/period.server";
 import { buildIndustryReport, type IndustryReport } from "./mk9-reports/industry-report.server";
 import { renderUnattendedPdf } from "./reports/unattended-pdf.server";
