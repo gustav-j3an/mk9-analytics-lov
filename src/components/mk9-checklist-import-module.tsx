@@ -174,7 +174,7 @@ async function requestChecklistPreview(input: {
 }
 
 export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: () => void } = {}) {
-  const [viewMode, setViewMode] = useState<"individual" | "batch">("individual");
+  const [viewMode, setViewMode] = useState<"individual" | "batch">("batch");
   
   // Estados para importação individual
   const now = new Date();
