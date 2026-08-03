@@ -312,7 +312,7 @@ export function BulkExportModal() {
             <DialogFooter>
               <Button 
                 className="w-full" 
-                onClick={handleGeneratePreview} 
+                onClick={() => handleGeneratePreview()} 
                 disabled={loadingPreview || selectedIds.length === 0}
               >
                 {loadingPreview ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Gerar prévia"}
