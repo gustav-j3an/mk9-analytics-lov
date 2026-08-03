@@ -75,8 +75,8 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const listIndustriesFn = useServerFn(mk9ListChecklistIndustries);
-  const previewFn = useServerFn(getCleanupPreview);
-  const executeFn = useServerFn(executeCleanup);
+  const diagnosisFn = useServerFn(getCleanupDiagnosis);
+  const executeFn = useServerFn(executeGranularCleanup);
 
   const industriesQ = useQuery({ 
     queryKey: ["mk9-industries"], 
