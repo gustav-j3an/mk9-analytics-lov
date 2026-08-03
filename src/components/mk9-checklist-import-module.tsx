@@ -480,11 +480,36 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
           candidates={candidates} setCandidates={setCandidates}
           ackRef={ackRef}
           flashAck={flashAck}
+          validItems={validItems}
+          newStoresCount={newStoresCount}
+          canConfirm={canConfirm}
+          periodLabel={periodLabel}
+          filtered={filtered}
         />
       ) : (
         <Mk9ChecklistBatchModule industries={industriesQ.data ?? []} />
       )}
     </div>
+  );
+}
+
+function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
+  return (
+    <Card className="glass-panel">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Files className="h-5 w-5" />
+          Importação em lote
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-lg border-2 border-dashed p-12 text-center">
+          <Files className="mx-auto h-12 w-12 text-muted-foreground/50" />
+          <h3 className="mt-4 text-lg font-semibold">Em breve</h3>
+          <p className="text-sm text-muted-foreground">O módulo de lote está em desenvolvimento.</p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -494,7 +519,8 @@ function IndividualImport({
   industryId, setIndustryId, preview, setPreview, importId, setImportId, filter, setFilter,
   confirmOpen, setConfirmOpen, ackNewStores, setAckNewStores, lastError, setLastError,
   rejected, setRejected, highlightAck, setHighlightAck, phase, setPhase, gate, setGate,
-  newIndustryName, setNewIndustryName, candidates, setCandidates, ackRef, flashAck
+  newIndustryName, setNewIndustryName, candidates, setCandidates, ackRef, flashAck,
+  validItems, newStoresCount, canConfirm, periodLabel, filtered
 }: any) {
   return (
     <div className="space-y-6">
@@ -505,6 +531,7 @@ function IndividualImport({
             Importar checklist mensal
           </CardTitle>
         </CardHeader>
+
 
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
