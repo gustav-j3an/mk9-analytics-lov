@@ -635,7 +635,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
   };
 
   const runBatchImport = async () => {
-    if (!batchId || readyToImport.length === 0) return;
+    if (readyToImport.length === 0) return;
     setCommitting(true);
     try {
       const res = await commitBatchFn({
