@@ -150,7 +150,7 @@ export function BulkExportModal() {
 
   function handleRetryErrorItems() {
     if (!preview) return;
-    const errorIds = preview.items.filter((i: BulkExportPreviewItem) => i.status === "ERROR").map((i: BulkExportPreviewItem) => i.industryId);
+    const errorIds = preview.items.filter((i: BulkExportPreviewItem) => i.status === "FAILED").map((i: BulkExportPreviewItem) => i.industryId);
     if (errorIds.length > 0) handleGeneratePreview(errorIds);
   }
 
