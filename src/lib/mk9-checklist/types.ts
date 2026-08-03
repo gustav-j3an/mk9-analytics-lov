@@ -112,6 +112,17 @@ export interface ChecklistPreview {
   storeFrequencies: ChecklistStoreFrequency[];
   warnings: string[];
   validation?: ChecklistValidationReport;
+  /** Hash do arquivo para detecção de duplicados inalterados */
+  fileHash?: string;
+  /** Dados da importação anterior que será substituída */
+  previousImport?: {
+    id: string;
+    filename: string;
+    userId: string | null;
+    userName?: string;
+    startedAt: string;
+    counters: ChecklistPreviewCounters;
+  } | null;
 }
 
 export interface ChecklistCommitResult {
@@ -121,4 +132,5 @@ export interface ChecklistCommitResult {
   storesNotFound: number;
   invalidDates: number;
   validation?: ChecklistValidationReport;
+  replacedImportId?: string | null;
 }
