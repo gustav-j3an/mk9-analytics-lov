@@ -17,11 +17,11 @@ export interface BulkExportPreviewItem {
   industryId: string;
   industryName: string;
   periodLabel: string;
-  contractedStores: number;
-  attendedStores: number;
-  unattendedStores: number;
-  contractedVisitsUnattended: number;
-  status: "READY" | "EMPTY" | "ERROR";
+  contractedStores: number | null;
+  attendedStores: number | null;
+  unattendedStores: number | null;
+  contractedVisitsUnattended: number | null;
+  status: "READY" | "EMPTY" | "FAILED";
   errorCode?: string;
   errorMessage?: string;
   httpStatus?: number;
@@ -99,11 +99,11 @@ async function computeSingleIndustryResult(
       industryId,
       industryName,
       periodLabel: "Erro no cálculo",
-      contractedStores: 0,
-      attendedStores: 0,
-      unattendedStores: 0,
-      contractedVisitsUnattended: 0,
-      status: "ERROR",
+      contractedStores: null,
+      attendedStores: null,
+      unattendedStores: null,
+      contractedVisitsUnattended: null,
+      status: "FAILED",
       errorCode,
       errorMessage: err.message,
       httpStatus,
