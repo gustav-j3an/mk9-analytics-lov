@@ -229,7 +229,7 @@ export const getBulkExportStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => z.object({ exportId: z.string() }).parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } = await import("../integrations/supabase/client.server");
     
     const { data: exportRecord, error: eExp } = await supabaseAdmin
       .from("mk9_bulk_exports")
