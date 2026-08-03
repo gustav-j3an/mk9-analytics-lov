@@ -50,7 +50,7 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
 
           // Vincula o import individual ao batch
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          await supabaseAdmin.from("mk9_checklist_imports").update({ batchId: batch.id }).eq("id", res.importId);
+          await supabaseAdmin.from("mk9_checklist_imports").update({ batchId: batch.id } as any).eq("id", res.importId);
 
           results.push({
             importId: res.importId,

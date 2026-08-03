@@ -540,7 +540,8 @@ function IndividualImport({
               <Input
                 type="file"
                 accept=".xlsx,.xls"
-                onChange={async (e) => {
+                onChange={async (e: any) => {
+
                   const f = e.target.files?.[0] ?? null;
                   setPreview(null);
                   setImportId(null);
@@ -618,7 +619,7 @@ function IndividualImport({
               {candidates && (
                 <div className="space-y-1 text-xs">
                   <p className="text-amber-500">Indústrias semelhantes já cadastradas:</p>
-                  {candidates.map((c) => (
+                  {candidates.map((c: any) => (
                     <button
                       key={c.id}
                       type="button"
