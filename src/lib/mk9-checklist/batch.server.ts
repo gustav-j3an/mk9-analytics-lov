@@ -2,12 +2,12 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { ChecklistBatch, BatchStatus } from "./batch-types";
 
 export async function createBatch(userId: string): Promise<ChecklistBatch> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await (supabaseAdmin as any)
     .from("mk9_checklist_import_batches")
     .insert({
       createdBy: userId,
       status: "DRAFT",
-    } as any)
+    })
     .select()
     .single();
 
@@ -27,9 +27,9 @@ export async function createBatch(userId: string): Promise<ChecklistBatch> {
 }
 
 export async function updateBatchStatus(batchId: string, status: BatchStatus) {
-  const { error } = await supabaseAdmin
+  const { error } = await (supabaseAdmin as any)
     .from("mk9_checklist_import_batches")
-    .update({ status, updatedAt: new Date().toISOString() } as any)
+    .update({ status, updatedAt: new Date().toISOString() })
     .eq("id", batchId);
   if (error) throw new Error(error.message);
 }
@@ -37,9 +37,8 @@ export async function updateBatchStatus(batchId: string, status: BatchStatus) {
 export async function listIndustries() {
   const { data, error } = await supabaseAdmin
     .from("mk9_industries")
-    .select("id, name, requiresChecklist, archivedAt")
-    .eq("requiresChecklist", true)
-    .is("archivedAt", null);
+    .select("id, name, requires_checklist, archived_at");
   if (error) throw new Error(error.message);
-  return data as any[];
+  // @ts-ignore
+  return (data as any[]).filter(i => i.requires_checklist && !i.archived_at);
 }
