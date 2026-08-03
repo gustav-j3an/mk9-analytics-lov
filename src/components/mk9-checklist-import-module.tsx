@@ -452,7 +452,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
           onClick={() => setViewMode("batch")}
           size="sm"
         >
-          Importar checklists em lote
+          publicar atualizações em lote
         </Button>
       </div>
 
