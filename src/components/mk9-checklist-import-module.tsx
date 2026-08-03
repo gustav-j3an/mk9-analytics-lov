@@ -1318,6 +1318,16 @@ function IndividualImport({
                           {imp.industryName} · {MONTHS[imp.operationMonth - 1]} {imp.operationYear}
                           {c.persisted != null && ` · ${c.persisted} novas / ${c.skipped ?? 0} já existentes`}
                           {imp.errorMessage && ` · ${imp.errorMessage}`}
+                          {imp.isOperationalCurrent && (
+                            <Badge variant="outline" className="ml-2 bg-emerald-50 text-emerald-800 border-emerald-200 py-0 h-4 text-[10px]">
+                              Vigente
+                            </Badge>
+                          )}
+                          {imp.supersededAt && (
+                            <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-800 border-amber-200 py-0 h-4 text-[10px]">
+                              Substituída
+                            </Badge>
+                          )}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
