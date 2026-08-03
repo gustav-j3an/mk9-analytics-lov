@@ -84,15 +84,43 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
   });
 
   const previewMut = useMutation({
-    mutationFn: () => diagnosisFn({ data: { industryId, month, year } }),
+    mutationFn: async () => {
+      try {
+        const res = await diagnosisFn({ data: { industryId, month, year } });
+        return res;
+      } catch (err: any) {
+        console.error("[CLEANUP UI ERROR]", err);
+        throw err;
+      }
+    },
     onSuccess: (res: any) => {
+      if (!res) return;
       setSelections({
-        importIds: res.imports.map((i: any) => i.id),
-        visitIds: res.visits.map((v: any) => v.id),
-        frequencyIds: res.frequencies.filter((f: any) => !f.archived_at).map((f: any) => f.id),
-        routeIds: res.routes.filter((r: any) => !r.valid_until).map((r: any) => r.id),
+        importIds: (res.imports ?? []).map((i: any) => i.id),
+        visitIds: (res.visits ?? []).map((v: any) => v.id),
+        frequencyIds: (res.frequencies ?? []).filter((f: any) => !f.archived_at).map((f: any) => f.id),
+        routeIds: (res.routes ?? []).filter((r: any) => !r.valid_until).map((r: any) => r.id),
       });
-      toast.success("Diagnóstico concluído");
+      
+      if (res.errors?.length > 0) {
+        toast.warning("Algumas fontes falharam ao carregar", {
+          description: "O diagnóstico pode estar incompleto."
+        });
+      } else {
+        toast.success("Diagnóstico concluído");
+      }
+    },
+    onError: (err: any) => {
+      const msg = err?.message || "Erro desconhecido";
+      if (msg.includes("401") || msg.includes("Unauthorized")) {
+        toast.error("Sessão expirada. Por favor, faça login novamente.");
+      } else if (msg.includes("403") || msg.includes("Forbidden")) {
+        toast.error("Você não possui acesso a esta indústria.");
+      } else {
+        toast.error("Erro ao carregar diagnóstico", {
+          description: "A página não caiu, mas a consulta falhou. Tente novamente."
+        });
+      }
     }
   });
 
