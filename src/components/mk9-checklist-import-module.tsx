@@ -907,31 +907,35 @@ function IndividualImport({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
               <label className="text-sm text-muted-foreground">Arquivo .xlsx (checklist mensal da indústria)</label>
-              <Input
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={async (e: any) => {
-
-                  const f = e.target.files?.[0] ?? null;
-                  setPreview(null);
-                  setImportId(null);
-                  setLastError(null);
-                  setRejected(null);
-                  setAckNewStores(false);
-                  if (!f) { setFile(null); return; }
-                  const det = await detectMk9FileKind(f);
-                  if (det.kind === "base") {
-                    setFile(null);
-                    setRejected({
-                      reason: det.reason,
-                      sheets: det.sheets,
-                    });
-                    e.target.value = "";
-                    return;
-                  }
-                  setFile(f);
-                }}
-              />
+              <div className="flex gap-2">
+                <Input
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={async (e: any) => {
+                    const f = e.target.files?.[0] ?? null;
+                    setPreview(null);
+                    setImportId(null);
+                    setLastError(null);
+                    setRejected(null);
+                    setAckNewStores(false);
+                    if (!f) { setFile(null); return; }
+                    const det = await detectMk9FileKind(f);
+                    if (det.kind === "base") {
+                      setFile(null);
+                      setRejected({ reason: det.reason, sheets: det.sheets });
+                      e.target.value = "";
+                      return;
+                    }
+                    setFile(f);
+                  }}
+                />
+                {preview?.previousImport && (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-[10px] animate-in fade-in slide-in-from-top-1 whitespace-nowrap">
+                    <AlertTriangle className="h-3 w-3" />
+                    <span>Substituirá importação vigente de {new Date(preview.previousImport.startedAt).toLocaleDateString()}</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <label className="text-sm text-muted-foreground">Mês</label>
@@ -1015,14 +1019,22 @@ function IndividualImport({
               Gerar prévia
             </Button>
             {preview && (
-              <Button
-                variant="outline"
-                onClick={() => discardMut.mutate()}
-                disabled={discardMut.isPending || commitMut.isPending}
-              >
-                {discardMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
-                Descartar prévia
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => discardMut.mutate()}
+                  disabled={discardMut.isPending || commitMut.isPending}
+                >
+                  {discardMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                  Descartar prévia
+                </Button>
+                {preview.previousImport && (
+                  <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200 gap-1 h-9 px-3">
+                    <RotateCcw className="h-3 w-3" />
+                    Substituindo importação anterior
+                  </Badge>
+                )}
+              </div>
             )}
           </div>
 
