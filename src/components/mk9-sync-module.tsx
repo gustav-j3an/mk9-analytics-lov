@@ -180,7 +180,7 @@ export function Mk9SyncModule() {
                       Configure o n8n para enviar multipart/form-data. Exemplo de teste (PowerShell):
                     </p>
                     <pre className="text-[9px] bg-background/50 p-3 rounded border overflow-x-auto font-mono leading-tight whitespace-pre text-muted-foreground">
-{`$secret = "COLE_AQUI_O_MESMO_VALOR_DO_MK9_SYNC_SECRET"
+{`$secret = "va7f%[JU6yAM^d5Ur;4EC:VK}dXr=}_Ud*L^1O&)/*:DZ-RQ(2U@M7nf.HUREFUI"
 $filePath = "C:\\CAMINHO\\KING - AGOSTO 2026.xlsx"
 $url = "${typeof window !== 'undefined' ? window.location.origin : 'https://mk9-analytics.lovable.app'}/api/public/sync/checklists"
 
