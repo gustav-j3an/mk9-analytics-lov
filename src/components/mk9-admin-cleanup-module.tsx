@@ -66,11 +66,11 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
     }
   }, [props.month, props.year]);
   const [justification, setJustification] = useState("");
-  const [selectedImports, setSelectedImports] = useState<string[]>([]);
-  const [options, setOptions] = useState({
-    revertVisits: true,
-    archiveFrequencies: true,
-    closeFutureVigencies: true,
+  const [selections, setSelections] = useState({
+    importIds: [] as string[],
+    visitIds: [] as string[],
+    frequencyIds: [] as string[],
+    routeIds: [] as string[]
   });
   const [confirmOpen, setConfirmOpen] = useState(false);
 
