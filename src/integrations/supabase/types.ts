@@ -2171,6 +2171,10 @@ export type Database = {
           weekday: number
         }[]
       }
+      mk9_revert_checklist_import: {
+        Args: { _actor?: string; _import_id: string; _reason: string }
+        Returns: Json
+      }
       mk9_set_frequency_manual: {
         Args: {
           _actor?: string
