@@ -180,124 +180,183 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
 
       {previewData && (
         <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <StatCard label="Importações" value={previewData.imports.length} />
-            <StatCard label="Visitas Afetadas" value={previewData.impact.visits} tone="red" />
-            <StatCard label="Vigências Abertas" value={previewData.impact.futureAffected} tone="amber" />
+            <StatCard label="Visitas" value={previewData.visits.length} tone="red" />
+            <StatCard label="Frequências" value={previewData.frequencies.length} tone="amber" />
+            <StatCard label="Meses Afetados" value={previewData.impact.futureAffected} tone="amber" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2 glass-panel">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
-                  <History className="h-4 w-4" /> Importações Localizadas
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                   <Badge variant="secondary" className="text-[10px]">{previewData.imports.length} arquivos</Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {previewData.imports.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl bg-muted/10">
-                    <Info className="h-8 w-8 text-muted-foreground/30 mb-3" />
-                    <p className="text-sm font-medium text-muted-foreground">Nenhuma importação encontrada</p>
-                    <p className="text-[11px] text-muted-foreground/60 max-w-[200px] mt-1">
-                      Tente ajustar os filtros ou selecione outra competência.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-[400px] overflow-auto pr-2">
-                    {previewData.imports.map((imp: any) => (
-                        <div 
-                          key={imp.id} 
-                          className={cn(
-                            "flex items-center justify-between p-3 rounded-lg border transition-colors",
-                            selections.importIds.includes(imp.id) ? "bg-amber-50/50 border-amber-200" : "bg-background/40 hover:bg-background/60"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Checkbox 
-                              id={`imp-${imp.id}`}
-                              checked={selections.importIds.includes(imp.id)}
-                              onCheckedChange={(checked) => {
-                                if (checked) setSelections({...selections, importIds: [...selections.importIds, imp.id]});
-                                else setSelections({...selections, importIds: selections.importIds.filter((id: string) => id !== imp.id)});
-                              }}
-                            />
-                            <div className="min-w-0">
-                              <label htmlFor={`imp-${imp.id}`} className="text-sm font-medium truncate block cursor-pointer">{imp.filename}</label>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <p className="text-[10px] text-muted-foreground uppercase">
-                                  {new Date(imp.started_at).toLocaleString()}
-                                </p>
-                                <span className="text-muted-foreground/30">·</span>
-                                <Badge variant="outline" className={cn(
-                                  "text-[9px] h-4 px-1.5 font-bold uppercase",
-                                  imp.status === 'done' ? "text-emerald-600 border-emerald-200" : "text-amber-600 border-amber-200"
-                                )}>
-                                  {imp.status}
-                                </Badge>
-                              </div>
-                              <p className="text-[9px] text-muted-foreground/60 mt-1 font-mono uppercase">ID: {imp.id}</p>
-                            </div>
+          <Tabs defaultValue="overview" className="space-y-4">
+            <TabsList className="bg-background/50 p-1">
+              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+              <TabsTrigger value="visits">Visitas ({previewData.visits.length})</TabsTrigger>
+              <TabsTrigger value="frequencies">Frequências ({previewData.frequencies.length})</TabsTrigger>
+              <TabsTrigger value="routes">Roteiros/Plan ({previewData.routes.length})</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="lg:col-span-2 glass-panel">
+                  <CardHeader>
+                    <CardTitle className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
+                      <History className="h-4 w-4" /> Diagnóstico Consolidado
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="p-4 rounded-xl bg-muted/20 border space-y-3">
+                      <h4 className="text-xs font-bold uppercase text-muted-foreground tracking-widest">Resumo de Impacto</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-muted-foreground uppercase">Visitas sem Check-in</p>
+                          <p className="text-lg font-bold">{previewData.visits.filter((v: any) => !v.source_import_id).length}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-muted-foreground uppercase">Roteiros Planejados</p>
+                          <p className="text-lg font-bold">{previewData.routes.length}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-muted-foreground uppercase">Reconciliações</p>
+                          <p className="text-lg font-bold">{previewData.reconciliations.length}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-muted-foreground uppercase">Problemas de Qualidade</p>
+                          <p className="text-lg font-bold text-red-500">{previewData.qualityIssues.length}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-bold uppercase text-muted-foreground tracking-widest">Importações Relacionadas</h4>
+                      <div className="space-y-2 max-h-[200px] overflow-auto">
+                        {previewData.imports.map((imp: any) => (
+                          <div key={imp.id} className="flex items-center justify-between p-2 rounded-lg bg-background/40 border text-xs">
+                            <span className="truncate max-w-[200px]">{imp.filename}</span>
+                            <Badge variant="outline" className="text-[9px] uppercase">{imp.status}</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="glass-panel border-amber-500/20">
+                  <CardHeader>
+                    <CardTitle className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
+                      <ShieldAlert className="h-4 w-4" /> Executar Limpeza
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2 p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                      <p className="text-[11px] text-amber-700 dark:text-amber-400 font-medium">
+                        Serão removidos: {selections.visitIds.length} visitas, {selections.frequencyIds.length} frequências e {selections.routeIds.length} roteiros.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-bold uppercase text-muted-foreground">Justificativa obrigatória</label>
+                      <textarea 
+                        value={justification}
+                        onChange={e => setJustification(e.target.value)}
+                        className="w-full min-h-[100px] rounded-lg border bg-background/50 p-3 text-sm focus:ring-2 focus:ring-amber-500/50 outline-none resize-none"
+                        placeholder="Descreva o motivo da limpeza..."
+                      />
+                    </div>
+
+                    <Button 
+                      variant="destructive" 
+                      className="w-full shadow-lg shadow-destructive/20"
+                      disabled={justification.trim().length < 10 || executeMut.isPending}
+                      onClick={() => setConfirmOpen(true)}
+                    >
+                      {executeMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
+                      Confirmar Remoção Atômica
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="visits">
+              <Card className="glass-panel">
+                <CardContent className="pt-6">
+                  <div className="space-y-2 max-h-[500px] overflow-auto">
+                    {previewData.visits.map((v: any) => (
+                      <div key={v.id} className="flex items-center justify-between p-3 rounded-lg border bg-background/40">
+                        <div className="flex items-center gap-3">
+                          <Checkbox 
+                            checked={selections.visitIds.includes(v.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) setSelections({...selections, visitIds: [...selections.visitIds, v.id]});
+                              else setSelections({...selections, visitIds: selections.visitIds.filter((id: string) => id !== v.id)});
+                            }}
+                          />
+                          <div>
+                            <p className="text-sm font-medium">{v.mk9_stores?.name || 'Loja desconhecida'}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase">{new Date(v.visit_date).toLocaleDateString()} · {v.promoter_name || 'Sem promotor'}</p>
                           </div>
                         </div>
-                      ))}
+                        {v.source_import_id && <Badge variant="secondary" className="text-[9px]">IMPORTADO</Badge>}
+                      </div>
+                    ))}
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-            <Card className="glass-panel border-amber-500/20">
-              <CardHeader>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
-                  <ShieldAlert className="h-4 w-4" /> Opções de Limpeza
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <OptionItem 
-                    label="Remover visitas persistidas" 
-                    description="Exclui visitas originadas destas importações."
-                    checked={options.revertVisits}
-                    onChange={v => setOptions({ ...options, revertVisits: v })}
-                  />
-                  <OptionItem 
-                    label="Arquivar frequências" 
-                    description="Inativa as versões de frequência geradas."
-                    checked={options.archiveFrequencies}
-                    onChange={v => setOptions({ ...options, archiveFrequencies: v })}
-                  />
-                  <OptionItem 
-                    label="Corrigir vigências futuras" 
-                    description="Impede que os dados afetem os meses seguintes."
-                    checked={options.closeFutureVigencies}
-                    onChange={v => setOptions({ ...options, closeFutureVigencies: v })}
-                  />
-                </div>
+            <TabsContent value="frequencies">
+              <Card className="glass-panel">
+                <CardContent className="pt-6">
+                  <div className="space-y-2 max-h-[500px] overflow-auto">
+                    {previewData.frequencies.map((f: any) => (
+                      <div key={f.id} className="flex items-center justify-between p-3 rounded-lg border bg-background/40">
+                        <div className="flex items-center gap-3">
+                          <Checkbox 
+                            checked={selections.frequencyIds.includes(f.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) setSelections({...selections, frequencyIds: [...selections.frequencyIds, f.id]});
+                              else setSelections({...selections, frequencyIds: selections.frequencyIds.filter((id: string) => id !== f.id)});
+                            }}
+                          />
+                          <div>
+                            <p className="text-sm font-medium">{f.mk9_stores?.name}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase">Vigência: {new Date(f.valid_from).toLocaleDateString()} - {f.valid_until ? new Date(f.valid_until).toLocaleDateString() : 'Aberto'}</p>
+                          </div>
+                        </div>
+                        {f.archived_at && <Badge variant="outline" className="text-[9px] text-amber-600 border-amber-200">ARQUIVADO</Badge>}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold uppercase text-muted-foreground">Justificativa obrigatória</label>
-                  <textarea 
-                    value={justification}
-                    onChange={e => setJustification(e.target.value)}
-                    className="w-full min-h-[100px] rounded-lg border bg-background/50 p-3 text-sm focus:ring-2 focus:ring-amber-500/50 outline-none resize-none"
-                    placeholder="Descreva o motivo da limpeza (ex: erro de importação, planilha errada...)"
-                  />
-                </div>
-
-                <Button 
-                  variant="destructive" 
-                  className="w-full shadow-lg shadow-destructive/20"
-                  disabled={selectedImports.length === 0 || justification.trim().length < 10 || executeMut.isPending}
-                  onClick={() => setConfirmOpen(true)}
-                >
-                  {executeMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
-                  Executar Limpeza
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+            <TabsContent value="routes">
+              <Card className="glass-panel">
+                <CardContent className="pt-6">
+                  <div className="space-y-2 max-h-[500px] overflow-auto">
+                    {previewData.routes.map((r: any) => (
+                      <div key={r.id} className="flex items-center justify-between p-3 rounded-lg border bg-background/40">
+                        <div className="flex items-center gap-3">
+                          <Checkbox 
+                            checked={selections.routeIds.includes(r.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) setSelections({...selections, routeIds: [...selections.routeIds, r.id]});
+                              else setSelections({...selections, routeIds: selections.routeIds.filter((id: string) => id !== r.id)});
+                            }}
+                          />
+                          <div>
+                            <p className="text-sm font-medium">{r.mk9_stores?.name}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase">Frequência: {r.frequency_name} · Período: {r.period_name}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
 
