@@ -15,6 +15,7 @@ import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module
 import { Mk9UsersModule } from "@/components/mk9-users-module";
 import { useMk9Session, type Mk9Role } from "@/lib/mk9-auth/session";
 import { toast } from "sonner";
+import { Mk9AdminCleanupModule } from "@/components/mk9-admin-cleanup-module";
 import {
   CHECKLIST_INDUSTRY_CACHE_KEYS,
   DISABLE_CONFIRMATION_MESSAGE,
@@ -63,6 +64,7 @@ import {
   Route,
   Search,
   Shield,
+  ShieldAlert,
   ShieldCheck,
   Store,
   Upload,
@@ -111,7 +113,8 @@ type ModuleId =
   | "relatorio_industria"
   | "importacoes"
   | "checklists"
-  | "usuarios";
+  | "usuarios"
+  | "cleanup_admin";
 
 type ModuleGroup = "Visão geral" | "Operação" | "Relatórios" | "Dados" | "Importações" | "Administração";
 const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; group: ModuleGroup; roles: Mk9Role[] }> = [
@@ -127,6 +130,7 @@ const modules: Array<{ id: ModuleId; label: string; icon: typeof BarChart3; grou
   { id: "promotores", label: "Promotores", icon: Users, group: "Dados", roles: ["ADMIN", "AUDITOR"] },
   { id: "importacoes", label: "Base MK9", icon: Upload, group: "Importações", roles: ["ADMIN"] },
   { id: "checklists", label: "Checklists", icon: ClipboardCheck, group: "Importações", roles: ["ADMIN"] },
+  { id: "cleanup_admin", label: "Limpeza Manual", icon: ShieldAlert, group: "Administração", roles: ["ADMIN"] },
   { id: "usuarios", label: "Usuários", icon: UserCog, group: "Administração", roles: ["ADMIN"] },
 ];
 
