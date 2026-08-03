@@ -122,10 +122,10 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
     
     console.log(`[UNVISITED MASS START] user=${context?.userId} industries=${industryIds.length}`);
 
-    // Resolve escopo uma única vez
+    const { roles, claims } = (context as any);
     const authContext = {
       userId: context?.userId ?? null,
-      roles: (context as any)?.claims?.user_roles || [],
+      roles: Array.isArray(roles) ? roles : (claims?.user_roles || []),
       devBypass: false
     };
     
@@ -281,10 +281,10 @@ export const processBulkExport = createServerFn({ method: "POST" })
       .update({ status: "GENERATING" })
       .eq("id", data.exportId);
 
-    // 3. Resolve access scope
+    const { roles, claims } = (context as any);
     const authContext = {
       userId: context?.userId ?? null,
-      roles: (context as any)?.claims?.user_roles || [],
+      roles: Array.isArray(roles) ? roles : (claims?.user_roles || []),
       devBypass: false
     };
     const access = await resolveMk9AccessScope(authContext as any);
