@@ -32,8 +32,9 @@ export const revertChecklistImport = createServerFn({ method: "POST" })
     const { executeRevert } = await import("./revert.server");
     return executeRevert(data.importId, { 
       reason: data.reason, 
-      actorId: ctx.userId 
+      actorId: ctx.userId ?? undefined 
     });
+
   });
 
 export const correctChecklistCompetence = createServerFn({ method: "POST" })
@@ -47,7 +48,8 @@ export const correctChecklistCompetence = createServerFn({ method: "POST" })
       targetMonth: data.targetMonth,
       targetYear: data.targetYear,
       reason: data.reason,
-      actorId: ctx.userId
+      actorId: ctx.userId ?? undefined
     });
+
   });
 
