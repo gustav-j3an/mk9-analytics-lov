@@ -7,7 +7,8 @@ import {
   Trash2, 
   AlertTriangle, 
   Loader2, 
-  History
+  History,
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
