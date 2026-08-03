@@ -228,7 +228,14 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
         openFrequencies: frequencies.filter((f: any) => !f.valid_until && !f.archived_at).length,
         openRoutes: routes.filter((r: any) => !r.valid_until).length,
         activeIssues: qualityIssues.filter((i: any) => i.status !== 'resolved').length
-      }
+      },
+      errors: results
+        .map((res, i) => {
+          if (res.status === 'fulfilled' && res.value.error) return { source: i, message: res.value.error.message };
+          if (res.status === 'rejected') return { source: i, message: String(res.reason) };
+          return null;
+        })
+        .filter(Boolean)
     };
   });
 
