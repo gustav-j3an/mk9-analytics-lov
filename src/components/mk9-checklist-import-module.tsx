@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -11,7 +11,23 @@ import {
   Trash2,
   ClipboardCheck,
   XCircle,
+  Files,
+  X,
+  FileText,
+  Check,
+  AlertCircle,
+  ChevronDown,
+  ChevronRight,
+  FileSearch,
 } from "lucide-react";
+import { useDropzone } from "react-dropzone";
+import { cn } from "@/lib/utils";
+import { checklistBatchPreview } from "@/lib/mk9-checklist-batch.functions";
+import { checklistBatchCommit } from "@/lib/mk9-checklist-batch-commit.functions";
+import type { ChecklistBatchFile } from "@/lib/mk9-checklist/batch-types";
+
+
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -158,6 +174,9 @@ async function requestChecklistPreview(input: {
 }
 
 export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: () => void } = {}) {
+  const [viewMode, setViewMode] = useState<"individual" | "batch">("individual");
+  
+  // Estados para importação individual
   const now = new Date();
   const [file, setFile] = useState<File | null>(null);
   const [month, setMonth] = useState<number>(now.getMonth() + 1);
@@ -171,17 +190,16 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const [lastError, setLastError] = useState<RichError | null>(null);
   const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
   const [highlightAck, setHighlightAck] = useState(false);
-  const [phase, setPhase] = useState<
-    "idle" | "confirming" | "stores" | "visits" | "reconcile" | "done" | "failed"
-  >("idle");
-  const phaseTimersRef = useRef<number[]>([]);
-  const ackRef = useRef<HTMLLabelElement | null>(null);
-
+  const [phase, setPhase] = useState<"idle" | "confirming" | "stores" | "visits" | "reconcile" | "done" | "failed">("idle");
   const [gate, setGate] = useState<{ industryId: string; industryName: string } | null>(null);
   const [newIndustryName, setNewIndustryName] = useState("");
   const [candidates, setCandidates] = useState<Array<{ id: string; name: string }> | null>(null);
+
+  const phaseTimersRef = useRef<number[]>([]);
+  const ackRef = useRef<HTMLLabelElement | null>(null);
   const { roles } = useMk9Session();
   const isAdmin = canManageChecklistIndustries(roles);
+
 
   const commitFn = useServerFn(checklistCommit);
   const listFn = useServerFn(checklistList);
@@ -421,6 +439,351 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Button 
+          variant={viewMode === "individual" ? "default" : "outline"} 
+          onClick={() => setViewMode("individual")}
+          size="sm"
+        >
+          Importação individual
+        </Button>
+        <Button 
+          variant={viewMode === "batch" ? "default" : "outline"} 
+          onClick={() => setViewMode("batch")}
+          size="sm"
+        >
+          Importar checklists em lote
+        </Button>
+      </div>
+
+      {viewMode === "individual" ? (
+        <IndividualImport 
+          onSwitchToBase={onSwitchToBase} 
+          now={now}
+          industriesQ={industriesQ}
+          historyQ={historyQ}
+          isAdmin={isAdmin}
+          previewMut={previewMut}
+          commitMut={commitMut}
+          deleteMut={deleteMut}
+          discardMut={discardMut}
+          enableAndContinueMut={enableAndContinueMut}
+          createIndustryMut={createIndustryMut}
+          file={file} setFile={setFile}
+          month={month} setMonth={setMonth}
+          year={year} setYear={setYear}
+          industryId={industryId} setIndustryId={setIndustryId}
+          preview={preview} setPreview={setPreview}
+          importId={importId} setImportId={setImportId}
+          filter={filter} setFilter={setFilter}
+          confirmOpen={confirmOpen} setConfirmOpen={setConfirmOpen}
+          ackNewStores={ackNewStores} setAckNewStores={setAckNewStores}
+          lastError={lastError} setLastError={setLastError}
+          rejected={rejected} setRejected={setRejected}
+          highlightAck={highlightAck} setHighlightAck={setHighlightAck}
+          phase={phase} setPhase={setPhase}
+          gate={gate} setGate={setGate}
+          newIndustryName={newIndustryName} setNewIndustryName={setNewIndustryName}
+          candidates={candidates} setCandidates={setCandidates}
+          ackRef={ackRef}
+          flashAck={flashAck}
+          validItems={validItems}
+          newStoresCount={newStoresCount}
+          canConfirm={canConfirm}
+          periodLabel={periodLabel}
+          filtered={filtered}
+        />
+      ) : (
+        <Mk9ChecklistBatchModule industries={industriesQ.data ?? []} />
+      )}
+    </div>
+  );
+}
+
+function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
+  const [files, setFiles] = useState<any[]>([]);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [committing, setCommitting] = useState(false);
+  const [batchId, setBatchId] = useState<string | null>(null);
+
+  const now = new Date();
+  const [month, setMonth] = useState<number>(now.getMonth() + 1);
+  const [year, setYear] = useState<number>(now.getFullYear());
+  const qc = useQueryClient();
+
+  const previewMut = useServerFn(checklistBatchPreview);
+  const commitBatchFn = useServerFn(checklistBatchCommit);
+
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    const newFiles: ChecklistBatchFile[] = acceptedFiles.map(f => ({
+      id: Math.random().toString(36).substring(7),
+      filename: f.name,
+      status: "PENDING",
+      operationMonth: month,
+      operationYear: year,
+      warnings: [],
+      rawFile: f,
+    } as any));
+    setFiles(prev => [...prev, ...newFiles]);
+  }, [month, year]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'application/vnd.ms-excel': ['.xls']
+    }
+  });
+
+  const removeFile = (id: string) => {
+    setFiles(prev => prev.filter(f => f.id !== id));
+  };
+
+  const startAnalysis = async () => {
+    if (files.length === 0) return;
+    setAnalyzing(true);
+    try {
+      const fileData = await Promise.all(files.map(async f => {
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve) => {
+          reader.onload = () => resolve((reader.result as string).split(',')[1]);
+          reader.readAsDataURL((f as any).rawFile);
+        });
+        return { filename: f.filename, base64 };
+      }));
+
+      const res = await previewMut({
+        data: {
+          files: fileData,
+          operationMonth: month,
+          operationYear: year,
+        }
+      });
+
+      setBatchId(res.batchId);
+      // Mapeia resultados de volta para os arquivos locais
+
+      setFiles(prev => prev.map(f => {
+        const found = res.results.find((r: any) => r.filename === f.filename);
+        if (found) {
+          return {
+            ...f,
+            id: found.importId || f.id,
+            status: found.status,
+            industryId: found.industryId,
+            industryName: found.industryName,
+            preview: found.preview,
+            error: found.error,
+          } as any;
+        }
+        return f;
+      }));
+      
+      toast.success("Análise de lote concluída");
+      qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
+    } catch (e: any) {
+      toast.error("Falha ao analisar lote: " + (e?.message ?? String(e)));
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const runBatchImport = async () => {
+    if (!batchId || readyToImport.length === 0) return;
+    setCommitting(true);
+    try {
+      const res = await commitBatchFn({
+        data: {
+          batchId,
+          importIds: readyToImport.map(f => f.id),
+        }
+      });
+
+      setFiles(prev => prev.map(f => {
+        const found = res.results.find((r: any) => r.importId === f.id);
+        if (found) {
+          return {
+            ...f,
+            status: found.status === "SUCCESS" ? "IMPORTED" : "FAILED",
+            error: found.error,
+          } as any;
+        }
+        return f;
+      }));
+
+      toast.success("Processamento de lote finalizado");
+      qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
+    } catch (e: any) {
+      toast.error("Falha ao importar lote: " + (e?.message ?? String(e)));
+    } finally {
+      setCommitting(false);
+    }
+  };
+
+
+  const readyToImport = files.filter(f => f.status === "READY");
+
+  return (
+    <div className="space-y-4">
+      <Card className="glass-panel">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Files className="h-5 w-5" />
+            Importação em lote (máx. 30 arquivos)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-muted-foreground">Mês de competência</label>
+              <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {MONTHS.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground">Ano</label>
+              <Input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} min={2024} max={2100} />
+            </div>
+          </div>
+
+          <div
+            {...getRootProps()}
+            className={cn(
+              "border-2 border-dashed rounded-xl p-10 text-center transition-colors cursor-pointer",
+              isDragActive ? "border-primary bg-primary/5" : "border-border hover:bg-muted/30"
+            )}
+          >
+            <input {...getInputProps()} />
+            <Upload className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
+            <p className="text-sm font-medium">
+              Arraste os checklists aqui ou clique para selecionar
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Suporta múltiplos arquivos .xlsx ou .xls
+            </p>
+          </div>
+
+          {files.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold">Arquivos no lote ({files.length})</h4>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setFiles([])} disabled={analyzing}>
+                    Limpar tudo
+                  </Button>
+                  <Button size="sm" onClick={startAnalysis} disabled={analyzing || files.every(f => f.status !== "PENDING")}>
+                    {analyzing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSearch className="h-4 w-4 mr-2" />}
+                    Analisar arquivos
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid gap-2 max-h-[400px] overflow-y-auto pr-2">
+                {files.map((file) => (
+                  <BatchFileRow key={file.id} file={file} onRemove={() => removeFile(file.id)} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {readyToImport.length > 0 && (
+            <div className="pt-4 border-t flex justify-end">
+              <Button size="lg" onClick={runBatchImport} disabled={committing} className="bg-emerald-600 hover:bg-emerald-700">
+                {committing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+                Importar {readyToImport.length} arquivos prontos
+              </Button>
+            </div>
+          )}
+
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function BatchFileRow({ file, onRemove }: { file: any; onRemove: () => void }) {
+  const [expanded, setOpen] = useState(false);
+  
+  const statusConfig: Record<string, { icon: any, color: string, label: string }> = {
+    PENDING: { icon: Clock, color: "text-muted-foreground", label: "Aguardando análise" },
+    ANALYZING: { icon: Loader2, color: "text-primary animate-spin", label: "Analisando..." },
+    READY: { icon: CheckCircle2, color: "text-emerald-500", label: "Pronto" },
+    NEEDS_REVIEW: { icon: AlertCircle, color: "text-amber-500", label: "Revisão necessária" },
+    ERROR: { icon: XCircle, color: "text-destructive", label: "Erro" },
+    IMPORTED: { icon: Check, color: "text-emerald-500", label: "Importado" },
+  };
+
+  const cfg = statusConfig[file.status] || statusConfig.PENDING;
+  const Icon = cfg.icon;
+
+  return (
+    <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="p-3 flex items-center gap-3">
+        <Icon className={cn("h-5 w-5 shrink-0", cfg.color)} />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium truncate" title={file.filename}>{file.filename}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className={cn("text-[10px] font-bold uppercase", cfg.color)}>{cfg.label}</span>
+            {file.industryName && (
+              <span className="text-[10px] text-muted-foreground underline">Indústria: {file.industryName}</span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          {file.preview && (
+            <Button variant="ghost" size="sm" onClick={() => setOpen(!expanded)}>
+              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={onRemove}>
+            <X className="h-4 w-4 text-muted-foreground" />
+          </Button>
+        </div>
+      </div>
+      {expanded && file.preview && (
+        <div className="px-3 pb-3 bg-muted/20 border-t pt-2">
+          <div className="grid grid-cols-3 gap-2 text-[10px]">
+            <div className="bg-background p-1.5 rounded border">
+              <p className="text-muted-foreground uppercase font-bold tracking-tighter">Visitas</p>
+              <p className="text-lg font-semibold">{file.preview.counters.totalMarks}</p>
+            </div>
+            <div className="bg-background p-1.5 rounded border">
+              <p className="text-muted-foreground uppercase font-bold tracking-tighter">Lojas</p>
+              <p className="text-lg font-semibold">{file.preview.counters.totalStores}</p>
+            </div>
+            <div className="bg-background p-1.5 rounded border">
+              <p className="text-muted-foreground uppercase font-bold tracking-tighter">Divergências</p>
+              <p className="text-lg font-semibold text-amber-600">{file.preview.counters.storesNotFound + (file.preview.counters.duplicateStoreNames || 0)}</p>
+            </div>
+          </div>
+          {file.error && (
+            <p className="text-xs text-destructive mt-2 font-mono bg-destructive/5 p-1.5 rounded border border-destructive/20">{file.error}</p>
+          )}
+          {file.status === "NEEDS_REVIEW" && (
+            <p className="text-xs text-amber-600 mt-2 italic">{file.message || "Verifique se o nome do arquivo contém o nome da indústria."}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+function IndividualImport({ 
+  onSwitchToBase, now, industriesQ, historyQ, isAdmin, previewMut, commitMut, deleteMut, discardMut,
+  enableAndContinueMut, createIndustryMut, file, setFile, month, setMonth, year, setYear,
+  industryId, setIndustryId, preview, setPreview, importId, setImportId, filter, setFilter,
+  confirmOpen, setConfirmOpen, ackNewStores, setAckNewStores, lastError, setLastError,
+  rejected, setRejected, highlightAck, setHighlightAck, phase, setPhase, gate, setGate,
+  newIndustryName, setNewIndustryName, candidates, setCandidates, ackRef, flashAck,
+  validItems, newStoresCount, canConfirm, periodLabel, filtered
+}: any) {
+  return (
+    <div className="space-y-6">
       <Card className="glass-panel">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -428,6 +791,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
             Importar checklist mensal
           </CardTitle>
         </CardHeader>
+
+
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
@@ -435,7 +800,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
               <Input
                 type="file"
                 accept=".xlsx,.xls"
-                onChange={async (e) => {
+                onChange={async (e: any) => {
+
                   const f = e.target.files?.[0] ?? null;
                   setPreview(null);
                   setImportId(null);
@@ -478,7 +844,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                 <SelectValue placeholder={industriesQ.isLoading ? "Carregando…" : "Selecione a indústria"} />
               </SelectTrigger>
               <SelectContent>
-                {(industriesQ.data ?? []).map((i) => (
+                {(industriesQ.data ?? []).map((i: any) => (
+
                   <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -513,7 +880,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
               {candidates && (
                 <div className="space-y-1 text-xs">
                   <p className="text-amber-500">Indústrias semelhantes já cadastradas:</p>
-                  {candidates.map((c) => (
+                  {candidates.map((c: any) => (
+
                     <button
                       key={c.id}
                       type="button"
@@ -655,7 +1023,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                   </div>
                 )}
                 <div className="max-h-48 space-y-1 overflow-auto text-xs">
-                  {preview.storeFrequencies.slice(0, 60).map((f, i) => (
+                  {preview.storeFrequencies.slice(0, 60).map((f: any, i: number) => (
+
                     <div key={`${f.storeNormalized}-${i}`} className="flex items-center justify-between gap-3 rounded px-1 py-0.5">
                       <span className="truncate">{f.storeName}{f.uf ? ` · ${f.uf}` : ""}</span>
                       <span className={f.frequencyInconsistent ? "shrink-0 text-amber-700 dark:text-amber-300" : "shrink-0 text-muted-foreground"}>
@@ -756,7 +1125,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.slice(0, 500).map((it, i) => (
+                   {filtered.slice(0, 500).map((it: any, i: number) => (
+
                     <tr key={i} className="border-t">
                       <td className="p-2 max-w-[280px] truncate" title={it.storeName}>{it.storeName}</td>
                       <td className="p-2">{it.uf ?? "—"}</td>
@@ -792,7 +1162,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
               <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400">
                 <div className="flex items-center gap-2 font-medium"><AlertTriangle className="h-4 w-4" /> Avisos</div>
                 <ul className="mt-1 list-disc list-inside space-y-0.5">
-                  {preview.warnings.map((w, i) => <li key={i}>{w}</li>)}
+                  {preview.warnings.map((w: string, i: number) => <li key={i}>{w}</li>)}
+
                 </ul>
               </div>
             )}
