@@ -36,18 +36,19 @@ export const Route = createFileRoute('/api/public/sync/checklists')({
           console.log(`[SYNC] Recebido: ${fileName} (${externalFileId})`);
 
           // 3. Verificar Duplicidade
-          const { data: existing } = await supabaseAdmin
+          const { data: existingRows } = await supabaseAdmin
             .from('mk9_checklist_sync_files' as any)
             .select('id, status, file_hash')
-            .eq('external_file_id', externalFileId)
-            .maybeSingle();
+            .eq('external_file_id', externalFileId);
+          
+          const existing = (existingRows as any)?.[0];
 
           if (existing && existing.file_hash === fileHash && (existing.status === 'IMPORTED' || existing.status === 'SKIPPED_UNCHANGED')) {
             return new Response(JSON.stringify({ status: 'SKIPPED_UNCHANGED', message: 'File already imported' }), { status: 200 });
           }
 
           // 4. Registrar Entrada
-          const { data: syncEntry, error: syncError } = await supabaseAdmin
+          const { data: syncEntryRows, error: syncError } = await supabaseAdmin
             .from('mk9_checklist_sync_files' as any)
             .insert({
               external_file_id: externalFileId,
@@ -58,10 +59,10 @@ export const Route = createFileRoute('/api/public/sync/checklists')({
               provider_modified_at: modifiedTime,
               processing_started_at: new Date().toISOString()
             } as any)
-            .select()
-            .single();
+            .select();
 
           if (syncError) throw syncError;
+          const syncEntry = (syncEntryRows as any)?.[0];
 
           // 5. Executar Motor de Sincronização
           const { runChecklistSync } = await import('@/lib/mk9-sync-engine.server');
