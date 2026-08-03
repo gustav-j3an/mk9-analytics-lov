@@ -19,12 +19,13 @@ export async function traceIndustryReportSources(params: {
   const window = resolveWindow(cfg, year, month);
   const report = await buildIndustryReport(supabaseAdmin, { industryId, year, month }, window);
 
-  // 2. Investigar Visitas Reais (mesma lógica do or() no motor do PDF)
+  // 2. Investigar Visitas Reais (Lógica compatível com o motor do PDF)
   const { data: visits } = await supabaseAdmin
     .from("mk9_actual_visits")
-    .select("id, store_id, scheduled_date, source_import_id, competence_month, competence_year")
+    .select("id, store_id, scheduled_date, source_import_id")
     .eq("industry_id", industryId)
-    .or(`and(competence_month.eq.${month},competence_year.eq.${year}),and(scheduled_date.gte.${window.startDate},scheduled_date.lte.${window.endDate})`);
+    .gte("scheduled_date", window.startDate)
+    .lte("scheduled_date", window.endDate);
 
   // 3. Investigar Frequências Versionadas
   const { data: frequencies } = await supabaseAdmin
@@ -33,10 +34,10 @@ export async function traceIndustryReportSources(params: {
     .eq("industry_id", industryId)
     .or(`valid_until.is.null,and(valid_until.gte.${window.startDate},valid_from.lte.${window.endDate})`);
 
-  // 4. Investigar Roteiros Planejados
+  // 4. Investigar Roteiros Planejados (mk9_planned_visits é a tabela de auditoria usada no motor do PDF)
   const { data: routes } = await supabaseAdmin
     .from("mk9_planned_visits")
-    .select("id, store_id, scheduled_date, source_import_id, status")
+    .select("id, store_id, scheduled_date, status")
     .eq("industry_id", industryId)
     .gte("scheduled_date", window.startDate)
     .lte("scheduled_date", window.endDate)
@@ -46,20 +47,19 @@ export async function traceIndustryReportSources(params: {
   const importIds = new Set<string>();
   visits?.forEach(v => v.source_import_id && importIds.add(v.source_import_id));
   frequencies?.forEach(f => f.source_import_id && importIds.add(f.source_import_id));
-  routes?.forEach(r => r.source_import_id && importIds.add(r.source_import_id));
 
-  const { data: imports } = await supabaseAdmin
-    .from("mk9_checklist_imports")
-    .select("id, filename, started_at, status, operation_month, operation_year")
-    .in("id", Array.from(importIds));
+  const { data: imports } = importIds.size > 0 
+    ? await supabaseAdmin
+        .from("mk9_checklist_imports")
+        .select("id, filename, started_at, status, operation_month, operation_year")
+        .in("id", Array.from(importIds))
+    : { data: [] };
 
-  // 6. Projeções (mk9_industry_store_frequency) - o motor do PDF não usa isso, mas a limpeza deve invalidar
+  // 6. Projeções legadas (apenas para invalidar)
   const { data: projections } = await supabaseAdmin
     .from("mk9_industry_store_frequency")
-    .select("id, store_id, competence_month, competence_year")
-    .eq("industry_id", industryId)
-    .eq("competence_month", month)
-    .eq("competence_year", year);
+    .select("id, store_id")
+    .eq("industry_id", industryId);
 
   return {
     industryId,
