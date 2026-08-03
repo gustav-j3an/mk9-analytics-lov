@@ -640,7 +640,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
     try {
       const res = await commitBatchFn({
         data: {
-          batchId,
+          batchId: batchId || "00000000-0000-0000-0000-000000000000",
           importIds: readyToImport.map(f => f.id),
         }
       });
