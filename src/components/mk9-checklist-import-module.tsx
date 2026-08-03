@@ -754,6 +754,8 @@ function BatchFileRow({ file, onRemove }: { file: any; onRemove: () => void }) {
   
   const statusConfig: Record<string, { icon: any, color: string, label: string }> = {
     PENDING: { icon: Clock, color: "text-muted-foreground", label: "Aguardando análise" },
+    QUEUED: { icon: Clock, color: "text-blue-400 animate-pulse", label: "Na fila" },
+    UPLOADING: { icon: Upload, color: "text-blue-500 animate-bounce", label: "Enviando..." },
     ANALYZING: { icon: Loader2, color: "text-primary animate-spin", label: "Analisando..." },
     READY: { icon: CheckCircle2, color: "text-emerald-500", label: "Pronto" },
     NEEDS_REVIEW: { icon: AlertCircle, color: "text-amber-500", label: "Revisão necessária" },
