@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { 
   RefreshCcw, 
   Cloud, 
@@ -10,13 +11,15 @@ import {
   Clock,
   History,
   ShieldCheck,
-  ExternalLink
+  ExternalLink,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+import { mk9GetSyncOverview } from "@/lib/mk9-data.functions";
 
 const MONTHS = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -25,22 +28,11 @@ const MONTHS = [
 
 export function Mk9SyncModule() {
   const [activeTab, setActiveTab] = useState("history");
+  const getOverviewFn = useServerFn(mk9GetSyncOverview);
 
   const { data: syncFiles, isLoading, refetch } = useQuery({
     queryKey: ["mk9-sync-files"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("mk9_checklist_sync_files" as any)
-        .select(`
-          *,
-          industry:mk9_industries(id, name)
-        `)
-        .order("detected_at", { ascending: false })
-        .limit(50);
-      
-      if (error) throw error;
-      return data as any[];
-    }
+    queryFn: () => getOverviewFn()
   });
 
   return (
@@ -65,19 +57,19 @@ export function Mk9SyncModule() {
         />
         <StatCard 
           label="Importados" 
-          value={syncFiles?.filter(f => f.status === 'IMPORTED' || f.status === 'REPLACED_PREVIOUS').length ?? 0} 
+          value={syncFiles?.filter((f: any) => f.status === 'IMPORTED' || f.status === 'REPLACED_PREVIOUS').length ?? 0} 
           icon={CheckCircle2} 
           className="bg-emerald-500/5 border-emerald-500/20"
         />
         <StatCard 
           label="Revisão Pendente" 
-          value={syncFiles?.filter(f => f.status === 'NEEDS_REVIEW').length ?? 0} 
+          value={syncFiles?.filter((f: any) => f.status === 'NEEDS_REVIEW').length ?? 0} 
           icon={Search} 
           className="bg-amber-500/5 border-amber-500/20"
         />
         <StatCard 
           label="Falhas" 
-          value={syncFiles?.filter(f => f.status === 'FAILED').length ?? 0} 
+          value={syncFiles?.filter((f: any) => f.status === 'FAILED').length ?? 0} 
           icon={AlertCircle} 
           className="bg-red-500/5 border-red-500/20"
         />
@@ -117,7 +109,7 @@ export function Mk9SyncModule() {
                         </td>
                       </tr>
                     )}
-                    {syncFiles?.map((file) => (
+                    {syncFiles?.map((file: any) => (
                       <tr key={file.id} className="hover:bg-muted/5 transition-colors">
                         <td className="p-4">
                           <div className="flex flex-col">
@@ -126,13 +118,13 @@ export function Mk9SyncModule() {
                               {file.file_name}
                             </span>
                             <span className="text-[10px] text-muted-foreground flex items-center gap-1 mt-1">
-                              ID Drive: {file.external_file_id.slice(0, 12)}...
+                              ID: {file.id.slice(0, 8)}
                             </span>
                           </div>
                         </td>
                         <td className="p-4">
                           <div className="flex flex-col">
-                            <span className="font-medium">{file.industry?.name ?? "Não Identificada"}</span>
+                            <span className="font-medium">{(file.industry as any)?.name ?? "Não Identificada"}</span>
                             <span className="text-[10px] text-muted-foreground">
                               {file.competence_month ? `${MONTHS[file.competence_month - 1]} / ${file.competence_year}` : "Período pendente"}
                             </span>
@@ -149,7 +141,7 @@ export function Mk9SyncModule() {
                         </td>
                         <td className="p-4 text-right">
                           <Button variant="ghost" size="sm" className="h-8 px-2">
-                            <ExternalLink className="h-4 w-4" />
+                            <ChevronRight className="h-4 w-4" />
                           </Button>
                         </td>
                       </tr>
@@ -241,8 +233,4 @@ function StatusBadge({ status, error }: { status: string, error?: string }) {
       {error && <span className="text-[9px] text-red-500 font-medium truncate max-w-[120px]">{error}</span>}
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(" ");
 }
