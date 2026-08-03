@@ -333,7 +333,7 @@ function StatCard({ label, value, tone }: { label: string; value: number; tone?:
     "text-foreground";
     
   return (
-    <Card className="glass-panel">
+    <Card className="glass-panel border-none shadow-none bg-background/20">
       <CardContent className="p-4">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
         <p className={cn("text-3xl font-bold mt-1", toneClass)}>{value}</p>
