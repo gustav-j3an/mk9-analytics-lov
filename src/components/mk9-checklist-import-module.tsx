@@ -852,7 +852,12 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
             </div>
           </div>
           {file.error && (
-            <p className="text-xs text-destructive mt-2 font-mono bg-destructive/5 p-1.5 rounded border border-destructive/20">{file.error}</p>
+            <div className="mt-2 space-y-1">
+              <p className="text-[10px] font-bold text-destructive uppercase tracking-wider">Detalhes do erro:</p>
+              <div className="text-[11px] text-destructive font-mono bg-destructive/5 p-2 rounded border border-destructive/20 whitespace-pre-wrap">
+                {file.error}
+              </div>
+            </div>
           )}
           {file.status === "NEEDS_REVIEW" && (
             <p className="text-xs text-amber-600 mt-2 italic">{file.message || "Verifique se o nome do arquivo contém o nome da indústria."}</p>
