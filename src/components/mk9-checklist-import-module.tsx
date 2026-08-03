@@ -584,7 +584,7 @@ function IndividualImport({
                 <SelectValue placeholder={industriesQ.isLoading ? "Carregando…" : "Selecione a indústria"} />
               </SelectTrigger>
               <SelectContent>
-                {(industriesQ.data ?? []).map((i) => (
+                {(industriesQ.data ?? []).map((i: any) => (
                   <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -761,7 +761,7 @@ function IndividualImport({
                   </div>
                 )}
                 <div className="max-h-48 space-y-1 overflow-auto text-xs">
-                  {preview.storeFrequencies.slice(0, 60).map((f, i) => (
+                  {preview.storeFrequencies.slice(0, 60).map((f: any, i: number) => (
                     <div key={`${f.storeNormalized}-${i}`} className="flex items-center justify-between gap-3 rounded px-1 py-0.5">
                       <span className="truncate">{f.storeName}{f.uf ? ` · ${f.uf}` : ""}</span>
                       <span className={f.frequencyInconsistent ? "shrink-0 text-amber-700 dark:text-amber-300" : "shrink-0 text-muted-foreground"}>
@@ -862,7 +862,7 @@ function IndividualImport({
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.slice(0, 500).map((it, i) => (
+                  {filtered.slice(0, 500).map((it: any, i: number) => (
                     <tr key={i} className="border-t">
                       <td className="p-2 max-w-[280px] truncate" title={it.storeName}>{it.storeName}</td>
                       <td className="p-2">{it.uf ?? "—"}</td>
@@ -898,7 +898,7 @@ function IndividualImport({
               <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400">
                 <div className="flex items-center gap-2 font-medium"><AlertTriangle className="h-4 w-4" /> Avisos</div>
                 <ul className="mt-1 list-disc list-inside space-y-0.5">
-                  {preview.warnings.map((w, i) => <li key={i}>{w}</li>)}
+                  {preview.warnings.map((w: string, i: number) => <li key={i}>{w}</li>)}
                 </ul>
               </div>
             )}
