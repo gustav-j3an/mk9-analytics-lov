@@ -14,8 +14,18 @@ export async function processBulkExportItem(
   access: any
 ): Promise<{ pdfBuffer: Buffer | null; industryName: string; report: IndustryReport | null }> {
   const startTime = Date.now();
+  let industryName = "Indústria";
   try {
     console.log(`[UNVISITED INDUSTRY START] industryId=${industryId} itemId=${itemId}`);
+
+    // Fetch industry name first for logs/results
+    const { data: industryData } = await supabaseAdmin
+      .from("mk9_industries")
+      .select("name")
+      .eq("id", industryId)
+      .maybeSingle();
+    
+    if (industryData) industryName = industryData.name;
 
     // 1. Update status to CALCULATING
     await supabaseAdmin
@@ -23,7 +33,7 @@ export async function processBulkExportItem(
       .update({ status: "CALCULATING" })
       .eq("id", itemId);
 
-    console.log(`[UNVISITED REPORT LOAD] industryId=${industryId}`);
+    console.log(`[UNVISITED REPORT LOAD] industryId=${industryId} name=${industryName}`);
     const config = await loadPeriodConfig(supabaseAdmin, industryId);
     const window = resolveWindow(config, year, month);
     
@@ -49,12 +59,13 @@ export async function processBulkExportItem(
         unattended_stores_count: unattendedCount,
         contracted_visits_sum: contractedSum,
         period_start: window.startDate,
-        period_end: window.endDate
+        period_end: window.endDate,
+        error_details: null // Clear previous errors
       })
       .eq("id", itemId);
 
     if (unattendedCount === 0) {
-      return { pdfBuffer: null, industryName: report.industry.name, report };
+      return { pdfBuffer: null, industryName, report };
     }
 
     // 3. Generate PDF
@@ -67,7 +78,7 @@ export async function processBulkExportItem(
       .update({ status: "COMPLETED" })
       .eq("id", itemId);
 
-    return { pdfBuffer, industryName: report.industry.name, report };
+    return { pdfBuffer, industryName, report };
   } catch (err: any) {
     const duration = Date.now() - startTime;
     const errorCode = err.name === "Mk9ScopeError" ? "FORBIDDEN" : (err.code || "REPORT_ENGINE_FAILED");
@@ -87,7 +98,7 @@ export async function processBulkExportItem(
         })
       })
       .eq("id", itemId);
-    return { pdfBuffer: null, industryName: "Erro", report: null };
+    return { pdfBuffer: null, industryName, report: null };
   }
 }
 
