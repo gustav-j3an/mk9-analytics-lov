@@ -219,8 +219,59 @@ export type Database = {
         }
         Relationships: []
       }
+      mk9_checklist_import_batches: {
+        Row: {
+          created_at: string
+          created_by: string
+          failed_files: number
+          finished_at: string | null
+          id: string
+          imported_files: number
+          metadata: Json | null
+          ready_files: number
+          review_files: number
+          started_at: string | null
+          status: string
+          total_files: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          failed_files?: number
+          finished_at?: string | null
+          id?: string
+          imported_files?: number
+          metadata?: Json | null
+          ready_files?: number
+          review_files?: number
+          started_at?: string | null
+          status?: string
+          total_files?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          failed_files?: number
+          finished_at?: string | null
+          id?: string
+          imported_files?: number
+          metadata?: Json | null
+          ready_files?: number
+          review_files?: number
+          started_at?: string | null
+          status?: string
+          total_files?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mk9_checklist_imports: {
         Row: {
+          batch_id: string | null
+          corrected_from_import_id: string | null
+          corrected_to_import_id: string | null
           counters: Json
           created_at: string
           duration_ms: number | null
@@ -233,6 +284,10 @@ export type Database = {
           operation_month: number
           operation_year: number
           preview: Json | null
+          revert_reason: string | null
+          reverted_at: string | null
+          reverted_by: string | null
+          reverted_counters: Json | null
           started_at: string
           status: Database["public"]["Enums"]["mk9_import_status"]
           updated_at: string
@@ -242,6 +297,9 @@ export type Database = {
           validation_status: string | null
         }
         Insert: {
+          batch_id?: string | null
+          corrected_from_import_id?: string | null
+          corrected_to_import_id?: string | null
           counters?: Json
           created_at?: string
           duration_ms?: number | null
@@ -254,6 +312,10 @@ export type Database = {
           operation_month: number
           operation_year: number
           preview?: Json | null
+          revert_reason?: string | null
+          reverted_at?: string | null
+          reverted_by?: string | null
+          reverted_counters?: Json | null
           started_at?: string
           status?: Database["public"]["Enums"]["mk9_import_status"]
           updated_at?: string
@@ -263,6 +325,9 @@ export type Database = {
           validation_status?: string | null
         }
         Update: {
+          batch_id?: string | null
+          corrected_from_import_id?: string | null
+          corrected_to_import_id?: string | null
           counters?: Json
           created_at?: string
           duration_ms?: number | null
@@ -275,6 +340,10 @@ export type Database = {
           operation_month?: number
           operation_year?: number
           preview?: Json | null
+          revert_reason?: string | null
+          reverted_at?: string | null
+          reverted_by?: string | null
+          reverted_counters?: Json | null
           started_at?: string
           status?: Database["public"]["Enums"]["mk9_import_status"]
           updated_at?: string
@@ -284,6 +353,27 @@ export type Database = {
           validation_status?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "mk9_checklist_imports_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_import_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_checklist_imports_corrected_from_import_id_fkey"
+            columns: ["corrected_from_import_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_checklist_imports_corrected_to_import_id_fkey"
+            columns: ["corrected_to_import_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_imports"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mk9_checklist_imports_industry_id_fkey"
             columns: ["industry_id"]
@@ -2138,6 +2228,10 @@ export type Database = {
           valid_until: string
           weekday: number
         }[]
+      }
+      mk9_revert_checklist_import: {
+        Args: { _actor?: string; _import_id: string; _reason: string }
+        Returns: Json
       }
       mk9_set_frequency_manual: {
         Args: {

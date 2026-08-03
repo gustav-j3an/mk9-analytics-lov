@@ -19,12 +19,16 @@ import {
   ChevronDown,
   ChevronRight,
   FileSearch,
+  Calendar,
+  RotateCcw,
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { checklistBatchPreview } from "@/lib/mk9-checklist-batch.functions";
 import { checklistBatchCommit } from "@/lib/mk9-checklist-batch-commit.functions";
 import type { ChecklistBatchFile } from "@/lib/mk9-checklist/batch-types";
+import { RevertChecklistDialog, CorrectCompetenceDialog } from "./mk9-checklist/revert-dialogs";
+
 
 
 
@@ -194,6 +198,9 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const [gate, setGate] = useState<{ industryId: string; industryName: string } | null>(null);
   const [newIndustryName, setNewIndustryName] = useState("");
   const [candidates, setCandidates] = useState<Array<{ id: string; name: string }> | null>(null);
+  const [revertDialogOpen, setRevertDialogOpen] = useState<{ id: string } | null>(null);
+  const [correctDialogOpen, setCorrectDialogOpen] = useState<{ id: string } | null>(null);
+
 
   const phaseTimersRef = useRef<number[]>([]);
   const ackRef = useRef<HTMLLabelElement | null>(null);
@@ -492,7 +499,10 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
           canConfirm={canConfirm}
           periodLabel={periodLabel}
           filtered={filtered}
+          revertDialogOpen={revertDialogOpen} setRevertDialogOpen={setRevertDialogOpen}
+          correctDialogOpen={correctDialogOpen} setCorrectDialogOpen={setCorrectDialogOpen}
         />
+
       ) : (
         <Mk9ChecklistBatchModule industries={industriesQ.data ?? []} />
       )}
@@ -775,12 +785,12 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
               </Button>
             </div>
           )}
-
         </CardContent>
       </Card>
     </div>
   );
 }
+
 
 function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () => void; setFiles: any }) {
   const [expanded, setOpen] = useState(false);
@@ -878,8 +888,10 @@ function IndividualImport({
   confirmOpen, setConfirmOpen, ackNewStores, setAckNewStores, lastError, setLastError,
   rejected, setRejected, highlightAck, setHighlightAck, phase, setPhase, gate, setGate,
   newIndustryName, setNewIndustryName, candidates, setCandidates, ackRef, flashAck,
-  validItems, newStoresCount, canConfirm, periodLabel, filtered
+  validItems, newStoresCount, canConfirm, periodLabel, filtered,
+  revertDialogOpen, setRevertDialogOpen, correctDialogOpen, setCorrectDialogOpen
 }: any) {
+
   return (
     <div className="space-y-6">
       <Card className="glass-panel">
@@ -1299,6 +1311,28 @@ function IndividualImport({
                       <div className="flex items-center gap-2 shrink-0">
                         <Badge variant={st.variant}>{st.label}</Badge>
                         {vs && <Badge variant={vs.variant}>{vs.label}</Badge>}
+                        {imp.status === "done" && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              title="Corrigir competência"
+                              onClick={() => setCorrectDialogOpen({ id: imp.id })}
+                            >
+                              <Calendar className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              title="Desfazer importação"
+                              onClick={() => setRevertDialogOpen({ id: imp.id })}
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                         <Button size="sm" variant="ghost" onClick={() => deleteMut.mutate(imp.id)} disabled={deleteMut.isPending}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -1312,6 +1346,8 @@ function IndividualImport({
           )}
         </CardContent>
       </Card>
+
+
 
 
       <AlertDialog open={confirmOpen} onOpenChange={(o) => !commitMut.isPending && setConfirmOpen(o)}>
