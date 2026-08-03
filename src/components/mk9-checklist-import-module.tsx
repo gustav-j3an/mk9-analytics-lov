@@ -494,24 +494,236 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
 }
 
 function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
+  const [files, setFiles] = useState<ChecklistBatchFile[]>([]);
+  const [analyzing, setAnalyzing] = useState(false);
+  const now = new Date();
+  const [month, setMonth] = useState<number>(now.getMonth() + 1);
+  const [year, setYear] = useState<number>(now.getFullYear());
+  const qc = useQueryClient();
+
+  const previewMut = useServerFn(checklistBatchPreview);
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    const newFiles: ChecklistBatchFile[] = acceptedFiles.map(f => ({
+      id: Math.random().toString(36).substring(7),
+      filename: f.name,
+      status: "PENDING",
+      operationMonth: month,
+      operationYear: year,
+      warnings: [],
+      rawFile: f,
+    } as any));
+    setFiles(prev => [...prev, ...newFiles]);
+  }, [month, year]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'application/vnd.ms-excel': ['.xls']
+    }
+  });
+
+  const removeFile = (id: string) => {
+    setFiles(prev => prev.filter(f => f.id !== id));
+  };
+
+  const startAnalysis = async () => {
+    if (files.length === 0) return;
+    setAnalyzing(true);
+    try {
+      const fileData = await Promise.all(files.map(async f => {
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve) => {
+          reader.onload = () => resolve((reader.result as string).split(',')[1]);
+          reader.readAsDataURL((f as any).rawFile);
+        });
+        return { filename: f.filename, base64 };
+      }));
+
+      const res = await previewMut({
+        data: {
+          files: fileData,
+          operationMonth: month,
+          operationYear: year,
+        }
+      });
+
+      // Mapeia resultados de volta para os arquivos locais
+      setFiles(prev => prev.map(f => {
+        const found = res.results.find((r: any) => r.filename === f.filename);
+        if (found) {
+          return {
+            ...f,
+            id: found.importId || f.id,
+            status: found.status,
+            industryId: found.industryId,
+            industryName: found.industryName,
+            preview: found.preview,
+            error: found.error,
+          } as any;
+        }
+        return f;
+      }));
+      
+      toast.success("Análise de lote concluída");
+      qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
+    } catch (e: any) {
+      toast.error("Falha ao analisar lote: " + (e?.message ?? String(e)));
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const readyToImport = files.filter(f => f.status === "READY");
+
   return (
-    <Card className="glass-panel">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Files className="h-5 w-5" />
-          Importação em lote
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-lg border-2 border-dashed p-12 text-center">
-          <Files className="mx-auto h-12 w-12 text-muted-foreground/50" />
-          <h3 className="mt-4 text-lg font-semibold">Em breve</h3>
-          <p className="text-sm text-muted-foreground">O módulo de lote está em desenvolvimento.</p>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+      <Card className="glass-panel">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Files className="h-5 w-5" />
+            Importação em lote (máx. 30 arquivos)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-muted-foreground">Mês de competência</label>
+              <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {MONTHS.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground">Ano</label>
+              <Input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} min={2024} max={2100} />
+            </div>
+          </div>
+
+          <div
+            {...getRootProps()}
+            className={cn(
+              "border-2 border-dashed rounded-xl p-10 text-center transition-colors cursor-pointer",
+              isDragActive ? "border-primary bg-primary/5" : "border-border hover:bg-muted/30"
+            )}
+          >
+            <input {...getInputProps()} />
+            <Upload className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
+            <p className="text-sm font-medium">
+              Arraste os checklists aqui ou clique para selecionar
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Suporta múltiplos arquivos .xlsx ou .xls
+            </p>
+          </div>
+
+          {files.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold">Arquivos no lote ({files.length})</h4>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setFiles([])} disabled={analyzing}>
+                    Limpar tudo
+                  </Button>
+                  <Button size="sm" onClick={startAnalysis} disabled={analyzing || files.every(f => f.status !== "PENDING")}>
+                    {analyzing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileSearch className="h-4 w-4 mr-2" />}
+                    Analisar arquivos
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid gap-2 max-h-[400px] overflow-y-auto pr-2">
+                {files.map((file) => (
+                  <BatchFileRow key={file.id} file={file} onRemove={() => removeFile(file.id)} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {readyToImport.length > 0 && (
+            <div className="pt-4 border-t flex justify-end">
+              <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700">
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Importar {readyToImport.length} arquivos prontos
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
+
+function BatchFileRow({ file, onRemove }: { file: any; onRemove: () => void }) {
+  const [expanded, setOpen] = useState(false);
+  
+  const statusConfig: Record<string, { icon: any, color: string, label: string }> = {
+    PENDING: { icon: Clock, color: "text-muted-foreground", label: "Aguardando análise" },
+    ANALYZING: { icon: Loader2, color: "text-primary animate-spin", label: "Analisando..." },
+    READY: { icon: CheckCircle2, color: "text-emerald-500", label: "Pronto" },
+    NEEDS_REVIEW: { icon: AlertCircle, color: "text-amber-500", label: "Revisão necessária" },
+    ERROR: { icon: XCircle, color: "text-destructive", label: "Erro" },
+    IMPORTED: { icon: Check, color: "text-emerald-500", label: "Importado" },
+  };
+
+  const cfg = statusConfig[file.status] || statusConfig.PENDING;
+  const Icon = cfg.icon;
+
+  return (
+    <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="p-3 flex items-center gap-3">
+        <Icon className={cn("h-5 w-5 shrink-0", cfg.color)} />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium truncate" title={file.filename}>{file.filename}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className={cn("text-[10px] font-bold uppercase", cfg.color)}>{cfg.label}</span>
+            {file.industryName && (
+              <span className="text-[10px] text-muted-foreground underline">Indústria: {file.industryName}</span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          {file.preview && (
+            <Button variant="ghost" size="sm" onClick={() => setOpen(!expanded)}>
+              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={onRemove}>
+            <X className="h-4 w-4 text-muted-foreground" />
+          </Button>
+        </div>
+      </div>
+      {expanded && file.preview && (
+        <div className="px-3 pb-3 bg-muted/20 border-t pt-2">
+          <div className="grid grid-cols-3 gap-2 text-[10px]">
+            <div className="bg-background p-1.5 rounded border">
+              <p className="text-muted-foreground uppercase font-bold tracking-tighter">Visitas</p>
+              <p className="text-lg font-semibold">{file.preview.counters.totalMarks}</p>
+            </div>
+            <div className="bg-background p-1.5 rounded border">
+              <p className="text-muted-foreground uppercase font-bold tracking-tighter">Lojas</p>
+              <p className="text-lg font-semibold">{file.preview.counters.totalStores}</p>
+            </div>
+            <div className="bg-background p-1.5 rounded border">
+              <p className="text-muted-foreground uppercase font-bold tracking-tighter">Divergências</p>
+              <p className="text-lg font-semibold text-amber-600">{file.preview.counters.storesNotFound + (file.preview.counters.duplicateStoreNames || 0)}</p>
+            </div>
+          </div>
+          {file.error && (
+            <p className="text-xs text-destructive mt-2 font-mono bg-destructive/5 p-1.5 rounded border border-destructive/20">{file.error}</p>
+          )}
+          {file.status === "NEEDS_REVIEW" && (
+            <p className="text-xs text-amber-600 mt-2 italic">{file.message || "Verifique se o nome do arquivo contém o nome da indústria."}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function IndividualImport({ 
   onSwitchToBase, now, industriesQ, historyQ, isAdmin, previewMut, commitMut, deleteMut, discardMut,
