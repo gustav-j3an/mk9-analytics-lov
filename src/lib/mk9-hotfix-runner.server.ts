@@ -17,15 +17,19 @@ export async function runBananaHotfix() {
 
   if (e1) throw e1;
   if (!industries || industries.length === 0) {
+    console.log("[HOTFIX] ERRO: Nenhuma indústria encontrada.");
     return { error: "Nenhuma indústria encontrada com esse nome." };
   }
 
   const ind = industries[0];
-  
+  console.log(`[HOTFIX] Indústria: ${ind.name} (${ind.id})`);
+
   // 2. Executar Motor do Relatório (Trace)
   const cfg = await loadPeriodConfig(supabaseAdmin, ind.id);
   const window = resolveWindow(cfg, year, month);
   const report = await buildIndustryReport(supabaseAdmin, { industryId: ind.id, year, month }, window);
+
+  console.log(`[HOTFIX] Relatório ANTES: ${report.totals.totalStores} lojas, ${report.totals.contracted}c, ${report.totals.actual}r`);
 
   // 3. Investigar Fontes
   const { data: visits } = await supabaseAdmin
@@ -41,38 +45,51 @@ export async function runBananaHotfix() {
     .eq("industry_id", ind.id)
     .or(`valid_until.is.null,and(valid_until.gte.${window.startDate},valid_from.lte.${window.endDate})`);
 
-  const { data: routes } = await supabaseAdmin
-    .from("mk9_planned_routes")
-    .select("id, store_id, valid_from, valid_until")
-    .eq("industry_id", ind.id)
-    .or(`valid_until.is.null,and(valid_until.gte.${window.startDate},valid_from.lte.${window.endDate})`);
-
   const activeFreqs = (freqs || []).filter(f => !f.archived_at);
-  const importIds = [...new Set([
-    ...(visits || []).map(v => v.source_import_id),
-    ...(freqs || []).map(f => f.source_import_id)
-  ].filter(Boolean))];
+  
+  console.log(`[HOTFIX] Registros: ${visits?.length || 0} visitas, ${activeFreqs.length} frequências ativas.`);
+
+  // --- EXECUÇÃO DO HOTFIX ---
+  console.log("[HOTFIX] INICIANDO REMOÇÃO...");
+
+  let visitsRemoved = 0;
+  if (visits && visits.length > 0) {
+    const { count } = await supabaseAdmin
+      .from("mk9_actual_visits")
+      .delete({ count: 'exact' })
+      .in("id", visits.map(v => v.id));
+    visitsRemoved = count || 0;
+  }
+
+  let freqsArchived = 0;
+  if (activeFreqs.length > 0) {
+    const { count } = await supabaseAdmin
+      .from("mk9_industry_store_frequency_versions")
+      .update({ archived_at: new Date().toISOString() } as any)
+      .in("id", activeFreqs.map(f => f.id));
+    freqsArchived = count || 0;
+  }
+
+  // 4. Snapshot DEPOIS
+  const afterReport = await buildIndustryReport(supabaseAdmin, { industryId: ind.id, year, month }, window);
+  console.log(`[HOTFIX] Relatório DEPOIS: ${afterReport.totals.totalStores} lojas, ${afterReport.totals.contracted}c, ${afterReport.totals.actual}r`);
 
   return {
-    industry: ind,
-    window,
-    reportBefore: {
-      stores: report.totals.totalStores,
+    success: true,
+    industry: ind.name,
+    before: {
       contracted: report.totals.contracted,
-      actual: report.totals.actual
+      actual: report.totals.actual,
+      stores: report.totals.totalStores
     },
-    counts: {
-      visits: visits?.length || 0,
-      frequencies: freqs?.length || 0,
-      activeFrequencies: activeFreqs.length,
-      routes: routes?.length || 0
+    after: {
+      contracted: afterReport.totals.contracted,
+      actual: afterReport.totals.actual,
+      stores: afterReport.totals.totalStores
     },
-    importIds,
-    activeFreqs: activeFreqs.map(f => ({
-      id: f.id,
-      store: f.store_id,
-      from: f.valid_from,
-      until: f.valid_until
-    }))
+    removed: {
+      visits: visitsRemoved,
+      frequencies: freqsArchived
+    }
   };
 }
