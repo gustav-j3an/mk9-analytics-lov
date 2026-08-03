@@ -219,8 +219,57 @@ export type Database = {
         }
         Relationships: []
       }
+      mk9_checklist_import_batches: {
+        Row: {
+          created_at: string
+          created_by: string
+          failed_files: number
+          finished_at: string | null
+          id: string
+          imported_files: number
+          metadata: Json | null
+          ready_files: number
+          review_files: number
+          started_at: string | null
+          status: string
+          total_files: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          failed_files?: number
+          finished_at?: string | null
+          id?: string
+          imported_files?: number
+          metadata?: Json | null
+          ready_files?: number
+          review_files?: number
+          started_at?: string | null
+          status?: string
+          total_files?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          failed_files?: number
+          finished_at?: string | null
+          id?: string
+          imported_files?: number
+          metadata?: Json | null
+          ready_files?: number
+          review_files?: number
+          started_at?: string | null
+          status?: string
+          total_files?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mk9_checklist_imports: {
         Row: {
+          batch_id: string | null
           corrected_from_import_id: string | null
           corrected_to_import_id: string | null
           counters: Json
@@ -248,6 +297,7 @@ export type Database = {
           validation_status: string | null
         }
         Insert: {
+          batch_id?: string | null
           corrected_from_import_id?: string | null
           corrected_to_import_id?: string | null
           counters?: Json
@@ -275,6 +325,7 @@ export type Database = {
           validation_status?: string | null
         }
         Update: {
+          batch_id?: string | null
           corrected_from_import_id?: string | null
           corrected_to_import_id?: string | null
           counters?: Json
@@ -302,6 +353,13 @@ export type Database = {
           validation_status?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "mk9_checklist_imports_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_import_batches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mk9_checklist_imports_corrected_from_import_id_fkey"
             columns: ["corrected_from_import_id"]
