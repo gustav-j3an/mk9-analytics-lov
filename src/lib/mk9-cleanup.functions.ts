@@ -45,7 +45,7 @@ export const executeGranularCleanup = createServerFn({ method: "POST" })
       month: data.month,
       year: data.year,
       reason: data.justification,
-      actorId: ctx.user.id,
+      actorId: ctx.userId!,
       selectedSources: {
         visitIds: data.selections.visitIds,
         frequencyIds: data.selections.frequencyIds,

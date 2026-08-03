@@ -1,6 +1,4 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { loadPeriodConfig, resolveWindow } from "@/lib/mk9-reports/period.server";
-import { buildIndustryReport } from "@/lib/mk9-reports/industry-report.server";
 import { logAudit } from "@/lib/mk9-auth/require-role.server";
 
 export async function executeGranularCleanup(params: {
@@ -22,6 +20,9 @@ export async function executeGranularCleanup(params: {
   console.log(`[CLEANUP] Executando limpeza granular para: ${industryId} (${month}/${year})`);
 
   // 1. Snapshot ANTES
+  const { loadPeriodConfig, resolveWindow } = await import("@/lib/mk9-reports/period.server");
+  const { buildIndustryReport } = await import("@/lib/mk9-reports/industry-report.server");
+  
   const cfg = await loadPeriodConfig(supabaseAdmin, industryId);
   const window = resolveWindow(cfg, year, month);
   const beforeReport = await buildIndustryReport(supabaseAdmin, { industryId, year, month }, window);
@@ -71,7 +72,7 @@ export async function executeGranularCleanup(params: {
   const afterReport = await buildIndustryReport(supabaseAdmin, { industryId, year, month }, window);
 
   // 7. Auditoria
-  await logAudit({ user: { id: actorId } } as any, "mk9.admin.cleanup.granular", "multiple", industryId, {
+  await logAudit({ userId: actorId, roles: ["ADMIN"], email: null, devBypass: false }, "mk9.admin.cleanup.granular", "multiple", industryId, {
     industryId,
     month,
     year,
