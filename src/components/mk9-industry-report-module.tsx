@@ -93,17 +93,19 @@ export function Mk9IndustryReportModule() {
     return Array.from(set).sort();
   }, [report]);
 
-  const [downloading, setDownloading] = useState(false);
+  const [downloading, setDownloading] = useState<"full" | "unattended" | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
 
-  async function downloadPdf() {
+  async function downloadPdf(type: "full" | "unattended") {
     if (!industryId) return;
     if (typeof window === "undefined") return;
-    setDownloading(true); setPdfError(null);
-    const toastId = toast.loading("Gerando PDF...");
+    setDownloading(type); setPdfError(null);
+    const label = type === "full" ? "PDF completo" : "Lojas não atendidas";
+    const toastId = toast.loading(`Gerando ${label}...`);
     try {
+      const endpoint = type === "full" ? "/api/reports/industry-pdf" : "/api/reports/industry-unattended-pdf";
       const { mk9AuthHeaders } = await import("@/lib/mk9-auth/fetch-headers");
-      const res = await fetch("/api/reports/industry-pdf", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json", ...(await mk9AuthHeaders()) },
         cache: "no-store",
@@ -125,21 +127,21 @@ export function Mk9IndustryReportModule() {
       if (!ct.includes("application/pdf")) throw new Error(`Resposta inesperada: ${ct}`);
       const cd = res.headers.get("content-disposition") ?? "";
       const match = /filename="([^"]+)"/.exec(cd);
-      const filename = match?.[1] ?? "relatorio.pdf";
+      const filename = match?.[1] ?? (type === "full" ? "relatorio.pdf" : "nao_atendidas.pdf");
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url; a.download = filename;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast.success("PDF gerado", { id: toastId });
+      toast.success(`${label} gerado`, { id: toastId });
     } catch (e: any) {
       const msg = e?.message ?? String(e);
       console.error("[INDUSTRY PDF]", e);
       setPdfError(msg);
       toast.error(msg, { id: toastId });
     } finally {
-      setDownloading(false);
+      setDownloading(null);
     }
   }
 
@@ -223,10 +225,16 @@ export function Mk9IndustryReportModule() {
               <div className="text-muted-foreground">Período analisado</div>
               <div className="font-semibold">{fmtBR(report.window.startDate)} a {fmtBR(report.window.endDate)} · {report.window.totalDays} dias</div>
             </div>
-            <Button onClick={downloadPdf} disabled={downloading}>
-              {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-              Gerar PDF para o cliente
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => downloadPdf("full")} disabled={!!downloading} variant="outline" size="sm">
+                {downloading === "full" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                Relatório completo
+              </Button>
+              <Button onClick={() => downloadPdf("unattended")} disabled={!!downloading} size="sm">
+                {downloading === "unattended" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                Lojas não atendidas
+              </Button>
+            </div>
           </div>
           {pdfError && <div className="rounded-md border border-rose-500/40 bg-rose-500/10 p-3 text-sm text-rose-700">{pdfError}</div>}
 
