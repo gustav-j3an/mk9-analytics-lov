@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { getCleanupPreview, executeCleanup } from "@/lib/mk9-cleanup.functions";
-import { mk9ListIndustries } from "@/lib/mk9-data.functions";
+import { mk9ListIndustries, mk9ListChecklistIndustries } from "@/lib/mk9-data.functions";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 
