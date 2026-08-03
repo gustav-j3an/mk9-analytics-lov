@@ -135,7 +135,7 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
     }),
     onSuccess: (res: any) => {
       toast.success("Limpeza executada com sucesso", {
-        description: `${res.visitsAffected} visitas removidas, ${res.frequenciesAffected} frequências arquivadas.`
+        description: `Antes: ${res.before.contracted}c / ${res.before.actual}r. Depois: ${res.after.contracted}c / ${res.after.actual}r.`
       });
       previewMut.reset();
       setIndustryId("");
