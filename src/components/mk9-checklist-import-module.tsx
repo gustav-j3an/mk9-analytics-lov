@@ -599,6 +599,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
         );
 
         const res = (await Promise.race([analysisPromise, timeoutPromise])) as any;
+        if (res.batchId) setBatchId(res.batchId);
         const result = res.results[0];
 
         if (!result) throw new Error("Servidor não retornou resultado para este arquivo");
