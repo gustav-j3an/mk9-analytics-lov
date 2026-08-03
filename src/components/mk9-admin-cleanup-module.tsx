@@ -71,7 +71,7 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
   const previewMut = useMutation({
     mutationFn: () => previewFn({ data: { industryId, month, year } }),
     onSuccess: (res) => {
-      setSelectedImports(res.imports.map(i => i.id));
+      setSelectedImports(res.imports.map((i: any) => i.id));
       toast.success("Prévia de impacto carregada");
     }
   });
