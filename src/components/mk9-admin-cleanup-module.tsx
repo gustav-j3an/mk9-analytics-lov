@@ -203,45 +203,42 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-[400px] overflow-auto pr-2">
-                    {previewData.imports.map(imp => {
-                      const typedImp = imp as any;
-                      return (
+                    {previewData.imports.map((imp: any) => (
                         <div 
-                          key={typedImp.id} 
+                          key={imp.id} 
                           className={cn(
                             "flex items-center justify-between p-3 rounded-lg border transition-colors",
-                            selectedImports.includes(typedImp.id) ? "bg-amber-50/50 border-amber-200" : "bg-background/40 hover:bg-background/60"
+                            selectedImports.includes(imp.id) ? "bg-amber-50/50 border-amber-200" : "bg-background/40 hover:bg-background/60"
                           )}
                         >
                           <div className="flex items-center gap-3">
                             <Checkbox 
-                              id={`imp-${typedImp.id}`}
-                              checked={selectedImports.includes(typedImp.id)}
+                              id={`imp-${imp.id}`}
+                              checked={selectedImports.includes(imp.id)}
                               onCheckedChange={(checked) => {
-                                if (checked) setSelectedImports([...selectedImports, typedImp.id]);
-                                else setSelectedImports(selectedImports.filter(id => id !== typedImp.id));
+                                if (checked) setSelectedImports([...selectedImports, imp.id]);
+                                else setSelectedImports(selectedImports.filter(id => id !== imp.id));
                               }}
                             />
                             <div className="min-w-0">
-                              <label htmlFor={`imp-${typedImp.id}`} className="text-sm font-medium truncate block cursor-pointer">{typedImp.filename}</label>
+                              <label htmlFor={`imp-${imp.id}`} className="text-sm font-medium truncate block cursor-pointer">{imp.filename}</label>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <p className="text-[10px] text-muted-foreground uppercase">
-                                  {new Date(typedImp.started_at).toLocaleString()}
+                                  {new Date(imp.started_at).toLocaleString()}
                                 </p>
                                 <span className="text-muted-foreground/30">·</span>
                                 <Badge variant="outline" className={cn(
                                   "text-[9px] h-4 px-1.5 font-bold uppercase",
-                                  typedImp.status === 'done' ? "text-emerald-600 border-emerald-200" : "text-amber-600 border-amber-200"
+                                  imp.status === 'done' ? "text-emerald-600 border-emerald-200" : "text-amber-600 border-amber-200"
                                 )}>
-                                  {typedImp.status}
+                                  {imp.status}
                                 </Badge>
                               </div>
-                              <p className="text-[9px] text-muted-foreground/60 mt-1 font-mono uppercase">ID: {typedImp.id}</p>
+                              <p className="text-[9px] text-muted-foreground/60 mt-1 font-mono uppercase">ID: {imp.id}</p>
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
+                      ))}
                   </div>
                 )}
               </CardContent>
