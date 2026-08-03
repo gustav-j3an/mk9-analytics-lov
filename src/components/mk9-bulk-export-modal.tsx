@@ -331,7 +331,7 @@ export function BulkExportModal() {
 
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold">Detalhamento por Indústria</h4>
-              {preview.items.some(i => i.status === "ERROR") && (
+              {preview.items.some(i => i.status === "FAILED") && (
                 <Button 
                   variant="ghost" 
                   size="sm" 
