@@ -229,6 +229,7 @@ export async function createChecklistImport(input: {
   operationMonth: number;
   operationYear: number;
   userId?: string | null;
+  fileHash?: string | null;
 }) {
   const { data, error } = await supabaseAdmin
     .from("mk9_checklist_imports")
@@ -239,6 +240,7 @@ export async function createChecklistImport(input: {
       operation_year: input.operationYear,
       status: "previewing",
       user_id: input.userId ?? null,
+      file_hash: input.fileHash ?? null,
     })
     .select("id")
     .single();
