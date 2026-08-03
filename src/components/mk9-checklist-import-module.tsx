@@ -780,12 +780,24 @@ function BatchFileRow({ file, onRemove }: { file: any; onRemove: () => void }) {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {file.status === "ERROR" && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => {
+                setFiles((prev: any) => prev.map((f: any) => f.id === file.id ? { ...f, status: "PENDING" } : f));
+              }}
+              title="Tentar novamente"
+            >
+              <Clock className="h-4 w-4 text-primary" />
+            </Button>
+          )}
           {file.preview && (
             <Button variant="ghost" size="sm" onClick={() => setOpen(!expanded)}>
               {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={onRemove}>
+          <Button variant="ghost" size="sm" onClick={onRemove} disabled={file.status === "ANALYZING" || file.status === "UPLOADING"}>
             <X className="h-4 w-4 text-muted-foreground" />
           </Button>
         </div>
