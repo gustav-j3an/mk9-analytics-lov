@@ -25,6 +25,8 @@ import { cn } from "@/lib/utils";
 import { checklistBatchPreview } from "@/lib/mk9-checklist-batch.functions";
 import { checklistBatchCommit } from "@/lib/mk9-checklist-batch-commit.functions";
 import type { ChecklistBatchFile } from "@/lib/mk9-checklist/batch-types";
+import { RevertChecklistDialog, CorrectCompetenceDialog } from "./mk9-checklist/revert-dialogs";
+
 
 
 
@@ -194,6 +196,9 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const [gate, setGate] = useState<{ industryId: string; industryName: string } | null>(null);
   const [newIndustryName, setNewIndustryName] = useState("");
   const [candidates, setCandidates] = useState<Array<{ id: string; name: string }> | null>(null);
+  const [revertDialogOpen, setRevertDialogOpen] = useState<{ id: string } | null>(null);
+  const [correctDialogOpen, setCorrectDialogOpen] = useState<{ id: string } | null>(null);
+
 
   const phaseTimersRef = useRef<number[]>([]);
   const ackRef = useRef<HTMLLabelElement | null>(null);
@@ -778,7 +783,26 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
 
         </CardContent>
       </Card>
+
+      {revertDialogOpen && (
+        <RevertChecklistDialog 
+          importId={revertDialogOpen.id}
+          isOpen={!!revertDialogOpen}
+          onOpenChange={(open) => !open && setRevertDialogOpen(null)}
+          onSuccess={() => historyQ.refetch()}
+        />
+      )}
+
+      {correctDialogOpen && (
+        <CorrectCompetenceDialog 
+          importId={correctDialogOpen.id}
+          isOpen={!!correctDialogOpen}
+          onOpenChange={(open) => !open && setCorrectDialogOpen(null)}
+          onSuccess={() => historyQ.refetch()}
+        />
+      )}
     </div>
+
   );
 }
 
