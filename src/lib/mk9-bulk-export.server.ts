@@ -106,7 +106,7 @@ export async function generateBulkZip(
   exportRecord: any,
   results: Array<{ pdfBuffer: Buffer | null; industryName: string }>
 ): Promise<Buffer> {
-  const zip = new JSZip();
+  const zip = new (JSZip as any)();
   const monthLabel = [
     "JANEIRO", "FEVEREIRO", "MARCO", "ABRIL", "MAIO", "JUNHO",
     "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
