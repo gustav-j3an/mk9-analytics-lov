@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { 
@@ -8,7 +8,8 @@ import {
   Loader2, 
   CheckCircle2, 
   Calendar,
-  Undo2
+  Undo2,
+  AlertCircle
 } from "lucide-react";
 import {
   AlertDialog,
@@ -23,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { 
@@ -30,6 +32,7 @@ import {
   revertChecklistImport, 
   correctChecklistCompetence 
 } from "@/lib/mk9-checklist/revert.functions";
+
 
 const MONTHS = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
