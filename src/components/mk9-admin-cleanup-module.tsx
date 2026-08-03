@@ -45,7 +45,7 @@ import { toast } from "sonner";
 import { getCleanupDiagnosis, executeGranularCleanup } from "@/lib/mk9-cleanup.functions";
 import { mk9ListChecklistIndustries } from "@/lib/mk9-data.functions";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
+
 
 
 const MONTHS = [
