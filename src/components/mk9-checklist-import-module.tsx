@@ -565,61 +565,79 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
       };
 
       try {
-        console.log(`[BATCH FILE UPLOAD START] ${f.filename}`);
+        console.log(`[BATCH FILE START] ${f.filename}`);
         updateFileStatus("UPLOADING");
 
-        const reader = new FileReader();
-        const base64 = await new Promise<string>((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error("Timeout lendo arquivo local")), 30000);
-          reader.onload = () => {
-            clearTimeout(timeout);
-            resolve((reader.result as string).split(',')[1]);
-          };
-          reader.onerror = () => {
-            clearTimeout(timeout);
-            reject(new Error("Erro ao ler arquivo local"));
-          };
-          reader.readAsDataURL(f.rawFile);
-        });
-
-        console.log(`[BATCH FILE PREVIEW START] ${f.filename}`);
-        updateFileStatus("ANALYZING");
-
-        // Timeout individual de 120s para a server function
-        const analysisPromise = previewMut({
-          data: {
-            files: [{ filename: f.filename, base64 }],
-            operationMonth: month,
-            operationYear: year,
-          }
-        });
-
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("BATCH_FILE_TIMEOUT: O arquivo demorou mais que o esperado.")), 120000)
+        // Detecção de indústria pelo nome do arquivo no cliente (otimização)
+        const filenameLower = f.filename.toLowerCase();
+        const matchedIndustry = (industries || []).find((i: any) => 
+          filenameLower.includes(i.name.toLowerCase())
         );
 
-        const res = (await Promise.race([analysisPromise, timeoutPromise])) as any;
-        if (res.batchId) setBatchId(res.batchId);
-        const result = res.results[0];
+        if (!matchedIndustry) {
+          console.log(`[BATCH FILE NEEDS_REVIEW] ${f.filename} - Indústria não identificada`);
+          updateFileStatus("NEEDS_REVIEW", {
+            message: "Indústria não identificada pelo nome do arquivo. Selecione manualmente."
+          });
+          return;
+        }
 
-        if (!result) throw new Error("Servidor não retornou resultado para este arquivo");
+        console.log(`[BATCH FILE FORM DATA CREATED] ${f.filename}`);
+        const formData = new FormData();
+        formData.append("file", f.rawFile);
+        formData.append("industryId", matchedIndustry.id);
+        formData.append("operationMonth", String(month));
+        formData.append("operationYear", String(year));
+        if (batchId) formData.append("batchId", batchId);
 
-        console.log(`[BATCH FILE PREVIEW END] ${f.filename} -> ${result.status}`);
-        updateFileStatus(result.status, {
+        console.log(`[BATCH FILE REQUEST START] ${f.filename} -> /api/checklists/preview`);
+        
+        const { mk9AuthHeaders } = await import("@/lib/mk9-auth/fetch-headers");
+        const response = await fetch("/api/checklists/preview", {
+          method: "POST",
+          headers: await mk9AuthHeaders(),
+          body: formData,
+        });
+
+        console.log(`[BATCH FILE RESPONSE] ${f.filename} -> ${response.status}`);
+        
+        const contentType = response.headers.get("content-type");
+        let result: any;
+        
+        if (contentType?.includes("application/json")) {
+          result = await response.json();
+        } else {
+          const text = await response.text();
+          console.error(`[BATCH FILE ERROR] Resposta não-JSON: ${text.slice(0, 100)}`);
+          throw new Error(`Resposta inválida do servidor (HTTP ${response.status}).`);
+        }
+
+        if (!response.ok) {
+          const richError = result.error || {
+            message: result.message || `Erro ${response.status}`,
+            code: response.status
+          };
+          
+          if (response.status === 401) throw new Error("Sessão expirada. Faça login novamente.");
+          if (response.status === 403) throw new Error("Usuário sem permissão para importar checklists.");
+          
+          throw new Error(`Falha na análise (${richError.code || response.status}): ${richError.message}`);
+        }
+
+        console.log(`[BATCH FILE PREVIEW SUCCESS] ${f.filename}`);
+        updateFileStatus("READY", {
           id: result.importId || targetId,
-          industryId: result.industryId,
-          industryName: result.industryName,
+          industryId: matchedIndustry.id,
+          industryName: matchedIndustry.name,
           preview: result.preview,
-          error: result.error || result.message,
-          message: result.message,
+          message: result.message
         });
 
       } catch (e: any) {
-        console.error(`[BATCH FILE FAILED] ${f.filename}`, e);
+        console.error(`[BATCH FILE ERROR] ${f.filename}`, e);
+        const rich = parseServerError(e);
         updateFileStatus("ERROR", { 
-          error: e?.message?.includes("BATCH_FILE_TIMEOUT") 
-            ? "O arquivo demorou mais que o esperado para ser analisado. Tente novamente individualmente."
-            : (e?.message ?? String(e)) 
+          error: rich.message || "Falha técnica ao processar arquivo."
         });
       }
     };
@@ -807,8 +825,8 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
               <Clock className="h-4 w-4 text-primary" />
             </Button>
           )}
-          {file.preview && (
-            <Button variant="ghost" size="sm" onClick={() => setOpen(!expanded)}>
+          {(file.preview || file.error) && (
+            <Button variant="ghost" size="sm" onClick={() => setOpen(!expanded)} title={file.error ? "Ver erro" : "Ver prévia"}>
               {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
           )}
@@ -817,24 +835,31 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
           </Button>
         </div>
       </div>
-      {expanded && file.preview && (
+      {expanded && (file.preview || file.error || file.status === "NEEDS_REVIEW") && (
         <div className="px-3 pb-3 bg-muted/20 border-t pt-2">
-          <div className="grid grid-cols-3 gap-2 text-[10px]">
-            <div className="bg-background p-1.5 rounded border">
-              <p className="text-muted-foreground uppercase font-bold tracking-tighter">Visitas</p>
-              <p className="text-lg font-semibold">{file.preview.counters.totalMarks}</p>
+          {file.preview && (
+            <div className="grid grid-cols-3 gap-2 text-[10px]">
+              <div className="bg-background p-1.5 rounded border">
+                <p className="text-muted-foreground uppercase font-bold tracking-tighter">Visitas</p>
+                <p className="text-lg font-semibold">{file.preview.counters.totalMarks}</p>
+              </div>
+              <div className="bg-background p-1.5 rounded border">
+                <p className="text-muted-foreground uppercase font-bold tracking-tighter">Lojas</p>
+                <p className="text-lg font-semibold">{file.preview.counters.totalStores}</p>
+              </div>
+              <div className="bg-background p-1.5 rounded border">
+                <p className="text-muted-foreground uppercase font-bold tracking-tighter">Divergências</p>
+                <p className="text-lg font-semibold text-amber-600">{file.preview.counters.storesNotFound + (file.preview.counters.duplicateStoreNames || 0)}</p>
+              </div>
             </div>
-            <div className="bg-background p-1.5 rounded border">
-              <p className="text-muted-foreground uppercase font-bold tracking-tighter">Lojas</p>
-              <p className="text-lg font-semibold">{file.preview.counters.totalStores}</p>
-            </div>
-            <div className="bg-background p-1.5 rounded border">
-              <p className="text-muted-foreground uppercase font-bold tracking-tighter">Divergências</p>
-              <p className="text-lg font-semibold text-amber-600">{file.preview.counters.storesNotFound + (file.preview.counters.duplicateStoreNames || 0)}</p>
-            </div>
-          </div>
+          )}
           {file.error && (
-            <p className="text-xs text-destructive mt-2 font-mono bg-destructive/5 p-1.5 rounded border border-destructive/20">{file.error}</p>
+            <div className="mt-2 space-y-1">
+              <p className="text-[10px] font-bold text-destructive uppercase tracking-wider">Detalhes do erro:</p>
+              <div className="text-[11px] text-destructive font-mono bg-destructive/5 p-2 rounded border border-destructive/20 whitespace-pre-wrap">
+                {file.error}
+              </div>
+            </div>
           )}
           {file.status === "NEEDS_REVIEW" && (
             <p className="text-xs text-amber-600 mt-2 italic">{file.message || "Verifique se o nome do arquivo contém o nome da indústria."}</p>
