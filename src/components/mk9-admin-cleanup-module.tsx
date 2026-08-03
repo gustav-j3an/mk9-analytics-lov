@@ -369,7 +369,7 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-4 pt-2">
               <div className="p-3 bg-destructive/5 border border-destructive/20 rounded-lg text-destructive text-sm">
-                Esta ação irá remover permanentemente <strong>{previewData?.impact.visits} visitas</strong> e inativar <strong>{previewData?.impact.frequencies} frequências</strong> da indústria <strong>{industries.find((i: any) => i.id === industryId)?.name}</strong> na competência <strong>{MONTHS[month - 1]}/{year}</strong>.
+                Esta ação irá remover permanentemente <strong>{selections.visitIds.length} visitas</strong> e inativar <strong>{selections.frequencyIds.length} frequências</strong> da indústria <strong>{industries.find((i: any) => i.id === industryId)?.name}</strong> na competência <strong>{MONTHS[month - 1]}/{year}</strong>.
               </div>
               <p className="text-sm">
                 Os números operacionais (Dashboard e PDF) serão atualizados imediatamente após a execução.
