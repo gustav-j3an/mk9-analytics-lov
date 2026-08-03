@@ -119,11 +119,14 @@ export const executeCleanup = createServerFn({ method: "POST" })
 export const getCleanupDiagnosis = createServerFn({ method: "POST" })
   .inputValidator((data) => cleanupFilterSchema.parse(data))
   .handler(async ({ data }) => {
+    console.log("[CLEANUP LOAD START]", { industryId: data.industryId, month: data.month, year: data.year });
     await requireMk9Role(["ADMIN"]);
+    console.log("[CLEANUP SCOPE OK]");
 
     const { industryId, month, year } = data;
-    const startDate = new Date(year, month - 1, 1).toISOString();
-    const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+    const startDate = new Date(Date.UTC(year, month - 1, 1)).toISOString();
+    const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999)).toISOString();
+    console.log("[CLEANUP PERIOD RESOLVED]", { startDate, endDate });
 
     const results = await Promise.allSettled([
       supabaseAdmin
