@@ -18,8 +18,13 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronRight,
+  FileSearch,
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
+import { cn } from "@/lib/utils";
+import { checklistBatchPreview } from "@/lib/mk9-checklist-batch.functions";
+import type { ChecklistBatchFile } from "@/lib/mk9-checklist/batch-types";
+
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -797,6 +802,7 @@ function IndividualImport({
               </SelectTrigger>
               <SelectContent>
                 {(industriesQ.data ?? []).map((i: any) => (
+
                   <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -832,6 +838,7 @@ function IndividualImport({
                 <div className="space-y-1 text-xs">
                   <p className="text-amber-500">Indústrias semelhantes já cadastradas:</p>
                   {candidates.map((c: any) => (
+
                     <button
                       key={c.id}
                       type="button"
@@ -974,6 +981,7 @@ function IndividualImport({
                 )}
                 <div className="max-h-48 space-y-1 overflow-auto text-xs">
                   {preview.storeFrequencies.slice(0, 60).map((f: any, i: number) => (
+
                     <div key={`${f.storeNormalized}-${i}`} className="flex items-center justify-between gap-3 rounded px-1 py-0.5">
                       <span className="truncate">{f.storeName}{f.uf ? ` · ${f.uf}` : ""}</span>
                       <span className={f.frequencyInconsistent ? "shrink-0 text-amber-700 dark:text-amber-300" : "shrink-0 text-muted-foreground"}>
@@ -1074,7 +1082,8 @@ function IndividualImport({
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.slice(0, 500).map((it: any, i: number) => (
+                   {filtered.slice(0, 500).map((it: any, i: number) => (
+
                     <tr key={i} className="border-t">
                       <td className="p-2 max-w-[280px] truncate" title={it.storeName}>{it.storeName}</td>
                       <td className="p-2">{it.uf ?? "—"}</td>
@@ -1111,6 +1120,7 @@ function IndividualImport({
                 <div className="flex items-center gap-2 font-medium"><AlertTriangle className="h-4 w-4" /> Avisos</div>
                 <ul className="mt-1 list-disc list-inside space-y-0.5">
                   {preview.warnings.map((w: string, i: number) => <li key={i}>{w}</li>)}
+
                 </ul>
               </div>
             )}

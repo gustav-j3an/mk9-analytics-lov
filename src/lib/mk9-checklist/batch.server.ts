@@ -5,7 +5,7 @@ export async function createBatch(userId: string): Promise<ChecklistBatch> {
   const { data, error } = await (supabaseAdmin as any)
     .from("mk9_checklist_import_batches")
     .insert({
-      createdBy: userId,
+      created_by: userId,
       status: "DRAFT",
     })
     .select()
@@ -22,14 +22,14 @@ export async function createBatch(userId: string): Promise<ChecklistBatch> {
     reviewFiles: 0,
     failedFiles: 0,
     files: [],
-    createdAt: row.createdAt,
+    createdAt: row.created_at,
   };
 }
 
 export async function updateBatchStatus(batchId: string, status: BatchStatus) {
   const { error } = await (supabaseAdmin as any)
     .from("mk9_checklist_import_batches")
-    .update({ status, updatedAt: new Date().toISOString() })
+    .update({ status, updated_at: new Date().toISOString() })
     .eq("id", batchId);
   if (error) throw new Error(error.message);
 }

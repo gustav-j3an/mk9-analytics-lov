@@ -21,7 +21,7 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
     const { listIndustries, createBatch, updateBatchStatus } = await import("./mk9-checklist/batch.server");
     
     const industries = await listIndustries();
-    const batch = await createBatch(ctx.userId!);
+    const batch = await createBatch(ctx.userId || "");
     await updateBatchStatus(batch.id, "ANALYZING");
 
     const results = [];
