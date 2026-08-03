@@ -326,7 +326,7 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     .eq("operation_month", input.operationMonth)
     .eq("operation_year", input.operationYear)
     .eq("status", "done")
-    .eq("is_operational_current", true)
+    .eq("is_operational_current" as any, true)
     .maybeSingle();
 
   if (previousData) {

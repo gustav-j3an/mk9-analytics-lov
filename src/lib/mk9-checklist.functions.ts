@@ -109,7 +109,7 @@ export const checklistCommit = createServerFn({ method: "POST" })
         .eq("industry_id", data.industryId)
         .eq("operation_month", data.operationMonth)
         .eq("operation_year", data.operationYear)
-        .eq("is_operational_current", true)
+        .eq("is_operational_current" as any, true)
         .eq("status", "done")
         .maybeSingle();
 
