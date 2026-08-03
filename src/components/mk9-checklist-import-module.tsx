@@ -188,15 +188,11 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const [newIndustryName, setNewIndustryName] = useState("");
   const [candidates, setCandidates] = useState<Array<{ id: string; name: string }> | null>(null);
 
-
   const phaseTimersRef = useRef<number[]>([]);
   const ackRef = useRef<HTMLLabelElement | null>(null);
-
-  const [gate, setGate] = useState<{ industryId: string; industryName: string } | null>(null);
-  const [newIndustryName, setNewIndustryName] = useState("");
-  const [candidates, setCandidates] = useState<Array<{ id: string; name: string }> | null>(null);
   const { roles } = useMk9Session();
   const isAdmin = canManageChecklistIndustries(roles);
+
 
   const commitFn = useServerFn(checklistCommit);
   const listFn = useServerFn(checklistList);
