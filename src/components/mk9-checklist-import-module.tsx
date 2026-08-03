@@ -783,31 +783,12 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
               </Button>
             </div>
           )}
-
         </CardContent>
       </Card>
-
-      {revertDialogOpen && (
-        <RevertChecklistDialog 
-          importId={revertDialogOpen.id}
-          isOpen={!!revertDialogOpen}
-          onOpenChange={(open) => !open && setRevertDialogOpen(null)}
-          onSuccess={() => historyQ.refetch()}
-        />
-      )}
-
-      {correctDialogOpen && (
-        <CorrectCompetenceDialog 
-          importId={correctDialogOpen.id}
-          isOpen={!!correctDialogOpen}
-          onOpenChange={(open) => !open && setCorrectDialogOpen(null)}
-          onSuccess={() => historyQ.refetch()}
-        />
-      )}
     </div>
-
   );
 }
+
 
 function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () => void; setFiles: any }) {
   const [expanded, setOpen] = useState(false);
