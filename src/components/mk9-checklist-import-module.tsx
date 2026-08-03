@@ -168,7 +168,26 @@ async function requestChecklistPreview(input: {
 
 export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: () => void } = {}) {
   const [viewMode, setViewMode] = useState<"individual" | "batch">("individual");
+  
+  // Estados para importação individual
   const now = new Date();
+  const [file, setFile] = useState<File | null>(null);
+  const [month, setMonth] = useState<number>(now.getMonth() + 1);
+  const [year, setYear] = useState<number>(now.getFullYear());
+  const [industryId, setIndustryId] = useState<string>("");
+  const [preview, setPreview] = useState<ChecklistPreview | null>(null);
+  const [importId, setImportId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "found" | "linked_by_similarity" | "new_store" | "invalid_date">("all");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [ackNewStores, setAckNewStores] = useState(false);
+  const [lastError, setLastError] = useState<RichError | null>(null);
+  const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
+  const [highlightAck, setHighlightAck] = useState(false);
+  const [phase, setPhase] = useState<"idle" | "confirming" | "stores" | "visits" | "reconcile" | "done" | "failed">("idle");
+  const [gate, setGate] = useState<{ industryId: string; industryName: string } | null>(null);
+  const [newIndustryName, setNewIndustryName] = useState("");
+  const [candidates, setCandidates] = useState<Array<{ id: string; name: string }> | null>(null);
+
 
   const phaseTimersRef = useRef<number[]>([]);
   const ackRef = useRef<HTMLLabelElement | null>(null);
