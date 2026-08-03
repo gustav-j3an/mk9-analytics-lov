@@ -177,14 +177,21 @@ export function Mk9SyncModule() {
                   </h3>
                   <div className="p-4 rounded-xl border bg-muted/20 space-y-3">
                     <p className="text-xs text-muted-foreground">
-                      Configure o n8n para enviar multipart/form-data contendo:
+                      Configure o n8n para enviar multipart/form-data. Exemplo de teste (PowerShell):
                     </p>
-                    <ul className="text-[10px] space-y-1 list-disc list-inside text-muted-foreground">
-                      <li><code>file</code>: Buffer do .xlsx</li>
-                      <li><code>externalFileId</code>: ID único do Drive</li>
-                      <li><code>fileHash</code>: SHA-256 do conteúdo</li>
-                      <li><code>modifiedTime</code>: Data ISO-8601</li>
-                    </ul>
+                    <pre className="text-[9px] bg-background/50 p-3 rounded border overflow-x-auto font-mono leading-tight whitespace-pre text-muted-foreground">
+{`$secret = "COLE_AQUI_O_MESMO_VALOR_DO_MK9_SYNC_SECRET"
+$filePath = "C:\\CAMINHO\\KING - AGOSTO 2026.xlsx"
+$url = "${typeof window !== 'undefined' ? window.location.origin : 'https://mk9-analytics.lovable.app'}/api/public/sync/checklists"
+
+curl.exe -X POST $url \`
+  -H "Authorization: Bearer $secret" \`
+  -F "file=@$filePath" \`
+  -F "externalFileId=teste-king-001" \`
+  -F "fileName=KING - AGOSTO 2026.xlsx" \`
+  -F "modifiedTime=2026-08-03T15:00:00-03:00" \`
+  -F "sourcePath=MK9 CHECKLISTS/2026/AGOSTO"`}
+                    </pre>
                   </div>
                 </div>
               </div>
