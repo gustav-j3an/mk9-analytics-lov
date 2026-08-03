@@ -728,7 +728,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
 
               <div className="grid gap-2 max-h-[400px] overflow-y-auto pr-2">
                 {files.map((file) => (
-                  <BatchFileRow key={file.id} file={file} onRemove={() => removeFile(file.id)} />
+                  <BatchFileRow key={file.id} file={file} onRemove={() => removeFile(file.id)} setFiles={setFiles} />
                 ))}
               </div>
             </div>
