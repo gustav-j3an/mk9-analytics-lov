@@ -29,16 +29,26 @@ import { toast } from "sonner";
 import { getCleanupPreview, executeCleanup } from "@/lib/mk9-cleanup.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 const MONTHS = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
 
-export function Mk9AdminCleanupModule() {
+export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
   const [industryId, setIndustryId] = useState("");
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(props.month);
+  const [year, setYear] = useState(props.year);
+  
+  // Sincroniza quando os filtros globais mudam, a menos que o usuário tenha começado a interagir.
+  // Se ele já buscou algo, mantemos a visão dele estável.
+  useEffect(() => {
+    if (!previewMut.data && !previewMut.isPending) {
+      setMonth(props.month);
+      setYear(props.year);
+    }
+  }, [props.month, props.year]);
   const [justification, setJustification] = useState("");
   const [selectedImports, setSelectedImports] = useState<string[]>([]);
   const [options, setOptions] = useState({
