@@ -749,7 +749,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
   );
 }
 
-function BatchFileRow({ file, onRemove }: { file: any; onRemove: () => void }) {
+function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () => void; setFiles: any }) {
   const [expanded, setOpen] = useState(false);
   
   const statusConfig: Record<string, { icon: any, color: string, label: string }> = {
