@@ -188,11 +188,11 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
                   const toastId = toast.loading("Executando Hotfix BANANA...");
                   try {
                     const traceFn = (await import("@/lib/mk9-hotfix.functions")).getBananaHotfixTrace;
-                    const res = await traceFn();
+                    const res = (await traceFn()) as any;
                     console.log("[HOTFIX RESULTS]", res);
                     toast.success("Hotfix BANANA executado com sucesso!", { 
                       id: toastId,
-                      description: `Antes: ${res.before.contracted}c/${res.before.actual}r. Depois: ${res.after.contracted}c/${res.after.actual}r.`
+                      description: `Antes: ${res.before?.contracted ?? 0}c/${res.before?.actual ?? 0}r. Depois: ${res.after?.contracted ?? 0}c/${res.after?.actual ?? 0}r.`
                     });
                   } catch (e: any) {
                     toast.error(e?.message || "Erro no Hotfix", { id: toastId });
