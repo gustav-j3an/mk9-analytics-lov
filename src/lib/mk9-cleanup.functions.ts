@@ -231,7 +231,18 @@ export const executeGranularCleanup = createServerFn({ method: "POST" })
   }).parse(data))
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(["ADMIN"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { loadPeriodConfig, resolveWindow } = await import("@/lib/mk9-reports/period.server");
+    const { buildIndustryReport } = await import("@/lib/mk9-reports/industry-report.server");
     
+    // 1. Snapshot ANTES
+    const cfg = await loadPeriodConfig(supabaseAdmin, data.industryId);
+    const window = resolveWindow(cfg, data.year, data.month);
+    const beforeReport = await buildIndustryReport(supabaseAdmin, {
+      industryId: data.industryId, year: data.year, month: data.month
+    }, window);
+
+    // 2. Execução Transacional Granular
     let visitsAffected = 0;
     if (data.selections.visitIds.length > 0) {
       const { count } = await supabaseAdmin
@@ -269,10 +280,39 @@ export const executeGranularCleanup = createServerFn({ method: "POST" })
         .in("id", data.selections.importIds);
     }
 
+    // 3. Invalidação de Projeções e Caches (Placeholder para engine de reprojeção oficial)
+    // No MK9, a invalidação é implícita pois o buildIndustryReport lê direto das tabelas de fonte.
+
+    // 4. Snapshot DEPOIS (Validação pós-limpeza)
+    const afterReport = await buildIndustryReport(supabaseAdmin, {
+      industryId: data.industryId, year: data.year, month: data.month
+    }, window);
+
     await logAudit(ctx, "mk9.admin.cleanup.granular", "multiple", data.industryId, {
       ...data,
-      results: { visitsAffected, frequenciesAffected, routesAffected }
+      results: { 
+        visitsAffected, 
+        frequenciesAffected, 
+        routesAffected,
+        before: { contracted: beforeReport.totals.contracted, actual: beforeReport.totals.actual },
+        after: { contracted: afterReport.totals.contracted, actual: afterReport.totals.actual }
+      }
     });
 
-    return { success: true, visitsAffected, frequenciesAffected, routesAffected };
+    return { 
+      success: true, 
+      visitsAffected, 
+      frequenciesAffected, 
+      routesAffected,
+      before: {
+        contracted: beforeReport.totals.contracted,
+        actual: beforeReport.totals.actual,
+        stores: beforeReport.stores.length
+      },
+      after: {
+        contracted: afterReport.totals.contracted,
+        actual: afterReport.totals.actual,
+        stores: afterReport.stores.length
+      }
+    };
   });
