@@ -835,22 +835,24 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
           </Button>
         </div>
       </div>
-      {expanded && file.preview && (
+      {expanded && (file.preview || file.error || file.status === "NEEDS_REVIEW") && (
         <div className="px-3 pb-3 bg-muted/20 border-t pt-2">
-          <div className="grid grid-cols-3 gap-2 text-[10px]">
-            <div className="bg-background p-1.5 rounded border">
-              <p className="text-muted-foreground uppercase font-bold tracking-tighter">Visitas</p>
-              <p className="text-lg font-semibold">{file.preview.counters.totalMarks}</p>
+          {file.preview && (
+            <div className="grid grid-cols-3 gap-2 text-[10px]">
+              <div className="bg-background p-1.5 rounded border">
+                <p className="text-muted-foreground uppercase font-bold tracking-tighter">Visitas</p>
+                <p className="text-lg font-semibold">{file.preview.counters.totalMarks}</p>
+              </div>
+              <div className="bg-background p-1.5 rounded border">
+                <p className="text-muted-foreground uppercase font-bold tracking-tighter">Lojas</p>
+                <p className="text-lg font-semibold">{file.preview.counters.totalStores}</p>
+              </div>
+              <div className="bg-background p-1.5 rounded border">
+                <p className="text-muted-foreground uppercase font-bold tracking-tighter">Divergências</p>
+                <p className="text-lg font-semibold text-amber-600">{file.preview.counters.storesNotFound + (file.preview.counters.duplicateStoreNames || 0)}</p>
+              </div>
             </div>
-            <div className="bg-background p-1.5 rounded border">
-              <p className="text-muted-foreground uppercase font-bold tracking-tighter">Lojas</p>
-              <p className="text-lg font-semibold">{file.preview.counters.totalStores}</p>
-            </div>
-            <div className="bg-background p-1.5 rounded border">
-              <p className="text-muted-foreground uppercase font-bold tracking-tighter">Divergências</p>
-              <p className="text-lg font-semibold text-amber-600">{file.preview.counters.storesNotFound + (file.preview.counters.duplicateStoreNames || 0)}</p>
-            </div>
-          </div>
+          )}
           {file.error && (
             <div className="mt-2 space-y-1">
               <p className="text-[10px] font-bold text-destructive uppercase tracking-wider">Detalhes do erro:</p>
