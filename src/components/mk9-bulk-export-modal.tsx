@@ -5,6 +5,7 @@ import {
   Download, 
   Loader2, 
   Search, 
+  Check,
   FileText, 
   Archive, 
   AlertCircle,
@@ -116,15 +117,15 @@ export function BulkExportModal() {
     
     setLoadingPreview(true);
     try {
-      const res = await previewFn({ 
+      const res = (await previewFn({ 
         data: { industryIds: idsToFetch, month, year, filters: { uf: uf || null } } 
-      });
+      })) as BulkExportPreview;
       
       if (retryIds) {
-        setPreview(prev => {
+        setPreview((prev: BulkExportPreview | null) => {
           if (!prev) return res;
           const updatedItems = [...prev.items];
-          res.items.forEach(newItem => {
+          res.items.forEach((newItem: BulkExportPreviewItem) => {
             const idx = updatedItems.findIndex(i => i.industryId === newItem.industryId);
             if (idx >= 0) updatedItems[idx] = newItem;
             else updatedItems.push(newItem);
@@ -132,7 +133,7 @@ export function BulkExportModal() {
           
           return {
             ...res,
-            selectedCount: prev.selectedCount, // Keep original total selected
+            selectedCount: prev.selectedCount,
             items: updatedItems
           };
         });
@@ -149,7 +150,7 @@ export function BulkExportModal() {
 
   function handleRetryErrorItems() {
     if (!preview) return;
-    const errorIds = preview.items.filter(i => i.status === "ERROR").map(i => i.industryId);
+    const errorIds = preview.items.filter((i: BulkExportPreviewItem) => i.status === "ERROR").map((i: BulkExportPreviewItem) => i.industryId);
     if (errorIds.length > 0) handleGeneratePreview(errorIds);
   }
 
