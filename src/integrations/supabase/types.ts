@@ -221,6 +221,8 @@ export type Database = {
       }
       mk9_checklist_imports: {
         Row: {
+          corrected_from_import_id: string | null
+          corrected_to_import_id: string | null
           counters: Json
           created_at: string
           duration_ms: number | null
@@ -233,6 +235,10 @@ export type Database = {
           operation_month: number
           operation_year: number
           preview: Json | null
+          revert_reason: string | null
+          reverted_at: string | null
+          reverted_by: string | null
+          reverted_counters: Json | null
           started_at: string
           status: Database["public"]["Enums"]["mk9_import_status"]
           updated_at: string
@@ -242,6 +248,8 @@ export type Database = {
           validation_status: string | null
         }
         Insert: {
+          corrected_from_import_id?: string | null
+          corrected_to_import_id?: string | null
           counters?: Json
           created_at?: string
           duration_ms?: number | null
@@ -254,6 +262,10 @@ export type Database = {
           operation_month: number
           operation_year: number
           preview?: Json | null
+          revert_reason?: string | null
+          reverted_at?: string | null
+          reverted_by?: string | null
+          reverted_counters?: Json | null
           started_at?: string
           status?: Database["public"]["Enums"]["mk9_import_status"]
           updated_at?: string
@@ -263,6 +275,8 @@ export type Database = {
           validation_status?: string | null
         }
         Update: {
+          corrected_from_import_id?: string | null
+          corrected_to_import_id?: string | null
           counters?: Json
           created_at?: string
           duration_ms?: number | null
@@ -275,6 +289,10 @@ export type Database = {
           operation_month?: number
           operation_year?: number
           preview?: Json | null
+          revert_reason?: string | null
+          reverted_at?: string | null
+          reverted_by?: string | null
+          reverted_counters?: Json | null
           started_at?: string
           status?: Database["public"]["Enums"]["mk9_import_status"]
           updated_at?: string
@@ -284,6 +302,20 @@ export type Database = {
           validation_status?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "mk9_checklist_imports_corrected_from_import_id_fkey"
+            columns: ["corrected_from_import_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_checklist_imports_corrected_to_import_id_fkey"
+            columns: ["corrected_to_import_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_imports"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mk9_checklist_imports_industry_id_fkey"
             columns: ["industry_id"]
