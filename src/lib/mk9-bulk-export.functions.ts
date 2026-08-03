@@ -125,7 +125,7 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
     const { roles, claims } = (context as any);
     const authContext = {
       userId: context?.userId ?? null,
-      roles: roles || claims?.user_roles || [],
+      roles: Array.isArray(roles) ? roles : (claims?.user_roles || []),
       devBypass: false
     };
     
@@ -284,7 +284,7 @@ export const processBulkExport = createServerFn({ method: "POST" })
     const { roles, claims } = (context as any);
     const authContext = {
       userId: context?.userId ?? null,
-      roles: roles || claims?.user_roles || [],
+      roles: Array.isArray(roles) ? roles : (claims?.user_roles || []),
       devBypass: false
     };
     const access = await resolveMk9AccessScope(authContext as any);
