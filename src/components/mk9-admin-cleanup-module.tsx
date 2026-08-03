@@ -6,10 +6,8 @@ import {
   Search, 
   Trash2, 
   AlertTriangle, 
-  CheckCircle2, 
   Loader2, 
-  History,
-  Info
+  History
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +28,7 @@ import {
 import { toast } from "sonner";
 import { getCleanupPreview, executeCleanup } from "@/lib/mk9-cleanup.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
+import { cn } from "@/lib/utils";
 
 const MONTHS = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -183,9 +182,6 @@ export function Mk9AdminCleanupModule() {
                           </p>
                         </div>
                       </div>
-                      {imp.is_operational_current && (
-                        <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-200 text-[10px]">VIGENTE</Badge>
-                      )}
                     </div>
                   ))}
                 </div>

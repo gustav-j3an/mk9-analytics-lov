@@ -30,7 +30,7 @@ export const getCleanupPreview = createServerFn({ method: "POST" })
     // 1. Localiza importações
     const { data: imports } = await supabaseAdmin
       .from("mk9_checklist_imports")
-      .select("id, filename, started_at, user_id, status, counters, batch_id, is_operational_current")
+      .select("id, filename, started_at, user_id, status, counters, batch_id")
       .eq("industry_id", data.industryId)
       .eq("operation_month", data.month)
       .eq("operation_year", data.year)
@@ -67,28 +67,8 @@ export const executeCleanup = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(["ADMIN"]);
     
-    // Auditoria inicial
-    const logId = await supabaseAdmin
-      .from("mk9_checklist_cleanup_logs")
-      .insert({
-        industry_id: data.industryId,
-        operation_month: data.month,
-        operation_year: data.year,
-        justification: data.justification,
-        impact_summary: { 
-          import_ids: data.importIds,
-          options: data.options 
-        },
-        created_by: ctx.userId
-      })
-      .select("id")
-      .single()
-      .then(res => res.data?.id);
-
-    // Ações transacionais simuladas (atômicas por tipo)
+    // 1. Reverte visitas
     let visitsRemoved = 0;
-    let frequenciesArchived = 0;
-
     if (data.options.revertVisits) {
       const { count } = await supabaseAdmin
         .from("mk9_actual_visits")
@@ -97,33 +77,35 @@ export const executeCleanup = createServerFn({ method: "POST" })
       visitsRemoved = count || 0;
     }
 
+    // 2. Arquiva frequências
+    let frequenciesArchived = 0;
     if (data.options.archiveFrequencies) {
       const { count } = await supabaseAdmin
         .from("mk9_industry_store_frequency_versions")
         .update({ 
-          archived_at: new Date().toISOString(),
-          // @ts-ignore
-          archived_by: ctx.userId,
-          // @ts-ignore
-          archive_reason: `LIMPEZA_ADMIN: ${data.justification}`
+          archived_at: new Date().toISOString()
         } as any)
         .in("source_import_id", data.importIds);
       frequenciesArchived = count || 0;
     }
 
-    // Marca importações como revertidas/limpas
+    // 3. Marca importações como revertidas
     await supabaseAdmin
       .from("mk9_checklist_imports")
       .update({ 
         status: "reverted", 
-        is_operational_current: false,
         error_message: `Limpeza administrativa: ${data.justification}`
       } as any)
       .in("id", data.importIds);
 
     await logAudit(ctx, "mk9.admin.cleanup", "mk9_checklist_imports", data.industryId, {
-      logId,
-      ...data
+      industryId: data.industryId,
+      month: data.month,
+      year: data.year,
+      justification: data.justification,
+      importIds: data.importIds,
+      visitsRemoved,
+      frequenciesArchived
     });
 
     return { success: true, visitsRemoved, frequenciesArchived };
