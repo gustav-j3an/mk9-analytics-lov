@@ -173,28 +173,63 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
                   <History className="h-4 w-4" /> Importações Localizadas
                 </CardTitle>
               </CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
+                  <History className="h-4 w-4" /> Importações Localizadas
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                   <Badge variant="secondary" className="text-[10px]">{previewData.imports.length} arquivos</Badge>
+                </div>
+              </CardHeader>
               <CardContent>
-                <div className="space-y-2 max-h-[400px] overflow-auto pr-2">
-                  {previewData.imports.map(imp => (
-                    <div key={imp.id} className="flex items-center justify-between p-3 rounded-lg border bg-background/40">
-                      <div className="flex items-center gap-3">
-                        <Checkbox 
-                          checked={selectedImports.includes(imp.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) setSelectedImports([...selectedImports, imp.id]);
-                            else setSelectedImports(selectedImports.filter(id => id !== imp.id));
-                          }}
-                        />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{imp.filename}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase">
-                            {new Date(imp.started_at).toLocaleString()} · {imp.status}
-                          </p>
+                {previewData.imports.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl bg-muted/10">
+                    <Info className="h-8 w-8 text-muted-foreground/30 mb-3" />
+                    <p className="text-sm font-medium text-muted-foreground">Nenhuma importação encontrada</p>
+                    <p className="text-[11px] text-muted-foreground/60 max-w-[200px] mt-1">
+                      Tente ajustar os filtros ou selecione outra competência.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[400px] overflow-auto pr-2">
+                    {previewData.imports.map(imp => (
+                      <div 
+                        key={imp.id} 
+                        className={cn(
+                          "flex items-center justify-between p-3 rounded-lg border transition-colors",
+                          selectedImports.includes(imp.id) ? "bg-amber-50/50 border-amber-200" : "bg-background/40 hover:bg-background/60"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Checkbox 
+                            id={`imp-${imp.id}`}
+                            checked={selectedImports.includes(imp.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) setSelectedImports([...selectedImports, imp.id]);
+                              else setSelectedImports(selectedImports.filter(id => id !== imp.id));
+                            }}
+                          />
+                          <div className="min-w-0">
+                            <label htmlFor={`imp-${imp.id}`} className="text-sm font-medium truncate block cursor-pointer">{imp.filename}</label>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <p className="text-[10px] text-muted-foreground uppercase">
+                                {new Date(imp.started_at).toLocaleString()}
+                              </p>
+                              <span className="text-muted-foreground/30">·</span>
+                              <Badge variant="outline" className={cn(
+                                "text-[9px] h-4 px-1.5 font-bold uppercase",
+                                imp.status === 'done' ? "text-emerald-600 border-emerald-200" : "text-amber-600 border-amber-200"
+                              )}>
+                                {imp.status}
+                              </Badge>
+                            </div>
+                            <p className="text-[9px] text-muted-foreground/60 mt-1 font-mono uppercase">ID: {imp.id}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
