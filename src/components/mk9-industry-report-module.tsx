@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, Loader2, Settings2, AlertCircle } from "lucide-react";
+import { Download, Loader2, Settings2, AlertCircle, Archive } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
+import { BulkExportModal } from "./mk9-bulk-export-modal";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 import {
   reportIndustry,
@@ -152,7 +153,10 @@ export function Mk9IndustryReportModule() {
           <h2 className="text-2xl font-semibold tracking-tight">Relatório da Indústria</h2>
           <p className="text-sm text-muted-foreground">Documento consolidado para envio ao cliente. Números calculados a partir das visitas planejadas e realizadas.</p>
         </div>
-        <PeriodConfigDialog industryId={industryId} />
+        <div className="flex items-center gap-2">
+          <BulkExportModal />
+          <PeriodConfigDialog industryId={industryId} />
+        </div>
       </div>
 
       <Card>
