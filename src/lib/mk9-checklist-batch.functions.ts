@@ -14,15 +14,15 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
   .inputValidator(async (data: unknown) => batchPreviewSchema.parse(data))
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("./mk9-auth/require-role.server");
-    await requireMk9Role(["ADMIN"]);
+    const ctx = await requireMk9Role(["ADMIN"]);
 
     const { runChecklistPreview } = await import("./mk9-checklist/preview.server");
     const { createChecklistDiagnostics } = await import("./mk9-checklist/diagnostics");
-    const { loadIndustries } = await import("./mk9-checklist/persistence.server");
+    const { listIndustries, createBatch, updateBatchStatus } = await import("./mk9-checklist/batch.server");
     
-    // Carrega indústrias para detecção automática
-    const industries = await loadIndustries();
-    const activeChecklistIndustries = industries.filter(i => i.requires_checklist && !i.archived_at);
+    const industries = await listIndustries();
+    const batch = await createBatch(ctx.userId);
+    await updateBatchStatus(batch.id, "ANALYZING");
 
     const results = [];
     for (const file of data.files) {
@@ -30,23 +30,52 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
       try {
         const buffer = Buffer.from(file.base64, "base64");
         
-        // TODO: Implementar lógica de detecção de indústria baseada no conteúdo e nome do arquivo
-        // Por enquanto, tentamos rodar o preview com a primeira indústria disponível ou falhamos
-        // No fluxo de lote, a identificação automática é chave.
+        // Detecção simplificada: tenta encontrar o nome da indústria no nome do arquivo
+        const filenameLower = file.filename.toLowerCase();
+        let matchedIndustry = industries.find(i => filenameLower.includes(i.name.toLowerCase()));
         
-        results.push({
-          filename: file.filename,
-          status: "READY",
-          // ... dados do preview
-        });
-      } catch (e) {
+        if (matchedIndustry) {
+          const res = await runChecklistPreview(
+            {
+              buffer: buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
+              filename: file.filename,
+              fileSize: buffer.byteLength,
+              mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              industryId: matchedIndustry.id,
+              operationMonth: data.operationMonth,
+              operationYear: data.operationYear,
+            },
+            diagnostics
+          );
+
+          // Vincula o import individual ao batch
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          await supabaseAdmin.from("mk9_checklist_imports").update({ batch_id: batch.id }).eq("id", res.importId);
+
+          results.push({
+            importId: res.importId,
+            filename: file.filename,
+            status: "READY",
+            industryId: matchedIndustry.id,
+            industryName: matchedIndustry.name,
+            preview: res.preview,
+          });
+        } else {
+          results.push({
+            filename: file.filename,
+            status: "NEEDS_REVIEW",
+            message: "Indústria não identificada pelo nome do arquivo",
+          });
+        }
+      } catch (e: any) {
         results.push({
           filename: file.filename,
           status: "ERROR",
-          error: String(e),
+          error: e?.message ?? String(e),
         });
       }
     }
 
-    return { results };
+    await updateBatchStatus(batch.id, "READY");
+    return { batchId: batch.id, results };
   });
