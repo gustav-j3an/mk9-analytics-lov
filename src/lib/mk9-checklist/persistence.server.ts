@@ -229,6 +229,7 @@ export async function createChecklistImport(input: {
   operationMonth: number;
   operationYear: number;
   userId?: string | null;
+  fileHash?: string | null;
 }) {
   const { data, error } = await supabaseAdmin
     .from("mk9_checklist_imports")
@@ -239,6 +240,7 @@ export async function createChecklistImport(input: {
       operation_year: input.operationYear,
       status: "previewing",
       user_id: input.userId ?? null,
+      file_hash: input.fileHash ?? null,
     })
     .select("id")
     .single();
@@ -345,6 +347,10 @@ export async function listChecklistImports(limit = 30) {
     validationStatus: (r.validation_status as string | null) ?? null,
     validationDetails: (r.validation_details ?? null) as any,
     validatedAt: (r.validated_at as string | null) ?? null,
+    isOperationalCurrent: !!r.is_operational_current,
+    supersededAt: (r.superseded_at as string | null) ?? null,
+    supersededBy: (r.superseded_by as string | null) ?? null,
+    replacesImportId: (r.replaces_import_id as string | null) ?? null,
   }));
 }
 
