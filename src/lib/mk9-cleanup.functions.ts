@@ -180,14 +180,14 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
     ]);
 
     const getValue = <T>(res: PromiseSettledResult<T>, defaultValue: any = []) => 
-      res.status === 'fulfilled' ? (res.value as any).data || defaultValue : defaultValue;
+      res.status === 'fulfilled' ? (res.value as any).data || defaultValue : null;
 
-    const imports = getValue(results[0]);
-    const visits = getValue(results[1]);
-    const frequencies = getValue(results[2]);
-    const routes = getValue(results[3]);
-    const reconciliations = getValue(results[4]);
-    const qualityIssues = getValue(results[5]);
+    const imports = getValue(results[0]) || [];
+    const visits = getValue(results[1]) || [];
+    const frequencies = getValue(results[2]) || [];
+    const routes = getValue(results[3]) || [];
+    const reconciliations = getValue(results[4]) || [];
+    const qualityIssues = getValue(results[5]) || [];
     const periodConfig = getValue(results[6], null);
     const contractTotal = getValue(results[7], null);
 
