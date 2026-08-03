@@ -199,15 +199,22 @@ export async function buildIndustryReport(
   // 4) Visitas realizadas no período (checklist)
   let actualQ = supabase
     .from("mk9_actual_visits")
-    .select("id, scheduled_date, store_id, source_import_id, store:mk9_stores(id,name,chain,uf)")
+    .select("id, scheduled_date, store_id, source_import_id, store:mk9_stores(id,name,chain,uf), source:mk9_checklist_imports(is_operational_current)")
     .eq("industry_id", industryId)
     .gte("scheduled_date", window.startDate)
-    .lte("scheduled_date", window.endDate)
-    .limit(20000);
+    .lte("scheduled_date", window.endDate);
+
   if (storeId) actualQ = actualQ.eq("store_id", storeId);
-  if (sourceImportId) actualQ = actualQ.eq("source_import_id", sourceImportId);
-  const { data: actuals, error: eAc } = await actualQ;
+  if (sourceImportId) {
+    actualQ = actualQ.eq("source_import_id", sourceImportId);
+  } else {
+    // REGRA DE SUBSTITUIÇÃO: Se não filtrado por import específico, mostrar apenas de imports vigentes ou manuais
+    actualQ = actualQ.or(`source_import_id.is.null,source.is_operational_current.eq.true`);
+  }
+  
+  const { data: actuals, error: eAc } = await actualQ.limit(20000);
   if (eAc) throw new Error(eAc.message);
+
 
   // 5) Reconciliações no período
   let recQ = supabase

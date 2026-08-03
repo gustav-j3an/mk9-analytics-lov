@@ -318,6 +318,31 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
   });
 
 
+  // Identifica importação operacional vigente para comparação
+  const { data: previousData } = await supabaseAdmin
+    .from("mk9_checklist_imports")
+    .select("id, filename, user_id, started_at, counters")
+    .eq("industry_id", industry.id)
+    .eq("operation_month", input.operationMonth)
+    .eq("operation_year", input.operationYear)
+    .eq("status", "done")
+    .eq("is_operational_current", true)
+    .maybeSingle();
+
+  if (previousData) {
+    preview.previousImport = {
+      id: previousData.id,
+      filename: previousData.filename,
+      userId: previousData.user_id,
+      startedAt: previousData.started_at,
+      counters: previousData.counters as any,
+    };
+  }
+
+  // Hash do arquivo para detecção de duplicados
+  const fileHash = createHash("sha256").update(Buffer.from(input.buffer)).digest("hex");
+  preview.fileHash = fileHash;
+
   // Encerra prévias anteriores presas para a mesma indústria/competência antes de criar a nova.
   await cancelPreviousPreviews({
     industryId: industry.id,
@@ -330,22 +355,21 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     industryId: industry.id,
     operationMonth: input.operationMonth,
     operationYear: input.operationYear,
+    fileHash,
   });
 
   await savePreviewSnapshot(importId, preview);
   await updateImportStatus(importId, { status: "previewing", counters: { ...preview.counters } });
   if (preview.validation) await writeValidationReport(importId, preview.validation);
 
-
-
   diagnostics.info("preview-complete", "Prévia finalizada com sucesso", {
     importId,
     visits: preview.items.length,
     storesFound: preview.counters.storesFound,
-    storesLinkedBySimilarity: preview.counters.storesLinkedBySimilarity,
     storesNew: preview.counters.storesNew,
     totalContractedFrequency: preview.counters.totalContractedFrequency,
-    frequenciesNotImported: preview.counters.frequenciesNotImported,
+    fileHash,
+    hasPreviousImport: !!previousData,
   });
 
   return { importId, preview, diagnostics: diagnostics.events };

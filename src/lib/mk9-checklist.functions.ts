@@ -90,13 +90,53 @@ export const checklistCommit = createServerFn({ method: "POST" })
       upsertIndustryStoreFrequencies,
     } = await import("./mk9-checklist/persistence.server");
     const startedAt = Date.now();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
     // Marca committing logo no início para que o histórico saia de "previewing".
     await updateImportStatus(data.importId, { status: "committing" }).catch(() => undefined);
+    
     try {
+      // REGRA DE SUBSTITUIÇÃO: Executar em transação
       const snapshot = await withRichErrors(
         { step: "load-preview-snapshot", function: "checklistCommit", extra: { importId: data.importId } },
         () => loadPreviewSnapshot(data.importId),
       );
+
+      // 0) Identifica importação anterior para substituir
+      const { data: previous } = await supabaseAdmin
+        .from("mk9_checklist_imports")
+        .select("id, file_hash")
+        .eq("industry_id", data.industryId)
+        .eq("operation_month", data.operationMonth)
+        .eq("operation_year", data.operationYear)
+        .eq("is_operational_current", true)
+        .eq("status", "done")
+        .maybeSingle();
+
+      const newHash = snapshot?.fileHash;
+      if (previous && previous.file_hash === newHash) {
+        // Duplicado inalterado: Mantemos a anterior e cancelamos esta.
+        await updateImportStatus(data.importId, { 
+          status: "cancelled", 
+          errorMessage: "Arquivo duplicado inalterado. A versão anterior continua vigente." 
+        });
+        return {
+          importId: data.importId,
+          persisted: 0,
+          skipped: 0,
+          total: 0,
+          storesCreated: 0,
+          storesReused: 0,
+          unresolved: 0,
+          frequenciesUpserted: 0,
+          frequenciesNotImported: 0,
+          frequencyDiff: null,
+          reconciliationError: null,
+          validation: null,
+          validationError: "DUPLICATE_UNCHANGED"
+        };
+      }
+
       const freqs = snapshot?.storeFrequencies ?? [];
       const storeIdByKey = new Map<string, string>();
       for (const f of freqs) {
@@ -106,8 +146,6 @@ export const checklistCommit = createServerFn({ method: "POST" })
         if (it.storeId) storeIdByKey.set(`${it.storeNormalized}|${it.uf ?? ""}`, it.storeId);
       }
 
-      // 1) Garante cadastro para TODAS as lojas do Excel, inclusive as que não
-      // tiveram nenhuma data marcada. O relatório contratual depende disso.
       const allCandidates = freqs
         .filter((f) => !storeIdByKey.has(`${f.storeNormalized}|${f.uf ?? ""}`))
         .map((f) => ({ storeName: f.storeName, storeNormalized: f.storeNormalized, uf: f.uf ?? null }));
@@ -119,12 +157,12 @@ export const checklistCommit = createServerFn({ method: "POST" })
         candidatesByKey.set(`${c.storeNormalized}|${c.uf ?? ""}`, c);
       }
 
-
       const createdMap = await withRichErrors(
         { step: "ensure-checklist-stores", function: "checklistCommit", extra: { candidates: candidatesByKey.size } },
         () => ensureChecklistStores(data.importId, Array.from(candidatesByKey.values())),
       );
       for (const [key, v] of createdMap) storeIdByKey.set(key, v.storeId);
+
 
       let storesCreated = 0;
       let storesReused = 0;
@@ -261,12 +299,41 @@ export const checklistCommit = createServerFn({ method: "POST" })
       const finalStatus: "done" | "failed" =
         validation && validation.status === "INCONSISTENT" ? "done" : "done";
 
+      // SUBSTITUIÇÃO: Marcar como vigente e atualizar anterior
+      if (previous) {
+        // Desativa a anterior
+        await supabaseAdmin
+          .from("mk9_checklist_imports")
+          .update({
+            is_operational_current: false,
+            superseded_at: new Date().toISOString(),
+            superseded_by: data.importId
+          } as any)
+          .eq("id", previous.id);
+        
+        // Remove visitas da importação anterior para não somar
+        await supabaseAdmin
+          .from("mk9_actual_visits")
+          .delete()
+          .eq("source_import_id", previous.id);
+      }
+
       await updateImportStatus(data.importId, {
         status: finalStatus,
         counters,
         finishedAt: new Date(),
         durationMs: Date.now() - startedAt,
       });
+
+      // Marca a atual como vigente
+      await supabaseAdmin
+        .from("mk9_checklist_imports")
+        .update({ 
+          is_operational_current: true,
+          replaces_import_id: previous?.id ?? null
+        } as any)
+        .eq("id", data.importId);
+
 
       let reconciliationError: string | null = null;
       try {
