@@ -84,10 +84,10 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
   });
 
   const previewMut = useMutation({
-    mutationFn: () => previewFn({ data: { industryId, month, year } }),
-    onSuccess: (res) => {
+    mutationFn: () => diagnosisFn({ data: { industryId, month, year } }),
+    onSuccess: (res: any) => {
       setSelectedImports(res.imports.map((i: any) => i.id));
-      toast.success("Prévia de impacto carregada");
+      toast.success("Diagnóstico concluído");
     }
   });
 
