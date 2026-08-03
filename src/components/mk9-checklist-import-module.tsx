@@ -610,6 +610,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
           industryName: result.industryName,
           preview: result.preview,
           error: result.error || result.message,
+          message: result.message,
         });
 
       } catch (e: any) {
