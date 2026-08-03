@@ -43,6 +43,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { getCleanupDiagnosis, executeGranularCleanup } from "@/lib/mk9-cleanup.functions";
+import { getBananaHotfixTrace } from "@/lib/mk9-hotfix.functions";
 import { mk9ListChecklistIndustries } from "@/lib/mk9-data.functions";
 import { cn } from "@/lib/utils";
 
