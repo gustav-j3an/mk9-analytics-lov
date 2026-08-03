@@ -16,17 +16,6 @@ import { useMk9Session } from "@/lib/mk9-auth/session";
 import { toast } from "sonner";
 import { Mk9AdminCleanupModule } from "@/components/mk9-admin-cleanup-module";
 import { Mk9SyncModule } from "@/components/mk9-sync-module";
-import {
-  CHECKLIST_INDUSTRY_CACHE_KEYS,
-} from "@/lib/mk9-checklist/industry-admin-ui";
-import { matchesStatusFilter, type IndustryStatusFilter } from "@/lib/mk9-industries/admin";
-import {
-  IndustryArchiveDialog,
-  IndustryCreateDialog,
-  IndustryEditDialog,
-  IndustryReactivateDialog,
-} from "@/components/mk9/industry-admin-dialogs";
-import { IndustryFrequencyDialog } from "@/components/mk9/industry-frequency-panel";
 
 import {
   AlertTriangle,
@@ -54,14 +43,13 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
   mk9ListIndustries,
-  mk9SetIndustryRequiresChecklist,
-  mk9GetSyncOverview,
+  mk9ListStores,
+  mk9ListPromoters,
 } from "@/lib/mk9-data.functions";
 
 type ModuleId =
@@ -86,9 +74,17 @@ export function Mk9AnalyticsApp() {
   const [auditFilters, setAuditFilters] = useState<Mk9AuditInitialFilters>({});
   const [auditKey, setAuditKey] = useState(0);
 
-  const isAdmin = roles.includes("admin");
-  const isSupervisor = roles.includes("supervisor");
-  const isAuditor = roles.includes("auditor");
+  const isAdmin = roles.includes("admin" as any);
+  const isSupervisor = roles.includes("supervisor" as any);
+  const isAuditor = roles.includes("auditor" as any);
+
+  const listIndustriesFn = useServerFn(mk9ListIndustries);
+  const listStoresFn = useServerFn(mk9ListStores);
+  const listPromotersFn = useServerFn(mk9ListPromoters);
+
+  const industriesQ = useQuery({ queryKey: ["mk9-industries"], queryFn: () => listIndustriesFn() });
+  const storesQ = useQuery({ queryKey: ["mk9-stores"], queryFn: () => listStoresFn() });
+  const promotersQ = useQuery({ queryKey: ["mk9-promoters"], queryFn: () => listPromotersFn() });
 
   if (sessionLoading) {
     return (
@@ -270,12 +266,18 @@ export function Mk9AnalyticsApp() {
 
         <section className="flex-1 overflow-y-auto custom-scrollbar relative">
           <div className="p-8">
-            {activeModule === "dashboard" && <Mk9DashboardModule onDrillDown={() => {}} />}
+            {activeModule === "dashboard" && <Mk9DashboardModule />}
             {activeModule === "cockpit" && <Mk9CockpitModule />}
             {activeModule === "importacoes" && (
               <Mk9ImportModule onSwitchToChecklists={() => setActiveModule("checklists")} />
             )}
-            {activeModule === "roteiros" && <Mk9RoutesModule />}
+            {activeModule === "roteiros" && (
+               <Mk9RoutesModule 
+                promoters={promotersQ.data ?? []} 
+                stores={storesQ.data ?? []} 
+                industries={industriesQ.data ?? []} 
+               />
+            )}
             {activeModule === "checklists" && (
               <Mk9ChecklistImportModule onSwitchToBase={() => setActiveModule("importacoes")} />
             )}

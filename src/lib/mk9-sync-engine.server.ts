@@ -88,7 +88,6 @@ export async function runChecklistSync(params: {
     }
 
     // 4. Executar Commit
-    // Chamando a server function via handler diretamente para evitar problemas de tipos de middleware no servidor
     // @ts-ignore
     const commitResult = await (checklistCommit as any).handler({
       data: {
@@ -138,4 +137,21 @@ export async function runChecklistSync(params: {
       .eq("id", params.syncId);
     throw err;
   }
+}
+
+/**
+ * Visão geral da sincronização automática para o módulo administrativo.
+ */
+export async function getSyncOverview() {
+  const { data, error } = await supabaseAdmin
+    .from("mk9_checklist_sync_files" as any)
+    .select(`
+      id, status, file_name, detected_at, industry_id, 
+      competence_month, competence_year, error_code,
+      industry:mk9_industries(name)
+    `)
+    .order("detected_at", { ascending: false })
+    .limit(50);
+  if (error) throw new Error(error.message);
+  return data;
 }
