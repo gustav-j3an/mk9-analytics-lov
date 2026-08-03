@@ -77,7 +77,7 @@ export async function getRevertPreview(importId: string): Promise<RevertPreview>
     industryName: (imp as any).industry?.name ?? "—",
     operationMonth: imp.operation_month,
     operationYear: imp.operation_year,
-    batchId: (imp as any).batch_id ?? (imp as any).batchId ?? null,
+    batchId: (imp as any).batch_id ?? null,
     visitsCount: visitsCount || 0,
     frequencyVersionsCount: freqCount || 0,
     storesCreatedCount: storeCount || 0,
@@ -147,7 +147,7 @@ export async function executeCorrection(importId: string, options: { targetMonth
       status: "previewing",
       preview: imp.preview,
       counters: imp.counters,
-      batch_id: (imp as any).batch_id || (imp as any).batchId || null
+      batch_id: (imp as any).batch_id || null
     } as any)
     .eq("id", newImp.id);
 
