@@ -8,7 +8,21 @@ import {
   AlertTriangle, 
   Loader2, 
   History,
-  Info
+  Info,
+  Calendar,
+  Layers,
+  CheckCircle2,
+  XCircle,
+  FileText,
+  Activity,
+  User,
+  Clock,
+  ExternalLink,
+  MapPin,
+  Route as RouteIcon,
+  Zap,
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,9 +40,10 @@ import {
   AlertDialogHeader, 
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { getCleanupPreview, executeCleanup } from "@/lib/mk9-cleanup.functions";
-import { mk9ListIndustries, mk9ListChecklistIndustries } from "@/lib/mk9-data.functions";
+import { getCleanupDiagnosis, executeGranularCleanup } from "@/lib/mk9-cleanup.functions";
+import { mk9ListChecklistIndustries } from "@/lib/mk9-data.functions";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 
