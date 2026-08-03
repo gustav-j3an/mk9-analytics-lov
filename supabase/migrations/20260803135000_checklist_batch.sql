@@ -15,8 +15,8 @@ CREATE TABLE public.mk9_checklist_import_batches (
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Adiciona batch_id nas importações individuais.
-ALTER TABLE public.mk9_checklist_imports ADD COLUMN batch_id uuid REFERENCES public.mk9_checklist_import_batches(id) ON DELETE SET NULL;
+-- Adiciona batchId nas importações individuais.
+ALTER TABLE public.mk9_checklist_imports ADD COLUMN batchId uuid REFERENCES public.mk9_checklist_import_batches(id) ON DELETE SET NULL;
 
 -- Segurança
 GRANT SELECT ON public.mk9_checklist_import_batches TO authenticated;
