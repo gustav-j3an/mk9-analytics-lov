@@ -105,6 +105,120 @@ export type Database = {
         }
         Relationships: []
       }
+      mk9_bulk_export_items: {
+        Row: {
+          contracted_visits_sum: number
+          created_at: string
+          error_details: string | null
+          export_id: string
+          id: string
+          industry_id: string
+          period_end: string | null
+          period_start: string | null
+          status: string
+          unattended_stores_count: number
+        }
+        Insert: {
+          contracted_visits_sum?: number
+          created_at?: string
+          error_details?: string | null
+          export_id: string
+          id?: string
+          industry_id: string
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          unattended_stores_count?: number
+        }
+        Update: {
+          contracted_visits_sum?: number
+          created_at?: string
+          error_details?: string | null
+          export_id?: string
+          id?: string
+          industry_id?: string
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          unattended_stores_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_bulk_export_items_export_id_fkey"
+            columns: ["export_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_bulk_exports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_bulk_export_items_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mk9_bulk_exports: {
+        Row: {
+          competence_month: number
+          competence_year: number
+          created_at: string
+          download_url: string | null
+          error_message: string | null
+          filters: Json | null
+          format: string
+          id: string
+          industries_with_pending_count: number
+          progress_current: number
+          progress_total: number
+          selected_industries_count: number
+          status: string
+          total_contracted_visits: number
+          total_unattended_stores: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          competence_month: number
+          competence_year: number
+          created_at?: string
+          download_url?: string | null
+          error_message?: string | null
+          filters?: Json | null
+          format: string
+          id?: string
+          industries_with_pending_count?: number
+          progress_current?: number
+          progress_total?: number
+          selected_industries_count?: number
+          status?: string
+          total_contracted_visits?: number
+          total_unattended_stores?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          competence_month?: number
+          competence_year?: number
+          created_at?: string
+          download_url?: string | null
+          error_message?: string | null
+          filters?: Json | null
+          format?: string
+          id?: string
+          industries_with_pending_count?: number
+          progress_current?: number
+          progress_total?: number
+          selected_industries_count?: number
+          status?: string
+          total_contracted_visits?: number
+          total_unattended_stores?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       mk9_checklist_imports: {
         Row: {
           counters: Json
