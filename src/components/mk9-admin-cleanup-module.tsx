@@ -177,6 +177,24 @@ export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
           <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
             <ShieldAlert className="h-5 w-5" />
             Limpeza Manual por Competência (ADMIN)
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="ml-auto text-[10px] h-7 gap-1.5 border-red-500/30 text-red-600 hover:bg-red-50"
+              onClick={async () => {
+                const toastId = toast.loading("Executando Trace BANANA...");
+                try {
+                  const traceFn = (await import("@/lib/mk9-hotfix.functions")).getBananaHotfixTrace;
+                  const res = await traceFn();
+                  console.log("[HOTFIX TRACE RESULTS]", res);
+                  toast.success("Trace BANANA concluído. Veja o console.", { id: toastId });
+                } catch (e: any) {
+                  toast.error(e?.message || "Erro no Trace", { id: toastId });
+                }
+              }}
+            >
+              <Zap className="h-3 w-3" /> Trace BANANA
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
