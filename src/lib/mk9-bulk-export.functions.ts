@@ -256,8 +256,8 @@ export const processBulkExport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => z.object({ exportId: z.string() }).parse(data))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { resolveMk9AccessScope } = await import("@/lib/mk9-auth/access-scope.server");
+    const { supabaseAdmin } = await import("../integrations/supabase/client.server");
+    const { resolveMk9AccessScope } = await import("./mk9-auth/access-scope.server");
     const { processBulkExportItem, generateBulkZip, generateBulkConsolidatedPdf } = await import("./mk9-bulk-export.server");
     
     // 1. Get export record and items
