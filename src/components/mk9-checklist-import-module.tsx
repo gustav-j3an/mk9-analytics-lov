@@ -825,8 +825,8 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
               <Clock className="h-4 w-4 text-primary" />
             </Button>
           )}
-          {file.preview && (
-            <Button variant="ghost" size="sm" onClick={() => setOpen(!expanded)}>
+          {(file.preview || file.error) && (
+            <Button variant="ghost" size="sm" onClick={() => setOpen(!expanded)} title={file.error ? "Ver erro" : "Ver prévia"}>
               {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
           )}
