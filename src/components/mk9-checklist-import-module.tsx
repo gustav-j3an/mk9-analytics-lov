@@ -561,7 +561,9 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
         }
       });
 
+      setBatchId(res.batchId);
       // Mapeia resultados de volta para os arquivos locais
+
       setFiles(prev => prev.map(f => {
         const found = res.results.find((r: any) => r.filename === f.filename);
         if (found) {
@@ -586,6 +588,39 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
       setAnalyzing(false);
     }
   };
+
+  const runBatchImport = async () => {
+    if (!batchId || readyToImport.length === 0) return;
+    setCommitting(true);
+    try {
+      const res = await commitBatchFn({
+        data: {
+          batchId,
+          importIds: readyToImport.map(f => f.id),
+        }
+      });
+
+      setFiles(prev => prev.map(f => {
+        const found = res.results.find((r: any) => r.importId === f.id);
+        if (found) {
+          return {
+            ...f,
+            status: found.status === "SUCCESS" ? "IMPORTED" : "FAILED",
+            error: found.error,
+          } as any;
+        }
+        return f;
+      }));
+
+      toast.success("Processamento de lote finalizado");
+      qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
+    } catch (e: any) {
+      toast.error("Falha ao importar lote: " + (e?.message ?? String(e)));
+    } finally {
+      setCommitting(false);
+    }
+  };
+
 
   const readyToImport = files.filter(f => f.status === "READY");
 
@@ -657,12 +692,13 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
 
           {readyToImport.length > 0 && (
             <div className="pt-4 border-t flex justify-end">
-              <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700">
-                <CheckCircle2 className="h-4 w-4 mr-2" />
+              <Button size="lg" onClick={runBatchImport} disabled={committing} className="bg-emerald-600 hover:bg-emerald-700">
+                {committing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
                 Importar {readyToImport.length} arquivos prontos
               </Button>
             </div>
           )}
+
         </CardContent>
       </Card>
     </div>
