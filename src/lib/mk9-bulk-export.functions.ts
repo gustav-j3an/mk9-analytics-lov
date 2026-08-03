@@ -44,6 +44,74 @@ const previewInput = z.object({
   filters: z.custom<BulkExportFilters>().optional(),
 });
 
+/**
+ * Motor compartilhado para cálculo de relatório de indústria.
+ * Evita importações circulares e fetch interno.
+ */
+async function computeSingleIndustryResult(
+  supabase: any,
+  params: {
+    industryId: string;
+    industryName: string;
+    month: number;
+    year: number;
+    uf?: string | null;
+    access: any;
+  }
+): Promise<BulkExportPreviewItem> {
+  const startTime = Date.now();
+  const { industryId, industryName, month, year, uf, access } = params;
+
+  try {
+    const config = await loadPeriodConfig(supabase, industryId);
+    const window = resolveWindow(config, year, month);
+    
+    const report = await buildIndustryReport(supabase, {
+      industryId,
+      month,
+      year,
+      uf,
+      access,
+    }, window);
+
+    const unattended = report.stores.filter(s => s.expected > 0 && s.actual === 0);
+    const unattendedCount = unattended.length;
+    const contractedSum = unattended.reduce((sum, s) => sum + s.expected, 0);
+
+    return {
+      industryId,
+      industryName,
+      periodLabel: `${window.startDate} a ${window.endDate}`,
+      contractedStores: report.stores.filter(s => s.expected > 0).length,
+      attendedStores: report.stores.filter(s => s.actual > 0).length,
+      unattendedStores: unattendedCount,
+      contractedVisitsUnattended: contractedSum,
+      status: unattendedCount > 0 ? "READY" : "EMPTY",
+    };
+  } catch (err: any) {
+    const duration = Date.now() - startTime;
+    const errorCode = err.name === "Mk9ScopeError" ? "FORBIDDEN" : (err.code || "REPORT_ENGINE_FAILED");
+    const httpStatus = err.statusCode || (err.name === "Mk9ScopeError" ? 403 : 500);
+    
+    console.error(`[UNVISITED INDUSTRY FAILED] industryId=${industryId} code=${errorCode} status=${httpStatus} duration=${duration}ms error=${err.message}`);
+
+    return {
+      industryId,
+      industryName,
+      periodLabel: "Erro no cálculo",
+      contractedStores: 0,
+      attendedStores: 0,
+      unattendedStores: 0,
+      contractedVisitsUnattended: 0,
+      status: "ERROR",
+      errorCode,
+      errorMessage: err.message,
+      httpStatus,
+      errorStage: "BUILD_REPORT"
+    };
+  }
+}
+
 export const getBulkExportPreview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => previewInput.parse(data))
@@ -52,7 +120,9 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveMk9AccessScope } = await import("@/lib/mk9-auth/access-scope.server");
     
-    // Auth context for the resolver
+    console.log(`[UNVISITED MASS START] user=${context.userId} industries=${industryIds.length}`);
+
+    // Resolve escopo uma única vez
     const authContext = {
       userId: context.userId,
       roles: (context as any).claims?.user_roles || [],
@@ -60,85 +130,50 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
     };
     
     const access = await resolveMk9AccessScope(authContext as any);
+    console.log(`[UNVISITED SCOPE RESOLVED] hash=${access.scopeHash}`);
 
-    const results: BulkExportPreview["items"] = [];
-    let totalUnattended = 0;
-    let totalContractedVisits = 0;
-
-    // Fetch industries to get names and verify access
+    // Fetch nomes das indústrias
     const { data: industries, error: eInd } = await supabaseAdmin
       .from("mk9_industries")
-      .select("id, name, requires_checklist")
+      .select("id, name")
       .in("id", industryIds);
 
-    if (eInd) throw new Error(eInd.message);
+    if (eInd) {
+      console.error(`[UNVISITED MASS DB ERROR] ${eInd.message}`);
+      throw new Error(eInd.message);
+    }
 
-    for (const industry of industries || []) {
-      const startTime = Date.now();
-      try {
-        console.log(`[UNVISITED INDUSTRY START] industryId=${industry.id} name=${industry.name}`);
-        
-        console.log(`[UNVISITED REPORT LOAD] industryId=${industry.id}`);
-        const config = await loadPeriodConfig(supabaseAdmin, industry.id);
-        const window = resolveWindow(config, year, month);
-        
-        const report = await buildIndustryReport(supabaseAdmin, {
-          industryId: industry.id,
+    // Processamento em fila (concorrência máxima 3)
+    const results: BulkExportPreviewItem[] = [];
+    const CONCURRENCY = 3;
+    
+    for (let i = 0; i < (industries || []).length; i += CONCURRENCY) {
+      const chunk = (industries || []).slice(i, i + CONCURRENCY);
+      const chunkResults = await Promise.all(
+        chunk.map(ind => computeSingleIndustryResult(supabaseAdmin, {
+          industryId: ind.id,
+          industryName: ind.name,
           month,
           year,
           uf: filters?.uf,
-          access,
-        }, window);
-
-        console.log(`[UNVISITED REPORT SUCCESS] industryId=${industry.id} duration=${Date.now() - startTime}ms`);
-
-        const unattended = report.stores.filter(s => s.expected > 0 && s.actual === 0);
-        const unattendedCount = unattended.length;
-        const contractedSum = unattended.reduce((sum, s) => sum + s.expected, 0);
-
-        totalUnattended += unattendedCount;
-        totalContractedVisits += contractedSum;
-
-        results.push({
-          industryId: industry.id,
-          industryName: industry.name,
-          periodLabel: `${window.startDate} a ${window.endDate}`,
-          contractedStores: report.stores.filter(s => s.expected > 0).length,
-          attendedStores: report.stores.filter(s => s.actual > 0).length,
-          unattendedStores: unattendedCount,
-          contractedVisitsUnattended: contractedSum,
-          status: unattendedCount > 0 ? "READY" : "EMPTY",
-        });
-      } catch (err: any) {
-        const duration = Date.now() - startTime;
-        const errorCode = err.name === "Mk9ScopeError" ? "FORBIDDEN" : (err.code || "REPORT_ENGINE_FAILED");
-        const httpStatus = err.statusCode || (err.name === "Mk9ScopeError" ? 403 : 500);
-        
-        console.error(`[UNVISITED INDUSTRY FAILED] industryId=${industry.id} code=${errorCode} status=${httpStatus} duration=${duration}ms error=${err.message}`);
-
-        results.push({
-          industryId: industry.id,
-          industryName: industry.name,
-          periodLabel: "Erro no cálculo",
-          contractedStores: 0,
-          attendedStores: 0,
-          unattendedStores: 0,
-          contractedVisitsUnattended: 0,
-          status: "ERROR",
-          errorCode,
-          errorMessage: err.message,
-          httpStatus,
-          errorStage: "BUILD_REPORT"
-        });
-      }
+          access
+        }))
+      );
+      results.push(...chunkResults);
     }
+
+    const totalUnattended = results.reduce((sum, r) => sum + r.unattendedStores, 0);
+    const totalContractedVisits = results.reduce((sum, r) => sum + r.contractedVisitsUnattended, 0);
+    const withPendingCount = results.filter(r => r.unattendedStores > 0).length;
+
+    console.log(`[UNVISITED MASS END] industries=${results.length} totalUnattended=${totalUnattended}`);
 
     return {
       selectedCount: industryIds.length,
-      withPendingCount: results.filter(r => r.unattendedStores > 0).length,
+      withPendingCount,
       totalUnattendedStores: totalUnattended,
       totalContractedVisits,
-      pdfCount: results.filter(r => r.unattendedStores > 0).length,
+      pdfCount: withPendingCount,
       items: results,
     };
   });
