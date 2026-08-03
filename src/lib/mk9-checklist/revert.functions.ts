@@ -16,20 +16,20 @@ const correctInputSchema = z.object({
 export const getChecklistRevertPreview = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ importId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Role } = await import("./mk9-auth/require-role.server");
+    const { requireMk9Role } = await import("../mk9-auth/require-role.server");
     await requireMk9Role(["ADMIN"]);
 
-    const { getRevertPreview } = await import("./mk9-checklist/revert.server");
+    const { getRevertPreview } = await import("./revert.server");
     return getRevertPreview(data.importId);
   });
 
 export const revertChecklistImport = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => revertInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Role } = await import("./mk9-auth/require-role.server");
+    const { requireMk9Role } = await import("../mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
 
-    const { executeRevert } = await import("./mk9-checklist/revert.server");
+    const { executeRevert } = await import("./revert.server");
     return executeRevert(data.importId, { 
       reason: data.reason, 
       actorId: ctx.userId 
@@ -39,10 +39,10 @@ export const revertChecklistImport = createServerFn({ method: "POST" })
 export const correctChecklistCompetence = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => correctInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Role } = await import("./mk9-auth/require-role.server");
+    const { requireMk9Role } = await import("../mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
 
-    const { executeCorrection } = await import("./mk9-checklist/revert.server");
+    const { executeCorrection } = await import("./revert.server");
     return executeCorrection(data.importId, {
       targetMonth: data.targetMonth,
       targetYear: data.targetYear,
@@ -50,3 +50,4 @@ export const correctChecklistCompetence = createServerFn({ method: "POST" })
       actorId: ctx.userId
     });
   });
+
