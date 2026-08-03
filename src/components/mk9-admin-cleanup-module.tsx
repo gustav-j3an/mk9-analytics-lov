@@ -7,7 +7,8 @@ import {
   Trash2, 
   AlertTriangle, 
   Loader2, 
-  History
+  History,
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,18 +28,28 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { getCleanupPreview, executeCleanup } from "@/lib/mk9-cleanup.functions";
-import { mk9ListIndustries } from "@/lib/mk9-data.functions";
+import { mk9ListIndustries, mk9ListChecklistIndustries } from "@/lib/mk9-data.functions";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 const MONTHS = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
 
-export function Mk9AdminCleanupModule() {
+export function Mk9AdminCleanupModule(props: { month: number, year: number }) {
   const [industryId, setIndustryId] = useState("");
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(props.month);
+  const [year, setYear] = useState(props.year);
+  
+  // Sincroniza quando os filtros globais mudam, a menos que o usuário tenha começado a interagir.
+  // Se ele já buscou algo, mantemos a visão dele estável.
+  useEffect(() => {
+    if (!previewMut.data && !previewMut.isPending) {
+      setMonth(props.month);
+      setYear(props.year);
+    }
+  }, [props.month, props.year]);
   const [justification, setJustification] = useState("");
   const [selectedImports, setSelectedImports] = useState<string[]>([]);
   const [options, setOptions] = useState({
@@ -48,7 +59,7 @@ export function Mk9AdminCleanupModule() {
   });
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const listIndustriesFn = useServerFn(mk9ListIndustries);
+  const listIndustriesFn = useServerFn(mk9ListChecklistIndustries);
   const previewFn = useServerFn(getCleanupPreview);
   const executeFn = useServerFn(executeCleanup);
 
@@ -60,7 +71,7 @@ export function Mk9AdminCleanupModule() {
   const previewMut = useMutation({
     mutationFn: () => previewFn({ data: { industryId, month, year } }),
     onSuccess: (res) => {
-      setSelectedImports(res.imports.map(i => i.id));
+      setSelectedImports(res.imports.map((i: any) => i.id));
       toast.success("Prévia de impacto carregada");
     }
   });
@@ -158,33 +169,66 @@ export function Mk9AdminCleanupModule() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2 glass-panel">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
                   <History className="h-4 w-4" /> Importações Localizadas
                 </CardTitle>
+                <div className="flex items-center gap-2">
+                   <Badge variant="secondary" className="text-[10px]">{previewData.imports.length} arquivos</Badge>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2 max-h-[400px] overflow-auto pr-2">
-                  {previewData.imports.map(imp => (
-                    <div key={imp.id} className="flex items-center justify-between p-3 rounded-lg border bg-background/40">
-                      <div className="flex items-center gap-3">
-                        <Checkbox 
-                          checked={selectedImports.includes(imp.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) setSelectedImports([...selectedImports, imp.id]);
-                            else setSelectedImports(selectedImports.filter(id => id !== imp.id));
-                          }}
-                        />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{imp.filename}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase">
-                            {new Date(imp.started_at).toLocaleString()} · {imp.status}
-                          </p>
+                {previewData.imports.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl bg-muted/10">
+                    <Info className="h-8 w-8 text-muted-foreground/30 mb-3" />
+                    <p className="text-sm font-medium text-muted-foreground">Nenhuma importação encontrada</p>
+                    <p className="text-[11px] text-muted-foreground/60 max-w-[200px] mt-1">
+                      Tente ajustar os filtros ou selecione outra competência.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[400px] overflow-auto pr-2">
+                    {previewData.imports.map(imp => {
+                      const typedImp = imp as any;
+                      return (
+                        <div 
+                          key={typedImp.id} 
+                          className={cn(
+                            "flex items-center justify-between p-3 rounded-lg border transition-colors",
+                            selectedImports.includes(typedImp.id) ? "bg-amber-50/50 border-amber-200" : "bg-background/40 hover:bg-background/60"
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Checkbox 
+                              id={`imp-${typedImp.id}`}
+                              checked={selectedImports.includes(typedImp.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) setSelectedImports([...selectedImports, typedImp.id]);
+                                else setSelectedImports(selectedImports.filter(id => id !== typedImp.id));
+                              }}
+                            />
+                            <div className="min-w-0">
+                              <label htmlFor={`imp-${typedImp.id}`} className="text-sm font-medium truncate block cursor-pointer">{typedImp.filename}</label>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <p className="text-[10px] text-muted-foreground uppercase">
+                                  {new Date(typedImp.started_at).toLocaleString()}
+                                </p>
+                                <span className="text-muted-foreground/30">·</span>
+                                <Badge variant="outline" className={cn(
+                                  "text-[9px] h-4 px-1.5 font-bold uppercase",
+                                  typedImp.status === 'done' ? "text-emerald-600 border-emerald-200" : "text-amber-600 border-amber-200"
+                                )}>
+                                  {typedImp.status}
+                                </Badge>
+                              </div>
+                              <p className="text-[9px] text-muted-foreground/60 mt-1 font-mono uppercase">ID: {typedImp.id}</p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -250,7 +294,7 @@ export function Mk9AdminCleanupModule() {
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-4 pt-2">
               <div className="p-3 bg-destructive/5 border border-destructive/20 rounded-lg text-destructive text-sm">
-                Esta ação irá remover permanentemente <strong>{previewData?.impact.visits} visitas</strong> e inativar <strong>{previewData?.impact.frequencies} frequências</strong> da indústria <strong>{industries.find(i => i.id === industryId)?.name}</strong> na competência <strong>{MONTHS[month - 1]}/{year}</strong>.
+                Esta ação irá remover permanentemente <strong>{previewData?.impact.visits} visitas</strong> e inativar <strong>{previewData?.impact.frequencies} frequências</strong> da indústria <strong>{industries.find((i: any) => i.id === industryId)?.name}</strong> na competência <strong>{MONTHS[month - 1]}/{year}</strong>.
               </div>
               <p className="text-sm">
                 Os números operacionais (Dashboard e PDF) serão atualizados imediatamente após a execução.
@@ -284,7 +328,7 @@ function StatCard({ label, value, tone }: { label: string; value: number; tone?:
     "text-foreground";
     
   return (
-    <Card className="glass-panel">
+    <Card className="glass-panel border-none shadow-none bg-background/20">
       <CardContent className="p-4">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
         <p className={cn("text-3xl font-bold mt-1", toneClass)}>{value}</p>

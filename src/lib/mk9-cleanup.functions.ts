@@ -28,7 +28,7 @@ export const getCleanupPreview = createServerFn({ method: "POST" })
     await requireMk9Role(["ADMIN"]);
 
     // 1. Localiza importações
-    const { data: imports } = await supabaseAdmin
+    const { data: imports, error } = await supabaseAdmin
       .from("mk9_checklist_imports")
       .select("id, filename, started_at, user_id, status, counters, batch_id")
       .eq("industry_id", data.industryId)
@@ -36,7 +36,9 @@ export const getCleanupPreview = createServerFn({ method: "POST" })
       .eq("operation_year", data.year)
       .order("started_at", { ascending: false });
 
-    const importIds = imports?.map(i => i.id) || [];
+    if (error) throw new Error(error.message);
+
+    const importIds = (imports || []).map(i => i.id);
 
     // 2. Impacto de visitas
     const { count: visitsCount } = await supabaseAdmin
@@ -53,7 +55,10 @@ export const getCleanupPreview = createServerFn({ method: "POST" })
       .is("archived_at", null);
 
     return {
-      imports: imports || [],
+      imports: (imports || []).map(i => ({
+        ...i,
+        is_operational_current: false // Placeholder for type safety until migration is confirmed
+      })),
       impact: {
         visits: visitsCount || 0,
         frequencies: freqs?.length || 0,
