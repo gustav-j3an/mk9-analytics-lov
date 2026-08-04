@@ -166,6 +166,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
         <Card><CardContent className="py-10 text-center text-muted-foreground">Nenhum roteiro vigente para os filtros escolhidos.</CardContent></Card>
       ) : (
         <div className="space-y-4">
+          {filterPromoter && <PromoterRouteCard promoterId={filterPromoter} referenceDate={referenceDate} promoters={promoters} />}
           {Array.from(grouped.keys()).sort((a, b) => a.localeCompare(b, "pt-BR")).map((promoter) => {
             const days = grouped.get(promoter)!;
             return (
@@ -178,7 +179,14 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                     const stMap = days.get(wd)!;
                     return (
                       <div key={wd} className="rounded-lg border bg-muted/20 p-3">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">{WEEKDAY_PT[wd]}</p>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-primary">{WEEKDAY_PT[wd]}</p>
+                          {filterPromoter && (
+                            <Badge variant="outline" className="text-[10px] h-5 bg-background font-normal">
+                              {Array.from(stMap.values()).length} visitas
+                            </Badge>
+                          )}
+                        </div>
                         <div className="space-y-2">
                           {Array.from(stMap.values()).map(({ store, items }) => (
                             <div key={store.storeId ?? store.storeName} className="flex items-start justify-between gap-3 border-l-2 border-primary/40 pl-3">
@@ -436,5 +444,63 @@ function HistoryDialog({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Card de Resumo do Roteiro (Missão: Total de Visitas)
+// ---------------------------------------------------------------------------
+function PromoterRouteCard({ 
+  promoterId, referenceDate, promoters 
+}: { 
+  promoterId: string; referenceDate: string; promoters: any[] 
+}) {
+  const [y, m] = referenceDate.split("-").map(Number);
+  const promoter = promoters.find(p => p.id === promoterId);
+  
+  const statsFn = useServerFn(mk9PromoterRouteStats);
+  const q = useQuery({
+    queryKey: ["mk9-promoter-route-stats", promoterId, y, m],
+    queryFn: () => statsFn({ data: { promoterId, year: y, month: m } }),
+  });
+
+  const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+  return (
+    <Card className="bg-primary/5 border-primary/20 shadow-none overflow-hidden relative">
+      <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+        <RouteIcon className="h-24 w-24 text-primary" />
+      </div>
+      <CardContent className="pt-6">
+        {q.isLoading ? (
+          <div className="flex items-center gap-2 py-4"><Loader2 className="h-4 w-4 animate-spin" /> Carregando resumo...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
+            <div className="space-y-1 border-r pr-6 border-primary/10">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Promotor</p>
+              <p className="text-lg font-bold truncate">{promoter?.name ?? "—"}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant="outline" className="bg-background/50">{months[m-1]}/{y}</Badge>
+              </div>
+            </div>
+            <div className="space-y-1 border-r pr-6 border-primary/10">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total de Visitas</p>
+              <p className="text-2xl font-black text-primary">{q.data?.totalVisits ?? 0}</p>
+              <p className="text-[10px] text-muted-foreground">Contratadas no período</p>
+            </div>
+            <div className="space-y-1 border-r pr-6 border-primary/10">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Lojas Únicas</p>
+              <p className="text-2xl font-black">{q.data?.uniqueStores ?? 0}</p>
+              <p className="text-[10px] text-muted-foreground">Pontos de venda</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Indústrias</p>
+              <p className="text-2xl font-black">{q.data?.uniqueIndustries ?? 0}</p>
+              <p className="text-[10px] text-muted-foreground">Marcas atendidas</p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
