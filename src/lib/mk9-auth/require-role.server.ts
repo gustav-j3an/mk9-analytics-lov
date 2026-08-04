@@ -118,7 +118,6 @@ export async function requireMk9Role(
 
   if (!authHeader) {
     if (!devBypassAllowed(request)) {
-      console.error("[MK9-AUTH] Acesso negado: sem Authorization header em ambiente não-local.");
       throw fail(401, "Autenticação obrigatória. Faça login para continuar.");
     }
     console.warn(
