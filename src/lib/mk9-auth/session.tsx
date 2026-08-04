@@ -31,8 +31,10 @@ async function loadRolesAndProfile(userId: string) {
       .eq("user_id", userId)
       .maybeSingle(),
   ]);
+  const userRoles = ((roleRows ?? []) as any[]).map((r) => String(r.role).toUpperCase() as Mk9Role);
+  
   return {
-    roles: ((roleRows ?? []) as any[]).map((r) => r.role as Mk9Role),
+    roles: userRoles,
     profile: profile
       ? {
           name: (profile as any).name ?? null,
