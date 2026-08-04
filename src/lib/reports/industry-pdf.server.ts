@@ -157,6 +157,31 @@ function drawTitle(ctx: PdfCtx, year: number, month: number) {
   }
 }
 
+function drawPromoterStats(ctx: PdfCtx) {
+  const stats = ctx.report.totals.promoterStats;
+  if (!stats) return;
+
+  ensure(ctx, 60);
+  ctx.page.drawText("Resumo do Promotor", { x: MARGIN, y: ctx.y - 15, size: 12, font: ctx.fontB, color: COLOR_BRAND });
+  ctx.y -= 25;
+
+  const items = [
+    ["Total de Visitas", String(stats.totalVisits)],
+    ["Lojas Únicas", String(stats.uniqueStores)],
+  ];
+
+  items.forEach(([label, val], i) => {
+    ctx.page.drawText(label + ":", { x: MARGIN + (i * 120), y: ctx.y, size: 9, font: ctx.fontB, color: COLOR_TEXT });
+    ctx.page.drawText(val, { x: MARGIN + (i * 120) + ctx.fontB.widthOfTextAtSize(label + ": ", 9), y: ctx.y, size: 9, font: ctx.font, color: COLOR_TEXT });
+  });
+
+  ctx.y -= 15;
+  const weekdays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+  const wdStr = weekdays.map((wd, i) => `${wd}: ${stats.byWeekday[i]}`).join("  |  ");
+  ctx.page.drawText(sanitizePdfText(wdStr), { x: MARGIN, y: ctx.y, size: 8, font: ctx.font, color: COLOR_MUTED });
+  ctx.y -= 20;
+}
+
 function drawKpis(ctx: PdfCtx) {
   const t = ctx.report.totals;
   const m = t.metrics;
@@ -368,6 +393,7 @@ export async function renderIndustryReportPdf(report: IndustryReport, year: numb
 
   drawRunningHeader(ctx);
   drawTitle(ctx, year, month);
+  drawPromoterStats(ctx);
   drawKpis(ctx);
   drawCoverageExplanation(ctx);
   drawUfTable(ctx);

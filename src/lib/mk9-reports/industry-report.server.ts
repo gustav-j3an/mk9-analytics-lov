@@ -500,6 +500,21 @@ export async function buildIndustryReport(
       metrics: totalsMetrics,
       execution: execCounts,
       route: routeCounts,
+      promoterStats: promoterId ? {
+        totalVisits: Math.round(stores.reduce((sum, s) => sum + s.expected, 0)),
+        uniqueStores: stores.length,
+        uniqueIndustries: 1, // Dentro do IndustryReport é sempre 1
+        byWeekday: [0, 1, 2, 3, 4, 5, 6].map(wd => {
+          let visits = 0;
+          for (const s of stores) {
+            const routeInfo = core.routeByKey.get(`${industryId}|${s.storeId}`);
+            if (routeInfo?.weekdays.has(wd)) {
+              visits += s.expected / routeInfo.weekdays.size;
+            }
+          }
+          return Math.round(visits);
+        })
+      } : undefined
     },
     stores,
     ufs,
