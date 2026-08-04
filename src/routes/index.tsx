@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Mk9AnalyticsApp } from "@/components/mk9-analytics-app";
 import { ClientOnly } from "@/components/client-only";
+import { useMk9Session } from "@/lib/mk9-auth/session";
+import { Mk9LoginForm } from "@/components/mk9-login-form";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
-  component: Dashboard,
+  component: DashboardPage,
   head: () => ({
-    title: "Dashboard MK9 | Painel Operacional",
+    title: "MK9 Analytics | Login",
     meta: [
       { name: "description", content: "Sistema central de inteligência operacional MK9." },
       { property: "og:title", content: "MK9 Analytics" },
@@ -15,12 +18,27 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-function Dashboard() {
+function DashboardPage() {
+  const { session, loading } = useMk9Session();
+
+  if (loading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <Mk9LoginForm />;
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <ClientOnly>
         <Mk9AnalyticsApp />
       </ClientOnly>
     </div>
   );
 }
+
