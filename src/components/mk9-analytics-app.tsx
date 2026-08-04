@@ -5,7 +5,7 @@ import { Mk9ImportModule } from "@/components/mk9-import-module";
 import { Mk9ChecklistImportModule } from "@/components/mk9-checklist-import-module";
 import { Mk9AuditModule, type Mk9AuditInitialFilters } from "@/components/mk9-audit-module";
 import { Mk9QualityModule } from "@/components/mk9-quality-module";
-import { Gauge } from "lucide-react";
+import { Gauge, Settings2 } from "lucide-react";
 import { Mk9CockpitModule } from "@/components/mk9-cockpit-module";
 import type { ResolvedNavigation } from "@/lib/mk9-quality/evidence-view";
 import { Mk9DashboardModule } from "@/components/mk9-dashboard-module";
@@ -15,6 +15,9 @@ import { Mk9UsersModule } from "@/components/mk9-users-module";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import { toast } from "sonner";
 import { Mk9AdminCleanupModule } from "@/components/mk9-admin-cleanup-module";
+import { Mk9IndustriesModule } from "./mk9-industries-module";
+import { Mk9StoresModule } from "./mk9-stores-module";
+import { Mk9PromotersModule } from "./mk9-promoters-module";
 
 
 import {
@@ -61,8 +64,10 @@ type ModuleId =
   | "roteiros"
   | "relatorio_industria"
   | "cleanup_admin"
-  
-  | "usuarios";
+  | "usuarios"
+  | "industrias"
+  | "lojas"
+  | "promotores";
 
 export function Mk9AnalyticsApp() {
   const { user, roles, loading: sessionLoading, signOut } = useMk9Session();
@@ -149,8 +154,33 @@ export function Mk9AnalyticsApp() {
             <div className="pt-4 pb-2">
               {!collapsed && <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Configurações</p>}
             </div>
+            <div className="pt-4 pb-2">
+              {!collapsed && <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Cadastros</p>}
+            </div>
             <SidebarItem
               icon={Factory}
+              label="Indústrias"
+              active={activeModule === "industrias"}
+              onClick={() => setActiveModule("industrias")}
+            />
+            <SidebarItem
+              icon={Store}
+              label="Lojas"
+              active={activeModule === "lojas"}
+              onClick={() => setActiveModule("lojas")}
+            />
+            <SidebarItem
+              icon={Users}
+              label="Promotores"
+              active={activeModule === "promotores"}
+              onClick={() => setActiveModule("promotores")}
+            />
+
+            <div className="pt-4 pb-2">
+              {!collapsed && <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Operação</p>}
+            </div>
+            <SidebarItem
+              icon={Settings2}
               label="Gestão Operacional"
               active={activeModule === "importacoes"}
               onClick={() => setActiveModule("importacoes")}
@@ -214,14 +244,16 @@ export function Mk9AnalyticsApp() {
             <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground">
               {activeModule === "dashboard" && "Dashboard Operacional"}
               {activeModule === "cockpit" && "Cockpit de Comando"}
-              {activeModule === "importacoes" && "Gestão de Cadastros"}
+              {activeModule === "importacoes" && "Gestão Operacional"}
+              {activeModule === "industrias" && "Gestão de Indústrias"}
+              {activeModule === "lojas" && "Gestão de Lojas"}
+              {activeModule === "promotores" && "Gestão de Promotores"}
               {activeModule === "checklists" && "Importador de Checklists"}
               {activeModule === "conciliacao" && "Conciliação de Visitas"}
               {activeModule === "qualidade" && "Centro de Qualidade"}
               {activeModule === "roteiros" && "Roteiros & Frequências"}
               {activeModule === "relatorio_industria" && "Indústrias (PDF)"}
               {activeModule === "cleanup_admin" && "Limpeza Administrativa"}
-              
               {activeModule === "usuarios" && "Gestão de Acessos"}
             </h2>
           </div>
@@ -269,6 +301,9 @@ export function Mk9AnalyticsApp() {
             {activeModule === "importacoes" && (
               <Mk9ImportModule onSwitchToChecklists={() => setActiveModule("checklists")} />
             )}
+            {activeModule === "industrias" && <Mk9IndustriesModule />}
+            {activeModule === "lojas" && <Mk9StoresModule />}
+            {activeModule === "promotores" && <Mk9PromotersModule />}
             {activeModule === "roteiros" && (
                <Mk9RoutesModule 
                 promoters={promotersQ.data ?? []} 
