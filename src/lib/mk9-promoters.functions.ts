@@ -130,7 +130,7 @@ export const mk9PromoterArchiveImpact = createServerFn({ method: "POST" })
         .eq("is_active", true)
         .is("archived_at", null),
       supabaseAdmin
-        .from("mk9_actual_visits")
+        .from("mk9_planned_visits")
         .select("id", { count: "exact", head: true })
         .eq("promoter_id", data.id),
     ]);
@@ -140,4 +140,5 @@ export const mk9PromoterArchiveImpact = createServerFn({ method: "POST" })
       visits: visits.count ?? 0,
     };
   });
+
 
