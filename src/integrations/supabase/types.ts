@@ -1285,6 +1285,9 @@ export type Database = {
       }
       mk9_promoters: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           city: string | null
           contact: string | null
           contact_normalized: string | null
@@ -1298,6 +1301,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           city?: string | null
           contact?: string | null
           contact_normalized?: string | null
@@ -1311,6 +1317,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           city?: string | null
           contact?: string | null
           contact_normalized?: string | null
@@ -1366,6 +1375,9 @@ export type Database = {
       }
       mk9_stores: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           chain: string | null
           created_at: string
           created_by_checklist_import_id: string | null
@@ -1380,6 +1392,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           chain?: string | null
           created_at?: string
           created_by_checklist_import_id?: string | null
@@ -1394,6 +1409,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           chain?: string | null
           created_at?: string
           created_by_checklist_import_id?: string | null
