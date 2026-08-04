@@ -179,6 +179,17 @@ export async function buildIndustryReport(
   if (eInd) throw new Error(eInd.message);
   if (!industry) throw new Error("Indústria não encontrada");
 
+  // Motor operacional core (Fase 3: loadOperationCore)
+  const { loadOperationCore } = await import("@/lib/mk9-operations/core.server");
+  const core = await loadOperationCore(supabase, {
+    year: input.year,
+    month: input.month,
+    uf: uf ?? undefined,
+    industryId: industryId,
+    promoterId: promoterId ?? undefined,
+    access,
+  });
+
   // 2) Frequência por loja (fonte principal de "contratadas")
   // Frequência VERSIONADA vigente na janela (fonte de "contratadas").
   const freqVersions = await loadFrequencyVersionsForPeriod(supabase, {
