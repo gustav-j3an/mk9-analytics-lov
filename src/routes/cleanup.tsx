@@ -1,13 +1,14 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { mk9CurrentUser } from '@/lib/mk9-users.functions'
+import { Mk9AnalyticsApp } from '@/components/mk9-analytics-app'
 import { createServerFn } from '@tanstack/react-start'
 
 const checkAdmin = createServerFn({ method: 'GET' }).handler(async () => {
+  const { requireMk9Role } = await import('@/lib/mk9-auth/require-role.server');
   try {
-    const user = await mk9CurrentUser()
-    return user?.roles.includes('ADMIN') || false
+    await requireMk9Role(['ADMIN']);
+    return true;
   } catch {
-    return false
+    return false;
   }
 })
 
@@ -18,4 +19,5 @@ export const Route = createFileRoute('/cleanup')({
       throw redirect({ to: '/' })
     }
   },
+  component: () => <Mk9AnalyticsApp />
 })

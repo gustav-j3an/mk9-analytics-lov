@@ -3,13 +3,15 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const mk9GetInternalUserDiagnostic = createServerFn({ method: "GET" })
   .handler(async () => {
-    const { requireSupabaseAuth } = await import("@/integrations/supabase/auth-middleware");
-    // requireSupabaseAuth is a middleware array, we need to handle it correctly or use context
-    // Actually, let's just use the direct auth check for diagnostic
-    const { supabase } = await import("@/integrations/supabase/client.server");
-    const { data: { user } } = await supabase.auth.getUser();
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const request = getRequest();
+    const authHeader = request?.headers.get('authorization');
     
-    if (!user) throw new Error("Unauthorized");
+    if (!authHeader) throw new Error("Unauthorized: No header");
+    const token = authHeader.replace('Bearer ', '');
+    
+    const { data: { user } } = await supabaseAdmin.auth.getUser(token);
+    if (!user) throw new Error("Unauthorized: Invalid user");
     
     // 1. Get auth user email
     const { data: { user: authUser } } = await supabaseAdmin.auth.admin.getUserById(user.id);
