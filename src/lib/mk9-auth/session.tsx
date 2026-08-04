@@ -33,6 +33,7 @@ async function loadRolesAndProfile(userId: string) {
       .maybeSingle(),
   ]);
   const userRoles = normalizeMk9Roles((roleRows ?? []).map(r => r.role));
+  console.log("[MK9-SESSION] Roles carregadas:", userRoles);
   
   return {
     roles: userRoles,

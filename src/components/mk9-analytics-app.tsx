@@ -77,6 +77,8 @@ export function Mk9AnalyticsApp() {
   const isSupervisor = roles.includes("SUPERVISOR");
   const isAuditor = roles.includes("AUDITOR");
 
+  console.log("[MK9-APP] Roles no componente:", { roles, isAdmin });
+
   const listIndustriesFn = useServerFn(mk9ListIndustries);
   const listStoresFn = useServerFn(mk9ListStores);
   const listPromotersFn = useServerFn(mk9ListPromoters);
