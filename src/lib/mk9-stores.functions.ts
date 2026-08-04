@@ -14,7 +14,7 @@ export const mk9CreateStore = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => storeSchema.parse(data))
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
-    const ctx = await requireMk9Role(["ADMIN"]);
+    await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: row, error } = await supabaseAdmin
@@ -23,10 +23,9 @@ export const mk9CreateStore = createServerFn({ method: "POST" })
         name: data.name,
         name_normalized: normalizeName(data.name),
         chain: data.chain || null,
-        city: data.city || null,
         uf: data.uf || null,
-        channel: data.channel || null,
-        source_type: "MANUAL",
+        // Notas pode ser usado para cidade/canal se não houver colunas específicas
+        notes: data.city ? `Cidade: ${data.city}` : null, 
       })
       .select()
       .single();
@@ -51,9 +50,8 @@ export const mk9UpdateStore = createServerFn({ method: "POST" })
         name: data.data.name,
         name_normalized: normalizeName(data.data.name),
         chain: data.data.chain || null,
-        city: data.data.city || null,
         uf: data.data.uf || null,
-        channel: data.data.channel || null,
+        notes: data.data.city ? `Cidade: ${data.data.city}` : null,
       })
       .eq("id", data.id)
       .select()

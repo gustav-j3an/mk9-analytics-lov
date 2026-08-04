@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { normalizeName } from "./mk9/normalization";
 
 const promoterSchema = z.object({
   name: z.string().min(2).max(120),
@@ -14,16 +15,16 @@ export const mk9CreatePromoter = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => promoterSchema.parse(data))
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
-    const ctx = await requireMk9Role(["ADMIN"]);
+    await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: row, error } = await supabaseAdmin
       .from("mk9_promoters")
       .insert({
         name: data.name,
+        name_normalized: normalizeName(data.name),
         external_id: data.externalId || null,
         city: data.city || null,
-        uf: data.uf || null,
         contact: data.contact || null,
         notes: data.notes || null,
       })
@@ -48,9 +49,9 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
       .from("mk9_promoters")
       .update({
         name: data.data.name,
+        name_normalized: normalizeName(data.data.name),
         external_id: data.data.externalId || null,
         city: data.data.city || null,
-        uf: data.data.uf || null,
         contact: data.data.contact || null,
         notes: data.data.notes || null,
       })
