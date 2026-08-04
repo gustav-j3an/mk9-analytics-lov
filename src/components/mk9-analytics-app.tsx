@@ -76,6 +76,11 @@ export function Mk9AnalyticsApp() {
   const isAdmin = roles.some(r => String(r).toUpperCase() === "ADMIN");
   const isSupervisor = roles.some(r => String(r).toUpperCase() === "SUPERVISOR");
   const isAuditor = roles.some(r => String(r).toUpperCase() === "AUDITOR");
+  
+  // Diagnóstico temporário (Missão 1)
+  if (isAdmin) {
+    console.log("[MK9-AUTH] Usuário validado como ADMIN", { roles });
+  }
 
   const listIndustriesFn = useServerFn(mk9ListIndustries);
   const listStoresFn = useServerFn(mk9ListStores);

@@ -161,7 +161,7 @@ export async function requireMk9Role(
     throw fail(403, "Não foi possível validar suas permissões.");
   }
 
-  const roles = (roleRows ?? []).map((r) => r.role as Mk9Role);
+  const roles = (roleRows ?? []).map((r) => String(r.role).toUpperCase() as Mk9Role);
   const ok = roles.some((r) => required.includes(r));
 
   if (!ok) {
