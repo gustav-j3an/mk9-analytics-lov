@@ -81,7 +81,7 @@ export function Mk9PromotersModule() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Promotores</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Equipe de Campo</h2>
           <p className="text-muted-foreground">
             Gestão da equipe de campo e dispositivos móveis.
           </p>
