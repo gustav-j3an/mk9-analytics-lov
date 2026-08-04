@@ -15,7 +15,7 @@ import { Mk9UsersModule } from "@/components/mk9-users-module";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import { toast } from "sonner";
 import { Mk9AdminCleanupModule } from "@/components/mk9-admin-cleanup-module";
-import { Mk9SyncModule } from "@/components/mk9-sync-module";
+
 
 import {
   AlertTriangle,
@@ -38,7 +38,6 @@ import {
   Upload,
   Users,
   Layers,
-  Cloud
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +61,7 @@ type ModuleId =
   | "roteiros"
   | "relatorio_industria"
   | "cleanup_admin"
-  | "sync_admin"
+  
   | "usuarios";
 
 export function Mk9AnalyticsApp() {
@@ -168,18 +167,6 @@ export function Mk9AnalyticsApp() {
               active={activeModule === "roteiros"}
               onClick={() => setActiveModule("roteiros")}
             />
-            <SidebarItem
-              icon={Layers}
-              label="Limpeza Manual"
-              active={activeModule === "cleanup_admin"}
-              onClick={() => setActiveModule("cleanup_admin")}
-            />
-            <SidebarItem
-              icon={Cloud}
-              label="Sync Drive"
-              active={activeModule === "sync_admin"}
-              onClick={() => setActiveModule("sync_admin")}
-            />
             {isAdmin && (
               <SidebarItem
                 icon={Users}
@@ -223,7 +210,7 @@ export function Mk9AnalyticsApp() {
               {activeModule === "roteiros" && "Roteiros & Frequências"}
               {activeModule === "relatorio_industria" && "Indústrias (PDF)"}
               {activeModule === "cleanup_admin" && "Limpeza Administrativa"}
-              {activeModule === "sync_admin" && "Sincronização Google Drive"}
+              
               {activeModule === "usuarios" && "Gestão de Acessos"}
             </h2>
           </div>
@@ -315,7 +302,7 @@ export function Mk9AnalyticsApp() {
 
             {activeModule === "relatorio_industria" && <Mk9IndustryReportModule />}
             {activeModule === "cleanup_admin" && <Mk9AdminCleanupModule month={month} year={year} />}
-            {activeModule === "sync_admin" && <Mk9SyncModule />}
+            
             {activeModule === "usuarios" && <Mk9UsersModule currentUserId={user?.id ?? null} />}
           </div>
         </section>

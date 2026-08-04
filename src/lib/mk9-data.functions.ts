@@ -538,9 +538,3 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
     return { contratadas, executadas, validas, extras, pendencias, coverage };
   });
 
-export const mk9GetSyncOverview = createServerFn({ method: "GET" }).handler(async () => {
-  const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
-  await requireMk9Role(["ADMIN"]);
-  const { getSyncOverview } = await import("./mk9-sync-engine.server");
-  return getSyncOverview();
-});
