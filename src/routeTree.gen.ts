@@ -16,7 +16,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiReportsIndustryUnattendedPdfRouteImport } from './routes/api/reports/industry-unattended-pdf'
 import { Route as ApiReportsIndustryPdfRouteImport } from './routes/api/reports/industry-pdf'
 import { Route as ApiChecklistsPreviewRouteImport } from './routes/api/checklists/preview'
-import { Route as ApiPublicSyncChecklistsRouteImport } from './routes/api/public/sync/checklists'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -54,11 +53,6 @@ const ApiChecklistsPreviewRoute = ApiChecklistsPreviewRouteImport.update({
   path: '/api/checklists/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSyncChecklistsRoute = ApiPublicSyncChecklistsRouteImport.update({
-  id: '/api/public/sync/checklists',
-  path: '/api/public/sync/checklists',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,7 +62,6 @@ export interface FileRoutesByFullPath {
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
-  '/api/public/sync/checklists': typeof ApiPublicSyncChecklistsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,7 +71,6 @@ export interface FileRoutesByTo {
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
-  '/api/public/sync/checklists': typeof ApiPublicSyncChecklistsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,7 +81,6 @@ export interface FileRoutesById {
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
-  '/api/public/sync/checklists': typeof ApiPublicSyncChecklistsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,7 +92,6 @@ export interface FileRouteTypes {
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
-    | '/api/public/sync/checklists'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,7 +101,6 @@ export interface FileRouteTypes {
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
-    | '/api/public/sync/checklists'
   id:
     | '__root__'
     | '/'
@@ -121,7 +110,6 @@ export interface FileRouteTypes {
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
-    | '/api/public/sync/checklists'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,7 +120,6 @@ export interface RootRouteChildren {
   ApiChecklistsPreviewRoute: typeof ApiChecklistsPreviewRoute
   ApiReportsIndustryPdfRoute: typeof ApiReportsIndustryPdfRoute
   ApiReportsIndustryUnattendedPdfRoute: typeof ApiReportsIndustryUnattendedPdfRoute
-  ApiPublicSyncChecklistsRoute: typeof ApiPublicSyncChecklistsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -186,13 +173,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChecklistsPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/sync/checklists': {
-      id: '/api/public/sync/checklists'
-      path: '/api/public/sync/checklists'
-      fullPath: '/api/public/sync/checklists'
-      preLoaderRoute: typeof ApiPublicSyncChecklistsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -204,7 +184,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChecklistsPreviewRoute: ApiChecklistsPreviewRoute,
   ApiReportsIndustryPdfRoute: ApiReportsIndustryPdfRoute,
   ApiReportsIndustryUnattendedPdfRoute: ApiReportsIndustryUnattendedPdfRoute,
-  ApiPublicSyncChecklistsRoute: ApiPublicSyncChecklistsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
