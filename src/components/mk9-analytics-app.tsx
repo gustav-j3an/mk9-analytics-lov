@@ -73,9 +73,9 @@ export function Mk9AnalyticsApp() {
   const [auditFilters, setAuditFilters] = useState<Mk9AuditInitialFilters>({});
   const [auditKey, setAuditKey] = useState(0);
 
-  const isAdmin = roles.includes("admin" as any);
-  const isSupervisor = roles.includes("supervisor" as any);
-  const isAuditor = roles.includes("auditor" as any);
+  const isAdmin = roles.some(r => String(r).toUpperCase() === "ADMIN");
+  const isSupervisor = roles.some(r => String(r).toUpperCase() === "SUPERVISOR");
+  const isAuditor = roles.some(r => String(r).toUpperCase() === "AUDITOR");
 
   const listIndustriesFn = useServerFn(mk9ListIndustries);
   const listStoresFn = useServerFn(mk9ListStores);
