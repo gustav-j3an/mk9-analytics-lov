@@ -77,9 +77,9 @@ export function Mk9AnalyticsApp() {
   console.log("[MK9 DEBUG] User Roles:", roles);
   console.log("[MK9 DEBUG] User ID:", user?.id);
 
-  const isAdmin = roles.includes("ADMIN" as any);
-  const isSupervisor = roles.includes("SUPERVISOR" as any);
-  const isAuditor = roles.includes("AUDITOR" as any);
+  const isAdmin = roles.some(r => String(r).toUpperCase() === "ADMIN");
+  const isSupervisor = roles.some(r => String(r).toUpperCase() === "SUPERVISOR");
+  const isAuditor = roles.some(r => String(r).toUpperCase() === "AUDITOR");
 
   const listIndustriesFn = useServerFn(mk9ListIndustries);
   const listStoresFn = useServerFn(mk9ListStores);

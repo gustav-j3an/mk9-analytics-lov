@@ -7,22 +7,23 @@ export const mk9GetInternalUserDiagnostic = createServerFn({ method: "GET" })
     const request = getRequest();
     const authHeader = request?.headers.get('authorization');
     
-    if (!authHeader) throw new Error("Unauthorized: No header");
+    if (!authHeader) return { error: "No authorization header found" };
+    
     const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     
-    const { data: { user } } = await supabaseAdmin.auth.getUser(token);
-    if (!user) throw new Error("Unauthorized: Invalid user");
+    if (authError || !user) {
+      return { 
+        error: "Supabase could not verify user with this token",
+        details: authError?.message
+      };
+    }
     
-    // 1. Get auth user email
-    const { data: { user: authUser } } = await supabaseAdmin.auth.admin.getUserById(user.id);
-    
-    // 2. Get role from mk9_user_roles
-    const { data: roles } = await supabaseAdmin
+    const { data: roleRows } = await supabaseAdmin
       .from("mk9_user_roles")
       .select("role")
       .eq("user_id", user.id);
       
-    // 3. Get profile status
     const { data: profile } = await supabaseAdmin
       .from("mk9_profiles")
       .select("active")
@@ -31,8 +32,8 @@ export const mk9GetInternalUserDiagnostic = createServerFn({ method: "GET" })
 
     return {
       userId: user.id,
-      email: authUser?.email,
-      roles: roles?.map(r => r.role) ?? [],
+      email: user.email,
+      roles: roleRows?.map(r => r.role) ?? [],
       active: profile?.active,
       timestamp: new Date().toISOString()
     };
