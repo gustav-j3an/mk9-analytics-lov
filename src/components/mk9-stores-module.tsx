@@ -8,7 +8,9 @@ import {
   MapPin,
   Building2,
   CheckCircle2,
-  Edit2
+  Edit2,
+  Archive,
+  RefreshCcw
 } from "lucide-react";
 import { StoreDialog } from "./mk9/store-admin-dialogs";
 import { Button } from "@/components/ui/button";
@@ -24,11 +26,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { mk9ListStores } from "@/lib/mk9-data.functions";
+import { useMk9Session } from "@/lib/mk9-auth/session";
 
 export function Mk9StoresModule() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingStore, setEditingStore] = useState<any>(null);
+  const session = useMk9Session();
+  const isAdmin = session.hasRole("ADMIN");
 
   const listFn = useServerFn(mk9ListStores);
   const { data, isLoading } = useQuery({
@@ -55,10 +60,12 @@ export function Mk9StoresModule() {
             Cadastro de pontos de venda, redes e localizações.
           </p>
         </div>
-        <Button onClick={() => { setEditingStore(null); setDialogOpen(true); }} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nova Loja
-        </Button>
+        {isAdmin && (
+          <Button onClick={() => { setEditingStore(null); setDialogOpen(true); }} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Nova Loja
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card/50 p-4 rounded-xl border border-border/50 backdrop-blur-sm">
@@ -81,7 +88,7 @@ export function Mk9StoresModule() {
               <TableHead>Rede / Canal</TableHead>
               <TableHead>Localização</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              {isAdmin && <TableHead className="text-right">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -92,12 +99,12 @@ export function Mk9StoresModule() {
                   <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                  <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                  {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>}
                 </TableRow>
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={isAdmin ? 5 : 4} className="h-32 text-center text-muted-foreground">
                   Nenhuma loja encontrada.
                 </TableCell>
               </TableRow>
@@ -138,19 +145,23 @@ export function Mk9StoresModule() {
                       Ativa
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => {
-                        setEditingStore(s);
-                        setDialogOpen(true);
-                      }}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+                  {isAdmin && (
+                    <TableCell className="text-right flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setEditingStore(s);
+                          setDialogOpen(true);
+                        }}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-destructive">
+                        <Archive className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}
