@@ -54,6 +54,7 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
         city: data.data.city || null,
         contact: data.data.contact || null,
         notes: data.data.notes || null,
+        updated_at: new Date().toISOString(),
       })
       .eq("id", data.id)
       .select()
@@ -62,3 +63,82 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return row;
   });
+
+export const mk9ArchivePromoter = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({
+    id: z.string().uuid(),
+    reason: z.string().max(500).nullable().optional(),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: row, error } = await supabaseAdmin
+      .from("mk9_promoters")
+      .update({
+        archived_at: new Date().toISOString(),
+        archived_by: ctx.userId,
+        archive_reason: data.reason || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const mk9ReactivatePromoter = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({
+    id: z.string().uuid(),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+    await requireMk9Role(["ADMIN"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: row, error } = await supabaseAdmin
+      .from("mk9_promoters")
+      .update({
+        archived_at: null,
+        archived_by: null,
+        archive_reason: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const mk9PromoterArchiveImpact = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+    await requireMk9Role(["ADMIN"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const [routes, visits] = await Promise.all([
+      supabaseAdmin
+        .from("mk9_planned_routes")
+        .select("id", { count: "exact", head: true })
+        .eq("promoter_id", data.id)
+        .eq("is_active", true)
+        .is("archived_at", null),
+      supabaseAdmin
+        .from("mk9_planned_visits")
+        .select("id", { count: "exact", head: true })
+        .eq("promoter_id", data.id),
+    ]);
+
+    return {
+      activeRoutes: routes.count ?? 0,
+      visits: visits.count ?? 0,
+    };
+  });
+
+
