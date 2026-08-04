@@ -106,7 +106,7 @@ export interface IndustryReportInput {
 
 export interface IndustryReport {
   industry: { id: string; name: string };
-  window: { startDate: string; endDate: string; totalDays: number; weeks: number };
+  window: { startDate: string; endDate: string; totalDays: number; weeks: number | string[] };
   filters: { uf: string | null; storeId: string | null; sourceImportId: string | null; promoterId?: string | null };
   totals: {
     totalStores: number;
