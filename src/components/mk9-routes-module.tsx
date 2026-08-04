@@ -7,7 +7,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, CalendarClock, History, Loader2, Pencil, Plus, PowerOff, Route as RouteIcon, Users } from "lucide-react";
+import { AlertTriangle, CalendarClock, History, Loader2, Pencil, Plus, PowerOff, Route as RouteIcon, Users, FileText, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,7 @@ import {
   mk9RoutesUpsertItem,
   mk9RoutesDeactivate,
 } from "@/lib/mk9-routes.functions";
+import { mk9PromoterRouteStats } from "@/lib/mk9-promoter-route.functions";
 import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
 
 const WEEKDAY_PT = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
