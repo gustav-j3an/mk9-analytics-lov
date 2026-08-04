@@ -1,5 +1,6 @@
 /**
  * MK9 — Utilitários de normalização e validação de papéis (roles).
+ * Este arquivo é seguro para importação em Client e Server (não usa Node/Browser APIs).
  */
 
 export type Mk9Role = "ADMIN" | "SUPERVISOR" | "PROMOTOR" | "CLIENTE" | "AUDITOR";
@@ -20,6 +21,7 @@ export function normalizeMk9Role(role: unknown): Mk9Role | null {
  * Filtra e normaliza uma lista de roles, removendo duplicatas e valores inválidos.
  */
 export function normalizeMk9Roles(roles: unknown[]): Mk9Role[] {
+  if (!Array.isArray(roles)) return [];
   const result = new Set<Mk9Role>();
   for (const r of roles) {
     const normalized = normalizeMk9Role(r);

@@ -24,27 +24,36 @@ export type Mk9SessionValue = {
 const Ctx = createContext<Mk9SessionValue | null>(null);
 
 async function loadRolesAndProfile(userId: string) {
-  const [{ data: roleRows }, { data: profile }] = await Promise.all([
-    supabase.from("mk9_user_roles").select("role").eq("user_id", userId),
-    supabase
-      .from("mk9_profiles")
-      .select("name, email, avatar_url, active")
-      .eq("user_id", userId)
-      .maybeSingle(),
-  ]);
-  const userRoles = normalizeMk9Roles((roleRows ?? []).map(r => r.role));
-  
-  return {
-    roles: userRoles,
-    profile: profile
-      ? {
-          name: (profile as any).name ?? null,
-          email: (profile as any).email ?? null,
-          avatarUrl: (profile as any).avatar_url ?? null,
-          active: !!(profile as any).active,
-        }
-      : null,
-  };
+  try {
+    const [{ data: roleRows, error: roleError }, { data: profile, error: profileError }] = await Promise.all([
+      supabase.from("mk9_user_roles").select("role").eq("user_id", userId),
+      supabase
+        .from("mk9_profiles")
+        .select("name, email, avatar_url, active")
+        .eq("user_id", userId)
+        .maybeSingle(),
+    ]);
+
+    if (roleError) console.error("[MK9-SESSION] Erro ao carregar roles:", roleError);
+    if (profileError) console.error("[MK9-SESSION] Erro ao carregar perfil:", profileError);
+
+    const userRoles = normalizeMk9Roles((roleRows ?? []).map(r => r.role));
+    
+    return {
+      roles: userRoles,
+      profile: profile
+        ? {
+            name: (profile as any).name ?? null,
+            email: (profile as any).email ?? null,
+            avatarUrl: (profile as any).avatar_url ?? null,
+            active: !!(profile as any).active,
+          }
+        : null,
+    };
+  } catch (err) {
+    console.error("[MK9-SESSION] Falha crítica no carregamento de dados do usuário:", err);
+    return { roles: [], profile: null };
+  }
 }
 
 export function Mk9SessionProvider({ children }: { children: ReactNode }) {
@@ -59,21 +68,26 @@ export function Mk9SessionProvider({ children }: { children: ReactNode }) {
   const identityRef = useRef<string | null | undefined>(undefined);
 
   async function hydrate(s: Session | null) {
-    const identity = s?.user?.id ?? null;
-    if (identityRef.current !== undefined && identityRef.current !== identity) {
-      queryClient.clear();
+    try {
+      const identity = s?.user?.id ?? null;
+      if (identityRef.current !== undefined && identityRef.current !== identity) {
+        queryClient.clear();
+      }
+      identityRef.current = identity;
+      setSession(s);
+      if (s?.user) {
+        const { roles, profile } = await loadRolesAndProfile(s.user.id);
+        setRoles(roles);
+        setProfile(profile);
+      } else {
+        setRoles([]);
+        setProfile(null);
+      }
+    } catch (err) {
+      console.error("[MK9-SESSION] Erro durante a hidratação da sessão:", err);
+    } finally {
+      setLoading(false);
     }
-    identityRef.current = identity;
-    setSession(s);
-    if (s?.user) {
-      const { roles, profile } = await loadRolesAndProfile(s.user.id);
-      setRoles(roles);
-      setProfile(profile);
-    } else {
-      setRoles([]);
-      setProfile(null);
-    }
-    setLoading(false);
   }
 
   useEffect(() => {
