@@ -168,12 +168,23 @@ export function Mk9AnalyticsApp() {
               onClick={() => setActiveModule("roteiros")}
             />
             {isAdmin && (
-              <SidebarItem
-                icon={Users}
-                label="Usuários"
-                active={activeModule === "usuarios"}
-                onClick={() => setActiveModule("usuarios")}
-              />
+              <>
+                <div className="pt-4 pb-2">
+                  {!collapsed && <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Administração</p>}
+                </div>
+                <SidebarItem
+                  icon={ShieldAlert}
+                  label="Limpeza Manual"
+                  active={activeModule === "cleanup_admin"}
+                  onClick={() => setActiveModule("cleanup_admin")}
+                />
+                <SidebarItem
+                  icon={Users}
+                  label="Usuários"
+                  active={activeModule === "usuarios"}
+                  onClick={() => setActiveModule("usuarios")}
+                />
+              </>
             )}
           </nav>
         </div>

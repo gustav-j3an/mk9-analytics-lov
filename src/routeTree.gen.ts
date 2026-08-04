@@ -9,14 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CockpitRouteImport } from './routes/cockpit'
+import { Route as CleanupRouteImport } from './routes/cleanup'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiReportsIndustryUnattendedPdfRouteImport } from './routes/api/reports/industry-unattended-pdf'
 import { Route as ApiReportsIndustryPdfRouteImport } from './routes/api/reports/industry-pdf'
 import { Route as ApiChecklistsPreviewRouteImport } from './routes/api/checklists/preview'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -30,6 +37,11 @@ const LoginRoute = LoginRouteImport.update({
 const CockpitRoute = CockpitRouteImport.update({
   id: '/cockpit',
   path: '/cockpit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CleanupRoute = CleanupRouteImport.update({
+  id: '/cleanup',
+  path: '/cleanup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -56,18 +68,22 @@ const ApiChecklistsPreviewRoute = ApiChecklistsPreviewRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cleanup': typeof CleanupRoute
   '/cockpit': typeof CockpitRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/users': typeof UsersRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cleanup': typeof CleanupRoute
   '/cockpit': typeof CockpitRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/users': typeof UsersRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
@@ -75,9 +91,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cleanup': typeof CleanupRoute
   '/cockpit': typeof CockpitRoute
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/users': typeof UsersRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
@@ -86,27 +104,33 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/cleanup'
     | '/cockpit'
     | '/login'
     | '/reset-password'
+    | '/users'
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cleanup'
     | '/cockpit'
     | '/login'
     | '/reset-password'
+    | '/users'
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
   id:
     | '__root__'
     | '/'
+    | '/cleanup'
     | '/cockpit'
     | '/login'
     | '/reset-password'
+    | '/users'
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
@@ -114,9 +138,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CleanupRoute: typeof CleanupRoute
   CockpitRoute: typeof CockpitRoute
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  UsersRoute: typeof UsersRoute
   ApiChecklistsPreviewRoute: typeof ApiChecklistsPreviewRoute
   ApiReportsIndustryPdfRoute: typeof ApiReportsIndustryPdfRoute
   ApiReportsIndustryUnattendedPdfRoute: typeof ApiReportsIndustryUnattendedPdfRoute
@@ -124,6 +150,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -143,6 +176,13 @@ declare module '@tanstack/react-router' {
       path: '/cockpit'
       fullPath: '/cockpit'
       preLoaderRoute: typeof CockpitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cleanup': {
+      id: '/cleanup'
+      path: '/cleanup'
+      fullPath: '/cleanup'
+      preLoaderRoute: typeof CleanupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -178,9 +218,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CleanupRoute: CleanupRoute,
   CockpitRoute: CockpitRoute,
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  UsersRoute: UsersRoute,
   ApiChecklistsPreviewRoute: ApiChecklistsPreviewRoute,
   ApiReportsIndustryPdfRoute: ApiReportsIndustryPdfRoute,
   ApiReportsIndustryUnattendedPdfRoute: ApiReportsIndustryUnattendedPdfRoute,
