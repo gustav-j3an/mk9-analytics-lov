@@ -32,8 +32,7 @@ async function loadRolesAndProfile(userId: string) {
       .eq("user_id", userId)
       .maybeSingle(),
   ]);
-  const userRoles = normalizeMk9Roles((roleRows ?? []).map(r => r.role));
-  console.log("[MK9-SESSION] Roles carregadas:", userRoles);
+    const userRoles = normalizeMk9Roles((roleRows ?? []).map(r => r.role));
   
   return {
     roles: userRoles,
@@ -60,21 +59,26 @@ export function Mk9SessionProvider({ children }: { children: ReactNode }) {
   const identityRef = useRef<string | null | undefined>(undefined);
 
   async function hydrate(s: Session | null) {
-    const identity = s?.user?.id ?? null;
-    if (identityRef.current !== undefined && identityRef.current !== identity) {
-      queryClient.clear();
+    try {
+      const identity = s?.user?.id ?? null;
+      if (identityRef.current !== undefined && identityRef.current !== identity) {
+        queryClient.clear();
+      }
+      identityRef.current = identity;
+      setSession(s);
+      if (s?.user) {
+        const { roles, profile } = await loadRolesAndProfile(s.user.id);
+        setRoles(roles);
+        setProfile(profile);
+      } else {
+        setRoles([]);
+        setProfile(null);
+      }
+    } catch (err) {
+      console.error("[MK9-SESSION] Erro durante a hidratação da sessão:", err);
+    } finally {
+      setLoading(false);
     }
-    identityRef.current = identity;
-    setSession(s);
-    if (s?.user) {
-      const { roles, profile } = await loadRolesAndProfile(s.user.id);
-      setRoles(roles);
-      setProfile(profile);
-    } else {
-      setRoles([]);
-      setProfile(null);
-    }
-    setLoading(false);
   }
 
   useEffect(() => {
