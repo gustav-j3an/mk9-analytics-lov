@@ -131,6 +131,18 @@ export function Mk9SessionProvider({ children }: { children: ReactNode }) {
 
 export function useMk9Session(): Mk9SessionValue {
   const v = useContext(Ctx);
-  if (!v) throw new Error("useMk9Session deve ser usado dentro de <Mk9SessionProvider>.");
+  if (!v) {
+    // Retorno defensivo para evitar quebra do ErrorBoundary durante SSR/Prerender se o contexto falhar
+    return {
+      loading: true,
+      session: null,
+      user: null,
+      roles: [],
+      profile: null,
+      hasRole: () => false,
+      signOut: async () => {},
+      refresh: async () => {},
+    };
+  }
   return v;
 }
