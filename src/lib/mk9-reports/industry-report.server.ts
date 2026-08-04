@@ -98,6 +98,7 @@ export interface IndustryReportInput {
   uf?: string | null;
   storeId?: string | null;
   sourceImportId?: string | null;
+  promoterId?: string | null;
   includePromoter?: boolean;
   /** Escopo de acesso resolvido no servidor (Fase 0.2). Nunca vem do navegador. */
   access?: import("@/lib/mk9-auth/access-scope.server").Mk9AccessScope | null;
@@ -106,7 +107,7 @@ export interface IndustryReportInput {
 export interface IndustryReport {
   industry: { id: string; name: string };
   window: { startDate: string; endDate: string; totalDays: number; weeks: number };
-  filters: { uf: string | null; storeId: string | null; sourceImportId: string | null };
+  filters: { uf: string | null; storeId: string | null; sourceImportId: string | null; promoterId?: string | null };
   totals: {
     totalStores: number;
     contracted: number;
@@ -122,7 +123,13 @@ export interface IndustryReport {
     coveragePct: number;
     metrics: VisitMetrics;
     execution: { ok: number; parcial: number; naoRealizada: number };
-  route: { dentro: number; fora: number; sem: number };
+    route: { dentro: number; fora: number; sem: number };
+    promoterStats?: {
+      totalVisits: number;
+      uniqueStores: number;
+      uniqueIndustries: number;
+      byWeekday: number[];
+    };
   };
   stores: StoreLine[];
   ufs: UfLine[];
@@ -145,7 +152,7 @@ export async function buildIndustryReport(
   input: IndustryReportInput,
   window: PeriodWindow,
 ): Promise<IndustryReport> {
-  const { industryId, uf, storeId, sourceImportId } = input;
+  const { industryId, uf, storeId, sourceImportId, promoterId } = input;
   const weeks = weeksInWindow(window);
   const access = input.access ?? null;
   if (access) {
@@ -476,7 +483,7 @@ export async function buildIndustryReport(
       totalDays: window.totalDays,
       weeks,
     },
-    filters: { uf: uf ?? null, storeId: storeId ?? null, sourceImportId: sourceImportId ?? null },
+    filters: { uf: uf ?? null, storeId: storeId ?? null, sourceImportId: sourceImportId ?? null, promoterId: promoterId ?? null },
     totals: {
       totalStores: stores.length,
       contracted: totalsMetrics.contratadas,
