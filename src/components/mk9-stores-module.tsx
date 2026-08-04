@@ -8,8 +8,9 @@ import {
   MapPin,
   Building2,
   CheckCircle2,
-  XCircle
+  Edit2
 } from "lucide-react";
+import { StoreDialog } from "./mk9/store-admin-dialogs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,8 @@ import { mk9ListStores } from "@/lib/mk9-data.functions";
 
 export function Mk9StoresModule() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingStore, setEditingStore] = useState<any>(null);
 
   const listFn = useServerFn(mk9ListStores);
   const { data, isLoading } = useQuery({
@@ -52,7 +55,7 @@ export function Mk9StoresModule() {
             Cadastro de pontos de venda, redes e localizações.
           </p>
         </div>
-        <Button disabled className="gap-2 opacity-50 cursor-not-allowed">
+        <Button onClick={() => { setEditingStore(null); setDialogOpen(true); }} className="gap-2">
           <Plus className="h-4 w-4" />
           Nova Loja
         </Button>
@@ -78,6 +81,7 @@ export function Mk9StoresModule() {
               <TableHead>Rede / Canal</TableHead>
               <TableHead>Localização</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -88,11 +92,12 @@ export function Mk9StoresModule() {
                   <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                  <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                 </TableRow>
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
                   Nenhuma loja encontrada.
                 </TableCell>
               </TableRow>
@@ -133,12 +138,34 @@ export function Mk9StoresModule() {
                       Ativa
                     </Badge>
                   </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => {
+                        setEditingStore(s);
+                        setDialogOpen(true);
+                      }}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
       </div>
+
+      <StoreDialog 
+        open={dialogOpen} 
+        store={editingStore} 
+        onClose={() => {
+          setDialogOpen(false);
+          setEditingStore(null);
+        }} 
+      />
     </div>
   );
 }
