@@ -98,6 +98,7 @@ export interface IndustryReportInput {
   uf?: string | null;
   storeId?: string | null;
   sourceImportId?: string | null;
+  promoterId?: string | null;
   includePromoter?: boolean;
   /** Escopo de acesso resolvido no servidor (Fase 0.2). Nunca vem do navegador. */
   access?: import("@/lib/mk9-auth/access-scope.server").Mk9AccessScope | null;
@@ -105,8 +106,8 @@ export interface IndustryReportInput {
 
 export interface IndustryReport {
   industry: { id: string; name: string };
-  window: { startDate: string; endDate: string; totalDays: number; weeks: number };
-  filters: { uf: string | null; storeId: string | null; sourceImportId: string | null };
+  window: { startDate: string; endDate: string; totalDays: number; weeks: number | string[] };
+  filters: { uf: string | null; storeId: string | null; sourceImportId: string | null; promoterId?: string | null };
   totals: {
     totalStores: number;
     contracted: number;
@@ -122,7 +123,13 @@ export interface IndustryReport {
     coveragePct: number;
     metrics: VisitMetrics;
     execution: { ok: number; parcial: number; naoRealizada: number };
-  route: { dentro: number; fora: number; sem: number };
+    route: { dentro: number; fora: number; sem: number };
+    promoterStats?: {
+      totalVisits: number;
+      uniqueStores: number;
+      uniqueIndustries: number;
+      byWeekday: number[];
+    };
   };
   stores: StoreLine[];
   ufs: UfLine[];
@@ -145,7 +152,7 @@ export async function buildIndustryReport(
   input: IndustryReportInput,
   window: PeriodWindow,
 ): Promise<IndustryReport> {
-  const { industryId, uf, storeId, sourceImportId } = input;
+  const { industryId, uf, storeId, sourceImportId, promoterId } = input;
   const weeks = weeksInWindow(window);
   const access = input.access ?? null;
   if (access) {
@@ -171,6 +178,17 @@ export async function buildIndustryReport(
     .maybeSingle();
   if (eInd) throw new Error(eInd.message);
   if (!industry) throw new Error("Indústria não encontrada");
+
+  // Motor operacional core (Fase 3: loadOperationCore)
+  const { loadOperationCore } = await import("@/lib/mk9-operations/core.server");
+  const core = await loadOperationCore(supabase, {
+    year: input.year,
+    month: input.month,
+    uf: uf ?? undefined,
+    industryId: industryId,
+    promoterId: promoterId ?? undefined,
+    access,
+  });
 
   // 2) Frequência por loja (fonte principal de "contratadas")
   // Frequência VERSIONADA vigente na janela (fonte de "contratadas").
@@ -476,7 +494,7 @@ export async function buildIndustryReport(
       totalDays: window.totalDays,
       weeks,
     },
-    filters: { uf: uf ?? null, storeId: storeId ?? null, sourceImportId: sourceImportId ?? null },
+    filters: { uf: uf ?? null, storeId: storeId ?? null, sourceImportId: sourceImportId ?? null, promoterId: promoterId ?? null },
     totals: {
       totalStores: stores.length,
       contracted: totalsMetrics.contratadas,
@@ -493,6 +511,21 @@ export async function buildIndustryReport(
       metrics: totalsMetrics,
       execution: execCounts,
       route: routeCounts,
+      promoterStats: promoterId ? {
+        totalVisits: Math.round(stores.reduce((sum, s) => sum + s.expected, 0)),
+        uniqueStores: stores.length,
+        uniqueIndustries: 1, // Dentro do IndustryReport é sempre 1
+        byWeekday: [0, 1, 2, 3, 4, 5, 6].map(wd => {
+          let visits = 0;
+          for (const s of stores) {
+            const routeInfo = core.routeByKey.get(`${industryId}|${s.storeId}`);
+            if (routeInfo?.weekdays.has(wd)) {
+              visits += s.expected / routeInfo.weekdays.size;
+            }
+          }
+          return Math.round(visits);
+        })
+      } : undefined
     },
     stores,
     ufs,

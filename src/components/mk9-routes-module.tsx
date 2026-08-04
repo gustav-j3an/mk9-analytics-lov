@@ -7,7 +7,8 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, CalendarClock, History, Loader2, Pencil, Plus, PowerOff, Route as RouteIcon, Users } from "lucide-react";
+import { AlertTriangle, CalendarClock, History, Loader2, Pencil, Plus, PowerOff, Route as RouteIcon, Users, FileText, Info } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,9 +22,36 @@ import {
   mk9RoutesUpsertItem,
   mk9RoutesDeactivate,
 } from "@/lib/mk9-routes.functions";
+import { mk9PromoterRouteStats } from "@/lib/mk9-promoter-route.functions";
 import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
 
 const WEEKDAY_PT = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+
+async function downloadPromoterPdf(promoterId: string, promoterName: string, year: number, month: number) {
+  try {
+    const res = await fetch("/api/reports/promoter-pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ promoterId, year, month }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Erro ao gerar PDF");
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ROTEIRO_${promoterName.toUpperCase().replace(/\s+/g, "_")}_${month}_${year}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    toast.success("PDF gerado com sucesso!");
+  } catch (err: any) {
+    toast.error(err.message);
+  }
+}
 
 type Route = Awaited<ReturnType<typeof mk9RoutesListVersioned>>[number];
 
@@ -165,6 +193,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
         <Card><CardContent className="py-10 text-center text-muted-foreground">Nenhum roteiro vigente para os filtros escolhidos.</CardContent></Card>
       ) : (
         <div className="space-y-4">
+          {filterPromoter && <PromoterRouteCard promoterId={filterPromoter} referenceDate={referenceDate} promoters={promoters} />}
           {Array.from(grouped.keys()).sort((a, b) => a.localeCompare(b, "pt-BR")).map((promoter) => {
             const days = grouped.get(promoter)!;
             return (
@@ -177,7 +206,14 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                     const stMap = days.get(wd)!;
                     return (
                       <div key={wd} className="rounded-lg border bg-muted/20 p-3">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">{WEEKDAY_PT[wd]}</p>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-primary">{WEEKDAY_PT[wd]}</p>
+                          {filterPromoter && (
+                            <Badge variant="outline" className="text-[10px] h-5 bg-background font-normal">
+                              {Array.from(stMap.values()).length} visitas
+                            </Badge>
+                          )}
+                        </div>
                         <div className="space-y-2">
                           {Array.from(stMap.values()).map(({ store, items }) => (
                             <div key={store.storeId ?? store.storeName} className="flex items-start justify-between gap-3 border-l-2 border-primary/40 pl-3">
@@ -435,5 +471,74 @@ function HistoryDialog({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Card de Resumo do Roteiro (Missão: Total de Visitas)
+// ---------------------------------------------------------------------------
+function PromoterRouteCard({ 
+  promoterId, referenceDate, promoters 
+}: { 
+  promoterId: string; referenceDate: string; promoters: any[] 
+}) {
+  const [y, m] = referenceDate.split("-").map(Number);
+  const promoter = promoters.find(p => p.id === promoterId);
+  
+  const statsFn = useServerFn(mk9PromoterRouteStats);
+  const q = useQuery({
+    queryKey: ["mk9-promoter-route-stats", promoterId, y, m],
+    queryFn: () => statsFn({ data: { promoterId, year: y, month: m } }),
+  });
+
+  const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+  return (
+    <Card className="bg-primary/5 border-primary/20 shadow-none overflow-hidden relative">
+      <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+        <RouteIcon className="h-24 w-24 text-primary" />
+      </div>
+      <CardContent className="pt-6">
+        {q.isLoading ? (
+          <div className="flex items-center gap-2 py-4"><Loader2 className="h-4 w-4 animate-spin" /> Carregando resumo...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
+            <div className="space-y-1 border-r pr-6 border-primary/10">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Promotor</p>
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-bold truncate">{promoter?.name ?? "—"}</p>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 text-primary" 
+                  title="Exportar Roteiro PDF"
+                  onClick={() => downloadPromoterPdf(promoterId, promoter?.name ?? "Promotor", y, m)}
+                >
+                  <FileText className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant="outline" className="bg-background/50">{months[m-1]}/{y}</Badge>
+              </div>
+            </div>
+            <div className="space-y-1 border-r pr-6 border-primary/10">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total de Visitas</p>
+              <p className="text-2xl font-black text-primary">{q.data?.totalVisits ?? 0}</p>
+              <p className="text-[10px] text-muted-foreground">Contratadas no período</p>
+            </div>
+            <div className="space-y-1 border-r pr-6 border-primary/10">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Lojas Únicas</p>
+              <p className="text-2xl font-black">{q.data?.uniqueStores ?? 0}</p>
+              <p className="text-[10px] text-muted-foreground">Pontos de venda</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Indústrias</p>
+              <p className="text-2xl font-black">{q.data?.uniqueIndustries ?? 0}</p>
+              <p className="text-[10px] text-muted-foreground">Marcas atendidas</p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
