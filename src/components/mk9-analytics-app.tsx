@@ -138,7 +138,6 @@ export function Mk9AnalyticsApp() {
               icon={PackageCheck}
               label="Qualidade"
               active={activeModule === "qualidade"}
-              activeModuleId="qualidade"
               onClick={() => setActiveModule("qualidade")}
             />
             <SidebarItem
