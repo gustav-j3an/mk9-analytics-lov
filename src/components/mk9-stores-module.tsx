@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { 
   Plus, 
   Search, 
@@ -10,9 +11,10 @@ import {
   CheckCircle2,
   Edit2,
   Archive,
-  RefreshCcw
+  RefreshCcw,
+  History
 } from "lucide-react";
-import { StoreDialog } from "./mk9/store-admin-dialogs";
+import { StoreDialog, StoreArchiveDialog } from "./mk9/store-admin-dialogs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -25,23 +27,48 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { mk9ListStores } from "@/lib/mk9-data.functions";
+import { mk9ReactivateStore } from "@/lib/mk9-stores.functions";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 
 export function Mk9StoresModule() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [editingStore, setEditingStore] = useState<any>(null);
+  const [statusFilter, setStatusFilter] = useState<"active" | "archived">("active");
+  
+  const queryClient = useQueryClient();
   const session = useMk9Session();
   const isAdmin = session.hasRole("ADMIN");
 
   const listFn = useServerFn(mk9ListStores);
+  const reactivateFn = useServerFn(mk9ReactivateStore);
+
   const { data, isLoading } = useQuery({
     queryKey: ["mk9-stores"],
     queryFn: () => listFn(),
   });
 
+  const reactivateMut = useMutation({
+    mutationFn: (id: string) => reactivateFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Loja reativada.");
+      queryClient.invalidateQueries({ queryKey: ["mk9-stores"] });
+    },
+    onError: (err: any) => toast.error(err.message || "Erro ao reativar loja."),
+  });
+
   const filtered = (data ?? []).filter((s: any) => {
+    const isArchived = Boolean(s.archived_at);
+    if (statusFilter === "active" && isArchived) return false;
+    if (statusFilter === "archived" && !isArchived) return false;
+
     const term = searchTerm.toLowerCase();
     return (
       s.name.toLowerCase().includes(term) ||
@@ -69,14 +96,22 @@ export function Mk9StoresModule() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card/50 p-4 rounded-xl border border-border/50 backdrop-blur-sm">
-        <div className="relative w-full md:max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome, rede, cidade ou UF..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <Tabs value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)} className="w-full md:w-auto">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="active">Ativas</TabsTrigger>
+              <TabsTrigger value="archived">Arquivadas</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="relative w-full md:max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome, rede, cidade ou UF..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
       </div>
 
@@ -128,38 +163,65 @@ export function Mk9StoresModule() {
                         <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
                         {s.chain || "Sem rede"}
                       </div>
-                      {s.channel && (
-                        <div className="text-xs text-muted-foreground">{s.channel}</div>
-                      )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1.5 text-sm">
                       <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                      {s.city}, {s.uf}
+                      {s.city || "—"}, {s.uf || "—"}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="gap-1.5 bg-green-500/10 text-green-600 border-green-200">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Ativa
-                    </Badge>
+                    {s.archived_at ? (
+                      <Badge variant="outline" className="gap-1.5 bg-gray-500/10 text-gray-600 border-gray-200">
+                        <History className="h-3 w-3" />
+                        Arquivada
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="gap-1.5 bg-green-500/10 text-green-600 border-green-200">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Ativa
+                      </Badge>
+                    )}
                   </TableCell>
                   {isAdmin && (
                     <TableCell className="text-right flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setEditingStore(s);
-                          setDialogOpen(true);
-                        }}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive">
-                        <Archive className="h-4 w-4" />
-                      </Button>
+                      {!s.archived_at ? (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setEditingStore(s);
+                              setDialogOpen(true);
+                            }}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-destructive"
+                            onClick={() => {
+                              setEditingStore(s);
+                              setArchiveDialogOpen(true);
+                            }}
+                          >
+                            <Archive className="h-4 w-4" />
+                          </Button>
+                        </>
+                      ) : (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-indigo-600"
+                          title="Reativar"
+                          onClick={() => reactivateMut.mutate(s.id)}
+                          disabled={reactivateMut.isPending}
+                        >
+                          <RefreshCcw className={`h-4 w-4 ${reactivateMut.isPending ? "animate-spin" : ""}`} />
+                        </Button>
+                      )}
                     </TableCell>
                   )}
                 </TableRow>
@@ -176,6 +238,15 @@ export function Mk9StoresModule() {
           setDialogOpen(false);
           setEditingStore(null);
         }} 
+      />
+
+      <StoreArchiveDialog
+        open={archiveDialogOpen}
+        store={editingStore}
+        onClose={() => {
+          setArchiveDialogOpen(false);
+          setEditingStore(null);
+        }}
       />
     </div>
   );
