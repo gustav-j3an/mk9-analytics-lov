@@ -19,7 +19,8 @@ export const Route = createFileRoute("/")({
 });
 
 function DashboardPage() {
-  const { session, loading } = useMk9Session();
+  const sessionData = useMk9Session();
+  const { session, loading } = sessionData;
 
   if (loading) {
     return (
