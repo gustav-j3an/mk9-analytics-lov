@@ -12,8 +12,9 @@
 import { getRequest } from "@tanstack/react-start/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { normalizeMk9Roles, type Mk9Role } from "./roles";
 
-export type Mk9Role = "ADMIN" | "SUPERVISOR" | "PROMOTOR" | "CLIENTE" | "AUDITOR";
+export type { Mk9Role };
 
 export type Mk9AuthContext = {
   userId: string | null;
@@ -161,7 +162,7 @@ export async function requireMk9Role(
     throw fail(403, "Não foi possível validar suas permissões.");
   }
 
-  const roles = (roleRows ?? []).map((r) => String(r.role).toUpperCase() as Mk9Role);
+  const roles = normalizeMk9Roles((roleRows ?? []).map(r => r.role));
   const ok = roles.some((r) => required.includes(r));
 
   if (!ok) {

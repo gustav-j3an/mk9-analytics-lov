@@ -6,8 +6,9 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { useQueryClient } from "@tanstack/react-query";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeMk9Roles, type Mk9Role } from "./roles";
 
-export type Mk9Role = "ADMIN" | "SUPERVISOR" | "PROMOTOR" | "CLIENTE" | "AUDITOR";
+export type { Mk9Role };
 
 export type Mk9SessionValue = {
   loading: boolean;
@@ -31,7 +32,7 @@ async function loadRolesAndProfile(userId: string) {
       .eq("user_id", userId)
       .maybeSingle(),
   ]);
-  const userRoles = ((roleRows ?? []) as any[]).map((r) => String(r.role).toUpperCase() as Mk9Role);
+  const userRoles = normalizeMk9Roles((roleRows ?? []).map(r => r.role));
   
   return {
     roles: userRoles,
