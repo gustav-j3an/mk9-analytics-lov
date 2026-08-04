@@ -60,6 +60,7 @@ export function Mk9SessionProvider({ children }: { children: ReactNode }) {
   const identityRef = useRef<string | null | undefined>(undefined);
 
   async function hydrate(s: Session | null) {
+    console.log("[MK9-SESSION] Hydrating session:", s?.user?.id, "Email:", s?.user?.email);
     const identity = s?.user?.id ?? null;
     if (identityRef.current !== undefined && identityRef.current !== identity) {
       queryClient.clear();
