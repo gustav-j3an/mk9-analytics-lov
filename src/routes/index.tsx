@@ -20,15 +20,6 @@ export const Route = createFileRoute("/")({
 
 function DashboardPage() {
   const sessionData = useMk9Session();
-  
-  if (!sessionData) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center bg-background">
-        <p className="text-destructive">Erro: Session Provider não encontrado.</p>
-      </div>
-    );
-  }
-
   const { session, loading } = sessionData;
 
   if (loading) {
@@ -45,11 +36,7 @@ function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <ClientOnly fallback={
-        <div className="h-screen w-full flex items-center justify-center bg-background">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      }>
+      <ClientOnly>
         <Mk9AnalyticsApp />
       </ClientOnly>
     </div>
