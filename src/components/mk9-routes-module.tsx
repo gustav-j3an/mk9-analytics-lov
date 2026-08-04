@@ -26,6 +26,32 @@ import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
 
 const WEEKDAY_PT = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
 
+async function downloadPromoterPdf(promoterId: string, promoterName: string, year: number, month: number) {
+  try {
+    const res = await fetch("/api/reports/promoter-pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ promoterId, year, month }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Erro ao gerar PDF");
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ROTEIRO_${promoterName.toUpperCase().replace(/\s+/g, "_")}_${month}_${year}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    toast.success("PDF gerado com sucesso!");
+  } catch (err: any) {
+    toast.error(err.message);
+  }
+}
+
 type Route = Awaited<ReturnType<typeof mk9RoutesListVersioned>>[number];
 
 interface Props {
@@ -478,7 +504,18 @@ function PromoterRouteCard({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
             <div className="space-y-1 border-r pr-6 border-primary/10">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Promotor</p>
-              <p className="text-lg font-bold truncate">{promoter?.name ?? "—"}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-bold truncate">{promoter?.name ?? "—"}</p>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 text-primary" 
+                  title="Exportar Roteiro PDF"
+                  onClick={() => downloadPromoterPdf(promoterId, promoter?.name ?? "Promotor", y, m)}
+                >
+                  <FileText className="h-4 w-4" />
+                </Button>
+              </div>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="outline" className="bg-background/50">{months[m-1]}/{y}</Badge>
               </div>
