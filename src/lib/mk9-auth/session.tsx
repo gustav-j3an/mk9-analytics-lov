@@ -34,6 +34,7 @@ async function loadRolesAndProfile(userId: string) {
   ]);
   const userRoles = normalizeMk9Roles((roleRows ?? []).map(r => r.role));
   
+  console.log("[MK9-SESSION] Raw roles from DB:", roleRows, "Normalized:", userRoles);
   return {
     roles: userRoles,
     profile: profile
