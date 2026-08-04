@@ -73,10 +73,6 @@ export function Mk9AnalyticsApp() {
   const [auditFilters, setAuditFilters] = useState<Mk9AuditInitialFilters>({});
   const [auditKey, setAuditKey] = useState(0);
 
-  // LOGS INTERNOS PARA DEPURAÇÃO (Visíveis no console do navegador para o dev)
-  console.log("[MK9 DEBUG] User Roles:", roles);
-  console.log("[MK9 DEBUG] User ID:", user?.id);
-
   const isAdmin = roles.some(r => String(r).toUpperCase() === "ADMIN");
   const isSupervisor = roles.some(r => String(r).toUpperCase() === "SUPERVISOR");
   const isAuditor = roles.some(r => String(r).toUpperCase() === "AUDITOR");
@@ -171,21 +167,25 @@ export function Mk9AnalyticsApp() {
               active={activeModule === "roteiros"}
               onClick={() => setActiveModule("roteiros")}
             />
-            <div className="pt-4 pb-2">
-              {!collapsed && <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Administração</p>}
-            </div>
-            <SidebarItem
-              icon={ShieldAlert}
-              label="Limpeza Manual"
-              active={activeModule === "cleanup_admin"}
-              onClick={() => setActiveModule("cleanup_admin")}
-            />
-            <SidebarItem
-              icon={Users}
-              label="Usuários"
-              active={activeModule === "usuarios"}
-              onClick={() => setActiveModule("usuarios")}
-            />
+            {isAdmin && (
+              <>
+                <div className="pt-4 pb-2">
+                  {!collapsed && <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Administração</p>}
+                </div>
+                <SidebarItem
+                  icon={ShieldAlert}
+                  label="Limpeza Manual"
+                  active={activeModule === "cleanup_admin"}
+                  onClick={() => setActiveModule("cleanup_admin")}
+                />
+                <SidebarItem
+                  icon={Users}
+                  label="Usuários"
+                  active={activeModule === "usuarios"}
+                  onClick={() => setActiveModule("usuarios")}
+                />
+              </>
+            )}
           </nav>
         </div>
 
