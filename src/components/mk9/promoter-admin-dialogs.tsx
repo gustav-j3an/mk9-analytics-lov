@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { mk9CreatePromoter, mk9UpdatePromoter } from "@/lib/mk9-promoters.functions";
+import { 
+  mk9CreatePromoter, 
+  mk9UpdatePromoter,
+  mk9ArchivePromoter,
+  mk9ReactivatePromoter,
+  mk9PromoterArchiveImpact
+} from "@/lib/mk9-promoters.functions";
 
 export function PromoterDialog({ 
   open, 
@@ -102,6 +109,90 @@ export function PromoterDialog({
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button onClick={() => mut.mutate()} disabled={!name || mut.isPending}>
             {mut.isPending ? "Salvando..." : "Salvar"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function PromoterArchiveDialog({
+  open,
+  onClose,
+  promoter
+}: {
+  open: boolean;
+  onClose: () => void;
+  promoter: any;
+}) {
+  const queryClient = useQueryClient();
+  const [reason, setReason] = useState("");
+  const impactFn = useServerFn(mk9PromoterArchiveImpact);
+  const archiveFn = useServerFn(mk9ArchivePromoter);
+
+  const { data: impact, isLoading } = useQuery({
+    queryKey: ["mk9-promoter-impact", promoter?.id],
+    queryFn: () => impactFn({ data: { id: promoter.id } }),
+    enabled: open && !!promoter?.id,
+  });
+
+  const mut = useMutation({
+    mutationFn: async () => archiveFn({ data: { id: promoter.id, reason } }),
+    onSuccess: () => {
+      toast.success("Promotor arquivado.");
+      queryClient.invalidateQueries({ queryKey: ["mk9-promoters"] });
+      onClose();
+    },
+    onError: (err: any) => toast.error(err.message || "Erro ao arquivar promotor."),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-5 w-5" />
+            Arquivar Promotor
+          </DialogTitle>
+          <DialogDescription>
+            Tem certeza que deseja arquivar o promotor <strong>{promoter?.name}</strong>?
+          </DialogDescription>
+        </DialogHeader>
+
+        {isLoading ? (
+          <div className="py-10 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <p className="text-sm">Analisando impacto operacional...</p>
+          </div>
+        ) : (
+          <div className="space-y-4 py-4">
+            <div className="rounded-lg bg-muted p-4 space-y-2 text-sm">
+              <p className="font-medium">Impacto detectado:</p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                <li>{impact?.activeRoutes || 0} roteiros ativos serão arquivados</li>
+                <li>{impact?.visits || 0} visitas (planejadas/históricas) serão preservadas</li>
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Motivo do Arquivamento (Opcional)</Label>
+              <Textarea 
+                placeholder="Ex: Desligamento, mudança de função..." 
+                value={reason} 
+                onChange={(e) => setReason(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button 
+            variant="destructive" 
+            onClick={() => mut.mutate()} 
+            disabled={isLoading || mut.isPending}
+          >
+            {mut.isPending ? "Arquivando..." : "Confirmar Arquivamento"}
           </Button>
         </DialogFooter>
       </DialogContent>
