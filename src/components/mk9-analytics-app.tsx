@@ -73,9 +73,13 @@ export function Mk9AnalyticsApp() {
   const [auditFilters, setAuditFilters] = useState<Mk9AuditInitialFilters>({});
   const [auditKey, setAuditKey] = useState(0);
 
-  const isAdmin = roles.includes("admin" as any);
-  const isSupervisor = roles.includes("supervisor" as any);
-  const isAuditor = roles.includes("auditor" as any);
+  // LOGS INTERNOS PARA DEPURAÇÃO (Visíveis no console do navegador para o dev)
+  console.log("[MK9 DEBUG] User Roles:", roles);
+  console.log("[MK9 DEBUG] User ID:", user?.id);
+
+  const isAdmin = roles.includes("ADMIN" as any);
+  const isSupervisor = roles.includes("SUPERVISOR" as any);
+  const isAuditor = roles.includes("AUDITOR" as any);
 
   const listIndustriesFn = useServerFn(mk9ListIndustries);
   const listStoresFn = useServerFn(mk9ListStores);
