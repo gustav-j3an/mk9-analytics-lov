@@ -34,7 +34,6 @@ async function loadRolesAndProfile(userId: string) {
   ]);
   const userRoles = normalizeMk9Roles((roleRows ?? []).map(r => r.role));
   
-  console.log("[MK9-SESSION] Raw roles from DB:", roleRows, "Normalized:", userRoles);
   return {
     roles: userRoles,
     profile: profile
@@ -60,7 +59,6 @@ export function Mk9SessionProvider({ children }: { children: ReactNode }) {
   const identityRef = useRef<string | null | undefined>(undefined);
 
   async function hydrate(s: Session | null) {
-    console.log("[MK9-SESSION] Hydrating session:", s?.user?.id, "Email:", s?.user?.email);
     const identity = s?.user?.id ?? null;
     if (identityRef.current !== undefined && identityRef.current !== identity) {
       queryClient.clear();
