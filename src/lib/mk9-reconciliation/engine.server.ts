@@ -454,7 +454,7 @@ export async function summarize(scope: ReconcileScope): Promise<ReconciliationSu
   const actualQ = supabaseAdmin
     .from("mk9_actual_visits")
     .select("id", { count: "exact", head: true })
-    .in("origin", ["CHECKLIST", "MANUAL"])
+    .in("origin", ["CHECKLIST", "MANUAL"] as any)
     .gte("scheduled_date", `${scope.operationYear}-${String(scope.operationMonth).padStart(2, "0")}-01`)
     .lt(
       "scheduled_date",
