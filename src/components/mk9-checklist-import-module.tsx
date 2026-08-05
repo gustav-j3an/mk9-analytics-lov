@@ -657,7 +657,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
         const rich = parseServerError(e);
         updateFileStatus("ERROR", { 
           error: rich.message || "Falha técnica ao processar arquivo.",
-          errorCode: rich.extra?.errorCode || rich.code
+          errorCode: (rich.extra?.errorCode as string) || (rich as any).code
         });
       }
     };
