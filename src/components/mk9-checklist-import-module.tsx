@@ -835,16 +835,32 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
         </div>
         <div className="flex items-center gap-1">
           {file.status === "ERROR" && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => {
-                setFiles((prev: any) => prev.map((f: any) => f.id === file.id ? { ...f, status: "PENDING" } : f));
-              }}
-              title="Tentar novamente"
-            >
-              <Clock className="h-4 w-4 text-primary" />
-            </Button>
+            <div className="flex gap-1">
+              {file.errorCode === "COMPETENCE_CONFLICT" && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                  onClick={() => {
+                    toast.info("Ajuste a competência do lote para coincidir com o arquivo e re-analise.");
+                  }}
+                  title="Ajuste a competência e re-analise"
+                >
+                  <Calendar className="h-4 w-4 mr-1" />
+                  Corrigir
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setFiles((prev: any) => prev.map((f: any) => f.id === file.id ? { ...f, status: "PENDING" } : f));
+                }}
+                title="Tentar novamente"
+              >
+                <Clock className="h-4 w-4 text-primary" />
+              </Button>
+            </div>
           )}
           {(file.preview || file.error) && (
             <Button variant="ghost" size="sm" onClick={() => setOpen(!expanded)} title={file.error ? "Ver erro" : "Ver prévia"}>
