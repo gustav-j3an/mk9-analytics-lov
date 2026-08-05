@@ -205,6 +205,12 @@ export function Mk9AnalyticsApp() {
                   {!collapsed && <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Administração</p>}
                 </div>
                 <SidebarItem
+                  icon={ShieldCheck}
+                  label="Homologação"
+                  active={activeModule === "homologacao"}
+                  onClick={() => setActiveModule("homologacao")}
+                />
+                <SidebarItem
                   icon={ShieldAlert}
                   label="Limpeza Manual"
                   active={activeModule === "cleanup_admin"}
