@@ -13,8 +13,10 @@ export const getOperationalVisits = async (params: {
   startDate: string;
   endDate: string;
   storeId?: string | null;
+  sourceImportId?: string | null;
 }) => {
-  const { industryId, startDate, endDate, storeId } = params;
+  const { industryId, startDate, endDate, storeId, sourceImportId } = params;
+
 
   // 1. Buscar IDs de importações vigentes para o período
   // Nota: is_operational_current é uma coluna real no banco, mas pode não estar no gerado local do Typescript
@@ -40,15 +42,17 @@ export const getOperationalVisits = async (params: {
     query = query.eq("store_id", storeId);
   }
 
-  // 3. Aplicar filtro operacional: source_import_id IS NULL OR source_import_id IN (...)
-  // Usamos sintaxe PostgREST plana no .or() que não envolve joins para evitar parse errors.
-  if (activeImportIds.length > 0) {
-    // Lista de IDs vira string: (id1,id2,...)
+  if (sourceImportId) {
+    // Se um ID de importação específico foi solicitado, filtramos apenas ele
+    query = query.eq("source_import_id", sourceImportId);
+  } else if (activeImportIds.length > 0) {
+    // Caso contrário, usamos a regra operacional: nulo ou contido na lista de vigentes
     query = query.or(`source_import_id.is.null,source_import_id.in.(${activeImportIds.join(",")})`);
   } else {
     // Se não há importações vigentes, apenas as manuais (nulas) servem
     query = query.is("source_import_id", null);
   }
+
 
   const { data, error } = await query.limit(40000);
   if (error) throw error;

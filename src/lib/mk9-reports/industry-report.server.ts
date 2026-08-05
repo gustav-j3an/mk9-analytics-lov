@@ -220,8 +220,10 @@ export async function buildIndustryReport(
     industryId,
     startDate: window.startDate,
     endDate: window.endDate,
-    storeId: storeId ?? null
+    storeId: storeId ?? null,
+    sourceImportId: sourceImportId ?? null
   });
+
 
 
 
