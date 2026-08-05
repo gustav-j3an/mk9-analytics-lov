@@ -18,6 +18,7 @@ import { Mk9AdminCleanupModule } from "@/components/mk9-admin-cleanup-module";
 import { Mk9IndustriesModule } from "./mk9-industries-module";
 import { Mk9StoresModule } from "./mk9-stores-module";
 import { Mk9PromotersModule } from "./mk9-promoters-module";
+import { Mk9HomologationModule } from "./mk9-homologation-module";
 
 
 import {
