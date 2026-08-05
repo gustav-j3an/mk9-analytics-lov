@@ -88,24 +88,29 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     const totalVisits = parsed.marks.length;
     const datesInside = parsed.marks.filter(m => m.scheduledDate >= window.startDate && m.scheduledDate <= window.endDate).length;
     const datesOutside = totalVisits - datesInside;
-    const isValid = datesInside > 0 && datesOutside / totalVisits < 0.2; // Tolerância de 20% para datas fora
-
+    
+    // Regra de tolerância (Fase 3.2):
+    // - VALID: Maioria absoluta (>80%) dentro da janela.
+    // - NEEDS_REVIEW: Mais de 0% e menos de 80% dentro (datas cruzam meses ou erro parcial).
+    // - COMPETENCE_CONFLICT: 0% dentro (arquivo claramente de outro período).
+    const insideRatio = totalVisits > 0 ? datesInside / totalVisits : 0;
+    
     diagnostics.info("competence-validation", "Validando competência contra período real", {
       industryName: industry.name,
       periodType: periodConfig.periodType,
       window: { start: window.startDate, end: window.endDate },
       file: { first: parsed.firstDate, last: parsed.lastDate, total: totalVisits },
-      stats: { inside: datesInside, outside: datesOutside },
-      isValid
+      stats: { inside: datesInside, outside: datesOutside, ratio: insideRatio },
     });
 
-    if (!isValid) {
+    // Caso 1: Nada dentro da janela (Conflito Real)
+    if (datesInside === 0 && totalVisits > 0) {
       const [fileYear, fileMonth] = parsed.firstDate.split("-").map(Number);
       const fileCompetence = `${fileMonth.toString().padStart(2, "0")}/${fileYear}`;
       const selectedCompetence = `${input.operationMonth.toString().padStart(2, "0")}/${input.operationYear}`;
 
       const conflictPayload = buildRichError(
-        new Error(`As datas do arquivo estão fora do período operacional esperado para ${selectedCompetence}.`),
+        new Error(`As datas do arquivo estão totalmente fora do período operacional esperado para ${selectedCompetence} (${window.startDate} a ${window.endDate}).`),
         {
           step: "validate-competence",
           function: "checklistPreview",
@@ -125,6 +130,33 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
         }
       );
       throw new Error(JSON.stringify(conflictPayload));
+    }
+
+    // Caso 2: Menos de 80% dentro (Necessita Revisão)
+    // Se a KING tem 23/07 a 22/08, e o arquivo tem 31 dias, todos na janela, ratio = 1.0 (OK).
+    // Se o usuário mandar o arquivo de Julho (23/06 a 22/07) em Agosto, ratio será 0.0 (CONFLITO).
+    if (insideRatio < 0.8) {
+       const selectedCompetence = `${input.operationMonth.toString().padStart(2, "0")}/${input.operationYear}`;
+       const warningPayload = buildRichError(
+        new Error(`As datas da planilha estão majoritariamente fora do período esperado para ${selectedCompetence}.`),
+        {
+          step: "validate-competence",
+          function: "checklistPreview",
+          extra: {
+            errorCode: "NEEDS_REVIEW",
+            selectedCompetence,
+            windowStart: window.startDate,
+            windowEnd: window.endDate,
+            datesInside,
+            datesOutside,
+            totalVisits,
+            firstDate: parsed.firstDate,
+            lastDate: parsed.lastDate,
+            filename: input.filename
+          }
+        }
+      );
+      throw new Error(JSON.stringify(warningPayload));
     }
   }
   const stores = await loadStoresIndex();
