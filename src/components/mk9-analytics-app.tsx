@@ -18,6 +18,7 @@ import { Mk9AdminCleanupModule } from "@/components/mk9-admin-cleanup-module";
 import { Mk9IndustriesModule } from "./mk9-industries-module";
 import { Mk9StoresModule } from "./mk9-stores-module";
 import { Mk9PromotersModule } from "./mk9-promoters-module";
+import { Mk9HomologationModule } from "./mk9-homologation-module";
 
 
 import {
@@ -58,6 +59,7 @@ type ModuleId =
   | "dashboard"
   | "cockpit"
   | "importacoes"
+  | "homologacao"
   | "checklists"
   | "conciliacao"
   | "qualidade"
@@ -203,6 +205,12 @@ export function Mk9AnalyticsApp() {
                   {!collapsed && <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Administração</p>}
                 </div>
                 <SidebarItem
+                  icon={ShieldCheck}
+                  label="Homologação"
+                  active={activeModule === "homologacao"}
+                  onClick={() => setActiveModule("homologacao")}
+                />
+                <SidebarItem
                   icon={ShieldAlert}
                   label="Limpeza Manual"
                   active={activeModule === "cleanup_admin"}
@@ -254,6 +262,7 @@ export function Mk9AnalyticsApp() {
               {activeModule === "roteiros" && "Roteiros & Frequências"}
               {activeModule === "relatorio_industria" && "Indústrias (PDF)"}
               {activeModule === "cleanup_admin" && "Limpeza Administrativa"}
+              {activeModule === "homologacao" && "Saúde do Sistema"}
               {activeModule === "usuarios" && "Gestão de Acessos"}
             </h2>
           </div>
@@ -348,6 +357,7 @@ export function Mk9AnalyticsApp() {
 
             {activeModule === "relatorio_industria" && <Mk9IndustryReportModule />}
             {activeModule === "cleanup_admin" && <Mk9AdminCleanupModule month={month} year={year} />}
+            {activeModule === "homologacao" && <Mk9HomologationModule />}
             
             {activeModule === "usuarios" && <Mk9UsersModule currentUserId={user?.id ?? null} />}
           </div>
