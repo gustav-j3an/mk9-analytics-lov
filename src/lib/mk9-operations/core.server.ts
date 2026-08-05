@@ -151,7 +151,8 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
 
   // ---- consultas em paralelo -------------------------------------------------
   queryCount += 5;
-  const [freqVersions, visitRes, routeRes, importRes, storeRes] = await Promise.all([
+  const { getOperationalVisits } = await import("./operational-visits.server");
+  const [freqVersions, actualVisits, routeRes, importRes, storeRes] = await Promise.all([
     loadFrequencyVersionsForPeriod(supabase, {
       industryIds,
       storeIds: accessStoreIds,
@@ -159,13 +160,27 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       periodEnd: globalEnd,
       accessScope: access,
     }),
-    supabase
-      .from("mk9_actual_visits")
-      .select("industry_id, store_id, scheduled_date, store:mk9_stores(id,name,chain,uf)")
-      .in("industry_id", industryIds)
-      .gte("scheduled_date", globalStart)
-      .lte("scheduled_date", globalEnd)
-      .limit(100000),
+    // Usamos o motor getOperationalVisits (simplificado para multi-indústria)
+    // Para dashboards multi-indústria, o motor de filtragem em duas etapas 
+    // é mais seguro contra erros de parse relacionais do PostgREST.
+    (async () => {
+      // Como o core pode lidar com múltiplas indústrias, 
+      // precisamos buscar as visitas de forma eficiente.
+      // Se for apenas uma, usamos o motor otimizado.
+      if (industryIds.length === 1) {
+        return { data: await getOperationalVisits({ industryId: industryIds[0], startDate: globalStart, endDate: globalEnd }), error: null };
+      }
+      
+      // Para multi-indústria, mantemos a query plana por enquanto para evitar N+1
+      // mas garantimos que ela não usa joins quebrados.
+      return supabase
+        .from("mk9_actual_visits")
+        .select("industry_id, store_id, scheduled_date, source_import_id, store:mk9_stores(id,name,chain,uf)")
+        .in("industry_id", industryIds)
+        .gte("scheduled_date", globalStart)
+        .lte("scheduled_date", globalEnd)
+        .limit(100000);
+    })(),
     supabase
       .from("mk9_planned_routes")
       .select("industry_id, store_id, promoter_id, weekday, valid_from, valid_until, promoter:mk9_promoters(id,name)")
@@ -190,6 +205,9 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       return q;
     })(),
   ]);
+  
+  // Normalizar actualVisits se veio do getOperationalVisits
+  const visitRes = Array.isArray(actualVisits.data) ? actualVisits : { data: actualVisits.data, error: actualVisits.error };
   for (const r of [visitRes, routeRes, importRes, storeRes]) {
     if (r.error) throw new Error(r.error.message);
   }
@@ -264,9 +282,35 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
     b.monthly = last.monthlyFrequency;
   }
 
+  // Nota: O filtro operacional (is_operational_current) deve ser aplicado aqui para dashboards
+  // se quisermos paridade absoluta com o PDF.
+  // 1. Mapear importações vigentes
+  const activeImportsByIndustry = new Map<string, Set<string>>();
+  // Buscar importações vigentes explicitamente para o dashboard se não vierem da query acima
+  const { data: currentImports } = await supabase
+    .from("mk9_checklist_imports")
+    .select("id, industry_id")
+    .in("industry_id", industryIds)
+    .eq("is_operational_current" as any, true)
+    .is("reverted_at", null);
+
+  for (const imp of currentImports ?? []) {
+    const set = activeImportsByIndustry.get(imp.industry_id) ?? new Set();
+    set.add(imp.id);
+    activeImportsByIndustry.set(imp.industry_id, set);
+  }
+
   for (const v of visitRes.data ?? []) {
     const ctx = ctxById.get(v.industry_id);
     if (!ctx || !v.store_id) continue;
+    
+    // Filtro Operacional de Dashboard:
+    // Uma visita importada só conta se a importação for a vigente da indústria.
+    if (v.source_import_id) {
+      const activeSet = activeImportsByIndustry.get(v.industry_id);
+      if (!activeSet || !activeSet.has(v.source_import_id)) continue;
+    }
+
     const d = String(v.scheduled_date);
     if (d < ctx.win.startDate || d > ctx.win.endDate) continue;
     if (!passesUf(v.store?.uf ?? null)) continue;
