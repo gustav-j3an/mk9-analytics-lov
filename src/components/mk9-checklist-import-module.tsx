@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { checklistBatchPreview } from "@/lib/mk9-checklist-batch.functions";
 import { checklistBatchCommit } from "@/lib/mk9-checklist-batch-commit.functions";
 import type { ChecklistBatchFile } from "@/lib/mk9-checklist/batch-types";
-import { RevertChecklistDialog, CorrectCompetenceDialog } from "./mk9-checklist/revert-dialogs";
+import { RevertChecklistDialog, CorrectCompetenceDialog, CompetenceConflictDialog } from "./mk9-checklist/revert-dialogs";
 
 
 
