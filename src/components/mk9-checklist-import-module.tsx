@@ -254,8 +254,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     onError: (e: any) => {
       const rich = parseServerError(e);
 
-      // Conflito de competência: exibe diálogo de correção rápida
-      if (rich.extra?.errorCode === "COMPETENCE_CONFLICT") {
+      // Conflito de competência ou necessidade de revisão: exibe diálogo de correção rápida
+      if (rich.extra?.errorCode === "COMPETENCE_CONFLICT" || rich.extra?.errorCode === "NEEDS_REVIEW") {
         setConflictError(rich);
         return;
       }

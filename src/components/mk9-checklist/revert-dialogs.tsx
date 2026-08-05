@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { 
@@ -286,40 +287,64 @@ interface CompetenceConflictDialogProps {
 
 export function CompetenceConflictDialog({ isOpen, onOpenChange, error, onConfirm }: CompetenceConflictDialogProps) {
   const extra = error?.extra || {};
+  const errorCode = extra.errorCode || "COMPETENCE_CONFLICT";
   const fileCompetence = extra.fileCompetence;
   const selectedCompetence = extra.selectedCompetence;
   const [fileYear, fileMonth] = (extra.firstDate || "").split("-").map(Number);
+
+  const isConflict = errorCode === "COMPETENCE_CONFLICT";
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
-            <AlertTriangle className="h-5 w-5" />
-            Conflito de Competência
+          <AlertDialogTitle className={cn("flex items-center gap-2", isConflict ? "text-amber-600" : "text-blue-600")}>
+            {isConflict ? <AlertTriangle className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+            {isConflict ? "Conflito de Competência" : "Competência precisa de revisão"}
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-4 pt-2">
-            <div className="rounded-md bg-amber-50 p-3 border border-amber-200 text-amber-800 text-sm">
-              <p className="font-semibold">Atenção!</p>
-              <p className="mt-1">
-                O arquivo detectado (<strong>{extra.filename}</strong>) parece pertencer a <strong>{fileCompetence}</strong>, 
-                mas você selecionou a competência <strong>{selectedCompetence}</strong>.
-              </p>
+            <div className={cn("rounded-md p-3 border text-sm", isConflict ? "bg-amber-50 border-amber-200 text-amber-800" : "bg-blue-50 border-blue-200 text-blue-800")}>
+              <p className="font-semibold">{isConflict ? "Atenção!" : "Informação do Período"}</p>
+              <div className="mt-2 space-y-1">
+                <p>Esperado: <strong>{selectedCompetence}</strong></p>
+                <p>Janela real: <strong>{extra.windowStart ? extra.windowStart.split("-").reverse().join("/") : ""} a {extra.windowEnd ? extra.windowEnd.split("-").reverse().join("/") : ""}</strong></p>
+                <div className="pt-1 flex gap-4">
+                  <span>Datas dentro: <strong>{extra.datesInside}</strong></span>
+                  <span>Datas fora: <strong>{extra.datesOutside}</strong></span>
+                </div>
+              </div>
             </div>
 
-            <p className="text-sm">
-              Deseja corrigir a competência para <strong>{fileCompetence}</strong> e prosseguir com a importação?
-            </p>
+            {isConflict ? (
+              <p className="text-sm">
+                O arquivo parece pertencer a <strong>{fileCompetence}</strong>. 
+                Deseja corrigir a seleção e prosseguir?
+              </p>
+            ) : (
+              <p className="text-sm">
+                Existem datas fora do período operacional esperado, mas a maioria pertence a <strong>{selectedCompetence}</strong>.
+                Deseja prosseguir mesmo assim?
+              </p>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction 
-            onClick={() => onConfirm(fileMonth, fileYear)}
-            className="bg-amber-600 hover:bg-amber-700 text-white"
-          >
-            Corrigir para {fileCompetence}
-          </AlertDialogAction>
+          {isConflict ? (
+            <AlertDialogAction 
+              onClick={() => onConfirm(fileMonth, fileYear)}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Corrigir para {fileCompetence}
+            </AlertDialogAction>
+          ) : (
+            <AlertDialogAction 
+              onClick={() => onConfirm(Number(selectedCompetence.split("/")[0]), Number(selectedCompetence.split("/")[1]))}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Manter {selectedCompetence}
+            </AlertDialogAction>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
