@@ -1,23 +1,27 @@
 import { describe, it, expect, vi } from "vitest";
 import { getOperationalVisits } from "../operational-visits.server";
 
-// Mock do supabaseAdmin
-const mockSupabase = {
-  from: vi.fn().mockReturnThis(),
-  select: vi.fn().mockReturnThis(),
-  eq: vi.fn().mockReturnThis(),
-  gte: vi.fn().mockReturnThis(),
-  lte: vi.fn().mockReturnThis(),
-  in: vi.fn().mockReturnThis(),
-  is: vi.fn().mockReturnThis(),
-  or: vi.fn().mockReturnThis(),
-  maybeSingle: vi.fn().mockReturnThis(),
-  limit: vi.fn().mockReturnThis(),
-};
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-vi.mock("@/integrations/supabase/client.server", () => ({
-  supabaseAdmin: mockSupabase,
-}));
+const mockSupabase = supabaseAdmin as any;
+
+
+vi.mock("@/integrations/supabase/client.server", () => {
+  const mockSupabase = {
+    from: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    gte: vi.fn().mockReturnThis(),
+    lte: vi.fn().mockReturnThis(),
+    in: vi.fn().mockReturnThis(),
+    is: vi.fn().mockReturnThis(),
+    or: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+  };
+  return { supabaseAdmin: mockSupabase };
+});
+
 
 describe("getOperationalVisits", () => {
   it("deve usar .or() com source_import_id.is.null quando houver importações vigentes", async () => {
