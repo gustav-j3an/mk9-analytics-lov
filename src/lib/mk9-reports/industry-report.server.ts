@@ -217,7 +217,7 @@ export async function buildIndustryReport(
   // 4) Visitas realizadas no período (checklist)
   let actualQ = supabase
     .from("mk9_actual_visits")
-    .select("id, scheduled_date, store_id, source_import_id, store:mk9_stores(id,name,chain,uf), source:mk9_checklist_imports(is_operational_current)")
+    .select("id, scheduled_date, store_id, source_import_id, store:mk9_stores(id,name,chain,uf), mk9_checklist_imports!left(is_operational_current)")
     .eq("industry_id", industryId)
     .gte("scheduled_date", window.startDate)
     .lte("scheduled_date", window.endDate);
