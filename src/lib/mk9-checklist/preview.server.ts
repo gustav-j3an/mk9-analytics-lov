@@ -97,8 +97,9 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
         new Error(`O arquivo indica ${fileCompetence}, mas a competência selecionada é ${selectedCompetence}.`),
         {
           step: "validate-competence",
-          errorCode: "COMPETENCE_CONFLICT",
+          function: "checklistPreview",
           extra: {
+            errorCode: "COMPETENCE_CONFLICT",
             fileCompetence,
             selectedCompetence,
             firstDate: parsed.firstDate,
