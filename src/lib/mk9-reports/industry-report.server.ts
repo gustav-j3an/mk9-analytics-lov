@@ -226,8 +226,13 @@ export async function buildIndustryReport(
   if (sourceImportId) {
     actualQ = actualQ.eq("source_import_id", sourceImportId);
   } else {
-    // REGRA DE SUBSTITUIÇÃO: Se não filtrado por import específico, mostrar apenas de imports vigentes ou manuais
-    actualQ = actualQ.or(`source_import_id.is.null,source.is_operational_current.eq.true`);
+    // REGRA DE SUBSTITUIÇÃO (Fase 2): Filtrar visitas de imports vigentes ou manuais.
+    // Usamos .or() com sintaxe PostgREST plana para evitar erros de parse.
+    // O erro anterior era causado por tentar filtrar no join .or(`source_import_id.is.null,source.is_operational_current.eq.true`)
+    // que não é suportado de forma confiável pelo PostgREST em filtros complexos.
+    // Mudamos para filtrar visitas onde o source_import_id é nulo OU
+    // onde a importação referenciada existe E está marcada como operacionalmente vigente.
+    actualQ = actualQ.or(`source_import_id.is.null,mk9_checklist_imports.is_operational_current.eq.true`);
   }
   
   const { data: actuals, error: eAc } = await actualQ.limit(20000);
