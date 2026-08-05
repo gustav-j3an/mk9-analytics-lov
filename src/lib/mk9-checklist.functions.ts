@@ -329,7 +329,7 @@ export const checklistCommit = createServerFn({ method: "POST" })
       await supabaseAdmin
         .from("mk9_checklist_imports")
         .update({ 
-          is_operational_current: finalStatus !== "failed",
+          is_operational_current: (finalStatus as string) !== "failed",
           replaces_import_id: previous?.id ?? null
         } as any)
         .eq("id", data.importId);
