@@ -78,6 +78,39 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     throw new Error(JSON.stringify(payload));
   }
 
+  // VALIDAÇÃO DE COMPETÊNCIA (Missão 4): Verifica se as datas no arquivo batem com o selecionado
+  if (parsed.firstDate) {
+    const [fileYear, fileMonth] = parsed.firstDate.split("-").map(Number);
+    if (fileYear !== input.operationYear || fileMonth !== input.operationMonth) {
+      const fileCompetence = `${fileMonth.toString().padStart(2, "0")}/${fileYear}`;
+      const selectedCompetence = `${input.operationMonth.toString().padStart(2, "0")}/${input.operationYear}`;
+      
+      diagnostics.info("competence-conflict", "Conflito de competência detectado", {
+        fileCompetence,
+        selectedCompetence,
+        firstDate: parsed.firstDate,
+        lastDate: parsed.lastDate
+      });
+
+      // Retornamos um erro estruturado que a UI pode tratar para pedir confirmação/cancelamento
+      const conflictPayload = buildRichError(
+        new Error(`O arquivo indica ${fileCompetence}, mas a competência selecionada é ${selectedCompetence}.`),
+        {
+          step: "validate-competence",
+          errorCode: "COMPETENCE_CONFLICT",
+          extra: {
+            fileCompetence,
+            selectedCompetence,
+            firstDate: parsed.firstDate,
+            lastDate: parsed.lastDate,
+            filename: input.filename
+          }
+        }
+      );
+      throw new Error(JSON.stringify(conflictPayload));
+    }
+  }
+
   const industry = await loadIndustry(input.industryId);
   const stores = await loadStoresIndex();
 
