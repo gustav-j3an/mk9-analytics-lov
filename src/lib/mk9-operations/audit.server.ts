@@ -15,10 +15,12 @@ export async function auditChecklistImport(importId: string) {
 
   if (impErr || !imp) throw new Error(`Importação ${importId} não encontrada.`);
 
+  const importData = imp as any;
+
   // 2. Resolver Janela Operacional Real
   const { loadPeriodConfig, resolveWindow } = await import("@/lib/mk9-reports/period.server");
-  const cfg = await loadPeriodConfig(supabaseAdmin, imp.industry_id);
-  const window = resolveWindow(cfg, imp.operation_year, imp.operation_month);
+  const cfg = await loadPeriodConfig(supabaseAdmin, importData.industry_id);
+  const window = resolveWindow(cfg, importData.operation_year, importData.operation_month);
 
   // 3. Visitas Persistidas no Banco
   const { data: visits, error: vErr } = await supabaseAdmin
@@ -29,28 +31,28 @@ export async function auditChecklistImport(importId: string) {
   // 4. Visitas Operacionais (Conforme novo motor)
   const { getOperationalVisits } = await import("./operational-visits.server");
   const operationalVisits = await getOperationalVisits({
-    industryId: imp.industry_id,
+    industryId: importData.industry_id,
     startDate: window.startDate,
     endDate: window.endDate,
     sourceImportId: importId
   });
 
   // 5. Cruzamento de Lojas (Snapshot vs Banco)
-  const preview = (imp.preview as any) || {};
+  const preview = (importData.preview as any) || {};
   const items = (preview.items as any[]) || [];
   const storesInPreview = new Set(items.map(i => i.storeId).filter(Boolean));
   const storesInVisits = new Set(visits?.map(v => v.store_id).filter(Boolean));
 
   return {
     summary: {
-      importId: imp.id,
-      filename: imp.filename,
-      industry: imp.industry?.name,
-      competence: `${imp.operation_month}/${imp.operation_year}`,
+      importId: importData.id,
+      filename: importData.filename,
+      industry: importData.industry?.name,
+      competence: `${importData.operation_month}/${importData.operation_year}`,
       window: { start: window.startDate, end: window.endDate },
-      status: imp.status,
-      isOperationalCurrent: !!imp.is_operational_current,
-      revertedAt: imp.reverted_at
+      status: importData.status,
+      isOperationalCurrent: !!importData.is_operational_current,
+      revertedAt: importData.reverted_at
     },
     counters: {
       previewItems: items.length,
@@ -60,9 +62,9 @@ export async function auditChecklistImport(importId: string) {
       storesInVisits: storesInVisits.size
     },
     diagnostics: {
-      isCurrent: !!imp.is_operational_current,
-      hasRevertedAt: !!imp.reverted_at,
-      hasStatusDone: imp.status === 'done',
+      isCurrent: !!importData.is_operational_current,
+      hasRevertedAt: !!importData.reverted_at,
+      hasStatusDone: importData.status === 'done',
       lostVisits: (visits?.length || 0) - operationalVisits.length
     }
   };
