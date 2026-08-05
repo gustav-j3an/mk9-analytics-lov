@@ -46,7 +46,7 @@ function b64ToArrayBuffer(base64: string): ArrayBuffer {
 }
 
 export const checklistPreview = createServerFn({ method: "POST" })
-  .inputValidator(async (data: unknown) => validate("checklistPreview", () => previewSchema.parse(data)))
+  .validator(async (data: unknown) => validate("checklistPreview", () => previewSchema.parse(data)))
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("./mk9-auth/require-role.server");
     await requireMk9Role(["ADMIN"]);
@@ -74,7 +74,7 @@ export const checklistPreview = createServerFn({ method: "POST" })
   });
 
 export const checklistCommit = createServerFn({ method: "POST" })
-  .inputValidator(async (data: unknown) => validate("checklistCommit", () => commitSchema.parse(data)))
+  .validator(async (data: unknown) => validate("checklistCommit", () => commitSchema.parse(data)))
   .handler(async ({ data }) => {
     const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
@@ -403,7 +403,7 @@ export const checklistList = createServerFn({ method: "GET" }).handler(async () 
 });
 
 export const checklistDelete = createServerFn({ method: "POST" })
-  .inputValidator(async (data: unknown) => validate("checklistDelete", () => z.object({ importId: z.string().uuid() }).parse(data)))
+  .validator(async (data: unknown) => validate("checklistDelete", () => z.object({ importId: z.string().uuid() }).parse(data)))
   .handler(async ({ data }) => {
     const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
@@ -415,7 +415,7 @@ export const checklistDelete = createServerFn({ method: "POST" })
 
 // Marca a prévia como descartada sem apagar o registro do histórico.
 export const checklistCancel = createServerFn({ method: "POST" })
-  .inputValidator(async (data: unknown) => validate("checklistCancel", () => z.object({ importId: z.string().uuid() }).parse(data)))
+  .validator(async (data: unknown) => validate("checklistCancel", () => z.object({ importId: z.string().uuid() }).parse(data)))
   .handler(async ({ data }) => {
     const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
@@ -432,7 +432,7 @@ export const checklistCancel = createServerFn({ method: "POST" })
 // Recomputa a validação em 3 níveis a partir dos dados persistidos, sem re-parsear o Excel.
 // Útil quando a auditoria foi salva com uma versão antiga do motor.
 export const checklistReprocessValidation = createServerFn({ method: "POST" })
-  .inputValidator(async (data: unknown) => validate("checklistReprocessValidation", () => z.object({ importId: z.string().uuid() }).parse(data)))
+  .validator(async (data: unknown) => validate("checklistReprocessValidation", () => z.object({ importId: z.string().uuid() }).parse(data)))
   .handler(async ({ data }) => {
     const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
