@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { 
@@ -271,6 +271,55 @@ export function CorrectCompetenceDialog({ importId, isOpen, onOpenChange, onSucc
             {correctMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RotateCcw className="h-4 w-4 mr-2" />}
             Re-importar na nova competência
           </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+interface CompetenceConflictDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  error: any;
+  onConfirm: (targetMonth: number, targetYear: number) => void;
+}
+
+export function CompetenceConflictDialog({ isOpen, onOpenChange, error, onConfirm }: CompetenceConflictDialogProps) {
+  const extra = error?.extra || {};
+  const fileCompetence = extra.fileCompetence;
+  const selectedCompetence = extra.selectedCompetence;
+  const [fileYear, fileMonth] = (extra.firstDate || "").split("-").map(Number);
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="max-w-md">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
+            <AlertTriangle className="h-5 w-5" />
+            Conflito de Competência
+          </AlertDialogTitle>
+          <AlertDialogDescription className="space-y-4 pt-2">
+            <div className="rounded-md bg-amber-50 p-3 border border-amber-200 text-amber-800 text-sm">
+              <p className="font-semibold">Atenção!</p>
+              <p className="mt-1">
+                O arquivo detectado (<strong>{extra.filename}</strong>) parece pertencer a <strong>{fileCompetence}</strong>, 
+                mas você selecionou a competência <strong>{selectedCompetence}</strong>.
+              </p>
+            </div>
+
+            <p className="text-sm">
+              Deseja corrigir a competência para <strong>{fileCompetence}</strong> e prosseguir com a importação?
+            </p>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={() => onConfirm(fileMonth, fileYear)}
+            className="bg-amber-600 hover:bg-amber-700 text-white"
+          >
+            Corrigir para {fileCompetence}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

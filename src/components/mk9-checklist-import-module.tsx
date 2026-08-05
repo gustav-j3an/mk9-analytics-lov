@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { checklistBatchPreview } from "@/lib/mk9-checklist-batch.functions";
 import { checklistBatchCommit } from "@/lib/mk9-checklist-batch-commit.functions";
 import type { ChecklistBatchFile } from "@/lib/mk9-checklist/batch-types";
-import { RevertChecklistDialog, CorrectCompetenceDialog } from "./mk9-checklist/revert-dialogs";
+import { RevertChecklistDialog, CorrectCompetenceDialog, CompetenceConflictDialog } from "./mk9-checklist/revert-dialogs";
 
 
 
@@ -200,6 +200,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const [candidates, setCandidates] = useState<Array<{ id: string; name: string }> | null>(null);
   const [revertDialogOpen, setRevertDialogOpen] = useState<{ id: string } | null>(null);
   const [correctDialogOpen, setCorrectDialogOpen] = useState<{ id: string } | null>(null);
+  const [conflictError, setConflictError] = useState<RichError | null>(null);
 
 
   const phaseTimersRef = useRef<number[]>([]);
@@ -252,6 +253,13 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     },
     onError: (e: any) => {
       const rich = parseServerError(e);
+
+      // Conflito de competência: exibe diálogo de correção rápida
+      if (rich.extra?.errorCode === "COMPETENCE_CONFLICT") {
+        setConflictError(rich);
+        return;
+      }
+
       // Indústria não habilitada: ADMIN pode habilitar e continuar sem reenviar o arquivo.
       if ((rich as any).code === INDUSTRY_CHECKLIST_DISABLED) {
         const name =
@@ -485,6 +493,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
           filter={filter} setFilter={setFilter}
           confirmOpen={confirmOpen} setConfirmOpen={setConfirmOpen}
           ackNewStores={ackNewStores} setAckNewStores={setAckNewStores}
+          conflictError={conflictError} setConflictError={setConflictError}
           lastError={lastError} setLastError={setLastError}
           rejected={rejected} setRejected={setRejected}
           highlightAck={highlightAck} setHighlightAck={setHighlightAck}
@@ -647,7 +656,8 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
         console.error(`[BATCH FILE ERROR] ${f.filename}`, e);
         const rich = parseServerError(e);
         updateFileStatus("ERROR", { 
-          error: rich.message || "Falha técnica ao processar arquivo."
+          error: rich.message || "Falha técnica ao processar arquivo.",
+          errorCode: (rich.extra?.errorCode as string) || (rich as any).code
         });
       }
     };
@@ -803,10 +813,11 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
     READY: { icon: CheckCircle2, color: "text-emerald-500", label: "Pronto" },
     NEEDS_REVIEW: { icon: AlertCircle, color: "text-amber-500", label: "Revisão necessária" },
     ERROR: { icon: XCircle, color: "text-destructive", label: "Erro" },
+    COMPETENCE_CONFLICT: { icon: AlertTriangle, color: "text-amber-500", label: "Conflito de competência" },
     IMPORTED: { icon: Check, color: "text-emerald-500", label: "Importado" },
   };
 
-  const cfg = statusConfig[file.status] || statusConfig.PENDING;
+  const cfg = statusConfig[file.status === "ERROR" && file.errorCode === "COMPETENCE_CONFLICT" ? "COMPETENCE_CONFLICT" : file.status] || statusConfig.PENDING;
   const Icon = cfg.icon;
 
   return (
@@ -824,16 +835,32 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
         </div>
         <div className="flex items-center gap-1">
           {file.status === "ERROR" && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => {
-                setFiles((prev: any) => prev.map((f: any) => f.id === file.id ? { ...f, status: "PENDING" } : f));
-              }}
-              title="Tentar novamente"
-            >
-              <Clock className="h-4 w-4 text-primary" />
-            </Button>
+            <div className="flex gap-1">
+              {file.errorCode === "COMPETENCE_CONFLICT" && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                  onClick={() => {
+                    toast.info("Ajuste a competência do lote para coincidir com o arquivo e re-analise.");
+                  }}
+                  title="Ajuste a competência e re-analise"
+                >
+                  <Calendar className="h-4 w-4 mr-1" />
+                  Corrigir
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setFiles((prev: any) => prev.map((f: any) => f.id === file.id ? { ...f, status: "PENDING" } : f));
+                }}
+                title="Tentar novamente"
+              >
+                <Clock className="h-4 w-4 text-primary" />
+              </Button>
+            </div>
           )}
           {(file.preview || file.error) && (
             <Button variant="ghost" size="sm" onClick={() => setOpen(!expanded)} title={file.error ? "Ver erro" : "Ver prévia"}>
@@ -889,7 +916,8 @@ function IndividualImport({
   rejected, setRejected, highlightAck, setHighlightAck, phase, setPhase, gate, setGate,
   newIndustryName, setNewIndustryName, candidates, setCandidates, ackRef, flashAck,
   validItems, newStoresCount, canConfirm, periodLabel, filtered,
-  revertDialogOpen, setRevertDialogOpen, correctDialogOpen, setCorrectDialogOpen
+  revertDialogOpen, setRevertDialogOpen, correctDialogOpen, setCorrectDialogOpen,
+  conflictError, setConflictError
 }: any) {
 
   return (
@@ -1426,6 +1454,19 @@ function IndividualImport({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CompetenceConflictDialog
+        isOpen={!!conflictError}
+        onOpenChange={(open) => !open && setConflictError(null)}
+        error={conflictError}
+        onConfirm={(m, y) => {
+          setMonth(m);
+          setYear(y);
+          setConflictError(null);
+          // Pequeno delay para garantir que o estado do React atualizou antes de disparar a mutação
+          setTimeout(() => previewMut.mutate(), 50);
+        }}
+      />
     </div>
   );
 }
