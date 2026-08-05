@@ -156,7 +156,8 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
           }
         }
       );
-      throw new Error(JSON.stringify(warningPayload));
+      // KING FIX: Não lançamos erro bloqueante se houver o ratio > 0, permitimos prosseguir com aviso na UI
+      diagnostics.error("competence-warning", "Baixa correlação com o período selecionado", (warningPayload as any).extra);
     }
   }
   const stores = await loadStoresIndex();
