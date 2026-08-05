@@ -48,6 +48,7 @@ describe("getOperationalVisits", () => {
       endDate: "2026-08-31"
     });
 
+    // Verificação exata da string com as aspas duplas escapadas corretamente pelo PostgREST/Supabase-js
     expect(mockSupabase.or).toHaveBeenCalledWith(
       expect.stringContaining('source_import_id.is.null,source_import_id.in.("imp-123")')
     );
