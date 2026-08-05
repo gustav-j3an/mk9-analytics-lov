@@ -7,6 +7,7 @@ import { storeCompactKey, storeTokenSetKey } from "@/lib/mk9/normalization";
 import { buildValidationReport } from "./validation";
 import { describeFrequency, evaluateFrequencyConsistency, FREQUENCY_INCONSISTENCY_WARNING } from "@/lib/mk9-frequency/canonical";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { loadPeriodConfig, resolveWindow } from "@/lib/mk9-reports/period.server";
 import {
   cancelPreviousPreviews,
   createChecklistImport,
@@ -79,22 +80,32 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
   }
 
   // VALIDAÇÃO DE COMPETÊNCIA (Missão 4): Verifica se as datas no arquivo batem com o selecionado
+  const industry = await loadIndustry(input.industryId);
+  const periodConfig = await loadPeriodConfig(supabaseAdmin, input.industryId);
+  const window = resolveWindow(periodConfig, input.operationYear, input.operationMonth);
+
   if (parsed.firstDate) {
-    const [fileYear, fileMonth] = parsed.firstDate.split("-").map(Number);
-    if (fileYear !== input.operationYear || fileMonth !== input.operationMonth) {
+    const totalVisits = parsed.marks.length;
+    const datesInside = parsed.marks.filter(m => m.scheduledDate >= window.startDate && m.scheduledDate <= window.endDate).length;
+    const datesOutside = totalVisits - datesInside;
+    const isValid = datesInside > 0 && datesOutside / totalVisits < 0.2; // Tolerância de 20% para datas fora
+
+    diagnostics.info("competence-validation", "Validando competência contra período real", {
+      industryName: industry.name,
+      periodType: periodConfig.periodType,
+      window: { start: window.startDate, end: window.endDate },
+      file: { first: parsed.firstDate, last: parsed.lastDate, total: totalVisits },
+      stats: { inside: datesInside, outside: datesOutside },
+      isValid
+    });
+
+    if (!isValid) {
+      const [fileYear, fileMonth] = parsed.firstDate.split("-").map(Number);
       const fileCompetence = `${fileMonth.toString().padStart(2, "0")}/${fileYear}`;
       const selectedCompetence = `${input.operationMonth.toString().padStart(2, "0")}/${input.operationYear}`;
-      
-      diagnostics.info("competence-conflict", "Conflito de competência detectado", {
-        fileCompetence,
-        selectedCompetence,
-        firstDate: parsed.firstDate,
-        lastDate: parsed.lastDate
-      });
 
-      // Retornamos um erro estruturado que a UI pode tratar para pedir confirmação/cancelamento
       const conflictPayload = buildRichError(
-        new Error(`O arquivo indica ${fileCompetence}, mas a competência selecionada é ${selectedCompetence}.`),
+        new Error(`As datas do arquivo estão fora do período operacional esperado para ${selectedCompetence}.`),
         {
           step: "validate-competence",
           function: "checklistPreview",
@@ -104,15 +115,18 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
             selectedCompetence,
             firstDate: parsed.firstDate,
             lastDate: parsed.lastDate,
-            filename: input.filename
+            filename: input.filename,
+            windowStart: window.startDate,
+            windowEnd: window.endDate,
+            datesInside,
+            datesOutside,
+            totalVisits
           }
         }
       );
       throw new Error(JSON.stringify(conflictPayload));
     }
   }
-
-  const industry = await loadIndustry(input.industryId);
   const stores = await loadStoresIndex();
 
   // Índice por UF para similaridade
