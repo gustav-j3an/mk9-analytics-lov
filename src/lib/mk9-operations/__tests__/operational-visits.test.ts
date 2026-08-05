@@ -49,7 +49,7 @@ describe("getOperationalVisits", () => {
     });
 
     expect(mockSupabase.or).toHaveBeenCalledWith(
-      expect.stringContaining("source_import_id.is.null,source_import_id.in.(imp-123)")
+      expect.stringContaining('source_import_id.is.null,source_import_id.in("imp-123")')
     );
   });
 
