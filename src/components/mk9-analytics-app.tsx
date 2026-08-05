@@ -59,6 +59,7 @@ type ModuleId =
   | "dashboard"
   | "cockpit"
   | "importacoes"
+  | "homologacao"
   | "checklists"
   | "conciliacao"
   | "qualidade"
