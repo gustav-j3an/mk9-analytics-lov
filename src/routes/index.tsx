@@ -29,8 +29,6 @@ function LandingPage() {
   }
 
   if (session) {
-    // Se logado, o layout principal ou o próprio componente cuida da navegação,
-    // mas no TanStack Start v1 podemos usar redirect() no loader ou simplesmente renderizar o App.
     throw redirect({ to: '/cockpit' });
   }
 
