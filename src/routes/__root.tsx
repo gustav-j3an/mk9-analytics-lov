@@ -115,7 +115,7 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function RootComponent() { throw new Error("DIAGNOSTIC_FORCE_ERROR"); {
+function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
