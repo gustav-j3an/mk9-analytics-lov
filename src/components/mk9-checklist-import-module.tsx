@@ -200,6 +200,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const [candidates, setCandidates] = useState<Array<{ id: string; name: string }> | null>(null);
   const [revertDialogOpen, setRevertDialogOpen] = useState<{ id: string } | null>(null);
   const [correctDialogOpen, setCorrectDialogOpen] = useState<{ id: string } | null>(null);
+  const [conflictError, setConflictError] = useState<RichError | null>(null);
 
 
   const phaseTimersRef = useRef<number[]>([]);
@@ -252,6 +253,13 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     },
     onError: (e: any) => {
       const rich = parseServerError(e);
+
+      // Conflito de competência: exibe diálogo de correção rápida
+      if (rich.extra?.errorCode === "COMPETENCE_CONFLICT") {
+        setConflictError(rich);
+        return;
+      }
+
       // Indústria não habilitada: ADMIN pode habilitar e continuar sem reenviar o arquivo.
       if ((rich as any).code === INDUSTRY_CHECKLIST_DISABLED) {
         const name =
@@ -485,6 +493,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
           filter={filter} setFilter={setFilter}
           confirmOpen={confirmOpen} setConfirmOpen={setConfirmOpen}
           ackNewStores={ackNewStores} setAckNewStores={setAckNewStores}
+          conflictError={conflictError} setConflictError={setConflictError}
           lastError={lastError} setLastError={setLastError}
           rejected={rejected} setRejected={setRejected}
           highlightAck={highlightAck} setHighlightAck={setHighlightAck}
@@ -889,7 +898,8 @@ function IndividualImport({
   rejected, setRejected, highlightAck, setHighlightAck, phase, setPhase, gate, setGate,
   newIndustryName, setNewIndustryName, candidates, setCandidates, ackRef, flashAck,
   validItems, newStoresCount, canConfirm, periodLabel, filtered,
-  revertDialogOpen, setRevertDialogOpen, correctDialogOpen, setCorrectDialogOpen
+  revertDialogOpen, setRevertDialogOpen, correctDialogOpen, setCorrectDialogOpen,
+  conflictError, setConflictError
 }: any) {
 
   return (
@@ -1426,6 +1436,19 @@ function IndividualImport({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CompetenceConflictDialog
+        isOpen={!!conflictError}
+        onOpenChange={(open) => !open && setConflictError(null)}
+        error={conflictError}
+        onConfirm={(m, y) => {
+          setMonth(m);
+          setYear(y);
+          setConflictError(null);
+          // Pequeno delay para garantir que o estado do React atualizou antes de disparar a mutação
+          setTimeout(() => previewMut.mutate(), 50);
+        }}
+      />
     </div>
   );
 }
