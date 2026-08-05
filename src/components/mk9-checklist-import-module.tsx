@@ -656,7 +656,8 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
         console.error(`[BATCH FILE ERROR] ${f.filename}`, e);
         const rich = parseServerError(e);
         updateFileStatus("ERROR", { 
-          error: rich.message || "Falha técnica ao processar arquivo."
+          error: rich.message || "Falha técnica ao processar arquivo.",
+          errorCode: rich.extra?.errorCode || rich.code
         });
       }
     };
@@ -812,10 +813,11 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
     READY: { icon: CheckCircle2, color: "text-emerald-500", label: "Pronto" },
     NEEDS_REVIEW: { icon: AlertCircle, color: "text-amber-500", label: "Revisão necessária" },
     ERROR: { icon: XCircle, color: "text-destructive", label: "Erro" },
+    COMPETENCE_CONFLICT: { icon: AlertTriangle, color: "text-amber-500", label: "Conflito de competência" },
     IMPORTED: { icon: Check, color: "text-emerald-500", label: "Importado" },
   };
 
-  const cfg = statusConfig[file.status] || statusConfig.PENDING;
+  const cfg = statusConfig[file.status === "ERROR" && file.errorCode === "COMPETENCE_CONFLICT" ? "COMPETENCE_CONFLICT" : file.status] || statusConfig.PENDING;
   const Icon = cfg.icon;
 
   return (
