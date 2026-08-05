@@ -1,10 +1,12 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { z } from "zod";
-import { createServerFn } from "@tanstack/react-start";
 
 /**
  * Retorna visitas operacionais (sem importação ou de importações vigentes)
- * usando EXISTS para máxima performance e confiabilidade, evitando filtros .or() complexos no PostgREST.
+ * usando filtragem em duas etapas para máxima confiabilidade e performance no PostgREST.
+ * 
+ * Regra Operacional:
+ * 1. Visitas manuais (source_import_id IS NULL) são sempre operacionais.
+ * 2. Visitas importadas só contam se a importação referenciada for a vigente (is_operational_current = true).
  */
 export const getOperationalVisits = async (params: {
   industryId: string;
@@ -15,11 +17,13 @@ export const getOperationalVisits = async (params: {
   const { industryId, startDate, endDate, storeId } = params;
 
   // 1. Buscar IDs de importações vigentes para o período
+  // Nota: is_operational_current é uma coluna real no banco, mas pode não estar no gerado local do Typescript
+  // se a sincronização de tipos estiver pendente. Usamos casting para bypassar o erro de tipo se necessário.
   const { data: activeImports } = await supabaseAdmin
     .from("mk9_checklist_imports")
     .select("id")
     .eq("industry_id", industryId)
-    .eq("is_operational_current", true)
+    .eq("is_operational_current" as any, true)
     .is("reverted_at", null);
 
   const activeImportIds = (activeImports ?? []).map(i => i.id);
@@ -37,8 +41,9 @@ export const getOperationalVisits = async (params: {
   }
 
   // 3. Aplicar filtro operacional: source_import_id IS NULL OR source_import_id IN (...)
+  // Usamos sintaxe PostgREST plana no .or() que não envolve joins para evitar parse errors.
   if (activeImportIds.length > 0) {
-    // Filtro seguro: nulo ou contido na lista de vigentes
+    // Lista de IDs vira string: (id1,id2,...)
     query = query.or(`source_import_id.is.null,source_import_id.in.(${activeImportIds.join(",")})`);
   } else {
     // Se não há importações vigentes, apenas as manuais (nulas) servem
