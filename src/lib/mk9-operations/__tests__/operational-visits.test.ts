@@ -1,11 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { getOperationalVisits } from "../operational-visits.server";
 
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
-const mockSupabase = supabaseAdmin as any;
-
-
+// Fábrica do mock injetada diretamente no vi.mock para evitar hoist/ReferenceError
 vi.mock("@/integrations/supabase/client.server", () => {
   const mockSupabase = {
     from: vi.fn().mockReturnThis(),
@@ -22,10 +17,15 @@ vi.mock("@/integrations/supabase/client.server", () => {
   return { supabaseAdmin: mockSupabase };
 });
 
+// Importar depois do mock para garantir que pegue a versão mockada
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { getOperationalVisits } from "../operational-visits.server";
+
+const mockSupabase = supabaseAdmin as any;
 
 describe("getOperationalVisits", () => {
   it("deve usar .or() com source_import_id.is.null quando houver importações vigentes", async () => {
-    mockSupabase.from.mockImplementation((table) => {
+    mockSupabase.from.mockImplementation((table: string) => {
       if (table === "mk9_checklist_imports") {
         return {
           select: () => ({
@@ -54,7 +54,7 @@ describe("getOperationalVisits", () => {
   });
 
   it("deve usar .is('source_import_id', null) quando não houver importações vigentes", async () => {
-    mockSupabase.from.mockImplementation((table) => {
+    mockSupabase.from.mockImplementation((table: string) => {
       if (table === "mk9_checklist_imports") {
         return {
           select: () => ({
@@ -81,8 +81,7 @@ describe("getOperationalVisits", () => {
   });
 
   it("deve filtrar por um sourceImportId específico se fornecido", async () => {
-    // Mesmo com imports vigentes, se pedir um ID específico, ele ganha
-    mockSupabase.from.mockImplementation((table) => {
+    mockSupabase.from.mockImplementation((table: string) => {
       if (table === "mk9_checklist_imports") {
         return {
           select: () => ({
