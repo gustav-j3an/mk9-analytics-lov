@@ -260,7 +260,7 @@ export async function savePreviewSnapshot(importId: string, preview: ChecklistPr
 export async function updateImportStatus(
   importId: string,
   patch: {
-    status?: "pending" | "previewing" | "confirmed" | "committing" | "done" | "failed" | "cancelled";
+    status?: "pending" | "previewing" | "confirmed" | "committing" | "done" | "failed" | "cancelled" | "INCONSISTENT";
     counters?: Record<string, unknown>;
     errorMessage?: string | null;
     finishedAt?: Date;

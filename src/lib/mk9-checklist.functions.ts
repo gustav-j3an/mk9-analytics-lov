@@ -296,8 +296,8 @@ export const checklistCommit = createServerFn({ method: "POST" })
         validationError = String(vErr?.message ?? vErr);
       }
 
-      const finalStatus: "done" | "failed" =
-        validation && validation.status === "INCONSISTENT" ? "done" : "done";
+      const finalStatus: "done" | "failed" | "INCONSISTENT" =
+        validation && validation.status === "INCONSISTENT" ? "INCONSISTENT" : "done";
 
       // SUBSTITUIÇÃO: Marcar como vigente e atualizar anterior
       if (previous) {
@@ -329,7 +329,7 @@ export const checklistCommit = createServerFn({ method: "POST" })
       await supabaseAdmin
         .from("mk9_checklist_imports")
         .update({ 
-          is_operational_current: true,
+          is_operational_current: (finalStatus as string) !== "failed",
           replaces_import_id: previous?.id ?? null
         } as any)
         .eq("id", data.importId);
