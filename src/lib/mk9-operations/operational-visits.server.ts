@@ -47,7 +47,8 @@ export const getOperationalVisits = async (params: {
     query = query.eq("source_import_id", sourceImportId);
   } else if (activeImportIds.length > 0) {
     // Caso contrário, usamos a regra operacional: nulo ou contido na lista de vigentes
-    query = query.or(`source_import_id.is.null,source_import_id.in.(${activeImportIds.join(",")})`);
+    // Nota: Filtro or() do PostgREST requer tratamento cuidadoso de strings.
+    query = query.or(`source_import_id.is.null,source_import_id.in.(${activeImportIds.map(id => `"${id}"`).join(",")})`);
   } else {
     // Se não há importações vigentes, apenas as manuais (nulas) servem
     query = query.is("source_import_id", null);
