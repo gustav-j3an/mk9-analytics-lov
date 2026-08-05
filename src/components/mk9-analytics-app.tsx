@@ -262,6 +262,7 @@ export function Mk9AnalyticsApp() {
               {activeModule === "roteiros" && "Roteiros & Frequências"}
               {activeModule === "relatorio_industria" && "Indústrias (PDF)"}
               {activeModule === "cleanup_admin" && "Limpeza Administrativa"}
+              {activeModule === "homologacao" && "Saúde do Sistema"}
               {activeModule === "usuarios" && "Gestão de Acessos"}
             </h2>
           </div>
