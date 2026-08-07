@@ -45,10 +45,14 @@ export function contractedForStore(
 /** Promotor vigente do par (indústria, loja) por votação do roteiro. */
 export function resolvePromoter(routeByKey: Map<string, RouteInfo>, key: string): ResolvedPromoter & { employeeNumber?: string | null } {
   const info = routeByKey.get(key) as any;
-  if (!info || info.votes.size === 0) return { id: null, name: null, resolution: "UNASSIGNED_ROUTE", employeeNumber: null };
+  if (!info || !info.votes || info.votes.size === 0) {
+    return { id: null, name: "Sem promotor", resolution: "UNASSIGNED_ROUTE", employeeNumber: null };
+  }
   let best: { id: string; name: string; employeeNumber: string | null; count: number } | null = null;
   for (const [pid, v] of info.votes) {
-    if (!best || v.count > (best as any).count) best = { id: pid, name: v.name, employeeNumber: (v as any).employeeNumber, count: v.count };
+    if (!best || v.count > (best as any).count) {
+      best = { id: pid, name: v.name || "Promotor sem nome", employeeNumber: (v as any).employeeNumber, count: v.count };
+    }
   }
   return {
     id: best!.id,
@@ -118,8 +122,14 @@ export function classifyIndustry(input: {
   checklistImports: number;
   hasExecutionOrRoute: boolean;
 }): IndustryStatusKey {
-  const { contratadas, realizadas, expectedToDate, lojasContratadas, checklistImports } = input;
+  const contratadas = input.contratadas ?? 0;
+  const realizadas = input.realizadas ?? 0;
+  const expectedToDate = input.expectedToDate ?? 0;
+  const lojasContratadas = input.lojasContratadas ?? 0;
+  const checklistImports = input.checklistImports ?? 0;
+
   if (contratadas <= 0 && lojasContratadas <= 0) return "SEM_FREQUENCIA";
+
   if (realizadas === 0 && checklistImports === 0) return "SEM_CHECKLIST";
   if (realizadas >= contratadas) return "CONCLUIDA";
   if (expectedToDate <= 0) return "EM_DIA";
