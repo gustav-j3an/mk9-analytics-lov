@@ -32,7 +32,7 @@ function CockpitPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !session) navigate({ to: "/login", replace: true });
+    if (!loading && !session) navigate({ to: "/", replace: true });
   }, [loading, session, navigate]);
 
   if (loading || !session) {
