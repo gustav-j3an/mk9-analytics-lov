@@ -29,7 +29,7 @@ function LandingPage() {
   }
 
   if (session) {
-    throw redirect({ to: '/cockpit' });
+    throw redirect({ to: '/dashboard' });
   }
 
   return (
