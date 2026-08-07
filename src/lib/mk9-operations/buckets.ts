@@ -45,10 +45,14 @@ export function contractedForStore(
 /** Promotor vigente do par (indústria, loja) por votação do roteiro. */
 export function resolvePromoter(routeByKey: Map<string, RouteInfo>, key: string): ResolvedPromoter & { employeeNumber?: string | null } {
   const info = routeByKey.get(key) as any;
-  if (!info || info.votes.size === 0) return { id: null, name: null, resolution: "UNASSIGNED_ROUTE", employeeNumber: null };
+  if (!info || !info.votes || info.votes.size === 0) {
+    return { id: null, name: "Sem promotor", resolution: "UNASSIGNED_ROUTE", employeeNumber: null };
+  }
   let best: { id: string; name: string; employeeNumber: string | null; count: number } | null = null;
   for (const [pid, v] of info.votes) {
-    if (!best || v.count > (best as any).count) best = { id: pid, name: v.name, employeeNumber: (v as any).employeeNumber, count: v.count };
+    if (!best || v.count > (best as any).count) {
+      best = { id: pid, name: v.name || "Promotor sem nome", employeeNumber: (v as any).employeeNumber, count: v.count };
+    }
   }
   return {
     id: best!.id,

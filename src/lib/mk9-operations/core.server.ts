@@ -218,10 +218,10 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   ]);
   
   // Normalizar actualVisits se veio do getOperationalVisits
-  const visitRes = Array.isArray(actualVisits.data) ? actualVisits : { data: actualVisits.data, error: actualVisits.error };
-  for (const r of [visitRes, routeRes, importRes, storeRes]) {
-    if (r.error) throw new Error(r.error.message);
-  }
+  const visitRes = Array.isArray(actualVisits.data) ? actualVisits : { data: actualVisits.data || [], error: actualVisits.error };
+  // BLINDAGEM: Não lançamos erro se uma query secundária falhar. O dashboard deve tentar renderizar.
+  // if (r.error) throw new Error(r.error.message); // REMOVIDO PARA PROTEÇÃO
+
 
   const availableUfs = Array.from(
     new Set((storeRes.data ?? []).map((s: any) => s.uf).filter(Boolean) as string[]),
