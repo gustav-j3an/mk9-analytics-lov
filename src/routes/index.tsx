@@ -7,18 +7,17 @@ import { mk9RecordLogin } from "@/lib/mk9-users.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, Loader2 } from "lucide-react";
+import { BarChart3, Loader2, ShieldCheck, Database, FileCheck } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
+    title: "MK9 Analytics | Acesso",
     meta: [
-      { title: "Entrar — MK9 Analytics" },
-      { name: "description", content: "Acesse o painel operacional MK9 Analytics." },
-      { property: "og:title", content: "Entrar — MK9 Analytics" },
-      { property: "og:description", content: "Acesso restrito ao painel operacional MK9 Analytics." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { name: "description", content: "Sistema central de inteligência operacional MK9." },
+      { property: "og:title", content: "MK9 Analytics" },
+      { property: "og:description", content: "Painel operacional e relatórios automatizados." },
+      { name: "twitter:card", content: "summary_large_image" }
     ],
   }),
   component: LoginPage,
@@ -37,7 +36,10 @@ function LoginPage() {
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && session?.user) navigate({ to: "/" });
+    // Redireciona para o Cockpit se já estiver logado
+    if (!loading && session?.user) {
+      navigate({ to: "/cockpit" });
+    }
   }, [loading, session, navigate]);
 
   async function submit(e: React.FormEvent) {
@@ -47,98 +49,150 @@ function LoginPage() {
     setBusy(true);
     try {
       if (mode === "forgot") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
         });
-        if (error) throw error;
+        if (resetError) throw resetError;
         setNotice("Se este e-mail existir, você receberá instruções para redefinir a senha.");
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { data, error: authError } = await supabase.auth.signInWithPassword({ 
+          email: email.trim(), 
+          password: password.trim() 
+        });
+        
+        if (authError) throw authError;
+        
         if (data.session) {
           try {
             await recordLogin();
-          } catch {
-            /* auditoria não deve bloquear login */
+          } catch (auditErr) {
+            console.warn("Falha ao registrar log de acesso:", auditErr);
           }
-          navigate({ to: "/" });
+          navigate({ to: "/cockpit" });
         }
       }
     } catch (err: any) {
-      setError(err?.message ?? "Falha na operação.");
+      console.error("Erro na autenticação:", err);
+      setError(err?.message ?? "Falha na operação. Verifique suas credenciais.");
     } finally {
       setBusy(false);
     }
   }
 
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-950">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
-    <div className="grid min-h-screen place-items-center bg-background px-4 py-10">
-      <Card className="w-full max-w-md border-border/70 shadow-[var(--shadow-elevated)]">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
-            <BarChart3 className="h-6 w-6" />
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-4">
+            <ShieldCheck className="w-12 h-12 text-primary" />
           </div>
-          <CardTitle className="text-xl">MK9 Analytics</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {mode === "forgot" ? "Recuperar acesso" : "Entre na sua conta"}
+          <h1 className="text-3xl font-bold tracking-tight text-white">MK9 Analytics</h1>
+          <p className="text-slate-400">
+            Painel operacional para auditoria e gestão de campo.
           </p>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4" onSubmit={submit}>
-            <div>
-              <label className="mb-1 block text-xs font-medium">E-mail</label>
-              <Input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="voce@empresa.com"
-              />
-            </div>
-            {mode === "login" && (
-              <div>
-                <label className="mb-1 block text-xs font-medium">Senha</label>
+        </div>
+
+        <Card className="w-full border-slate-800 bg-slate-900/50 backdrop-blur-xl shadow-2xl">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-xl text-white">
+              {mode === "forgot" ? "Recuperar acesso" : "Entre na sua conta"}
+            </CardTitle>
+            <p className="text-sm text-slate-400">
+              {mode === "forgot" ? "Insira seu e-mail para receber o link" : "Use suas credenciais corporativas"}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={submit}>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-slate-300 ml-1">E-mail</label>
                 <Input
-                  type="password"
+                  type="email"
                   required
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="voce@empresa.com"
+                  className="bg-slate-950/50 border-slate-800 text-white placeholder:text-slate-600 focus:ring-primary/20"
                 />
               </div>
-            )}
-            {error && (
-              <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {error}
-              </p>
-            )}
-            {notice && (
-              <p className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm">
-                {notice}
-              </p>
-            )}
-            <Button type="submit" className="w-full" disabled={busy}>
-              {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {mode === "forgot" ? "Enviar link" : "Entrar"}
-            </Button>
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              {mode === "login" ? (
-                <button type="button" className="hover:text-foreground" onClick={() => setMode("forgot")}>
-                  Esqueci minha senha
-                </button>
-              ) : (
-                <button type="button" className="hover:text-foreground" onClick={() => setMode("login")}>
+              
+              {mode === "login" && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-slate-300 ml-1">Senha</label>
+                    <button 
+                      type="button" 
+                      className="text-xs text-primary hover:text-primary/80 transition-colors" 
+                      onClick={() => setMode("forgot")}
+                    >
+                      Esqueci minha senha
+                    </button>
+                  </div>
+                  <Input
+                    type="password"
+                    required
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-slate-950/50 border-slate-800 text-white focus:ring-primary/20"
+                  />
+                </div>
+              )}
+
+              {error && (
+                <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400 animate-in fade-in slide-in-from-top-1">
+                  {error}
+                </div>
+              )}
+
+              {notice && (
+                <div className="rounded-lg border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary-foreground animate-in fade-in slide-in-from-top-1">
+                  {notice}
+                </div>
+              )}
+
+              <Button type="submit" className="w-full h-11 text-base font-semibold transition-all hover:scale-[1.01]" disabled={busy}>
+                {busy ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : (mode === "forgot" ? "Enviar link de recuperação" : "Entrar no Sistema")}
+              </Button>
+
+              {mode === "forgot" && (
+                <button 
+                  type="button" 
+                  className="w-full text-sm text-slate-400 hover:text-white transition-colors py-2" 
+                  onClick={() => setMode("login")}
+                >
                   Voltar ao login
                 </button>
               )}
-              <Link to="/" className="hover:text-foreground">
-                Início
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800/50 backdrop-blur-sm">
+            <Database className="w-5 h-5 text-blue-400 mb-2" />
+            <h3 className="text-sm font-medium text-slate-200">Base Integrada</h3>
+            <p className="text-xs text-slate-500">Dados consolidados de indústrias e lojas.</p>
+          </div>
+          <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800/50 backdrop-blur-sm">
+            <FileCheck className="w-5 h-5 text-emerald-400 mb-2" />
+            <h3 className="text-sm font-medium text-slate-200">Auditoria PDF</h3>
+            <p className="text-xs text-slate-500">Relatórios operacionais automáticos.</p>
+          </div>
+        </div>
+
+        <div className="text-center text-xs text-slate-600 pt-4">
+          © 2026 MK9 Analytics. Todos os direitos reservados.
+        </div>
+      </div>
     </div>
   );
 }

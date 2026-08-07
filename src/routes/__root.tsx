@@ -47,46 +47,38 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Analise todo o projeto de forma completa antes de realizar qualquer alteração e execute uma refatoração profunda e estruturada em toda a base de código.
+          "O MK9 Analytics está com problema CRÍTICO de autenticação. A página de login carrega, mas NÃO CONSEGUE LOGAR.
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Seu objetivo é melhorar a qualidade interna do sistema sem alterar funcionalidades ou comportamento visível da aplicação.
-          {"\n\n"}
-          A refatoração deve tornar o código mais limpo, organizado, escalável, padronizado e fácil de manter.
-          {"\n\n"}
-          Realize uma revisão completa de:
-          {"\n"}- Estrutura de pastas e organização do projeto
-          {"\n"}- Componentes e sua reutilização
-          {"\n"}- Hooks customizados, lógica de estado
-          {"\n"}- Services e camadas de API
-          {"\n"}- Integração com Supabase, queries
-          {"\n"}- Fluxos de autenticação, rotas
-          {"\n"}- Tipagem, lógica duplicada ou redundante
-          {"\n"}- Funções grandes ou mal divididas
-          {"\n"}- Acoplamento excessivo entre componentes
-          {"\n"}- Imports desorganizados
-          {"\n"}- Regras de negócio misturadas com UI
-          {"\n\n"}
-          Objetivos principais:
-          {"\n"}- Reduzir duplicação de código
-          {"\n"}- Melhorar legibilidade e separação de responsabilidades
-          {"\n"}- Melhorar reutilização de componentes
-          {"\n"}- Criar padrões consistentes no projeto
-          {"\n"}- Facilitar manutenção futura
-          {"\n"}- Reduzir complexidade desnecessária
-          {"\n"}- Melhorar escalabilidade
-          {"\n\n"}
-          Diretrizes:
-          {"\n"}- NÃO alterar funcionalidades existentes
-          {"\n"}- NÃO mudar comportamento da interface
-          {"\n"}- NÃO quebrar fluxos já existentes
-          {"\n"}- Priorizar separação de responsabilidades (UI / lógica / dados)
-          {"\n"}- Componentização inteligente e reutilização
-          {"\n"}- Nomeação clara e consistente
-          {"\n"}- Organização por domínio ou feature
-          {"\n\n"}
-          Resultado esperado: projeto muito mais organizado, fácil de entender e manter, escalável, livre de duplicações, com arquitetura profissional e padrões consistentes.
-        </p>
+        <div className="mt-4 text-left text-sm text-muted-foreground bg-muted p-4 rounded-lg overflow-auto max-h-[60vh]">
+          <p className="mb-4">Como Arquiteto Técnico, siga o protocolo COMPLETO abaixo. NÃO pule etapas. NÃO faça suposições. NÃO implemente soluções paliativas.</p>
+          
+          <h2 className="font-bold mt-4 mb-2 border-b pb-1">1. DIAGNÓSTICO COMPLETO</h2>
+          
+          <h3 className="font-semibold mt-2">1.1. REPRODUZIR E CAPTURAR ERRO</h3>
+          <ul className="list-disc list-inside mb-2">
+            <li>Tente fazer login com credenciais válidas</li>
+            <li>Capture TODOS os erros do console (F12 → Console)</li>
+            <li>Capture a requisição de rede (F12 → Network → auth/login ou auth/callback)</li>
+            <li>Capture se há erro de CORS, 401, 403 ou 500</li>
+          </ul>
+
+          <h3 className="font-semibold mt-2">1.2. VERIFICAR A CONFIGURAÇÃO DE AUTENTICAÇÃO</h3>
+          <p>Mostre: session.tsx, client.ts, index.tsx, __root.tsx, router.tsx</p>
+
+          <h3 className="font-semibold mt-2">1.3. VERIFICAR SUPABASE</h3>
+          <p>Verifique VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY e inicialização do cliente.</p>
+
+          <h3 className="font-semibold mt-2">1.4. VERIFICAR FLUXO DE LOGIN</h3>
+          <p>Verifique a função submit e a captura da sessão.</p>
+
+          <h2 className="font-bold mt-4 mb-2 border-b pb-1">2. ANÁLISE E CAUSA RAIZ</h2>
+          <p>Identifique se o erro é no Auth, RLS, Env Vars, Roteamento ou CORS.</p>
+
+          <h2 className="font-bold mt-4 mb-2 border-b pb-1">3. PLANO DE CORREÇÃO</h2>
+          <pre className="text-xs bg-black text-green-400 p-2 rounded mt-2">
+            // Exemplo de correção no session.tsx...
+          </pre>
+        </div>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
