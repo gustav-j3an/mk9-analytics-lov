@@ -72,6 +72,7 @@ export function Mk9PromotersModule() {
     const term = searchTerm.toLowerCase();
     return (
       p.name.toLowerCase().includes(term) ||
+      (p.employeeNumber?.toLowerCase().includes(term) ?? false) ||
       (p.city?.toLowerCase().includes(term) ?? false) ||
       (p.uf?.toLowerCase().includes(term) ?? false)
     );
@@ -105,7 +106,7 @@ export function Mk9PromotersModule() {
           <div className="relative w-full md:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nome, cidade ou UF..."
+              placeholder="Buscar por nome, matrícula, cidade ou UF..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9"
@@ -152,7 +153,15 @@ export function Mk9PromotersModule() {
                       </div>
                       <div>
                         <div className="font-medium">{p.name}</div>
-                        <div className="text-xs text-muted-foreground">ID: {p.id.slice(0, 8)}</div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>ID: {p.id.slice(0, 8)}</span>
+                          {p.employeeNumber && (
+                            <>
+                              <span className="w-1 h-1 rounded-full bg-border" />
+                              <span className="font-medium text-emerald-600">Matrícula: {p.employeeNumber}</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </TableCell>
