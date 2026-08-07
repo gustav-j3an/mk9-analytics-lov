@@ -76,6 +76,7 @@ export function Mk9SessionProvider({ children }: { children: ReactNode }) {
       identityRef.current = identity;
       setSession(s);
       if (s?.user) {
+        // Carrega roles e perfil apenas se houver usuário autenticado
         const { roles, profile } = await loadRolesAndProfile(s.user.id);
         setRoles(roles);
         setProfile(profile);
@@ -85,6 +86,9 @@ export function Mk9SessionProvider({ children }: { children: ReactNode }) {
       }
     } catch (err) {
       console.error("[MK9-SESSION] Erro durante a hidratação da sessão:", err);
+      // Em caso de erro crítico no carregamento do perfil, resetamos para segurança
+      setRoles([]);
+      setProfile(null);
     } finally {
       setLoading(false);
     }
