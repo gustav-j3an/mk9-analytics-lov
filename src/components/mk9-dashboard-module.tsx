@@ -48,7 +48,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn } from "@/lib/utils";
 
 import { mk9ListIndustries, mk9ListPromoters } from "@/lib/mk9-data.functions";
-import { mk9DashboardOverviewFn, mk9DashboardSupervisorsFn } from "@/lib/mk9-dashboard.functions";
+import { mk9DashboardOverviewFn, mk9DashboardSupervisorsFn, mk9DashboardCheckIntegrityFn } from "@/lib/mk9-dashboard.functions";
+
 import {
   INDUSTRY_STATUS_LABEL,
   type DashboardAlert,
