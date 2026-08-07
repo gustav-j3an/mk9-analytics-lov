@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   Edit2,
   Trash2,
-  RefreshCcw,
   History
 } from "lucide-react";
 import { PromoterDialog, PromoterDeleteDialog } from "./mk9/promoter-admin-dialogs";
@@ -33,7 +32,6 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { mk9ListPromoters } from "@/lib/mk9-data.functions";
-// Removed mk9ReactivatePromoter as we are moving to exclusion model
 import { useMk9Session } from "@/lib/mk9-auth/session";
 
 export function Mk9PromotersModule() {
@@ -48,12 +46,16 @@ export function Mk9PromotersModule() {
   const isAdmin = session.hasRole("ADMIN");
 
   const listFn = useServerFn(mk9ListPromoters);
-  // Removed reactivation logic as it was part of the archiving concept
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["mk9-promoters"],
+    queryFn: () => listFn(),
+  });
 
   const filtered = (data ?? []).filter((p: any) => {
-    const isArchived = Boolean(p.archived_at);
-    if (statusFilter === "active" && isArchived) return false;
-    if (statusFilter === "archived" && !isArchived) return false;
+    const isDeleted = Boolean(p.archived_at);
+    if (statusFilter === "active" && isDeleted) return false;
+    if (statusFilter === "deleted" && !isDeleted) return false;
 
     const term = searchTerm.toLowerCase();
     return (
