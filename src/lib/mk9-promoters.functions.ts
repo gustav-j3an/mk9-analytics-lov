@@ -58,7 +58,7 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
         notes: data.data.notes || null,
         updated_at: new Date().toISOString(),
         updated_by: ctx.userId,
-      })
+      } as any)
       .eq("id", data.id)
       .select()
       .single();
@@ -87,8 +87,10 @@ export const mk9ArchivePromoter = createServerFn({ method: "POST" })
         archived_at: new Date().toISOString(),
         archived_by: ctx.userId,
         archive_reason: data.reason || null,
+        is_active: false,
         updated_at: new Date().toISOString(),
-      })
+        updated_by: ctx.userId,
+      } as any)
       .eq("id", data.id)
       .select()
       .single();
@@ -116,9 +118,10 @@ export const mk9ReactivatePromoter = createServerFn({ method: "POST" })
         archived_at: null,
         archived_by: null,
         archive_reason: null,
+        is_active: true,
         updated_at: new Date().toISOString(),
         updated_by: (await requireMk9Role(["ADMIN"])).userId,
-      })
+      } as any)
       .eq("id", data.id)
       .select()
       .single();
