@@ -1294,12 +1294,14 @@ export type Database = {
           created_at: string
           external_id: string | null
           id: string
+          is_active: boolean | null
           last_import_id: string | null
           name: string
           name_normalized: string
           notes: string | null
           uf: string | null
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           archive_reason?: string | null
@@ -1311,12 +1313,14 @@ export type Database = {
           created_at?: string
           external_id?: string | null
           id?: string
+          is_active?: boolean | null
           last_import_id?: string | null
           name: string
           name_normalized: string
           notes?: string | null
           uf?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           archive_reason?: string | null
@@ -1328,12 +1332,14 @@ export type Database = {
           created_at?: string
           external_id?: string | null
           id?: string
+          is_active?: boolean | null
           last_import_id?: string | null
           name?: string
           name_normalized?: string
           notes?: string | null
           uf?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
