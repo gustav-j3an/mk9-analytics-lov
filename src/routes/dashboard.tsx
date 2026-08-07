@@ -32,7 +32,11 @@ function DashboardPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !session) navigate({ to: "/", replace: true });
+    // Redirecionamento preventivo client-side se a sessão cair ou não existir
+    if (!loading && !session) {
+      console.warn("[MK9-DASHBOARD] Usuário não autenticado tentando acessar rota protegida. Redirecionando...");
+      navigate({ to: '/', replace: true });
+    }
   }, [loading, session, navigate]);
 
   if (loading || !session) {
