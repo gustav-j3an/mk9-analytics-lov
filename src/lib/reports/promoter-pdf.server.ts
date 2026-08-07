@@ -38,6 +38,7 @@ interface PdfCtx {
   core: OperationCore;
   promoterId: string;
   promoterName: string;
+  promoterEmployeeNumber: string | null;
   year: number;
   month: number;
 }
@@ -72,16 +73,17 @@ export async function renderPromoterRoutePdf(input: {
   core: OperationCore;
   promoterId: string;
   promoterName: string;
+  promoterEmployeeNumber: string | null;
   year: number;
   month: number;
 }): Promise<Uint8Array> {
-  const { core, promoterId, promoterName, year, month } = input;
+  const { core, promoterId, promoterName, promoterEmployeeNumber, year, month } = input;
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const fontB = await pdf.embedFont(StandardFonts.HelveticaBold);
   const page = pdf.addPage([PAGE.w, PAGE.h]);
 
-  const ctx: PdfCtx = { pdf, page, y: PAGE.h - 60, font, fontB, core, promoterId, promoterName, year, month };
+  const ctx: PdfCtx = { pdf, page, y: PAGE.h - 60, font, fontB, core, promoterId, promoterName, promoterEmployeeNumber, year, month };
 
   drawHeader(ctx);
 
@@ -96,6 +98,7 @@ export async function renderPromoterRoutePdf(input: {
 
   const info = [
     ["Promotor:", promoterName],
+    ...(promoterEmployeeNumber ? [["Matrícula:", promoterEmployeeNumber]] : []),
     ["Competência:", `${MONTHS_PT[month - 1]} / ${year}`],
     ["", ""],
     ["TOTAL DE VISITAS:", String(totalVisits)],

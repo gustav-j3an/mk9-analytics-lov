@@ -110,6 +110,8 @@ export interface IndustryReport {
   filters: { uf: string | null; storeId: string | null; sourceImportId: string | null; promoterId?: string | null };
   totals: {
     totalStores: number;
+    promoterName?: string | null;
+    promoterEmployeeNumber?: string | null;
     contracted: number;
     planned: number;
     actual: number;
@@ -490,8 +492,8 @@ export async function buildIndustryReport(
     filters: { uf: uf ?? null, storeId: storeId ?? null, sourceImportId: sourceImportId ?? null, promoterId: promoterId ?? null },
     totals: {
       totalStores: stores.length,
-      promoterName: input.promoterId ? (stores.find(s => s.promoterId === input.promoterId)?.promoterName || "—") : null,
-      promoterEmployeeNumber: input.promoterId ? (stores.find(s => s.promoterId === input.promoterId)?.promoterEmployeeNumber || null) : null,
+      promoterName: input.promoterId ? core.storeRows.find(s => s.promoterId === input.promoterId)?.promoterName : null,
+      promoterEmployeeNumber: input.promoterId ? core.storeRows.find(s => s.promoterId === input.promoterId)?.promoterEmployeeNumber : null,
 
       contracted: totalsMetrics.contratadas,
       planned: totalsMetrics.contratadas,
