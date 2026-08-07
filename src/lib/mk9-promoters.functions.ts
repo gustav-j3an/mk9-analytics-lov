@@ -5,6 +5,7 @@ import { logAudit, requireMk9Role } from "@/lib/mk9-auth/require-role.server";
 
 const promoterSchema = z.object({
   name: z.string().min(2).max(120),
+  employeeNumber: z.string().max(20).transform(v => v?.trim() || null).nullable().optional(),
   externalId: z.string().max(120).nullable().optional(),
   city: z.string().max(120).nullable().optional(),
   uf: z.string().length(2).nullable().optional(),
@@ -25,6 +26,7 @@ export const mk9CreatePromoter = createServerFn({ method: "POST" })
         name: data.name,
         name_normalized: normalizeName(data.name),
         external_id: data.externalId || null,
+        employee_number: data.employeeNumber || null,
         city: data.city || null,
         uf: data.uf || null,
         contact: data.contact || null,
@@ -58,6 +60,7 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
         name: data.data.name,
         name_normalized: normalizeName(data.data.name),
         external_id: data.data.externalId || null,
+        employee_number: data.data.employeeNumber || null,
         city: data.data.city || null,
         uf: data.data.uf || null,
         contact: data.data.contact || null,
