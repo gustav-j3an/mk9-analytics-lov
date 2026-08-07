@@ -62,7 +62,13 @@ export function PromoterDialog({
     mutationFn: async () => {
       const payload = { name, city, uf: uf.toUpperCase(), contact, notes };
       if (promoter) {
-        return updateFn({ data: { id: promoter.id, data: payload } });
+        return updateFn({ 
+          data: { 
+            id: promoter.id, 
+            data: payload,
+            expectedUpdatedAt: promoter.updated_at
+          } 
+        });
       }
       return createFn({ data: payload });
     },

@@ -41,13 +41,14 @@ export const mk9CreatePromoter = createServerFn({ method: "POST" })
 export const mk9UpdatePromoter = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({
     id: z.string().uuid(),
-    data: promoterSchema
+    data: promoterSchema,
+    expectedUpdatedAt: z.string().optional(),
   }).parse(data))
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: row, error } = await supabaseAdmin
+    let q = supabaseAdmin
       .from("mk9_promoters")
       .update({
         name: data.data.name,
@@ -60,12 +61,22 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
         updated_at: new Date().toISOString(),
         updated_by: ctx.userId,
       } as any)
-      .eq("id", data.id)
-      .select()
-      .single();
+      .eq("id", data.id);
+
+    if (data.expectedUpdatedAt) {
+      q = q.eq("updated_at", data.expectedUpdatedAt);
+    }
+
+    const { data: row, error } = await q.select().maybeSingle();
 
     if (error) throw new Error(error.message);
-    if (!row) throw new Error("Nenhum registro foi atualizado (PROMOTER_NOT_FOUND).");
+    if (!row) {
+      // Se enviou expectedUpdatedAt e não retornou nada, pode ser conflito.
+      if (data.expectedUpdatedAt) {
+        throw new Error("PROMOTER_CONCURRENT_MODIFICATION");
+      }
+      throw new Error("Nenhum registro foi atualizado (PROMOTER_NOT_FOUND).");
+    }
 
     await logAudit(ctx, "PROMOTER_UPDATED", "mk9_promoters", data.id, { data: data.data });
 
