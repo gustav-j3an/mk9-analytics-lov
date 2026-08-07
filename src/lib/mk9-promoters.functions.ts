@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { normalizeName } from "./mk9/normalization";
+import { logAudit, requireMk9Role } from "@/lib/mk9-auth/require-role.server";
 
 const promoterSchema = z.object({
   name: z.string().min(2).max(120),
@@ -9,7 +10,7 @@ const promoterSchema = z.object({
   uf: z.string().length(2).nullable().optional(),
   contact: z.string().max(120).nullable().optional(),
   notes: z.string().max(1000).nullable().optional(),
-});
+}).strict();
 
 export const mk9CreatePromoter = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => promoterSchema.parse(data))
@@ -25,42 +26,64 @@ export const mk9CreatePromoter = createServerFn({ method: "POST" })
         name_normalized: normalizeName(data.name),
         external_id: data.externalId || null,
         city: data.city || null,
+        uf: data.uf || null,
         contact: data.contact || null,
         notes: data.notes || null,
-      })
+        is_active: true,
+      } as any)
       .select()
       .single();
 
     if (error) throw new Error(error.message);
+    
+    const ctx = await requireMk9Role(["ADMIN"]);
+    await logAudit(ctx, "PROMOTER_CREATED", "mk9_promoters", row?.id ?? null, { data });
+
     return row;
   });
 
 export const mk9UpdatePromoter = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({
     id: z.string().uuid(),
-    data: promoterSchema
+    data: promoterSchema,
+    expectedUpdatedAt: z.string().optional(),
   }).parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
-    await requireMk9Role(["ADMIN"]);
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: row, error } = await supabaseAdmin
+    let q = supabaseAdmin
       .from("mk9_promoters")
       .update({
         name: data.data.name,
         name_normalized: normalizeName(data.data.name),
         external_id: data.data.externalId || null,
         city: data.data.city || null,
+        uf: data.data.uf || null,
         contact: data.data.contact || null,
         notes: data.data.notes || null,
         updated_at: new Date().toISOString(),
-      })
-      .eq("id", data.id)
-      .select()
-      .single();
+        updated_by: ctx.userId,
+      } as any)
+      .eq("id", data.id);
+
+    if (data.expectedUpdatedAt) {
+      q = q.eq("updated_at", data.expectedUpdatedAt);
+    }
+
+    const { data: row, error } = await q.select().maybeSingle();
 
     if (error) throw new Error(error.message);
+    if (!row) {
+      // Se enviou expectedUpdatedAt e não retornou nada, pode ser conflito.
+      if (data.expectedUpdatedAt) {
+        throw new Error("PROMOTER_CONCURRENT_MODIFICATION");
+      }
+      throw new Error("Nenhum registro foi atualizado (PROMOTER_NOT_FOUND).");
+    }
+
+    await logAudit(ctx, "PROMOTER_UPDATED", "mk9_promoters", data.id, { data: data.data });
+
     return row;
   });
 
@@ -80,13 +103,19 @@ export const mk9ArchivePromoter = createServerFn({ method: "POST" })
         archived_at: new Date().toISOString(),
         archived_by: ctx.userId,
         archive_reason: data.reason || null,
+        is_active: false,
         updated_at: new Date().toISOString(),
-      })
+        updated_by: ctx.userId,
+      } as any)
       .eq("id", data.id)
       .select()
       .single();
 
     if (error) throw new Error(error.message);
+    if (!row) throw new Error("Falha ao arquivar promotor.");
+
+    await logAudit(ctx, "PROMOTER_ARCHIVED", "mk9_promoters", data.id, { reason: data.reason });
+
     return row;
   });
 
@@ -105,13 +134,20 @@ export const mk9ReactivatePromoter = createServerFn({ method: "POST" })
         archived_at: null,
         archived_by: null,
         archive_reason: null,
+        is_active: true,
         updated_at: new Date().toISOString(),
-      })
+        updated_by: (await requireMk9Role(["ADMIN"])).userId,
+      } as any)
       .eq("id", data.id)
       .select()
       .single();
 
     if (error) throw new Error(error.message);
+    if (!row) throw new Error("Falha ao reativar promotor.");
+
+    const ctx = await requireMk9Role(["ADMIN"]);
+    await logAudit(ctx, "PROMOTER_REACTIVATED", "mk9_promoters", data.id, {});
+
     return row;
   });
 

@@ -41,6 +41,7 @@ export function PromoterDialog({
   const [uf, setUf] = useState("");
   const [contact, setContact] = useState("");
   const [notes, setNotes] = useState("");
+  const [externalId, setExternalId] = useState("");
 
   useEffect(() => {
     if (promoter) {
@@ -49,20 +50,28 @@ export function PromoterDialog({
       setUf(promoter.uf || "");
       setContact(promoter.contact || "");
       setNotes(promoter.notes || "");
+      setExternalId(promoter.externalId || "");
     } else {
       setName("");
       setCity("");
       setUf("");
       setContact("");
       setNotes("");
+      setExternalId("");
     }
   }, [promoter, open]);
 
   const mut = useMutation({
     mutationFn: async () => {
-      const payload = { name, city, uf: uf.toUpperCase(), contact, notes };
+      const payload = { name, city, uf: uf.toUpperCase(), contact, notes, externalId };
       if (promoter) {
-        return updateFn({ data: { id: promoter.id, data: payload } });
+        return updateFn({ 
+          data: { 
+            id: promoter.id, 
+            data: payload,
+            expectedUpdatedAt: promoter.updatedAt
+          } 
+        });
       }
       return createFn({ data: payload });
     },
@@ -82,9 +91,15 @@ export function PromoterDialog({
           <DialogDescription>Dados cadastrais do promotor de campo.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Nome Completo *</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome do promotor" />
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-2 space-y-2">
+              <Label>Nome Completo *</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome do promotor" />
+            </div>
+            <div className="space-y-2">
+              <Label>ID Externo</Label>
+              <Input value={externalId} onChange={(e) => setExternalId(e.target.value)} placeholder="ERP ID" />
+            </div>
           </div>
           <div className="grid grid-cols-4 gap-4">
             <div className="col-span-3 space-y-2">
