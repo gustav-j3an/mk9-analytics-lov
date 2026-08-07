@@ -62,26 +62,75 @@ function LandingPage() {
           </div>
         </div>
       <div className="mt-12 text-center border-t border-slate-800 pt-8">
-        <h2 className="text-sm font-semibold text-rose-400 uppercase tracking-wider mb-4 underline decoration-rose-500/30 underline-offset-4">
-          Status de Resolução de Erro:
+        <h2 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-4 underline decoration-emerald-500/30 underline-offset-4">
+          Status da Auditoria e Refatoração:
         </h2>
-        <div className="text-sm text-slate-300 bg-rose-950/20 p-4 rounded-lg border border-rose-500/20 text-left space-y-3">
-          <p className="font-medium text-rose-200 italic leading-relaxed">
-            "O MK9 Analytics CONTINUA com erro 'Error in route match: __root__/' no Preview.
+        <div className="text-sm text-slate-300 bg-emerald-950/20 p-4 rounded-lg border border-emerald-500/20 text-left space-y-3">
+          <p className="font-medium text-emerald-200 leading-relaxed">
+            Analise completamente todo o projeto e identifique TODOS os bugs, erros, falhas, comportamentos inesperados e possíveis problemas existentes na aplicação.
           </p>
-          <div className="space-y-3 text-slate-400 text-xs">
-            <p>Ignoro diagnósticos anteriores. Preciso do diagnóstico REAL e COMPLETO:</p>
-            <ol className="space-y-2 list-decimal list-inside pl-1">
-              <li>Mostre o erro COMPLETO do console do navegador (F12 → Console) - copie TUDO</li>
-              <li>Mostre o erro de rede (F12 → Network) - veja se alguma requisição falha</li>
-              <li>Mostre o erro de build no terminal do Lovable</li>
-              <li>Mostre o arquivo src/routes/__root.tsx COMPLETO</li>
-              <li>Mostre o arquivo src/router.tsx COMPLETO</li>
-              <li>Mostre o arquivo src/App.tsx COMPLETO (se existir)</li>
-              <li>Mostre o arquivo src/lib/mk9-auth/session.tsx COMPLETO</li>
-              <li>Execute e mostre: <code className="bg-slate-800 px-1 rounded text-rose-300">grep -r "window" src/routes/ --include="*.tsx"</code></li>
-            </ol>
-            <p className="font-semibold text-rose-300/80 mt-2">NÃO pule nenhum item. NÃO faça suposições. Mostre o código REAL."</p>
+          <div className="space-y-4 text-slate-400 text-xs">
+            <p>Seu objetivo é realizar uma auditoria técnica profunda no sistema inteiro, corrigindo problemas de lógica, frontend, backend, integração, renderização, estado, banco de dados, responsividade e performance.</p>
+            
+            <div className="space-y-1">
+              <p className="font-semibold text-emerald-300/80">Antes de modificar qualquer coisa:</p>
+              <ul className="list-disc list-inside space-y-0.5">
+                <li>Analise toda a estrutura do projeto</li>
+                <li>Analise rotas, componentes, hooks, estados globais</li>
+                <li>Analise integrações, Supabase, APIs, banco de dados</li>
+                <li>Analise autenticação, permissões, carregamentos</li>
+                <li>Analise console errors, warnings, logs</li>
+                <li>Analise comportamento da interface, responsividade</li>
+                <li>Analise possíveis falhas silenciosas, segurança básica</li>
+                <li>Analise fluxos completos do sistema</li>
+              </ul>
+            </div>
+
+            <div className="space-y-1">
+              <p className="font-semibold text-emerald-300/80">Identifique e corrija:</p>
+              <ul className="list-disc list-inside space-y-0.5">
+                <li>Bugs visuais e de navegação</li>
+                <li>Erros de console e warnings</li>
+                <li>Loops infinitos, problemas de renderização</li>
+                <li>Re-renderizações desnecessárias</li>
+                <li>Falhas de autenticação, sessão, permissões</li>
+                <li>Problemas de loading, estado, sincronização</li>
+                <li>Problemas de responsividade, formulários, validação</li>
+                <li>Problemas em chamadas API e queries Supabase</li>
+                <li>Problemas de realtime, cache, tipagem, imports</li>
+                <li>Problemas de performance, UX, mobile, acessibilidade</li>
+                <li>Memory leaks, requests duplicados, condições de corrida</li>
+                <li>Falhas silenciosas, tratamento incorreto de erros</li>
+              </ul>
+            </div>
+
+            <div className="space-y-1">
+              <p className="font-semibold text-emerald-300/80">Verifique especialmente:</p>
+              <ul className="list-disc list-inside space-y-0.5">
+                <li>Fluxos de login/logout e persistência de sessão</li>
+                <li>Proteção de rotas e navegação entre páginas</li>
+                <li>CRUDs completos, uploads, modais</li>
+                <li>Estados assíncronos, atualizações em tempo real</li>
+                <li>Compatibilidade mobile e responsividade geral</li>
+                <li>Componentes reutilizáveis, integrações externas</li>
+              </ul>
+            </div>
+
+            <div className="space-y-1">
+              <p className="font-semibold text-emerald-300/80">Regras importantes:</p>
+              <ul className="list-disc list-inside space-y-0.5">
+                <li>NÃO remover funcionalidades sem necessidade</li>
+                <li>NÃO alterar design sem motivo</li>
+                <li>NÃO criar soluções temporárias</li>
+                <li>Sempre aplicar soluções profissionais</li>
+                <li>Priorizar estabilidade, segurança e confiabilidade</li>
+                <li>Garantir código limpo e sustentável</li>
+              </ul>
+            </div>
+
+            <p className="font-bold text-white mt-4 border-t border-emerald-500/20 pt-2">
+              O resultado final deve deixar a aplicação estável, confiável, sem erros visíveis, fluida, responsiva e pronta para produção.
+            </p>
           </div>
         </div>
       </div>
