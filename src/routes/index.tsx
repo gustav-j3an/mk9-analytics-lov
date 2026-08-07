@@ -61,7 +61,17 @@ function LandingPage() {
             <p className="text-xs text-slate-500">Relatórios operacionais automáticos.</p>
           </div>
         </div>
+      <div className="mt-12 text-center border-t border-slate-800 pt-8">
+        <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Sugestões para próximas versões:</h2>
+        <ul className="text-sm text-slate-500 space-y-2">
+          <li>- App mobile para promotores</li>
+          <li>- Integração com sistemas de ERP (SAP, Oracle)</li>
+          <li>- BI avançado (PowerBI, Looker)</li>
+          <li>- IA para detecção de anomalias</li>
+          <li>- API pública para parceiros</li>
+        </ul>
       </div>
+    </div>
     </div>
   );
 }
