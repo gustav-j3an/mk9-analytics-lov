@@ -19,8 +19,11 @@ import {
   TrendingUp,
   UserX,
   Users,
+  ShieldAlert,
+  ShieldCheck,
 } from "lucide-react";
 import { DashboardErrorBoundary } from "./mk9/dashboard-error-boundary";
+
 
 import {
   Area,
@@ -236,6 +239,7 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <DashboardIntegrityCheck params={params} />
             <Button variant="outline" size="sm" className="h-9" onClick={() => overviewQ.refetch()} disabled={overviewQ.isFetching}>
               <RefreshCw className={cn("h-4 w-4", overviewQ.isFetching && "animate-spin")} /> Atualizar
             </Button>
@@ -754,6 +758,90 @@ function IndustryCard({ row, onOpen }: { row: DashboardIndustryRow; onOpen: () =
     </button>
   );
 }
+
+function DashboardIntegrityCheck({ params }: { params: any }) {
+  const checkFn = useServerFn(mk9DashboardCheckIntegrityFn);
+  const [open, setOpen] = useState(false);
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["mk9-dashboard-integrity", params],
+    queryFn: () => checkFn({ data: params }),
+    enabled: open,
+  });
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-9 gap-2 text-muted-foreground hover:text-primary">
+          <ShieldAlert className="h-4 w-4" />
+          <span className="hidden sm:inline">Integridade</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent className="sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-primary" />
+            Diagnóstico de Integridade
+          </SheetTitle>
+        </SheetHeader>
+        <div className="mt-6 space-y-6">
+          <div className="text-sm text-muted-foreground">
+            Varredura em tempo real para detectar inconsistências que podem afetar os indicadores.
+          </div>
+
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-2">
+              <RefreshCw className="h-8 w-8 animate-spin text-primary/30" />
+              <p className="text-xs text-muted-foreground">Analisando base de dados...</p>
+            </div>
+          ) : data ? (
+            <div className="space-y-4">
+              <div className={cn(
+                "p-4 rounded-xl border flex items-center gap-3",
+                data.ok ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700" : "bg-amber-500/10 border-amber-500/20 text-amber-700"
+              )}>
+                {data.ok ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+                <div>
+                  <p className="font-semibold text-sm">{data.ok ? "Sistema Saudável" : "Atenção Requerida"}</p>
+                  <p className="text-xs opacity-80">{data.ok ? "Nenhuma inconsistência crítica detectada." : `${data.issues.length} item(s) para revisão.`}</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {data.issues.map((issue: any, i: number) => (
+                  <div key={i} className="p-3 rounded-lg bg-muted/50 border border-border/50 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <Badge variant={issue.severity === "ERROR" ? "destructive" : "outline"} className="text-[10px] h-4 px-1">
+                        {issue.kind}
+                      </Badge>
+                      <span className="text-[10px] text-muted-foreground">{issue.severity}</span>
+                    </div>
+                    <p className="text-xs">{issue.detail}</p>
+                  </div>
+                ))}
+                {data.ok && (
+                  <div className="text-center py-6 text-muted-foreground italic text-xs">
+                    Todos os relacionamentos operacionais estão íntegros.
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : null}
+
+          <Button 
+            className="w-full" 
+            variant="outline" 
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
+            Nova Varredura
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 
 function Empty({ message }: { message: string }) {
   return <div className="grid h-full min-h-[120px] place-items-center px-6 text-sm text-muted-foreground">{message}</div>;
