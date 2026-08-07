@@ -60,6 +60,7 @@ type ModuleId =
   | "cockpit"
   | "importacoes"
   // | "homologacao"
+  | "homologacao"
   | "checklists"
   | "conciliacao"
   | "qualidade"
