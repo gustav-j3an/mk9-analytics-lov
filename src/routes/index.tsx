@@ -66,15 +66,22 @@ function LandingPage() {
           Status de Resolução de Erro:
         </h2>
         <div className="text-sm text-slate-300 bg-rose-950/20 p-4 rounded-lg border border-rose-500/20 text-left space-y-3">
-          <p className="font-medium text-rose-200">Corrija o erro 'Error in route match: __root__/' no MK9 Analytics.</p>
-          <ul className="text-slate-400 space-y-1 text-xs list-decimal list-inside">
-            <li>Analise src/routes/__root.tsx para integridade de contextos.</li>
-            <li>Valide a árvore de rotas em src/router.tsx.</li>
-            <li>Identifique componentes que dependem de estado global (T) fora do ciclo de hidratação.</li>
-            <li>Implemente guardas de ClientOnly para evitar inconsistências de SSR.</li>
-          </ul>
-          <div className="pt-2 border-t border-rose-500/10">
-            <p className="text-[10px] text-slate-500 italic">Protocolo: Nunca remova autenticação ou quebre módulos existentes. Use Suspense boundaries onde necessário.</p>
+          <p className="font-medium text-rose-200 italic leading-relaxed">
+            "O MK9 Analytics CONTINUA com erro 'Error in route match: __root__/' no Preview.
+          </p>
+          <div className="space-y-3 text-slate-400 text-xs">
+            <p>Ignoro diagnósticos anteriores. Preciso do diagnóstico REAL e COMPLETO:</p>
+            <ol className="space-y-2 list-decimal list-inside pl-1">
+              <li>Mostre o erro COMPLETO do console do navegador (F12 → Console) - copie TUDO</li>
+              <li>Mostre o erro de rede (F12 → Network) - veja se alguma requisição falha</li>
+              <li>Mostre o erro de build no terminal do Lovable</li>
+              <li>Mostre o arquivo src/routes/__root.tsx COMPLETO</li>
+              <li>Mostre o arquivo src/router.tsx COMPLETO</li>
+              <li>Mostre o arquivo src/App.tsx COMPLETO (se existir)</li>
+              <li>Mostre o arquivo src/lib/mk9-auth/session.tsx COMPLETO</li>
+              <li>Execute e mostre: <code className="bg-slate-800 px-1 rounded text-rose-300">grep -r "window" src/routes/ --include="*.tsx"</code></li>
+            </ol>
+            <p className="font-semibold text-rose-300/80 mt-2">NÃO pule nenhum item. NÃO faça suposições. Mostre o código REAL."</p>
           </div>
         </div>
       </div>
