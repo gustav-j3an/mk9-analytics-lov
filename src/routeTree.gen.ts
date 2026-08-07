@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as CockpitRouteImport } from './routes/cockpit'
 import { Route as CleanupRouteImport } from './routes/cleanup'
 import { Route as IndexRouteImport } from './routes/index'
@@ -28,11 +27,6 @@ const UsersRoute = UsersRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CockpitRoute = CockpitRouteImport.update({
@@ -76,7 +70,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cleanup': typeof CleanupRoute
   '/cockpit': typeof CockpitRoute
-  '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
@@ -88,7 +81,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cleanup': typeof CleanupRoute
   '/cockpit': typeof CockpitRoute
-  '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
@@ -101,7 +93,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/cleanup': typeof CleanupRoute
   '/cockpit': typeof CockpitRoute
-  '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
@@ -115,7 +106,6 @@ export interface FileRouteTypes {
     | '/'
     | '/cleanup'
     | '/cockpit'
-    | '/login'
     | '/reset-password'
     | '/users'
     | '/api/checklists/preview'
@@ -127,7 +117,6 @@ export interface FileRouteTypes {
     | '/'
     | '/cleanup'
     | '/cockpit'
-    | '/login'
     | '/reset-password'
     | '/users'
     | '/api/checklists/preview'
@@ -139,7 +128,6 @@ export interface FileRouteTypes {
     | '/'
     | '/cleanup'
     | '/cockpit'
-    | '/login'
     | '/reset-password'
     | '/users'
     | '/api/checklists/preview'
@@ -152,7 +140,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CleanupRoute: typeof CleanupRoute
   CockpitRoute: typeof CockpitRoute
-  LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   UsersRoute: typeof UsersRoute
   ApiChecklistsPreviewRoute: typeof ApiChecklistsPreviewRoute
@@ -175,13 +162,6 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cockpit': {
@@ -240,7 +220,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CleanupRoute: CleanupRoute,
   CockpitRoute: CockpitRoute,
-  LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   UsersRoute: UsersRoute,
   ApiChecklistsPreviewRoute: ApiChecklistsPreviewRoute,
