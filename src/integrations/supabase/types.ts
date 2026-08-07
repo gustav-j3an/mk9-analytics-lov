@@ -1294,11 +1294,13 @@ export type Database = {
           created_at: string
           external_id: string | null
           id: string
+          inactive_from: string | null
           is_active: boolean | null
           last_import_id: string | null
           name: string
           name_normalized: string
           notes: string | null
+          supervisor_id: string | null
           uf: string | null
           updated_at: string
           updated_by: string | null
@@ -1313,11 +1315,13 @@ export type Database = {
           created_at?: string
           external_id?: string | null
           id?: string
+          inactive_from?: string | null
           is_active?: boolean | null
           last_import_id?: string | null
           name: string
           name_normalized: string
           notes?: string | null
+          supervisor_id?: string | null
           uf?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -1332,16 +1336,26 @@ export type Database = {
           created_at?: string
           external_id?: string | null
           id?: string
+          inactive_from?: string | null
           is_active?: boolean | null
           last_import_id?: string | null
           name?: string
           name_normalized?: string
           notes?: string | null
+          supervisor_id?: string | null
           uf?: string | null
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mk9_promoters_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mk9_rls_policy_backup: {
         Row: {
