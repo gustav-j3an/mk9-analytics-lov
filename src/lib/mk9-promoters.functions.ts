@@ -35,6 +35,10 @@ export const mk9CreatePromoter = createServerFn({ method: "POST" })
       .single();
 
     if (error) throw new Error(error.message);
+    
+    const ctx = await requireMk9Role(["ADMIN"]);
+    await logAudit(ctx, "PROMOTER_CREATED", "mk9_promoters", row?.id ?? null, { data });
+
     return row;
   });
 
