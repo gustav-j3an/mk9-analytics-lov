@@ -166,13 +166,26 @@ function drawPromoterStats(ctx: PdfCtx) {
   ctx.y -= 25;
 
   const items = [
+    ["Promotor", ctx.report.totals.promoterName || "—"],
+    ...(ctx.report.totals.promoterEmployeeNumber ? [["Matrícula", ctx.report.totals.promoterEmployeeNumber]] : []),
     ["Total de Visitas", String(stats.totalVisits)],
     ["Lojas Únicas", String(stats.uniqueStores)],
   ];
 
-  items.forEach(([label, val], i) => {
-    ctx.page.drawText(label + ":", { x: MARGIN + (i * 120), y: ctx.y, size: 9, font: ctx.fontB, color: COLOR_TEXT });
-    ctx.page.drawText(val, { x: MARGIN + (i * 120) + ctx.fontB.widthOfTextAtSize(label + ": ", 9), y: ctx.y, size: 9, font: ctx.font, color: COLOR_TEXT });
+  let currentX = MARGIN;
+  items.forEach(([label, val]) => {
+    const labelText = label + ": ";
+    const lW = ctx.fontB.widthOfTextAtSize(labelText, 9);
+    const vW = ctx.font.widthOfTextAtSize(val, 9);
+    
+    if (currentX + lW + vW + 20 > PAGE.w - MARGIN) {
+      ctx.y -= 15;
+      currentX = MARGIN;
+    }
+
+    ctx.page.drawText(labelText, { x: currentX, y: ctx.y, size: 9, font: ctx.fontB, color: COLOR_TEXT });
+    ctx.page.drawText(sanitizePdfText(val), { x: currentX + lW, y: ctx.y, size: 9, font: ctx.font, color: COLOR_TEXT });
+    currentX += lW + vW + 30;
   });
 
   ctx.y -= 15;
