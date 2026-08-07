@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Mk9SessionProvider } from "@/lib/mk9-auth/session";
+import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -109,6 +110,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster position="top-right" />
         <Scripts />
       </body>
     </html>
@@ -121,7 +123,6 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Mk9SessionProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </Mk9SessionProvider>
     </QueryClientProvider>
