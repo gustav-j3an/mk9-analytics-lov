@@ -156,6 +156,75 @@ export async function buildDashboardOverview(
   };
 }
 
+/** 
+ * DIAGNÓSTICO DE INTEGRIDADE: Varre o core operacional em busca de dados inconsistentes
+ * que podem causar erros de renderização ou cálculos errados.
+ */
+export async function checkDashboardIntegrity(supabase: any, filters: DashboardFilters) {
+  const core = await loadOperationCore(supabase, filters);
+  const issues: Array<{ kind: string; detail: string; severity: "WARN" | "ERROR" }> = [];
+
+  // 1. Visitas sem indústria (raro, mas possível se FK falhar)
+  const { data: orphanVisits } = await supabase
+    .from("mk9_actual_visits")
+    .select("id")
+    .is("industry_id", null)
+    .limit(10);
+  if (orphanVisits?.length) {
+    issues.push({ 
+      kind: "ORPHAN_VISITS", 
+      detail: `${orphanVisits.length} visitas sem indústria vinculada.`,
+      severity: "ERROR" 
+    });
+  }
+
+  // 2. Lojas sem UF (quebra filtros geográficos)
+  const { data: invalidStores } = await supabase
+    .from("mk9_stores")
+    .select("id, name")
+    .is("uf", null)
+    .limit(10);
+  if (invalidStores?.length) {
+    issues.push({ 
+      kind: "INVALID_STORES", 
+      detail: `${invalidStores.length} lojas sem UF cadastrada (ex: ${invalidStores[0].name}).`,
+      severity: "WARN" 
+    });
+  }
+
+  // 3. Promotores sem nome
+  const { data: invalidPromoters } = await supabase
+    .from("mk9_promoters")
+    .select("id")
+    .or("name.is.null,name.eq.''")
+    .limit(10);
+  if (invalidPromoters?.length) {
+    issues.push({ 
+      kind: "INVALID_PROMOTERS", 
+      detail: `${invalidPromoters.length} promotores com nome em branco ou nulo.`,
+      severity: "ERROR" 
+    });
+  }
+
+  // 4. Inconsistência de Frequência (Frequência > 31 visitas/mês)
+  for (const row of core.storeRows) {
+    if (row.contratadas > 31) {
+      issues.push({
+        kind: "HIGH_FREQUENCY",
+        detail: `Loja ${row.storeName} com ${row.contratadas} visitas contratadas (verificar versão).`,
+        severity: "WARN"
+      });
+    }
+  }
+
+  return {
+    ok: issues.length === 0,
+    issues,
+    timestamp: new Date().toISOString()
+  };
+}
+
+
 // ---------------------------------------------------------------------------
 
 function buildPromoters(
