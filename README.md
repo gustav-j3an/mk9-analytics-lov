@@ -1,26 +1,27 @@
-#  mk9-analytics
+# MK9 Analytics - Documentação Técnica
 
-tem como eu colocar o meu reporsitorio do github aqui?
+## Visão Geral
+Sistema central de inteligência operacional para gestão de promotores, indústrias e lojas. Focado em auditoria, conciliação de visitas e relatórios automatizados.
 
-This project was built with [Lovable](https://lovable.dev).
+## Stack Tecnológica
+- **Frontend**: TanStack Start v1 (React 19 + Vite 7).
+- **Backend**: TanStack Server Functions + Supabase (PostgreSQL + RLS).
+- **Estilização**: Tailwind CSS v4 + Shadcn UI (Glassmorphism).
+- **Testes**: Vitest.
 
-**Live app**: https://mk9-analytics.lovable.app
+## Estrutura de Pastas Principal
+- `src/routes`: Roteamento baseado em arquivos (TanStack Router).
+- `src/lib/mk9-auth`: Autenticação e RBAC.
+- `src/lib/mk9-frequency`: Gestão de frequências versionadas.
+- `src/lib/mk9-operations`: Núcleo de cálculo operacional compartilhado.
+- `src/lib/mk9-quality`: Detectores de inconsistência e SLA.
+- `src/lib/mk9-reports`: Motores de métricas e geração de PDF.
+- `src/components`: Módulos de UI (Cockpit, Dashboard, Importador).
 
-## Build with Lovable
+## Instalação e Execução
+1. `bun install`
+2. `bun run dev`
+3. Testes: `bun run test`
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/ac90e7b4-6a90-4c14-ab51-1e3c07ad96a2).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+---
+*Documentação gerada em 2026 para novos desenvolvedores.*
