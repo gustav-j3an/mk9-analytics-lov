@@ -47,38 +47,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          "O MK9 Analytics está com problema CRÍTICO de autenticação. A página de login carrega, mas NÃO CONSEGUE LOGAR.
+          This page didn't load
         </h1>
-        <div className="mt-4 text-left text-sm text-muted-foreground bg-muted p-4 rounded-lg overflow-auto max-h-[60vh]">
-          <p className="mb-4">Como Arquiteto Técnico, siga o protocolo COMPLETO abaixo. NÃO pule etapas. NÃO faça suposições. NÃO implemente soluções paliativas.</p>
-          
-          <h2 className="font-bold mt-4 mb-2 border-b pb-1">1. DIAGNÓSTICO COMPLETO</h2>
-          
-          <h3 className="font-semibold mt-2">1.1. REPRODUZIR E CAPTURAR ERRO</h3>
-          <ul className="list-disc list-inside mb-2">
-            <li>Tente fazer login com credenciais válidas</li>
-            <li>Capture TODOS os erros do console (F12 → Console)</li>
-            <li>Capture a requisição de rede (F12 → Network → auth/login ou auth/callback)</li>
-            <li>Capture se há erro de CORS, 401, 403 ou 500</li>
-          </ul>
-
-          <h3 className="font-semibold mt-2">1.2. VERIFICAR A CONFIGURAÇÃO DE AUTENTICAÇÃO</h3>
-          <p>Mostre: session.tsx, client.ts, index.tsx, __root.tsx, router.tsx</p>
-
-          <h3 className="font-semibold mt-2">1.3. VERIFICAR SUPABASE</h3>
-          <p>Verifique VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY e inicialização do cliente.</p>
-
-          <h3 className="font-semibold mt-2">1.4. VERIFICAR FLUXO DE LOGIN</h3>
-          <p>Verifique a função submit e a captura da sessão.</p>
-
-          <h2 className="font-bold mt-4 mb-2 border-b pb-1">2. ANÁLISE E CAUSA RAIZ</h2>
-          <p>Identifique se o erro é no Auth, RLS, Env Vars, Roteamento ou CORS.</p>
-
-          <h2 className="font-bold mt-4 mb-2 border-b pb-1">3. PLANO DE CORREÇÃO</h2>
-          <pre className="text-xs bg-black text-green-400 p-2 rounded mt-2">
-            // Exemplo de correção no session.tsx...
-          </pre>
-        </div>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Something went wrong on our end. You can try refreshing or head back home.
+        </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
