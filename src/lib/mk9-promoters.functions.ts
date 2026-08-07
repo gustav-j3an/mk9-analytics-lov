@@ -29,7 +29,8 @@ export const mk9CreatePromoter = createServerFn({ method: "POST" })
         uf: data.uf || null,
         contact: data.contact || null,
         notes: data.notes || null,
-      })
+        is_active: true,
+      } as any)
       .select()
       .single();
 
