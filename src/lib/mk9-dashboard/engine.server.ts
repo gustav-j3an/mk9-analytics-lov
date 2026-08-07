@@ -41,12 +41,21 @@ export async function buildDashboardOverview(
   supabase: any,
   filters: DashboardFilters,
 ): Promise<DashboardOverview> {
-  const core = await loadOperationCore(supabase, filters);
+  const startedAt = Date.now();
+  let core;
+  try {
+    core = await loadOperationCore(supabase, filters);
+  } catch (err: any) {
+    console.error("[DASHBOARD_CORE_FAILED]", err);
+    return emptyOverview(todayIso(), filters.year, filters.month, `${filters.year}-01-01`, `${filters.year}-12-31`);
+  }
+
   const { year, month } = filters;
 
   if (core.empty) {
     return emptyOverview(core.today, year, month, core.globalStart, core.globalEnd);
   }
+
 
   const { today, storeRows, industryRows, ctxs, routeByKey } = core;
 
