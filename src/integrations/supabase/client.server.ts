@@ -34,13 +34,7 @@ function createSupabaseAdminClient() {
   const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    const missing = [
-      ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-      ...(!SUPABASE_SERVICE_ROLE_KEY ? ['SUPABASE_SERVICE_ROLE_KEY'] : []),
-    ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+    return null;
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -55,15 +49,33 @@ function createSupabaseAdminClient() {
   });
 }
 
-let _supabaseAdmin: ReturnType<typeof createSupabaseAdminClient> | undefined;
+let _supabaseAdmin: ReturnType<typeof createClient<Database>> | null | undefined;
 
-// Server-side Supabase client with service role - bypasses RLS
-// SECURITY: Only use this for trusted server-side operations, never expose to client code
-// Load inside server handlers: const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-// Top-level import is safe only in other .server.ts modules - route files and *.functions.ts ship to the client bundle.
-export const supabaseAdmin = new Proxy({} as ReturnType<typeof createSupabaseAdminClient>, {
+/**
+ * Returns true if the service role key is configured.
+ */
+export function hasSupabaseAdminConfig(): boolean {
+  return !!process.env.SUPABASE_SERVICE_ROLE_KEY && !!process.env.SUPABASE_URL;
+}
+
+/**
+ * Server-side Supabase client with service role - bypasses RLS
+ * SECURITY: Only use this for trusted server-side operations, never expose to client code
+ * 
+ * Returns null if the service role key is not configured.
+ */
+export const supabaseAdmin = new Proxy({} as ReturnType<typeof createClient<Database>>, {
   get(_, prop, receiver) {
-    if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();
+    if (_supabaseAdmin === undefined) {
+      _supabaseAdmin = createSupabaseAdminClient();
+    }
+    
+    if (!_supabaseAdmin) {
+      const message = `Supabase admin client requested but SUPABASE_SERVICE_ROLE_KEY is missing.`;
+      console.error(`[Supabase] ${message}`);
+      throw new Error(message);
+    }
+    
     return Reflect.get(_supabaseAdmin, prop, receiver);
   },
 });
