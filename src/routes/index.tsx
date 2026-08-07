@@ -48,16 +48,16 @@ function LandingPage() {
         <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 mb-8">
           <h2 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">Missão Ativa</h2>
           <div className="prose prose-invert prose-sm max-w-none">
-            <h3 className="text-xl font-bold text-white mb-2"># MISSÃO CRÍTICA — BLINDAGEM DO DASHBOARD MK9</h3>
+            <h3 className="text-xl font-bold text-white mb-2"># MISSÃO CRÍTICA — RESTAURAR FLUXO LOGIN PRIMEIRO E EVITAR CRASH SSR</h3>
             <p className="text-slate-300">
-              O Dashboard do MK9 Analytics está sendo blindado contra falhas causadas por dados inconsistentes ou órfãos.
-              Implementando camada de proteção, normalização de dados e Error Boundary para garantir que a operação nunca pare.
+              O MK9 Analytics está sendo restaurado para garantir que o fluxo de autenticação seja a porta de entrada única,
+              evitando que módulos protegidos ou falhas de dados operacionais causem o travamento do sistema no carregamento inicial.
             </p>
             <ul className="text-xs text-slate-400 mt-4 space-y-1">
-              <li>✔ Dashboard Data Engine (Normalização)</li>
-              <li>✔ Proteção contra FKs órfãs (Promotores/Lojas)</li>
-              <li>✔ Error Boundary específico do Dashboard</li>
-              <li>✔ Diagnóstico de integridade operacional</li>
+              <li>✔ Acesso inicial → Login obrigatório</li>
+              <li>✔ Dashboard isolado pós-autenticação</li>
+              <li>✔ Blindagem contra imports server-only no layout público</li>
+              <li>✔ Tratamento de erros SSR com redirecionamento controlado</li>
             </ul>
           </div>
         </div>
