@@ -39,18 +39,25 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
+
+  // Se o erro for de autenticação (401), redireciona para a home (login)
+  if ((error as any)?.statusCode === 401 || (error as any)?.name === 'Mk9UnauthenticatedError') {
+    window.location.href = '/';
+    return null;
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          Ops! Algo deu errado
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          Não conseguimos carregar esta página. Pode ser um problema de conexão ou permissão.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
