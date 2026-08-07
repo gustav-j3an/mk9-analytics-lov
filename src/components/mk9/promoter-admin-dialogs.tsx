@@ -42,6 +42,7 @@ export function PromoterDialog({
   const [contact, setContact] = useState("");
   const [notes, setNotes] = useState("");
   const [externalId, setExternalId] = useState("");
+  const [employeeNumber, setEmployeeNumber] = useState("");
 
   useEffect(() => {
     if (promoter) {
@@ -51,6 +52,7 @@ export function PromoterDialog({
       setContact(promoter.contact || "");
       setNotes(promoter.notes || "");
       setExternalId(promoter.externalId || "");
+      setEmployeeNumber(promoter.employeeNumber || "");
     } else {
       setName("");
       setCity("");
@@ -58,12 +60,13 @@ export function PromoterDialog({
       setContact("");
       setNotes("");
       setExternalId("");
+      setEmployeeNumber("");
     }
   }, [promoter, open]);
 
   const mut = useMutation({
     mutationFn: async () => {
-      const payload = { name, city, uf: uf.toUpperCase(), contact, notes, externalId };
+      const payload = { name, city, uf: uf.toUpperCase(), contact, notes, externalId, employeeNumber };
       if (promoter) {
         return updateFn({ 
           data: { 
@@ -97,18 +100,22 @@ export function PromoterDialog({
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome do promotor" />
             </div>
             <div className="space-y-2">
-              <Label>ID Externo</Label>
-              <Input value={externalId} onChange={(e) => setExternalId(e.target.value)} placeholder="ERP ID" />
+              <Label>Matrícula</Label>
+              <Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="001245" />
             </div>
           </div>
           <div className="grid grid-cols-4 gap-4">
-            <div className="col-span-3 space-y-2">
+            <div className="col-span-2 space-y-2">
               <Label>Cidade</Label>
               <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Paulo" />
             </div>
             <div className="space-y-2">
               <Label>UF</Label>
               <Input value={uf} onChange={(e) => setUf(e.target.value.toUpperCase())} maxLength={2} placeholder="SP" />
+            </div>
+            <div className="space-y-2">
+              <Label>ID Externo</Label>
+              <Input value={externalId} onChange={(e) => setExternalId(e.target.value)} placeholder="ERP ID" />
             </div>
           </div>
           <div className="space-y-2">
