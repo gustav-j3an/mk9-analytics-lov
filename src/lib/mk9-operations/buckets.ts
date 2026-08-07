@@ -122,8 +122,14 @@ export function classifyIndustry(input: {
   checklistImports: number;
   hasExecutionOrRoute: boolean;
 }): IndustryStatusKey {
-  const { contratadas, realizadas, expectedToDate, lojasContratadas, checklistImports } = input;
+  const contratadas = input.contratadas ?? 0;
+  const realizadas = input.realizadas ?? 0;
+  const expectedToDate = input.expectedToDate ?? 0;
+  const lojasContratadas = input.lojasContratadas ?? 0;
+  const checklistImports = input.checklistImports ?? 0;
+
   if (contratadas <= 0 && lojasContratadas <= 0) return "SEM_FREQUENCIA";
+
   if (realizadas === 0 && checklistImports === 0) return "SEM_CHECKLIST";
   if (realizadas >= contratadas) return "CONCLUIDA";
   if (expectedToDate <= 0) return "EM_DIA";

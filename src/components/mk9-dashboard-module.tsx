@@ -20,6 +20,8 @@ import {
   UserX,
   Users,
 } from "lucide-react";
+import { DashboardErrorBoundary } from "./mk9/dashboard-error-boundary";
+
 import {
   Area,
   AreaChart,
@@ -319,7 +321,9 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
 
       {/* -------- Evolução + alertas -------- */}
       <div className="grid gap-5 xl:grid-cols-[1.5fr_1fr]">
-        <Card className="border-border/70 shadow-[var(--shadow-soft)]">
+        <DashboardErrorBoundary title="Evolução do Período" className="h-[400px]">
+          <Card className="border-border/70 shadow-[var(--shadow-soft)]">
+
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Evolução do período</CardTitle>
             <p className="mt-0.5 text-xs text-muted-foreground">
@@ -366,8 +370,11 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
             )}
           </CardContent>
         </Card>
+        </DashboardErrorBoundary>
 
-        <Card className="border-border/70 shadow-[var(--shadow-soft)]">
+        <DashboardErrorBoundary title="Alertas Operacionais" className="h-[400px]">
+          <Card className="border-border/70 shadow-[var(--shadow-soft)]">
+
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-base">O que precisa de atenção</CardTitle>
@@ -402,7 +409,9 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
             )}
           </CardContent>
         </Card>
-      </div>
+      </DashboardErrorBoundary>
+    </div>
+
 
       {/* -------- Status por indústria -------- */}
       <Card className="border-border/70 shadow-[var(--shadow-soft)]">
