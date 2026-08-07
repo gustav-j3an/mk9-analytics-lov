@@ -31,7 +31,14 @@ import {
   mk9IndustryArchiveImpact,
   mk9ReactivateIndustry,
   mk9UpdateIndustry,
+  mk9DeleteIndustry,
 } from "@/lib/mk9-industries.functions";
+import { 
+  AlertTriangle, 
+  Trash2, 
+  Loader2 
+} from "lucide-react";
+
 
 export type IndustryRow = {
   id: string;
@@ -40,8 +47,14 @@ export type IndustryRow = {
   notes?: string | null;
   requiresChecklist?: boolean;
   archivedAt?: string | null;
+  cnpj?: string | null;
+  periodType?: string;
+  startDay?: number | null;
+  endDay?: number | null;
+  usesPreviousMonth?: boolean;
   updatedAt: string;
 };
+
 
 function useInvalidateIndustries() {
   const queryClient = useQueryClient();
@@ -64,7 +77,9 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
 
   const [name, setName] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [cnpj, setCnpj] = useState("");
   const [notes, setNotes] = useState("");
+
   const [requiresChecklist, setRequiresChecklist] = useState(false);
   const [periodType, setPeriodType] = useState<"CALENDAR_MONTH" | "CUSTOM_CYCLE">("CALENDAR_MONTH");
   const [startDay, setStartDay] = useState("1");
@@ -90,6 +105,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
         data: {
           name,
           displayName: displayName || null,
+          cnpj: cnpj || null,
           notes: notes || null,
           requiresChecklist,
           periodType,
@@ -130,6 +146,10 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
           <div className="space-y-1.5">
             <Label htmlFor="ind-display">Nome complementar</Label>
             <Input id="ind-display" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={120} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ind-cnpj">CNPJ</Label>
+            <Input id="ind-cnpj" value={cnpj} onChange={(e) => setCnpj(e.target.value)} placeholder="00.000.000/0000-00" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="ind-notes">Observação operacional</Label>
@@ -206,17 +226,30 @@ export function IndustryEditDialog({
   const updateFn = useServerFn(mk9UpdateIndustry);
   const [name, setName] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [cnpj, setCnpj] = useState("");
   const [notes, setNotes] = useState("");
   const [requiresChecklist, setRequiresChecklist] = useState(false);
+  const [periodType, setPeriodType] = useState<"CALENDAR_MONTH" | "CUSTOM_CYCLE">("CALENDAR_MONTH");
+  const [startDay, setStartDay] = useState("1");
+  const [endDay, setEndDay] = useState("31");
+  const [usesPreviousMonth, setUsesPreviousMonth] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
 
   useEffect(() => {
     if (industry) {
       setName(industry.name ?? "");
       setDisplayName(industry.displayName ?? "");
+      setCnpj(industry.cnpj ?? "");
       setNotes(industry.notes ?? "");
       setRequiresChecklist(industry.requiresChecklist === true);
+      setPeriodType((industry.periodType as any) ?? "CALENDAR_MONTH");
+      setStartDay(String(industry.startDay ?? "1"));
+      setEndDay(String(industry.endDay ?? "31"));
+      setUsesPreviousMonth(industry.usesPreviousMonth === true);
     }
   }, [industry]);
+
 
   const mut = useMutation({
     mutationFn: () =>
@@ -226,8 +259,13 @@ export function IndustryEditDialog({
           expectedUpdatedAt: industry!.updatedAt,
           name,
           displayName: displayName || null,
+          cnpj: cnpj || null,
           notes: notes || null,
           requiresChecklist,
+          periodType,
+          startDay: periodType === "CUSTOM_CYCLE" ? Number(startDay) : null,
+          endDay: periodType === "CUSTOM_CYCLE" ? Number(endDay) : null,
+          usesPreviousMonth,
         },
       }),
     onSuccess: () => {
@@ -255,6 +293,10 @@ export function IndustryEditDialog({
             <Input id="edit-display" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={120} />
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="edit-cnpj">CNPJ</Label>
+            <Input id="edit-cnpj" value={cnpj} onChange={(e) => setCnpj(e.target.value)} placeholder="00.000.000/0000-00" />
+          </div>
+          <div className="space-y-1.5">
             <Label htmlFor="edit-notes">Observação operacional</Label>
             <Textarea id="edit-notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} rows={3} />
           </div>
@@ -265,17 +307,153 @@ export function IndustryEditDialog({
             </div>
             <Switch checked={requiresChecklist} onCheckedChange={setRequiresChecklist} />
           </div>
+
+          <div className="space-y-1.5">
+            <Label>Tipo de período</Label>
+            <Select value={periodType} onValueChange={(v) => setPeriodType(v as any)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="CALENDAR_MONTH">Mês civil</SelectItem>
+                <SelectItem value="CUSTOM_CYCLE">Período personalizado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {periodType === "CUSTOM_CYCLE" && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-start">Dia inicial</Label>
+                <Input id="edit-start" type="number" min={1} max={31} value={startDay} onChange={(e) => setStartDay(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-end">Dia final</Label>
+                <Input id="edit-end" type="number" min={1} max={31} value={endDay} onChange={(e) => setEndDay(e.target.value)} />
+              </div>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <Switch checked={usesPreviousMonth} onCheckedChange={setUsesPreviousMonth} />
+            <Label>Utiliza mês anterior como referência</Label>
+          </div>
         </div>
+        <DialogFooter className="flex justify-between items-center sm:justify-between">
+          <Button variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => setDeleteOpen(true)}>
+            <Trash2 className="h-4 w-4 mr-2" />
+            Excluir
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button disabled={name.trim().length < 2 || mut.isPending} onClick={() => mut.mutate()}>
+              Salvar
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+      
+      <IndustryDeleteDialog 
+        industry={deleteOpen ? industry : null} 
+        onClose={() => setDeleteOpen(false)} 
+        onSuccess={() => {
+          setDeleteOpen(false);
+          onClose();
+        }}
+      />
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Excluir indústria
+// ---------------------------------------------------------------------------
+export function IndustryDeleteDialog({
+  industry,
+  onClose,
+  onSuccess
+}: {
+  industry: IndustryRow | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const invalidate = useInvalidateIndustries();
+  const deleteFn = useServerFn(mk9DeleteIndustry);
+  const impactFn = useServerFn(mk9IndustryArchiveImpact);
+
+  const impactQ = useQuery({
+    queryKey: ["mk9-industry-delete-impact", industry?.id],
+    queryFn: () => impactFn({ data: { industryId: industry!.id } }),
+    enabled: !!industry,
+  });
+
+  const mut = useMutation({
+    mutationFn: () => deleteFn({ data: { industryId: industry!.id } }),
+    onSuccess: (res) => {
+      if (res.status === "soft_deleted") {
+        toast.info("Indústria possui histórico e foi desativada (exclusão segura).");
+      } else {
+        toast.success("Indústria excluída permanentemente.");
+      }
+      invalidate();
+      onSuccess();
+    },
+    onError: (err) => toast.error(errorMessage(err, "Não foi possível excluir a indústria.")),
+  });
+
+  const impact = impactQ.data;
+
+  return (
+    <Dialog open={!!industry} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-5 w-5" />
+            Excluir indústria
+          </DialogTitle>
+          <DialogDescription>
+            Confirmar exclusão de <strong>{industry?.name}</strong>.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 py-4">
+          <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive-foreground">
+            <p className="font-semibold mb-2 text-destructive">Atenção:</p>
+            <p>Se houver histórico operacional (visitas, roteiros ou checklists), a indústria será apenas <strong>desativada</strong> para preservar a integridade dos dados.</p>
+          </div>
+
+          <div className="space-y-2 border rounded-md p-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">CNPJ:</span>
+              <span className="font-medium">{industry?.cnpj || "Não informado"}</span>
+            </div>
+            {impactQ.isLoading ? (
+              <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
+                <Loader2 className="h-3 w-3 animate-spin" /> Analisando impacto...
+              </div>
+            ) : impact ? (
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Checklists/Importações:</span>
+                  <span className="font-medium text-amber-600">{impact.activeFrequencies}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Visitas registradas:</span>
+                  <span className="font-medium text-amber-600">{impact.visits}</span>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button disabled={name.trim().length < 2 || mut.isPending} onClick={() => mut.mutate()}>
-            Salvar
+          <Button variant="destructive" disabled={mut.isPending} onClick={() => mut.mutate()}>
+            {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
+            Confirmar Exclusão
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
 
 // ---------------------------------------------------------------------------
 // Arquivar / Reativar

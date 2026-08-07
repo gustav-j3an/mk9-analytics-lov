@@ -48,16 +48,16 @@ function LandingPage() {
         <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 mb-8">
           <h2 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">Missão Ativa</h2>
           <div className="prose prose-invert prose-sm max-w-none">
-            <h3 className="text-xl font-bold text-white mb-2"># MISSÃO CRÍTICA — RESTAURAR FLUXO LOGIN PRIMEIRO E EVITAR CRASH SSR</h3>
+            <h3 className="text-xl font-bold text-white mb-2"># MISSÃO — IMPLEMENTAR CRUD COMPLETO DE INDÚSTRIAS</h3>
             <p className="text-slate-300">
-              O MK9 Analytics está sendo restaurado para garantir que o fluxo de autenticação seja a porta de entrada única,
-              evitando que módulos protegidos ou falhas de dados operacionais causem o travamento do sistema no carregamento inicial.
+              O módulo de Indústrias agora possui CRUD completo com criação, edição, CNPJ opcional e exclusão inteligente persistida no banco.
+              Garantindo integridade dos dados e auditoria de alterações.
             </p>
             <ul className="text-xs text-slate-400 mt-4 space-y-1">
-              <li>✔ Acesso inicial → Login obrigatório</li>
-              <li>✔ Dashboard isolado pós-autenticação</li>
-              <li>✔ Blindagem contra imports server-only no layout público</li>
-              <li>✔ Tratamento de erros SSR com redirecionamento controlado</li>
+              <li>✔ Edição completa (Nome, CNPJ, Período, Checklist)</li>
+              <li>✔ CNPJ Opcional com validação numérica</li>
+              <li>✔ Exclusão inteligente (Hard Delete se vazio / Soft Delete se tiver histórico)</li>
+              <li>✔ Persistência real e Auditoria administrativa</li>
             </ul>
           </div>
         </div>
