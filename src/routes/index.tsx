@@ -62,8 +62,8 @@ function LandingPage() {
           </div>
         </div>
       <div className="mt-12 text-center border-t border-slate-800 pt-8">
-        <h2 className="text-sm font-semibold text-rose-400 uppercase tracking-wider mb-4 underline decoration-rose-500/30 underline-offset-4">
-          Status de Resolução de Erro:
+        <h2 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-4 underline decoration-emerald-500/30 underline-offset-4">
+          Status da Auditoria e Refatoração:
         </h2>
         <div className="text-sm text-slate-300 bg-emerald-950/20 p-4 rounded-lg border border-emerald-500/20 text-left space-y-3">
           <p className="font-medium text-emerald-200 leading-relaxed">
