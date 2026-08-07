@@ -17,7 +17,9 @@ import {
   industryRpcMessage,
   reactivateIndustrySchema,
   updateIndustrySchema,
+  deleteIndustrySchema,
 } from "./mk9-industries/admin";
+
 
 /** Nomes semelhantes exibidos antes de criar — sem criar nada. */
 export const mk9SearchSimilarIndustries = createServerFn({ method: "POST" })
