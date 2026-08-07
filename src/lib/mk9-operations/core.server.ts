@@ -150,8 +150,25 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   }
 
   // ---- consultas em paralelo -------------------------------------------------
+  // BLINDAGEM: Envolvemos as consultas em um bloco que captura falhas individuais.
+  // Se uma consulta de visitas falhar, o dashboard ainda carrega o roteiro.
   queryCount += 5;
   const { getOperationalVisits } = await import("./operational-visits.server");
+  
+  const safeQuery = async (promise: Promise<any>, fallback: any = { data: [], error: null }) => {
+    try {
+      const res = await promise;
+      if (res.error) {
+        console.error("[CORE_QUERY_ERROR]", res.error);
+        return fallback;
+      }
+      return res;
+    } catch (e) {
+      console.error("[CORE_CRITICAL_ERROR]", e);
+      return fallback;
+    }
+  };
+
   const [freqVersions, actualVisits, routeRes, importRes, storeRes] = await Promise.all([
     loadFrequencyVersionsForPeriod(supabase, {
       industryIds,
@@ -159,20 +176,14 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       periodStart: globalStart,
       periodEnd: globalEnd,
       accessScope: access,
+    }).catch(err => {
+      console.error("[CORE_FREQ_ERROR]", err);
+      return new Map();
     }),
-    // Usamos o motor getOperationalVisits (simplificado para multi-indústria)
-    // Para dashboards multi-indústria, o motor de filtragem em duas etapas 
-    // é mais seguro contra erros de parse relacionais do PostgREST.
-    (async () => {
-      // Como o core pode lidar com múltiplas indústrias, 
-      // precisamos buscar as visitas de forma eficiente.
-      // Se for apenas uma, usamos o motor otimizado.
+    safeQuery((async () => {
       if (industryIds.length === 1) {
         return { data: await getOperationalVisits({ industryId: industryIds[0], startDate: globalStart, endDate: globalEnd }), error: null };
       }
-      
-      // Para multi-indústria, mantemos a query plana por enquanto para evitar N+1
-      // mas garantimos que ela não usa joins quebrados.
       return supabase
         .from("mk9_actual_visits")
         .select("industry_id, store_id, scheduled_date, source_import_id, store:mk9_stores(id,name,chain,uf)")
@@ -180,8 +191,8 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
         .gte("scheduled_date", globalStart)
         .lte("scheduled_date", globalEnd)
         .limit(100000);
-    })(),
-    supabase
+    })()),
+    safeQuery(supabase
       .from("mk9_planned_routes")
       .select("industry_id, store_id, promoter_id, weekday, valid_from, valid_until, promoter:mk9_promoters(id,name,employee_number)")
       .in("industry_id", industryIds)
@@ -189,21 +200,21 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       .is("archived_at", null)
       .lte("valid_from", globalEnd)
       .or(`valid_until.is.null,valid_until.gte.${globalStart}`)
-      .limit(100000),
-    supabase
+      .limit(100000)),
+    safeQuery(supabase
       .from("mk9_checklist_imports")
       .select("id, industry_id, status")
       .in("industry_id", industryIds)
       .eq("operation_month", month)
       .eq("operation_year", year)
       .in("status", ["done", "confirmed", "committing"])
-      .limit(5000),
-    (() => {
+      .limit(5000)),
+    safeQuery((() => {
       let q = supabase.from("mk9_stores").select("uf").not("uf", "is", null).limit(50000);
       if (scopeUfs) q = q.in("uf", scopeUfs);
       if (accessStoreIds) q = q.in("id", accessStoreIds);
       return q;
-    })(),
+    })()),
   ]);
   
   // Normalizar actualVisits se veio do getOperationalVisits
