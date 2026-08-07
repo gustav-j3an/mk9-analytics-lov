@@ -47,12 +47,45 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          Analise todo o projeto de forma completa antes de realizar qualquer alteração e execute uma refatoração profunda e estruturada em toda a base de código.
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          Seu objetivo é melhorar a qualidade interna do sistema sem alterar funcionalidades ou comportamento visível da aplicação.
           {"\n\n"}
-          Os textos do componente de erro no arquivo src/routes/__root.tsx foram validados e já correspondem exatamente à versão solicitada.
+          A refatoração deve tornar o código mais limpo, organizado, escalável, padronizado e fácil de manter.
+          {"\n\n"}
+          Realize uma revisão completa de:
+          {"\n"}- Estrutura de pastas e organização do projeto
+          {"\n"}- Componentes e sua reutilização
+          {"\n"}- Hooks customizados, lógica de estado
+          {"\n"}- Services e camadas de API
+          {"\n"}- Integração com Supabase, queries
+          {"\n"}- Fluxos de autenticação, rotas
+          {"\n"}- Tipagem, lógica duplicada ou redundante
+          {"\n"}- Funções grandes ou mal divididas
+          {"\n"}- Acoplamento excessivo entre componentes
+          {"\n"}- Imports desorganizados
+          {"\n"}- Regras de negócio misturadas com UI
+          {"\n\n"}
+          Objetivos principais:
+          {"\n"}- Reduzir duplicação de código
+          {"\n"}- Melhorar legibilidade e separação de responsabilidades
+          {"\n"}- Melhorar reutilização de componentes
+          {"\n"}- Criar padrões consistentes no projeto
+          {"\n"}- Facilitar manutenção futura
+          {"\n"}- Reduzir complexidade desnecessária
+          {"\n"}- Melhorar escalabilidade
+          {"\n\n"}
+          Diretrizes:
+          {"\n"}- NÃO alterar funcionalidades existentes
+          {"\n"}- NÃO mudar comportamento da interface
+          {"\n"}- NÃO quebrar fluxos já existentes
+          {"\n"}- Priorizar separação de responsabilidades (UI / lógica / dados)
+          {"\n"}- Componentização inteligente e reutilização
+          {"\n"}- Nomeação clara e consistente
+          {"\n"}- Organização por domínio ou feature
+          {"\n\n"}
+          Resultado esperado: projeto muito mais organizado, fácil de entender e manter, escalável, livre de duplicações, com arquitetura profissional e padrões consistentes.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
