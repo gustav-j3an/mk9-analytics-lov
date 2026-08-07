@@ -90,6 +90,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
     if (!open) {
       setName("");
       setDisplayName("");
+      setCnpj("");
       setNotes("");
       setRequiresChecklist(false);
       setPeriodType("CALENDAR_MONTH");
@@ -98,6 +99,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
       setCandidates(null);
     }
   }, [open]);
+
 
   const mut = useMutation({
     mutationFn: (confirmed: boolean) =>
