@@ -42,6 +42,18 @@ export const mk9DashboardOverviewFn = createServerFn({ method: "POST" })
     });
   });
 
+/** Verifica a integridade dos dados para diagnosticar quebras no dashboard. */
+export const mk9DashboardCheckIntegrityFn = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => filtersSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+    await requireMk9Role(["ADMIN"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { checkDashboardIntegrity } = await import("./mk9-dashboard/engine.server");
+    return checkDashboardIntegrity(supabaseAdmin, data);
+  });
+
+
 /** Lista de supervisores (perfis com papel SUPERVISOR) para o filtro global. */
 export const mk9DashboardSupervisorsFn = createServerFn({ method: "GET" }).handler(async () => {
   const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
