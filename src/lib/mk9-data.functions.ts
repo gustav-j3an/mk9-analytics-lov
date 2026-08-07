@@ -307,7 +307,7 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
 
   let q = supabaseAdmin
     .from("mk9_promoters")
-    .select("id, name, external_id, city, contact, notes, updated_at")
+    .select("id, name, external_id, city, uf, contact, notes, updated_at, archived_at, is_active")
     .order("name", { ascending: true });
   if (allowedPromoterIds) q = q.in("id", allowedPromoterIds);
   const { data, error } = await q;
@@ -318,9 +318,12 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
     externalId: (r.external_id as string | null) ?? null,
     name: r.name as string,
     city: (r.city as string | null) ?? null,
+    uf: (r.uf as string | null) ?? null,
     contact: scope.canViewPersonalData ? ((r.contact as string | null) ?? null) : null,
     notes: scope.canViewPersonalData ? ((r.notes as string | null) ?? null) : null,
     updatedAt: r.updated_at as string,
+    archivedAt: (r.archived_at as string | null) ?? null,
+    isActive: r.is_active as boolean,
   }));
 });
 
