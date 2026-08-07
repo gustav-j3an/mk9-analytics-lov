@@ -79,6 +79,7 @@ export interface OperationStoreRow {
   promoterId: string | null;
   promoterName: string | null;
   promoterResolution: PromoterResolution;
+  promoterEmployeeNumber: string | null;
   status: StoreExecStatus;
 }
 

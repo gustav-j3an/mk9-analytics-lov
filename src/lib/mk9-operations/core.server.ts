@@ -222,16 +222,19 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   }
 
   // ---- roteiro vigente: promotor + dias previstos por (indústria, loja) ------
-  const routeByKey = new Map<string, RouteInfo>();
+  const routeByKey = new Map<string, RouteInfo & { promoterEmployeeNumber?: string | null }>();
   for (const r of routeRes.data ?? []) {
     if (!r.store_id) continue;
     const key = `${r.industry_id}|${r.store_id}`;
     const info = routeByKey.get(key) ?? { votes: new Map(), weekdays: new Set<number>() };
     info.weekdays.add(Number(r.weekday));
     if (r.promoter_id) {
-      const cur = info.votes.get(r.promoter_id) ?? { name: r.promoter?.name ?? "—", count: 0 };
+      const cur = info.votes.get(r.promoter_id) ?? { name: r.promoter?.name ?? "—", employeeNumber: r.promoter?.employee_number ?? null, count: 0 };
       cur.count += 1;
       info.votes.set(r.promoter_id, cur);
+      if (!info.promoterEmployeeNumber && r.promoter?.employee_number) {
+        info.promoterEmployeeNumber = r.promoter.employee_number;
+      }
     }
     routeByKey.set(key, info);
   }
@@ -323,6 +326,10 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
     routeByKey,
     today,
     promoterFilter: filters.promoterId ?? null,
+    promoterEmployeeNumber: (id: string, industryId: string, storeId: string) => {
+      const promo = promoterByStore.get(storeId);
+      return promo?.employeeNumber ?? null;
+    },
     allowedPromoterIds: accessPromoterIds,
   });
   const industriesWithRoute = new Set(Array.from(routeByKey.keys()).map((k) => k.split("|")[0]));
