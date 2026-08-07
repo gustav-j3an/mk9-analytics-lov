@@ -45,6 +45,23 @@ function LandingPage() {
           </p>
         </div>
 
+        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 mb-8">
+          <h2 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">Missão Ativa</h2>
+          <div className="prose prose-invert prose-sm max-w-none">
+            <h3 className="text-xl font-bold text-white mb-2"># MISSÃO CRÍTICA — BLINDAGEM DO DASHBOARD MK9</h3>
+            <p className="text-slate-300">
+              O Dashboard do MK9 Analytics está sendo blindado contra falhas causadas por dados inconsistentes ou órfãos.
+              Implementando camada de proteção, normalização de dados e Error Boundary para garantir que a operação nunca pare.
+            </p>
+            <ul className="text-xs text-slate-400 mt-4 space-y-1">
+              <li>✔ Dashboard Data Engine (Normalização)</li>
+              <li>✔ Proteção contra FKs órfãs (Promotores/Lojas)</li>
+              <li>✔ Error Boundary específico do Dashboard</li>
+              <li>✔ Diagnóstico de integridade operacional</li>
+            </ul>
+          </div>
+        </div>
+
         <ClientOnly>
           <Mk9LoginForm />
         </ClientOnly>
