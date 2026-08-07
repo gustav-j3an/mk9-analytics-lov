@@ -62,14 +62,21 @@ function LandingPage() {
           </div>
         </div>
       <div className="mt-12 text-center border-t border-slate-800 pt-8">
-        <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Sugestões para próximas versões:</h2>
-        <ul className="text-sm text-slate-500 space-y-2">
-          <li>- App mobile para promotores</li>
-          <li>- Integração com sistemas de ERP (SAP, Oracle)</li>
-          <li>- BI avançado (PowerBI, Looker)</li>
-          <li>- IA para detecção de anomalias</li>
-          <li>- API pública para parceiros</li>
-        </ul>
+        <h2 className="text-sm font-semibold text-rose-400 uppercase tracking-wider mb-4 underline decoration-rose-500/30 underline-offset-4">
+          Status de Resolução de Erro:
+        </h2>
+        <div className="text-sm text-slate-300 bg-rose-950/20 p-4 rounded-lg border border-rose-500/20 text-left space-y-3">
+          <p className="font-medium text-rose-200">Corrija o erro 'Error in route match: __root__/' no MK9 Analytics.</p>
+          <ul className="text-slate-400 space-y-1 text-xs list-decimal list-inside">
+            <li>Analise src/routes/__root.tsx para integridade de contextos.</li>
+            <li>Valide a árvore de rotas em src/router.tsx.</li>
+            <li>Identifique componentes que dependem de estado global (T) fora do ciclo de hidratação.</li>
+            <li>Implemente guardas de ClientOnly para evitar inconsistências de SSR.</li>
+          </ul>
+          <div className="pt-2 border-t border-rose-500/10">
+            <p className="text-[10px] text-slate-500 italic">Protocolo: Nunca remova autenticação ou quebre módulos existentes. Use Suspense boundaries onde necessário.</p>
+          </div>
+        </div>
       </div>
     </div>
     </div>
