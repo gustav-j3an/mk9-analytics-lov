@@ -1292,6 +1292,7 @@ export type Database = {
           contact: string | null
           contact_normalized: string | null
           created_at: string
+          employee_number: string | null
           external_id: string | null
           id: string
           inactive_from: string | null
@@ -1313,6 +1314,7 @@ export type Database = {
           contact?: string | null
           contact_normalized?: string | null
           created_at?: string
+          employee_number?: string | null
           external_id?: string | null
           id?: string
           inactive_from?: string | null
@@ -1334,6 +1336,7 @@ export type Database = {
           contact?: string | null
           contact_normalized?: string | null
           created_at?: string
+          employee_number?: string | null
           external_id?: string | null
           id?: string
           inactive_from?: string | null

@@ -183,7 +183,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
     })(),
     supabase
       .from("mk9_planned_routes")
-      .select("industry_id, store_id, promoter_id, weekday, valid_from, valid_until, promoter:mk9_promoters(id,name)")
+      .select("industry_id, store_id, promoter_id, weekday, valid_from, valid_until, promoter:mk9_promoters(id,name,employee_number)")
       .in("industry_id", industryIds)
       .eq("is_active", true)
       .is("archived_at", null)
@@ -222,16 +222,19 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   }
 
   // ---- roteiro vigente: promotor + dias previstos por (indústria, loja) ------
-  const routeByKey = new Map<string, RouteInfo>();
+  const routeByKey = new Map<string, RouteInfo & { promoterEmployeeNumber?: string | null }>();
   for (const r of routeRes.data ?? []) {
     if (!r.store_id) continue;
     const key = `${r.industry_id}|${r.store_id}`;
-    const info = routeByKey.get(key) ?? { votes: new Map(), weekdays: new Set<number>() };
+    const info = (routeByKey.get(key) ?? { votes: new Map(), weekdays: new Set<number>() }) as any;
     info.weekdays.add(Number(r.weekday));
     if (r.promoter_id) {
-      const cur = info.votes.get(r.promoter_id) ?? { name: r.promoter?.name ?? "—", count: 0 };
+      const cur = info.votes.get(r.promoter_id) ?? { name: r.promoter?.name ?? "—", employeeNumber: r.promoter?.employee_number ?? null, count: 0 };
       cur.count += 1;
       info.votes.set(r.promoter_id, cur);
+      if (!info.promoterEmployeeNumber && r.promoter?.employee_number) {
+        info.promoterEmployeeNumber = r.promoter.employee_number;
+      }
     }
     routeByKey.set(key, info);
   }

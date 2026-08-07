@@ -42,12 +42,13 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           const { renderPromoterRoutePdf, promoterPdfFileName } = await import("@/lib/reports/promoter-pdf.server");
           
           // Busca o nome do promotor
-          const { data: promoter } = await supabaseAdmin.from("mk9_promoters").select("name").eq("id", body.promoterId).maybeSingle();
+          const { data: promoter } = await supabaseAdmin.from("mk9_promoters").select("name, employee_number").eq("id", body.promoterId).maybeSingle();
 
           const bytes = await renderPromoterRoutePdf({
             core,
             promoterId: body.promoterId,
             promoterName: promoter?.name ?? "Promotor",
+            promoterEmployeeNumber: promoter?.employee_number ?? null,
             year: body.year,
             month: body.month
           });
