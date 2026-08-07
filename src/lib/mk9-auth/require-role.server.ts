@@ -185,7 +185,13 @@ export async function logAudit(
   metadata: Record<string, unknown> = {},
 ): Promise<void> {
   try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin, hasSupabaseAdminConfig } = await import("@/integrations/supabase/client.server");
+    
+    if (!hasSupabaseAdminConfig()) {
+      console.warn(`[MK9-AUDIT] privileged audit unavailable (SERVICE_ROLE_KEY missing) - action: ${action}`);
+      return;
+    }
+
     await supabaseAdmin.from("mk9_audit_logs").insert({
       user_id: ctx.userId,
       action,
@@ -194,6 +200,6 @@ export async function logAudit(
       metadata: { ...metadata, devBypass: ctx.devBypass },
     });
   } catch (err) {
-    console.error("[MK9-AUDIT] falha ao registrar log:", err);
+    console.error("[MK9-AUDIT] falha ao registrar log (não-crítico):", err);
   }
 }
