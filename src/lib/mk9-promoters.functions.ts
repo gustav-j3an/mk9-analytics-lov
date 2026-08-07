@@ -17,16 +17,29 @@ export const mk9CreatePromoter = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => promoterSchema.parse(data))
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
-    await requireMk9Role(["ADMIN"]);
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Validação de duplicidade de matrícula (employee_number)
+    if (data.employeeNumber) {
+      const { data: existing } = await supabaseAdmin
+        .from("mk9_promoters")
+        .select("id")
+        .eq("employee_number", data.employeeNumber)
+        .maybeSingle();
+      
+      if (existing) {
+        throw new Error("Já existe um promotor cadastrado com esta matrícula.");
+      }
+    }
 
     const { data: row, error } = await supabaseAdmin
       .from("mk9_promoters")
       .insert({
         name: data.name,
         name_normalized: normalizeName(data.name),
-        external_id: data.externalId || null,
         employee_number: data.employeeNumber || null,
+        external_id: data.externalId || null,
         city: data.city || null,
         uf: data.uf || null,
         contact: data.contact || null,
@@ -38,7 +51,6 @@ export const mk9CreatePromoter = createServerFn({ method: "POST" })
 
     if (error) throw new Error(error.message);
     
-    const ctx = await requireMk9Role(["ADMIN"]);
     await logAudit(ctx, "PROMOTER_CREATED", "mk9_promoters", row?.id ?? null, { data });
 
     return row;
@@ -54,13 +66,34 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
     const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    // Validação de duplicidade de matrícula (employee_number)
+    if (data.data.employeeNumber) {
+      const { data: existing } = await supabaseAdmin
+        .from("mk9_promoters")
+        .select("id")
+        .eq("employee_number", data.data.employeeNumber)
+        .neq("id", data.id)
+        .maybeSingle();
+      
+      if (existing) {
+        throw new Error("Já existe um promotor cadastrado com esta matrícula.");
+      }
+    }
+
+    // Busca valor anterior para auditoria
+    const { data: old } = await supabaseAdmin
+      .from("mk9_promoters")
+      .select("employee_number")
+      .eq("id", data.id)
+      .single();
+
     let q = supabaseAdmin
       .from("mk9_promoters")
       .update({
         name: data.data.name,
         name_normalized: normalizeName(data.data.name),
-        external_id: data.data.externalId || null,
         employee_number: data.data.employeeNumber || null,
+        external_id: data.data.externalId || null,
         city: data.data.city || null,
         uf: data.data.uf || null,
         contact: data.data.contact || null,
@@ -78,14 +111,17 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
 
     if (error) throw new Error(error.message);
     if (!row) {
-      // Se enviou expectedUpdatedAt e não retornou nada, pode ser conflito.
       if (data.expectedUpdatedAt) {
         throw new Error("PROMOTER_CONCURRENT_MODIFICATION");
       }
       throw new Error("Nenhum registro foi atualizado (PROMOTER_NOT_FOUND).");
     }
 
-    await logAudit(ctx, "PROMOTER_UPDATED", "mk9_promoters", data.id, { data: data.data });
+    await logAudit(ctx, "PROMOTER_UPDATED", "mk9_promoters", data.id, { 
+      data: data.data,
+      previous_employee_number: old?.employee_number,
+      new_employee_number: data.data.employeeNumber
+    });
 
     return row;
   });
@@ -96,7 +132,6 @@ export const mk9ArchivePromoter = createServerFn({ method: "POST" })
     reason: z.string().max(500).nullable().optional(),
   }).parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -127,8 +162,7 @@ export const mk9ReactivatePromoter = createServerFn({ method: "POST" })
     id: z.string().uuid(),
   }).parse(data))
   .handler(async ({ data }) => {
-    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
-    await requireMk9Role(["ADMIN"]);
+    const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: row, error } = await supabaseAdmin
@@ -139,7 +173,7 @@ export const mk9ReactivatePromoter = createServerFn({ method: "POST" })
         archive_reason: null,
         is_active: true,
         updated_at: new Date().toISOString(),
-        updated_by: (await requireMk9Role(["ADMIN"])).userId,
+        updated_by: ctx.userId,
       } as any)
       .eq("id", data.id)
       .select()
@@ -148,7 +182,6 @@ export const mk9ReactivatePromoter = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Falha ao reativar promotor.");
 
-    const ctx = await requireMk9Role(["ADMIN"]);
     await logAudit(ctx, "PROMOTER_REACTIVATED", "mk9_promoters", data.id, {});
 
     return row;
@@ -179,5 +212,3 @@ export const mk9PromoterArchiveImpact = createServerFn({ method: "POST" })
       visits: visits.count ?? 0,
     };
   });
-
-

@@ -490,6 +490,9 @@ export async function buildIndustryReport(
     filters: { uf: uf ?? null, storeId: storeId ?? null, sourceImportId: sourceImportId ?? null, promoterId: promoterId ?? null },
     totals: {
       totalStores: stores.length,
+      promoterName: input.promoterId ? (stores.find(s => s.promoterId === input.promoterId)?.promoterName || "—") : null,
+      promoterEmployeeNumber: input.promoterId ? (stores.find(s => s.promoterId === input.promoterId)?.promoterEmployeeNumber || null) : null,
+
       contracted: totalsMetrics.contratadas,
       planned: totalsMetrics.contratadas,
       actual: totalsMetrics.executadas,
