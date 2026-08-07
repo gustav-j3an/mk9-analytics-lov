@@ -25,11 +25,22 @@ const optionalText = (max: number) =>
     .nullable()
     .optional();
 
+/** Validação de CNPJ opcional. */
+const cnpjSchema = z
+  .string()
+  .transform((v) => v.replace(/\D/g, ""))
+  .refine((v) => v.length === 0 || v.length === 14, {
+    message: "CNPJ deve ter 14 números.",
+  })
+  .nullable()
+  .optional();
+
 /** Cadastro manual. Nenhum metadado administrativo é aceito do navegador. */
 export const createIndustrySchema = z
   .object({
     name: trimmed(120).pipe(z.string().min(2, "Informe o nome da indústria.")),
     displayName: optionalText(120),
+    cnpj: cnpjSchema,
     notes: optionalText(1000),
     requiresChecklist: z.boolean().default(false),
     periodType: z.enum(["CALENDAR_MONTH", "CUSTOM_CYCLE"]).default("CALENDAR_MONTH"),
@@ -51,10 +62,22 @@ export const updateIndustrySchema = z
     expectedUpdatedAt: z.string().min(1),
     name: trimmed(120).pipe(z.string().min(2, "Informe o nome da indústria.")),
     displayName: optionalText(120),
+    cnpj: cnpjSchema,
     notes: optionalText(1000),
     requiresChecklist: z.boolean().optional(),
+    periodType: z.enum(["CALENDAR_MONTH", "CUSTOM_CYCLE"]).optional(),
+    startDay: z.number().int().min(1).max(31).nullable().optional(),
+    endDay: z.number().int().min(1).max(31).nullable().optional(),
+    usesPreviousMonth: z.boolean().optional(),
   })
   .strict();
+
+export const deleteIndustrySchema = z
+  .object({
+    industryId: z.string().uuid(),
+  })
+  .strict();
+
 
 export const archiveIndustrySchema = z
   .object({
