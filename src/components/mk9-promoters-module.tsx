@@ -52,11 +52,6 @@ export function Mk9PromotersModule() {
     queryFn: () => listFn(),
   });
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["mk9-promoters"],
-    queryFn: () => listFn(),
-  });
-
   const filtered = (data ?? []).filter((p: any) => {
     const isDeleted = Boolean(p.archived_at);
     if (statusFilter === "active" && isDeleted) return false;
