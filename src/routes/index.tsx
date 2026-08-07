@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, Loader2 } from "lucide-react";
 
-export const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
