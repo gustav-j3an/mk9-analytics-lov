@@ -10,11 +10,11 @@ import {
   Smartphone,
   CheckCircle2,
   Edit2,
-  Archive,
+  Trash2,
   RefreshCcw,
   History
 } from "lucide-react";
-import { PromoterDialog, PromoterArchiveDialog } from "./mk9/promoter-admin-dialogs";
+import { PromoterDialog, PromoterDeleteDialog } from "./mk9/promoter-admin-dialogs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -33,36 +33,22 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { mk9ListPromoters } from "@/lib/mk9-data.functions";
-import { mk9ReactivatePromoter } from "@/lib/mk9-promoters.functions";
+// Removed mk9ReactivatePromoter as we are moving to exclusion model
 import { useMk9Session } from "@/lib/mk9-auth/session";
 
 export function Mk9PromotersModule() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingPromoter, setEditingPromoter] = useState<any>(null);
-  const [statusFilter, setStatusFilter] = useState<"active" | "archived">("active");
+  const [statusFilter, setStatusFilter] = useState<"active" | "deleted">("active");
 
   const queryClient = useQueryClient();
   const session = useMk9Session();
   const isAdmin = session.hasRole("ADMIN");
 
   const listFn = useServerFn(mk9ListPromoters);
-  const reactivateFn = useServerFn(mk9ReactivatePromoter);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ["mk9-promoters"],
-    queryFn: () => listFn(),
-  });
-
-  const reactivateMut = useMutation({
-    mutationFn: (id: string) => reactivateFn({ data: { id } }),
-    onSuccess: () => {
-      toast.success("Promotor reativado.");
-      queryClient.invalidateQueries({ queryKey: ["mk9-promoters"] });
-    },
-    onError: (err: any) => toast.error(err.message || "Erro ao reativar promotor."),
-  });
+  // Removed reactivation logic as it was part of the archiving concept
 
   const filtered = (data ?? []).filter((p: any) => {
     const isArchived = Boolean(p.archived_at);
@@ -100,7 +86,7 @@ export function Mk9PromotersModule() {
           <Tabs value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)} className="w-full md:w-auto">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="active">Ativos</TabsTrigger>
-              <TabsTrigger value="archived">Arquivados</TabsTrigger>
+              <TabsTrigger value="deleted">Excluídos</TabsTrigger>
             </TabsList>
           </Tabs>
           <div className="relative w-full md:max-w-sm">
@@ -179,9 +165,9 @@ export function Mk9PromotersModule() {
                   </TableCell>
                   <TableCell>
                     {p.archived_at ? (
-                      <Badge variant="outline" className="gap-1.5 bg-gray-500/10 text-gray-600 border-gray-200">
+                      <Badge variant="outline" className="gap-1.5 bg-red-500/10 text-red-600 border-red-200">
                         <History className="h-3 w-3" />
-                        Arquivado
+                        Excluído
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="gap-1.5 bg-green-500/10 text-green-600 border-green-200">
@@ -210,23 +196,14 @@ export function Mk9PromotersModule() {
                             className="text-destructive"
                             onClick={() => {
                               setEditingPromoter(p);
-                              setArchiveDialogOpen(true);
+                              setDeleteDialogOpen(true);
                             }}
                           >
-                            <Archive className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </>
                       ) : (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-emerald-600"
-                          title="Reativar"
-                          onClick={() => reactivateMut.mutate(p.id)}
-                          disabled={reactivateMut.isPending}
-                        >
-                          <RefreshCcw className={`h-4 w-4 ${reactivateMut.isPending ? "animate-spin" : ""}`} />
-                        </Button>
+                        <div className="w-10" />
                       )}
                     </TableCell>
                   )}
@@ -246,11 +223,11 @@ export function Mk9PromotersModule() {
         }} 
       />
 
-      <PromoterArchiveDialog
-        open={archiveDialogOpen}
+      <PromoterDeleteDialog
+        open={deleteDialogOpen}
         promoter={editingPromoter}
         onClose={() => {
-          setArchiveDialogOpen(false);
+          setDeleteDialogOpen(false);
           setEditingPromoter(null);
         }}
       />
