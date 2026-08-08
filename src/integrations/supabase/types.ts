@@ -1638,14 +1638,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_mk9_role: {
-        Args: {
-          required_role: Database["public"]["Enums"]["mk9_role"]
-          user_uuid: string
-        }
-        Returns: boolean
-      }
-      is_mk9_admin: { Args: never; Returns: boolean }
       mk9_admin_archive_industry: {
         Args: {
           p_actor: string
@@ -2304,14 +2296,8 @@ export type Database = {
         Args: { _archive_ids: string[]; _import_id: string; _rows: Json }
         Returns: Json
       }
-      mk9_visible_industry: { Args: { _industry_id: string }; Returns: boolean }
-      mk9_visible_store: { Args: { _store_uf: string }; Returns: boolean }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
-      user_has_mk9_scope: {
-        Args: { _scope_type: string; _scope_value: string }
-        Returns: boolean
-      }
     }
     Enums: {
       mk9_actual_visit_origin: "CHECKLIST"
