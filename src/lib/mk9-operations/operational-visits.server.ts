@@ -77,3 +77,47 @@ export async function listOperationalActualVisits(params: {
 }) {
   return getOperationalVisits(params);
 }
+
+/**
+ * Versão em lote de listOperationalActualVisits para evitar N+1 no motor core.
+ */
+export async function listBulkOperationalActualVisits(params: {
+  industryIds: string[];
+  startDate: string;
+  endDate: string;
+}) {
+  const { industryIds, startDate, endDate } = params;
+  if (!industryIds.length) return [];
+
+  // 1. Resolver todas as importações vigentes das indústrias de uma vez
+  const { data: activeImports } = await supabaseAdmin
+    .from("mk9_checklist_imports")
+    .select("id, industry_id")
+    .in("industry_id", industryIds)
+    .eq("is_operational_current" as any, true)
+    .is("reverted_at", null);
+
+  const activeImportIds = (activeImports ?? []).map(i => i.id);
+  
+  // 2. Query de visitas em lote
+  let query = supabaseAdmin
+    .from("mk9_actual_visits")
+    .select("id, industry_id, scheduled_date, store_id, source_import_id, store:mk9_stores(id,name,chain,uf)")
+    .in("industry_id", industryIds)
+    .gte("scheduled_date", startDate)
+    .lte("scheduled_date", endDate);
+
+  if (activeImportIds.length > 0) {
+    query = query.or(`source_import_id.is.null,source_import_id.in.(${activeImportIds.map(id => `"${id}"`).join(",")})`);
+  } else {
+    query = query.is("source_import_id", null);
+  }
+
+  const { data, error } = await query.limit(100000);
+  if (error) throw error;
+  
+  return (data || []).map(v => ({
+    ...v,
+    visit_date: v.scheduled_date 
+  }));
+}
