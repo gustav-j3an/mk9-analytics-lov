@@ -22,8 +22,10 @@ import {
   MoreVertical, 
   UserPlus, 
   Key,
-  ShieldAlert
+  ShieldAlert,
+  Clock
 } from "lucide-react";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
