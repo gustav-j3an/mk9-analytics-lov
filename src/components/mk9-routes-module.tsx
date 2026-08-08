@@ -7,7 +7,8 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, CalendarClock, History, Loader2, Pencil, Plus, PowerOff, Route as RouteIcon, Users, FileText, Info } from "lucide-react";
+import { AlertTriangle, CalendarClock, History, Loader2, Pencil, Plus, PowerOff, Route as RouteIcon, Users, FileText, Info, RefreshCw } from "lucide-react";
+import { Mk9PageHeader, Mk9Panel, Mk9MetricCard } from "./mk9/design-system";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -131,54 +132,61 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
   const ufs = Array.from(new Set(stores.map((s) => s.uf).filter(Boolean))) as string[];
 
   return (
-    <div className="space-y-4">
-      {/* Filtros */}
-      <Card>
-        <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-6 gap-3">
-          <div>
-            <label className="text-xs text-muted-foreground">Data de referência</label>
-            <Input type="date" value={referenceDate} onChange={(e) => setReferenceDate(e.target.value)} />
+    <div className="space-y-6">
+      <Mk9PageHeader 
+        title="Gestão de Roteiros" 
+        subtitle="Controle de vigência e periodicidade semanal"
+        icon={RouteIcon}
+        actions={
+          <Button onClick={() => setCreating(true)} className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest px-6">
+            <Plus className="h-4 w-4 mr-2" /> Novo Item
+          </Button>
+        }
+      />
+
+      <Mk9Panel className="relative">
+        <div className="flex items-center gap-2 mb-6">
+          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+            <CalendarClock className="h-5 w-5" />
           </div>
-          <div>
-            <label className="text-xs text-muted-foreground">Promotor</label>
+          <h3 className="text-sm font-black text-white uppercase tracking-widest">Filtros Operacionais</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-3 items-end">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Referência</label>
+            <Input type="date" value={referenceDate} onChange={(e) => setReferenceDate(e.target.value)} className="h-9 bg-black/40 border-white/5 text-xs text-white" />
+          </div>
+          <div className="col-span-2 space-y-1.5">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Promotor</label>
             <Select value={filterPromoter || "all"} onValueChange={(v) => setFilterPromoter(v === "all" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-              <SelectContent><SelectItem value="all">Todos</SelectItem>{promoters.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white"><SelectValue placeholder="Todos" /></SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10"><SelectItem value="all">Todos</SelectItem>{promoters.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div>
-            <label className="text-xs text-muted-foreground">Indústria</label>
+          <div className="col-span-2 space-y-1.5">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Indústria</label>
             <Select value={filterIndustry || "all"} onValueChange={(v) => setFilterIndustry(v === "all" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
-              <SelectContent><SelectItem value="all">Todas</SelectItem>{industries.map((i) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}</SelectContent>
+              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white"><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10"><SelectItem value="all">Todas</SelectItem>{industries.map((i) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div>
-            <label className="text-xs text-muted-foreground">Loja</label>
-            <Select value={filterStore || "all"} onValueChange={(v) => setFilterStore(v === "all" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
-              <SelectContent><SelectItem value="all">Todas</SelectItem>{stores.slice(0, 500).map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div>
-            <label className="text-xs text-muted-foreground">UF</label>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">UF</label>
             <Select value={filterUf || "all"} onValueChange={(v) => setFilterUf(v === "all" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
-              <SelectContent><SelectItem value="all">Todas</SelectItem>{ufs.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white"><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10"><SelectItem value="all">Todas</SelectItem>{ufs.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div>
-            <label className="text-xs text-muted-foreground">Dia da semana</label>
-            <Select value={filterWeekday || "all"} onValueChange={(v) => setFilterWeekday(v === "all" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-              <SelectContent><SelectItem value="all">Todos</SelectItem>{WEEKDAY_PT.map((n, i) => <SelectItem key={i} value={String(i)}>{n}</SelectItem>)}</SelectContent>
-            </Select>
+          <div className="col-span-4 space-y-1.5">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Busca Rápida</label>
+            <Input placeholder="Buscar por promotor, loja ou indústria…" value={nameFilter} onChange={(e) => setNameFilter(e.target.value)} className="h-9 bg-black/40 border-white/5 text-xs text-white" />
           </div>
-          <div className="md:col-span-6">
-            <Input placeholder="Buscar por promotor, loja ou indústria…" value={nameFilter} onChange={(e) => setNameFilter(e.target.value)} />
-          </div>
-        </CardContent>
-      </Card>
+          <Button variant="outline" className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest" onClick={() => qc.invalidateQueries({ queryKey: ["mk9-routes-versioned"] })}>
+            <RefreshCw className="h-4 w-4 mr-2" /> Atualizar
+          </Button>
+        </div>
+      </Mk9Panel>
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">

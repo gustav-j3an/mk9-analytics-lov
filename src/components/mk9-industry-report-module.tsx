@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, Loader2, Settings2, AlertCircle, Factory } from "lucide-react";
+import { Download, Loader2, Settings2, AlertCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
@@ -150,11 +150,13 @@ export function Mk9IndustryReportModule() {
   return (
     <div className="space-y-8 animate-fade-up">
       <Mk9PageHeader 
-        title="Central de Relatórios" 
-        subtitle="Consolidado operacional por indústria"
-        icon={Factory}
+        title="Indústrias — Relatório Operacional" 
+        subtitle="Acompanhamento de frequência, execução e cobertura"
+        icon={FileText}
         actions={
-          <PeriodConfigDialog industryId={industryId} />
+          <div className="flex items-center gap-2">
+            <PeriodConfigDialog industryId={industryId} />
+          </div>
         }
       />
 
@@ -221,15 +223,13 @@ export function Mk9IndustryReportModule() {
 
       {report && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <Mk9MetricCard label="Lojas" value={report.totals.totalStores} color="blue" />
             <Mk9MetricCard label="Contratadas" value={report.totals.metrics.contratadas} color="purple" />
             <Mk9MetricCard label="Realizadas" value={report.totals.metrics.executadas} color="emerald" hint={`${report.totals.metrics.coberturaPct}% cobertura`} />
             <Mk9MetricCard label="Pendentes" value={report.totals.metrics.pendencias} color="amber" />
             <Mk9MetricCard label="Extras" value={report.totals.metrics.extras} color="blue" />
             <Mk9MetricCard label="Cobertura" value={`${report.totals.metrics.coberturaPct}%`} color={report.totals.metrics.coberturaPct >= 90 ? "emerald" : "amber"} />
-            <Mk9MetricCard label="Operacional" value={`${report.totals.operationalCoveragePct}%`} color={report.totals.operationalCoveragePct >= 90 ? "emerald" : "amber"} />
-            <Mk9MetricCard label="Fora Roteiro" value={report.totals.unplanned} color="rose" />
           </div>
 
 
@@ -240,13 +240,13 @@ export function Mk9IndustryReportModule() {
             </div>
             
             <div className="flex items-center gap-3">
-              <Button onClick={() => downloadPdf("full")} disabled={!!downloading} variant="outline" className="border-mk9-accent-primary/50 text-mk9-accent-primary hover:bg-mk9-accent-primary/10">
+              <Button onClick={() => downloadPdf("full")} disabled={!!downloading} variant="outline" className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 uppercase text-[10px] font-black tracking-widest">
                 {downloading === "full" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                GERAR RELATÓRIO
+                Exportar Relatório
               </Button>
-              <Button onClick={() => downloadPdf("unattended")} disabled={!!downloading} className="bg-gradient-to-r from-mk9-accent-primary to-mk9-accent-secondary text-white">
+              <Button onClick={() => downloadPdf("unattended")} disabled={!!downloading} className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest">
                 {downloading === "unattended" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                LOJAS PENDENTES
+                Lojas não atendidas
               </Button>
             </div>
           </Mk9Panel>
@@ -259,25 +259,25 @@ export function Mk9IndustryReportModule() {
                 <table className="w-full">
                   <thead>
                     <tr className="text-left text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5">
-                      <th className="pb-3 font-bold">UF</th>
-                      <th className="pb-3 font-bold">Lojas</th>
-                      <th className="pb-3 font-bold">Contratadas</th>
-                      <th className="pb-3 font-bold">Realizadas</th>
-                      <th className="pb-3 font-bold">Pendentes</th>
-                      <th className="pb-3 font-bold">Extras</th>
-                      <th className="pb-3 font-bold">Cobertura</th>
+                      <th className="pb-3 font-bold text-left">UF</th>
+                      <th className="pb-3 font-bold text-right">Lojas</th>
+                      <th className="pb-3 font-bold text-right">Contratadas</th>
+                      <th className="pb-3 font-bold text-right">Realizadas</th>
+                      <th className="pb-3 font-bold text-right">Pendentes</th>
+                      <th className="pb-3 font-bold text-right">Extras</th>
+                      <th className="pb-3 font-bold text-right">Cobertura</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {report.ufs.map((u) => (
                       <tr key={u.uf} className="group hover:bg-white/[0.02]">
                         <td className="py-3 text-white font-medium">{u.uf}</td>
-                        <td className="py-3 text-slate-300">{u.stores}</td>
-                        <td className="py-3 text-slate-300">{u.expected}</td>
-                        <td className="py-3 text-white">{u.actual}</td>
-                        <td className="py-3 text-slate-400">{u.pending}</td>
-                        <td className="py-3 text-slate-400">{u.extra}</td>
-                        <td className="py-3">
+                        <td className="py-3 text-slate-300 text-right">{u.stores}</td>
+                        <td className="py-3 text-slate-300 text-right">{u.expected}</td>
+                        <td className="py-3 text-white text-right">{u.actual}</td>
+                        <td className="py-3 text-slate-400 text-right">{u.pending}</td>
+                        <td className="py-3 text-slate-400 text-right">{u.extra}</td>
+                        <td className="py-3 text-right">
                           <Mk9Badge variant={u.coveragePct >= 90 ? "success" : "warning"}>{u.coveragePct}%</Mk9Badge>
 
                         </td>
@@ -294,14 +294,14 @@ export function Mk9IndustryReportModule() {
               <table className="w-full">
                 <thead>
                   <tr className="text-left text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5">
-                    <th className="pb-3 font-bold">Loja</th>
-                    <th className="pb-3 font-bold">UF</th>
-                    <th className="pb-3 font-bold">Freq.</th>
-                    <th className="pb-3 font-bold">Contratadas</th>
-                    <th className="pb-3 font-bold">Realizadas</th>
-                    <th className="pb-3 font-bold">Cobertura</th>
-                    <th className="pb-3 font-bold">Execução</th>
-                    <th className="pb-3 font-bold">Roteiro</th>
+                    <th className="pb-3 font-bold text-left">Loja</th>
+                    <th className="pb-3 font-bold text-left">UF</th>
+                    <th className="pb-3 font-bold text-left">Freq.</th>
+                    <th className="pb-3 font-bold text-right">Contratadas</th>
+                    <th className="pb-3 font-bold text-right">Realizadas</th>
+                    <th className="pb-3 font-bold text-right">Cobertura</th>
+                    <th className="pb-3 font-bold text-right">Execução</th>
+                    <th className="pb-3 font-bold text-right">Roteiro</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -315,15 +315,15 @@ export function Mk9IndustryReportModule() {
                         </td>
                         <td className="py-3 text-slate-400 font-mono">{s.uf ?? "—"}</td>
                         <td className="py-3 text-slate-400 text-xs">{freqLabel}</td>
-                        <td className="py-3 text-slate-300 font-medium">{s.expected}</td>
-                        <td className="py-3 text-white font-bold">{s.actual}</td>
-                        <td className="py-3">
+                        <td className="py-3 text-slate-300 font-medium text-right">{s.expected}</td>
+                        <td className="py-3 text-white font-bold text-right">{s.actual}</td>
+                        <td className="py-3 text-right">
                           <Mk9Badge variant={s.coveragePct >= 90 ? "success" : s.coveragePct >= 70 ? "warning" : "danger"}>{s.coveragePct}%</Mk9Badge>
                         </td>
-                        <td className="py-3">
+                        <td className="py-3 text-right">
                           <Mk9Badge variant={EXEC_TONE[s.executionStatus] as any}>{EXEC_LABEL[s.executionStatus]}</Mk9Badge>
                         </td>
-                        <td className="py-3">
+                        <td className="py-3 text-right">
                           <Mk9Badge variant={ROUTE_TONE[s.routeStatus] as any}>{ROUTE_LABEL[s.routeStatus]}</Mk9Badge>
                         </td>
                       </tr>
