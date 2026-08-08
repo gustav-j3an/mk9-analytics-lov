@@ -117,8 +117,17 @@ export function Mk9AnalyticsDashboard() {
       <Mk9ErrorState message="Nenhum dado retornado para este período." onRetry={() => refetch()} />
     );
 
-  const { executive, industries, ufs, frequencies, matrix, projection, topPriorities, lastUpdate } =
+  const { executive, industries, ufs, frequencies, matrix, projection: rawProjection, topPriorities, lastUpdate } =
     data;
+
+  // HOTFIX v1.0.1: Guard against missing projection data
+  const projection = rawProjection || {
+    realized: 0,
+    projected: 0,
+    contracted: 0,
+    riskStatus: "LOW",
+    daysRemaining: 0,
+  };
 
   return (
     <div className="space-y-8 animate-fade-in pb-20 selection:bg-purple-500/30">
@@ -142,7 +151,7 @@ export function Mk9AnalyticsDashboard() {
         <div
           className={cn(
             "glass-command p-5 rounded-2xl border flex flex-col justify-between transition-all duration-300",
-            projection.riskStatus === "CRITICAL"
+            projection?.riskStatus === "CRITICAL"
               ? "border-rose-500/30 bg-rose-500/10 glow-rose shadow-[0_0_20px_rgba(244,63,94,0.1)]"
               : "border-white/5 bg-white/[0.02]",
           )}
@@ -154,9 +163,9 @@ export function Mk9AnalyticsDashboard() {
             <div
               className={cn(
                 "h-3 w-3 rounded-full animate-pulse",
-                projection.riskStatus === "CRITICAL"
+                projection?.riskStatus === "CRITICAL"
                   ? "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]"
-                  : projection.riskStatus === "HIGH"
+                  : projection?.riskStatus === "HIGH"
                     ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
                     : "bg-emerald-500",
               )}
@@ -164,10 +173,10 @@ export function Mk9AnalyticsDashboard() {
             <span
               className={cn(
                 "text-xl font-black italic uppercase",
-                projection.riskStatus === "CRITICAL" ? "text-rose-500" : "text-white",
+                projection?.riskStatus === "CRITICAL" ? "text-rose-500" : "text-white",
               )}
             >
-              {projection.riskStatus}
+              {projection?.riskStatus || "N/D"}
             </span>
           </div>
         </div>
@@ -749,15 +758,15 @@ export function Mk9AnalyticsDashboard() {
           </div>
           <Mk9Badge
             variant={
-              projection.riskStatus === "CRITICAL"
+              projection?.riskStatus === "CRITICAL"
                 ? "danger"
-                : projection.riskStatus === "HIGH"
+                : projection?.riskStatus === "HIGH"
                   ? "warning"
                   : "success"
             }
             className="h-10 px-6 text-sm"
           >
-            RISCO {projection.riskStatus}
+            RISCO {projection?.riskStatus || "N/D"}
           </Mk9Badge>
         </div>
       </Mk9Panel>

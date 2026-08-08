@@ -7,13 +7,13 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | HOTFIX VISUAL — LIMITAR PORCENTAGENS",
+    title: "MK9 | HOTFIX v1.0.1 — riskStatus CRASH",
     meta: [
       {
         name: "description",
         content: "Fase 5.4: Homologação final, correção de regressões, documentação e release v1.0.0.",
       },
-      { property: "og:title", content: "MK9 | FASE 5.4" },
+      { property: "og:title", content: "MK9 | HOTFIX v1.0.1" },
       {
         property: "og:description",
         content: "Validação completa do MK9 Command Center e congelamento da versão estável.",
@@ -56,11 +56,11 @@ function LandingPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 ANALYTICS — HOTFIX VISUAL
+                MK9 ANALYTICS — HOTFIX v1.0.1
               </h1>
 
-              <p className="text-[10px] text-purple-400 font-black tracking-[0.3em] uppercase">
-                LIMITAR PORCENTAGENS A NO MÁXIMO 2 CASAS
+              <p className="text-[10px] text-rose-500 font-black tracking-[0.3em] uppercase">
+                PATCH: PROTEÇÃO CONTRA CRASH EM riskStatus
               </p>
             </div>
           </div>
@@ -115,12 +115,12 @@ function LandingPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <StatusCard icon={Activity} title="PHASE" value="5.4" sub="RELEASE" />
-                <StatusCard icon={Cpu} title="VERSION" value="V1.0.0" sub="STABLE" />
+                <StatusCard icon={Cpu} title="VERSION" value="V1.0.1" sub="PATCH" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MISSÃO 5.4 — RELEASE CHECKLIST
+                  HOTFIX v1.0.1 — DASHBOARD GUARD
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
