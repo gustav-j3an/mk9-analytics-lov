@@ -235,7 +235,9 @@ export async function buildIndustryReport(
 
 
   // 3) Carregamento em Paralelo: Roteiros, Visitas e Reconciliações
+  const { listOperationalActualVisits } = await import("@/lib/mk9-operations/operational-visits.server");
   const [plannedRes, actuals, recsRes] = await Promise.all([
+
     supabase
       .from("mk9_planned_visits")
       .select("id, scheduled_date, store_id, store:mk9_stores(id,name,chain,uf)")

@@ -84,12 +84,7 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
   const [uf, setUf] = useState<string>(ALL);
   const [promoterId, setPromoterId] = useState<string>(ALL);
 
-  const overviewFn = useServerFn(mk9CockpitOverviewFn);
-  const industriesFn = useServerFn(mk9ListIndustries);
-  const promotersFn = useServerFn(mk9ListPromoters);
-
-  const industriesQ = useQuery({ queryKey: ["mk9-industries"], queryFn: () => industriesFn() });
-  const promotersQ = useQuery({ queryKey: ["mk9-promoters"], queryFn: () => promotersFn() });
+  const cockpitFn = useServerFn(mk9CockpitOverviewFn);
 
   const filters = {
     year, month,
@@ -98,13 +93,16 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
     promoterId: promoterId === ALL ? null : promoterId,
   };
 
-  const q = useQuery<Mk9CockpitOverview>({
-    queryKey: ["mk9-cockpit", filters.year, filters.month, filters.industryId, filters.uf, filters.promoterId],
-    queryFn: () => overviewFn({ data: filters }) as Promise<Mk9CockpitOverview>,
+  const q = useQuery<any>({
+    queryKey: ["mk9-cockpit", filters],
+    queryFn: () => cockpitFn({ data: filters }),
     staleTime: 60_000,
   });
 
   const data = q.data;
+  const industries = data?.meta?.industries ?? [];
+  const promoters = data?.meta?.promoters ?? [];
+
 
   const go = (target: string | null) => {
     if (!target) return;
