@@ -45,19 +45,27 @@ function LandingPage() {
           </p>
         </div>
 
-        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 mb-8">
-          <h2 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">Missão Ativa</h2>
+        <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-6 mb-8 shadow-[0_0_30px_rgba(16,185,129,0.05)]">
+          <h2 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-4">Missão Concluída</h2>
           <div className="prose prose-invert prose-sm max-w-none">
-            <h3 className="text-xl font-bold text-white mb-2"># MISSÃO — REDESIGN VISUAL DO DASHBOARD MK9 COMMAND CENTER</h3>
-            <p className="text-slate-300">
-              Transformando o MK9 Analytics em um Centro de Controle Operacional Premium com interface futurista, cards modernos e visual tecnológico.
+            <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tighter"># MISSÃO — REDESIGN COMMAND CENTER</h3>
+            <p className="text-slate-400 font-medium text-xs leading-relaxed">
+              O MK9 Analytics foi transformado em um Centro de Controle Operacional Premium com interface futurista e visual tecnológico de alto impacto.
             </p>
-            <ul className="text-xs text-slate-400 mt-4 space-y-1">
-              <li>✔ Dashboard Dark Futurista (Paleta #080812)</li>
-              <li>✔ MK9 Command Center Dashboard</li>
-              <li>✔ Nível Operacional e Status da Operação Dinâmico</li>
-              <li>✔ Componentização Premium (MK9MetricCard, MK9ChartCard)</li>
-            </ul>
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-emerald-500" /> Interface Futurista
+              </div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-emerald-500" /> Command Center UI
+              </div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-emerald-500" /> Sidebar Premium Dark
+              </div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-emerald-500" /> Neon Glassmorphism
+              </div>
+            </div>
           </div>
         </div>
 
