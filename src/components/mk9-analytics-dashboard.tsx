@@ -39,7 +39,7 @@ import {
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { getAnalyticsDashboard } from "@/lib/mk9-dashboard/analytics.functions";
+import { getMk9AnalyticsDashboardFn } from "@/lib/mk9-analytics/analytics.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 
 const MONTHS_PT = [
