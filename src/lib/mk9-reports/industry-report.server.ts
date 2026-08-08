@@ -192,15 +192,33 @@ export async function buildIndustryReport(
     access,
   });
 
-  // 2) Frequência por loja (fonte principal de "contratadas")
-  // Frequência VERSIONADA vigente na janela (fonte de "contratadas").
-  const freqVersions = await loadFrequencyVersionsForPeriod(supabase, {
-    industryIds: [industryId],
-    storeIds: storeId ? [storeId] : (access?.allowedStoreIds ?? null),
-    periodStart: window.startDate,
-    periodEnd: window.endDate,
-    accessScope: access,
-  });
+  // 2) Snapshot Contratado da Importação (Fonte Imutável)
+  const { loadImportSnapshot } = await import("@/lib/mk9-checklist/persistence.server");
+  const { data: currentImport } = await supabase
+    .from("mk9_checklist_imports")
+    .select("id")
+    .eq("industry_id", industryId)
+    .eq("operation_month", input.month)
+    .eq("operation_year", input.year)
+    .eq("is_operational_current" as any, true)
+    .is("reverted_at", null)
+    .maybeSingle();
+
+  let snapshotStores: any[] = [];
+  if (currentImport) {
+    snapshotStores = await loadImportSnapshot(currentImport.id);
+  }
+
+  // Se não houver snapshot, não retornamos 0 silencioso, lançamos erro CONTRACTED_SNAPSHOT_MISSING
+  // para que o usuário saiba que precisa reprocessar a importação para gerar o snapshot.
+  if (!snapshotStores.length) {
+     const errorPayload = { 
+        code: "CONTRACTED_SNAPSHOT_MISSING",
+        message: "Os dados de frequência da importação não foram encontrados. Reprocesse o checklist."
+     };
+     throw new Error(JSON.stringify(errorPayload));
+  }
+
 
 
   // 3) Roteiro planejado (usado só para status_roteiro; nunca altera contrato)
@@ -288,26 +306,28 @@ export async function buildIndustryReport(
 
   // 1) BASE OBRIGATÓRIA: TODAS as lojas com frequência contratada/vigente
   // NUNCA construir o relatório partindo de actualVisits.
-  for (const [key, segs] of freqVersions) {
-    const sid = key.slice(key.indexOf("|") + 1);
-    if (!sid || !segs.length) continue;
-    const store = segs[0].store;
-    
-    // Filtros de escopo e UF aplicados sobre a base de frequências
-    if (uf && store?.uf !== uf) continue;
-    if (!inAccess(store, sid)) continue;
+  // 1) BASE OBRIGATÓRIA: SNAPSHOT IMUTÁVEL DA IMPORTAÇÃO
+  for (const s of snapshotStores) {
+    const sid = s.store_id;
+    if (!sid) continue;
 
-    const b = touch(sid, store);
-    b.segments = segs.map((s) => ({
-      validFrom: s.validFrom,
-      validUntil: s.validUntil,
-      weeklyFrequency: s.weeklyFrequency,
-      monthlyFrequency: s.monthlyFrequency,
-    }));
-    const last = segs[segs.length - 1];
-    b.weekly = last.weeklyFrequency;
-    b.monthly = last.monthlyFrequency;
+    // Filtros de escopo e UF aplicados sobre a base do snapshot
+    if (uf && s.uf !== uf) continue;
+    if (storeId && sid !== storeId) continue;
+
+    const b = touch(sid, { name: s.source_store_name, uf: s.uf });
+    b.weekly = s.weekly_frequency;
+    b.monthly = s.monthly_frequency;
+    
+    // Convertemos para o formato de segmentos para reuso do motor de cálculo
+    b.segments = [{
+      validFrom: window.startDate,
+      validUntil: window.endDate,
+      weeklyFrequency: s.weekly_frequency,
+      monthlyFrequency: s.monthly_frequency
+    }];
   }
+
 
   for (const p of planned ?? []) {
     if (!p.store_id) continue;

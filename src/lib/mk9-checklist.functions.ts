@@ -263,7 +263,22 @@ export const checklistCommit = createServerFn({ method: "POST" })
           ...frequencyDiff,
           forceReason: data.forceReason ?? null,
         });
+
+        // 4.1) Persiste o Snapshot Imutável de TODAS as lojas do arquivo (mesmo sem visitas)
+        const snapshotRows = freqs.map((f) => ({
+          storeId: storeIdByKey.get(`${f.storeNormalized}|${f.uf ?? ""}`)!,
+          storeName: f.storeName,
+          uf: f.uf ?? null,
+          weeklyFrequency: f.weeklyFrequency,
+          monthlyFrequency: f.monthlyFrequency,
+        })).filter(r => !!r.storeId);
+
+        await withRichErrors(
+          { step: "persist-import-snapshot", function: "checklistCommit", extra: { importId: data.importId, count: snapshotRows.length } },
+          () => persistImportSnapshot(data.importId, data.industryId, snapshotRows)
+        );
       }
+
 
 
       const counters = {
