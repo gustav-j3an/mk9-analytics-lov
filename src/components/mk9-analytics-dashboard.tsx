@@ -144,6 +144,8 @@ export function Mk9AnalyticsDashboard() {
       pending: rawExecutive?.pending ?? fallbackMetric,
       extras: rawExecutive?.extras ?? { current: 0 },
       zeroVisits: rawExecutive?.zeroVisits ?? fallbackMetric,
+      contracted: rawExecutive?.contracted ?? fallbackMetric,
+      realized: rawExecutive?.realized ?? fallbackMetric,
     };
   }, [rawExecutive]);
 
