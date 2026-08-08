@@ -149,9 +149,9 @@ export function Mk9CockpitModule({
         subtitle="Monitoramento da execução em tempo real"
         icon={Gauge}
         actions={
-          <div className="glass-command p-1.5 rounded-xl flex flex-wrap items-center gap-2 border border-white/5">
+          <div className="glass-command p-1 md:p-1.5 rounded-xl flex flex-wrap items-center gap-1.5 md:gap-2 border border-white/5">
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-8 min-w-[130px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider px-3 gap-2 shrink-0">
+              <SelectTrigger className="h-8 min-w-[110px] md:min-w-[130px] bg-black/40 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase tracking-wider px-2 md:px-3 gap-1 md:gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
@@ -168,7 +168,7 @@ export function Mk9CockpitModule({
             </Select>
 
             <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="h-8 w-[80px] bg-black/40 border-white/5 text-[10px] font-bold text-white">
+              <SelectTrigger className="h-8 w-[70px] md:w-[80px] bg-black/40 border-white/5 text-[9px] md:text-[10px] font-bold text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
@@ -181,7 +181,7 @@ export function Mk9CockpitModule({
             </Select>
 
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-8 w-[160px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase">
+              <SelectTrigger className="h-8 w-[140px] md:w-[160px] bg-black/40 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase">
                 <SelectValue placeholder="Indústria" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
@@ -197,7 +197,7 @@ export function Mk9CockpitModule({
             </Select>
 
             <Select value={promoterId} onValueChange={setPromoterId}>
-              <SelectTrigger className="h-8 w-[160px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase">
+              <SelectTrigger className="h-8 w-[140px] md:w-[160px] bg-black/40 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase">
                 <SelectValue placeholder="Promotor" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
@@ -226,7 +226,7 @@ export function Mk9CockpitModule({
       />
 
       {/* KPIs Superiores */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Mk9MetricCard
           color="blue"
           icon={RouteIcon}
@@ -332,10 +332,10 @@ export function Mk9CockpitModule({
               {data.priorities.map((p: any, idx: number) => (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors group"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors group gap-3"
                 >
-                  <div className="flex items-center gap-4">
-                    <span className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center text-[10px] font-black text-slate-500">
+                  <div className="flex items-center gap-3 md:gap-4">
+                    <span className="h-7 w-7 md:h-8 md:w-8 shrink-0 rounded-lg bg-white/5 flex items-center justify-center text-[9px] md:text-[10px] font-black text-slate-500">
                       {idx + 1}
                     </span>
                     <div>
