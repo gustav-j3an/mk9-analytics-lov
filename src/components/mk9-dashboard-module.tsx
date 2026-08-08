@@ -47,7 +47,6 @@ import { mk9DashboardOverviewFn, mk9DashboardCheckIntegrityFn } from "@/lib/mk9-
 
 import {
   type DashboardOverview,
-  type DashboardAlert,
 } from "@/lib/mk9-dashboard/types";
 
 const MONTHS_PT = [
