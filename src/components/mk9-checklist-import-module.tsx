@@ -112,6 +112,7 @@ const STATUS_LABEL: Record<
   done: { label: "Concluído", variant: "default" },
   failed: { label: "Falhou", variant: "destructive" },
   cancelled: { label: "Cancelada", variant: "secondary" },
+  committing: { label: "Processando", variant: "secondary" },
 };
 
 const VALIDATION_LABEL: Record<
@@ -296,7 +297,10 @@ export function Mk9ChecklistImportModule({
     queryKey: ["mk9-checklist-industries"],
     queryFn: () => industriesFn(),
   });
-  const historyQ = useQuery({ queryKey: ["mk9-checklist-imports"], queryFn: () => listFn() });
+  const historyQ = useQuery({ 
+    queryKey: ["mk9-checklist-imports", year, month], 
+    queryFn: () => listFn({ data: { month, year } }) 
+  });
 
   const previewMut = useMutation({
     mutationFn: async () => {

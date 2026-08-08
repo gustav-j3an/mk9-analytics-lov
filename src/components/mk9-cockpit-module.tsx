@@ -122,7 +122,7 @@ export function Mk9CockpitModule({
   };
 
   const q = useQuery<any>({
-    queryKey: ["mk9-cockpit", filters],
+    queryKey: ["mk9-cockpit", year, month, industryId, uf, promoterId],
     queryFn: () => cockpitFn({ data: filters }),
     staleTime: 60_000,
   });

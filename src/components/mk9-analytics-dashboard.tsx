@@ -105,7 +105,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
   };
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ["mk9-analytics-data", params],
+    queryKey: ["mk9-analytics-data", year, month, industryId, uf],
     queryFn: () => analyticsFn({ data: params }),
     staleTime: 60000,
   });
