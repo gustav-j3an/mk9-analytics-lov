@@ -344,7 +344,9 @@ export function Mk9AnalyticsApp() {
                 type="number"
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="w-16 h-7 border-none bg-transparent shadow-none focus-visible:ring-0 text-[10px] font-bold text-white text-center"
+                className="w-16 h-7 border-none bg-transparent shadow-none focus-visible:ring-0 text-[10px] font-bold text-white text-center shrink-0"
+                min={2000}
+                max={2099}
               />
             </div>
             {user && (
