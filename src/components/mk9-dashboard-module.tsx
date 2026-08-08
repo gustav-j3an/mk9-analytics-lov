@@ -749,7 +749,7 @@ function StatusBadge({ status }: { status: IndustryStatusKey }) {
   return <Badge variant="outline" className={cn("text-[10px]", STATUS_STYLES[status])}>{INDUSTRY_STATUS_LABEL[status]}</Badge>;
 }
 
-function IndustryCard({ row, onOpen }: { row: DashboardIndustryRow; onOpen: () => void }) {
+function LegacyIndustryCard({ row, onOpen }: { row: DashboardIndustryRow; onOpen: () => void }) {
   return (
     <button onClick={onOpen} className="w-full rounded-lg border border-border/60 bg-card/60 px-3 py-2.5 text-left">
       <div className="flex items-center justify-between gap-2">
