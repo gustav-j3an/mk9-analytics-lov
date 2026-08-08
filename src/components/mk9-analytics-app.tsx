@@ -378,7 +378,9 @@ export function Mk9AnalyticsApp() {
 
         <section className="flex-1 overflow-y-auto custom-scrollbar relative">
           <div className="p-8">
-            {activeModule === "dashboard" && <Mk9AnalyticsDashboard />}
+            {activeModule === "dashboard" && (
+              <Mk9AnalyticsDashboard initialMonth={month} initialYear={year} />
+            )}
             {activeModule === "cockpit" && <Mk9CockpitModule />}
             {activeModule === "importacoes" && (
               <Mk9ImportModule onSwitchToChecklists={() => setActiveModule("checklists")} />

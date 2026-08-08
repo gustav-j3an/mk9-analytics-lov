@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -74,14 +74,22 @@ function nf(v: number) {
   return new Intl.NumberFormat("pt-BR").format(v);
 }
 
-export function Mk9AnalyticsDashboard() {
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMonth?: number; initialYear?: number }) {
+  const [month, setMonth] = useState(initialMonth || new Date().getMonth() + 1);
+  const [year, setYear] = useState(initialYear || new Date().getFullYear());
   const [industryId, setIndustryId] = useState("__ALL__");
   const [uf, setUf] = useState("__ALL__");
 
   const analyticsFn = useServerFn(getMk9AnalyticsDashboardFn);
   const industriesFn = useServerFn(mk9ListIndustries);
+
+  useEffect(() => {
+    if (initialMonth) setMonth(initialMonth);
+  }, [initialMonth]);
+
+  useEffect(() => {
+    if (initialYear) setYear(initialYear);
+  }, [initialYear]);
 
   const industriesQ = useQuery({
     queryKey: ["mk9-industries-list"],
