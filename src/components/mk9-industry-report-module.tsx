@@ -1,19 +1,15 @@
-// Tela: Relatórios › Indústrias
 import { useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, Loader2, Settings2, AlertCircle, Archive } from "lucide-react";
+import { Download, Loader2, Settings2, AlertCircle, Factory } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { BulkExportModal } from "./mk9-bulk-export-modal";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 import {
   reportIndustry,
@@ -21,6 +17,13 @@ import {
   reportUpsertPeriodConfig,
   reportListChecklistImports,
 } from "@/lib/mk9-reports.functions";
+import { 
+  Mk9PageHeader, 
+  Mk9MetricCard, 
+  Mk9Panel, 
+  Mk9Badge 
+} from "./mk9/design-system";
+
 
 const MONTHS_PT = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
