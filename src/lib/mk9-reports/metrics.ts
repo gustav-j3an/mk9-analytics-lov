@@ -30,8 +30,8 @@ export function computeVisitMetrics(input: {
   contratadas: number;
   executadas: number;
 }): VisitMetrics {
-  const contratadas = Math.max(0, Math.floor(input.contratadas ?? 0));
-  const executadas = Math.max(0, Math.floor(input.executadas ?? 0));
+  const contratadas = Math.max(0, Math.round(input.contratadas ?? 0));
+  const executadas = Math.max(0, Math.round(input.executadas ?? 0));
   const validas = Math.min(contratadas, executadas);
   const extras = Math.max(0, executadas - contratadas);
   const pendencias = Math.max(0, contratadas - validas);

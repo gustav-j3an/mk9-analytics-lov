@@ -45,7 +45,7 @@ function LandingPage() {
             <ShieldCheck className="w-12 h-12 text-emerald-500" />
           </div>
           <h1 className="text-3xl font-black tracking-tighter uppercase italic">
-            SINCRONIA <span className="text-emerald-500">VALIDADA</span>
+            O Indústrias (PDF) agora utiliza diretamente a VISITA MENSAL da planilha como quantidade contratada por loja. KING Agosto/2026 totaliza 496 visitas contratadas em 134 lojas, sem proporcionalização pelo andamento da competência.
           </h1>
           <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">
             FONTE ÚNICA DE VERDADE ATIVADA (MK9 COMMAND CENTER)
