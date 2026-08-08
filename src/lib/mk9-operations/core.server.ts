@@ -92,22 +92,26 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   }
 
   // ---- indústrias e configurações de período --------------------------------
-  let indQuery = supabase.from("mk9_industries").select("id,name,requires_checklist,checklist_enabled_at").order("name", { ascending: true });
-  if (filters.industryId) indQuery = indQuery.eq("id", filters.industryId);
-  if (scopeIndustryIds) indQuery = indQuery.in("id", scopeIndustryIds);
+  // No longer needed: let indQuery = supabase.from("mk9_industries").select("id,name,requires_checklist,checklist_enabled_at").order("name", { ascending: true });
+  // No longer needed: if (filters.industryId) indQuery = indQuery.eq("id", filters.industryId);
+  // No longer needed: if (scopeIndustryIds) indQuery = indQuery.in("id", scopeIndustryIds);
+
 
   queryCount += 2;
-  const [indRes, cfgRes] = await Promise.all([
-    indQuery,
+  const [cfgRes, industriesList] = await Promise.all([
     supabase
+
       .from("mk9_industry_period_config")
       .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping, active")
       .eq("active", true),
+    mk9ListIndustries(),
   ]);
-  if (indRes.error) throw new Error(indRes.error.message);
   if (cfgRes.error) throw new Error(cfgRes.error.message);
 
-  const industries = (indRes.data ?? []) as Array<{ id: string; name: string; requires_checklist?: boolean; checklist_enabled_at?: string | null }>;
+  let industries = (industriesList ?? []) as any[];
+  if (filters.industryId) industries = industries.filter(i => i.id === filters.industryId);
+  if (scopeIndustryIds) industries = industries.filter(i => scopeIndustryIds!.includes(i.id));
+
   const cfgByIndustry = new Map<string, PeriodConfig>();
   for (const c of cfgRes.data ?? []) {
     cfgByIndustry.set(c.industry_id, {
@@ -154,8 +158,10 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   // Se uma consulta de visitas falhar, o dashboard ainda carrega o roteiro.
   queryCount += 5;
   const { listBulkOperationalActualVisits } = await import("./operational-visits.server");
+  const { mk9ListIndustries } = await import("@/lib/mk9-data.functions");
   
   const safeQuery = async (promise: Promise<any>, fallback: any = { data: [], error: null }) => {
+
     try {
       const res = await promise;
       if (res && res.error) {
@@ -179,7 +185,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       accessScope: access,
     }).catch(err => {
       console.error("[CORE_FREQ_ERROR]", err);
-      return new Map();
+      return new Map<string, any[]>();
     }),
     safeQuery(listBulkOperationalActualVisits({ 
       industryIds, 
@@ -210,6 +216,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       return q;
     })()),
   ]);
+
   
   // Normalizar bulkVisits
   const visitRes = Array.isArray(bulkVisits) ? { data: bulkVisits } : { data: (bulkVisits as any)?.data || [] };
