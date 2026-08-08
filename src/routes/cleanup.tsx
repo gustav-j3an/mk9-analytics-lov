@@ -1,4 +1,6 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { Mk9AnalyticsApp } from "@/components/mk9-analytics-app";
 import { createServerFn } from "@tanstack/react-start";
 
@@ -13,11 +15,37 @@ const checkAdmin = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const Route = createFileRoute("/cleanup")({
-  beforeLoad: async () => {
-    const isAdmin = await checkAdmin();
-    if (!isAdmin) {
-      throw redirect({ to: "/" });
-    }
-  },
-  component: () => <Mk9AnalyticsApp />,
+  ssr: false,
+  component: CleanupPage,
 });
+
+function CleanupPage() {
+  const { session, loading } = useMk9Session();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const verifyAccess = async () => {
+      if (!loading) {
+        if (!session) {
+          navigate({ to: "/", replace: true });
+          return;
+        }
+        const isAdmin = await checkAdmin();
+        if (!isAdmin) {
+          navigate({ to: "/", replace: true });
+        }
+      }
+    };
+    verifyAccess();
+  }, [loading, session, navigate]);
+
+  if (loading || !session) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#05050a]">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+      </div>
+    );
+  }
+
+  return <Mk9AnalyticsApp />;
+}
