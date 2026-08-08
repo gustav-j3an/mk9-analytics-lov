@@ -1,243 +1,185 @@
-import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { 
-  Plus, 
-  Search, 
-  UserCircle, 
-  MapPin,
-  Smartphone,
+import {
+  Users,
+  Search,
+  Plus,
+  MoreVertical,
   Edit2,
   Trash2,
-  Users,
+  ShieldAlert,
+  MapPin,
+  IdCard
 } from "lucide-react";
-
-import { PromoterDialog, PromoterDeleteDialog } from "./mk9/promoter-admin-dialogs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { mk9ListPromoters } from "@/lib/mk9-data.functions";
-import { useMk9Session } from "@/lib/mk9-auth/session";
+import {
+  PromoterDialog,
+  PromoterDeleteDialog,
+} from "@/components/mk9/promoter-admin-dialogs";
 import { 
+  Mk9Panel, 
   Mk9PageHeader, 
   Mk9MetricCard, 
-  Mk9Panel, 
+  Mk9LoadingState, 
+  Mk9EmptyState, 
   Mk9Badge 
-} from "./mk9/design-system";
-
+} from "@/components/mk9/design-system";
 
 export function Mk9PromotersModule() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editingPromoter, setEditingPromoter] = useState<any>(null);
-  const [statusFilter, setStatusFilter] = useState<"active" | "deleted">("active");
-
-  const queryClient = useQueryClient();
-  const session = useMk9Session();
-  const isAdmin = session.hasRole("ADMIN");
-
   const listFn = useServerFn(mk9ListPromoters);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ["mk9-promoters"],
+  const { data: promoters = [], isLoading } = useQuery({
+    queryKey: ["mk9-promoters-admin"],
     queryFn: () => listFn(),
   });
 
-  const filtered = (data ?? []).filter((p: any) => {
-    const isDeleted = Boolean(p.archived_at);
-    if (statusFilter === "active" && isDeleted) return false;
-    if (statusFilter === "deleted" && !isDeleted) return false;
+  const [search, setSearch] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const [editingPromoter, setEditingPromoter] = useState<any | null>(null);
+  const [deletingPromoter, setDeletingPromoter] = useState<any | null>(null);
 
-    const term = searchTerm.toLowerCase();
-    return (
-      p.name.toLowerCase().includes(term) ||
-      (p.employeeNumber?.toLowerCase().includes(term) ?? false) ||
-      (p.city?.toLowerCase().includes(term) ?? false) ||
-      (p.uf?.toLowerCase().includes(term) ?? false)
+  const filtered = useMemo(() => {
+    return promoters.filter((p: any) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.employeeNumber && p.employeeNumber.includes(search)) ||
+      (p.uf && p.uf.toLowerCase().includes(search.toLowerCase()))
     );
-  });
+  }, [promoters, search]);
+
+  const stats = useMemo(() => {
+    return {
+      total: promoters.length,
+      active: promoters.filter((p: any) => p.isActive).length,
+      ufs: new Set(promoters.map((p: any) => p.uf).filter(Boolean)).size,
+    };
+  }, [promoters]);
+
+  if (isLoading) return <Mk9LoadingState message="Carregando promotores..." />;
 
   return (
-    <div className="space-y-8 animate-fade-up">
+    <div className="space-y-6 animate-in fade-in duration-500">
       <Mk9PageHeader 
-        title="Gestão de Promotores" 
-        subtitle="Administração da equipe de campo e acessos"
+        title="Gestão de Promotores"
+        subtitle="Agentes de campo e execução operacional"
         icon={Users}
         actions={
-          isAdmin && (
-            <Button onClick={() => { setEditingPromoter(null); setDialogOpen(true); }} className="gap-2 bg-command-purple hover:bg-command-purple/90 text-white border-none shadow-lg shadow-purple-500/20">
-              <Plus className="h-4 w-4" />
-              Novo Promotor
-            </Button>
-          )
+          <Button 
+            onClick={() => setShowCreate(true)} 
+            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-black uppercase tracking-widest px-6 shadow-lg shadow-mk9-accent-primary/20 border-none"
+          >
+            <Plus className="h-4 w-4 mr-2" /> Novo Promotor
+          </Button>
         }
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Mk9MetricCard label="Total" value={data?.length ?? 0} color="blue" />
-        <Mk9MetricCard label="Ativos" value={data?.filter(p => !p.archivedAt).length ?? 0} color="emerald" />
-        <Mk9MetricCard label="UFs" value={new Set(data?.map(p => p.uf).filter(Boolean)).size} color="purple" />
-        <Mk9MetricCard label="Supervisores" value={new Set(data?.map(p => p.supervisorId).filter(Boolean)).size} color="amber" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Mk9MetricCard label="Total de Agentes" value={stats.total} icon={Users} color="orange" />
+        <Mk9MetricCard label="Em Atividade" value={stats.active} icon={IdCard} color="emerald" />
+        <Mk9MetricCard label="Abrangência (UF)" value={stats.ufs} icon={MapPin} color="purple" />
       </div>
 
       <Mk9Panel>
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <Tabs value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)} className="w-full md:w-auto">
-              <TabsList className="bg-command-deep border border-white/5 p-1">
-                <TabsTrigger value="active" className="data-[state=active]:bg-command-purple data-[state=active]:text-white uppercase text-[10px] font-black tracking-widest">Ativos</TabsTrigger>
-                <TabsTrigger value="deleted" className="data-[state=active]:bg-command-purple data-[state=active]:text-white uppercase text-[10px] font-black tracking-widest">Excluídos</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <div className="relative w-full md:max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-              <Input
-                placeholder="Buscar por nome, matrícula, cidade ou UF..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 bg-command-deep border-white/10 text-white"
-              />
-            </div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Input
+              placeholder="Buscar por nome, matrícula ou UF..."
+              className="pl-10 bg-white/[0.03] border-white/10 text-white placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/5 overflow-hidden">
-          <Table>
-            <TableHeader className="bg-white/5">
-              <TableRow className="hover:bg-transparent border-white/5">
-                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Promotor</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Matrícula</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">UF / Cidade</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">App / Dispositivo</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Status</TableHead>
-                {isAdmin && <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-500">Ações</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i} className="border-white/5">
-                    <TableCell><Skeleton className="h-5 w-48 bg-white/5" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-24 bg-white/5" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-32 bg-white/5" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-40 bg-white/5" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-20 bg-white/5" /></TableCell>
-                    {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto bg-white/5" /></TableCell>}
-                  </TableRow>
-                ))
-              ) : filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={isAdmin ? 6 : 5} className="h-32 text-center text-slate-500 italic">
-                    Nenhum promotor encontrado.
-                  </TableCell>
-                </TableRow>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                <th className="px-4 py-4 text-left font-black">Promotor</th>
+                <th className="px-4 py-4 text-left font-black">Matrícula</th>
+                <th className="px-4 py-4 text-left font-black">Localização</th>
+                <th className="px-4 py-4 text-left font-black">Status</th>
+                <th className="px-4 py-4 text-right font-black">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.02]">
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={5}>
+                    <Mk9EmptyState message="Nenhum promotor encontrado." />
+                  </td>
+                </tr>
               ) : (
                 filtered.map((p: any) => (
-                  <TableRow key={p.id} className="group transition-colors border-white/5 hover:bg-white/[0.02]">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                          <UserCircle className="h-4 w-4 text-emerald-400" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-white uppercase tracking-tight">{p.name}</div>
-                          <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest">ID: {p.id.slice(0, 8)}</div>
-                        </div>
+                  <tr key={p.id} className="group hover:bg-white/[0.02] transition-colors">
+                    <td className="px-4 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">{p.name}</span>
+                        {p.contact && <span className="text-[10px] text-slate-500 uppercase tracking-tight">{p.contact}</span>}
                       </div>
-                    </TableCell>
-                    <TableCell className="text-xs font-bold text-emerald-400 font-mono">
-                      {p.employeeNumber || "—"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
-                        <MapPin className="h-3.5 w-3.5 text-slate-500" />
-                        {p.uf || "—"} / {p.city || "—"}
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="text-xs font-mono text-slate-300">{p.employeeNumber || "—"}</span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="h-3 w-3 text-slate-500" />
+                        <span className="text-xs font-medium text-slate-300">{p.city} / {p.uf}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
-                        <Smartphone className="h-3.5 w-3.5 text-slate-500" />
-                        <span className="text-slate-600">v2.4.1</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {p.archivedAt ? (
-                        <Mk9Badge variant="danger">Excluído</Mk9Badge>
-                      ) : (
+                    </td>
+                    <td className="px-4 py-4">
+                      {p.isActive ? (
                         <Mk9Badge variant="success">Ativo</Mk9Badge>
+                      ) : (
+                        <Mk9Badge variant="danger">Inativo</Mk9Badge>
                       )}
-                    </TableCell>
-                    {isAdmin && (
-                      <TableCell className="text-right flex items-center justify-end gap-1">
-                        {!p.archivedAt ? (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10 text-slate-400 hover:text-white"
-                              onClick={() => {
-                                setEditingPromoter(p);
-                                setDialogOpen(true);
-                              }}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-500/10 text-rose-500"
-                              onClick={() => {
-                                setEditingPromoter(p);
-                                setDeleteDialogOpen(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        ) : (
-                          <div className="w-10" />
-                        )}
-                      </TableCell>
-                    )}
-                  </TableRow>
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-command-deep border-white/10 text-white">
+                          <DropdownMenuItem onClick={() => setEditingPromoter(p)} className="gap-2 cursor-pointer hover:bg-white/5">
+                            <Edit2 className="h-3.5 w-3.5" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setDeletingPromoter(p)} className="gap-2 cursor-pointer text-rose-400 hover:bg-rose-400/10 focus:bg-rose-400/10">
+                            <Trash2 className="h-3.5 w-3.5" /> Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
                 ))
               )}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
         </div>
       </Mk9Panel>
 
-
       <PromoterDialog 
-        open={dialogOpen} 
-        promoter={editingPromoter} 
+        open={showCreate || !!editingPromoter} 
         onClose={() => {
-          setDialogOpen(false);
+          setShowCreate(false);
           setEditingPromoter(null);
         }} 
-      />
-
-      <PromoterDeleteDialog
-        open={deleteDialogOpen}
         promoter={editingPromoter}
-        onClose={() => {
-          setDeleteDialogOpen(false);
-          setEditingPromoter(null);
-        }}
+      />
+      
+      <PromoterDeleteDialog 
+        open={!!deletingPromoter} 
+        onClose={() => setDeletingPromoter(null)} 
+        promoter={deletingPromoter}
       />
     </div>
   );
