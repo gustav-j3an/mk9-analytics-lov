@@ -409,3 +409,52 @@ export async function upsertIndustryStoreFrequencies(
   };
 }
 
+export async function persistImportSnapshot(
+  importId: string,
+  industryId: string,
+  rows: Array<{
+    storeId: string;
+    storeName: string;
+    uf: string | null;
+    weeklyFrequency: number | null;
+    monthlyFrequency: number | null;
+  }>
+) {
+  if (!rows.length) return;
+
+  const payload = rows.map((r) => ({
+    import_id: importId,
+    industry_id: industryId,
+    store_id: r.storeId,
+    source_store_name: r.storeName,
+    uf: r.uf,
+    weekly_frequency: r.weeklyFrequency,
+    monthly_frequency: r.monthlyFrequency,
+  }));
+
+  const CHUNK = 500;
+  for (let i = 0; i < payload.length; i += CHUNK) {
+    const slice = payload.slice(i, i + CHUNK);
+    const { error } = await (supabaseAdmin
+      .from("mk9_checklist_import_store_snapshots" as any) as any)
+      .upsert(slice as any);
+    if (error) throw new Error(error.message);
+  }
+}
+
+export async function loadImportSnapshot(importId: string): Promise<any[]> {
+  try {
+    const { data, error } = await (supabaseAdmin
+      .from("mk9_checklist_import_store_snapshots" as any) as any)
+      .select("store_id, source_store_name, uf, weekly_frequency, monthly_frequency")
+      .eq("import_id" as any, importId);
+    if (error) return [];
+    return data || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+
+
+

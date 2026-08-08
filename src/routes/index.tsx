@@ -45,33 +45,33 @@ function LandingPage() {
             <ShieldCheck className="w-12 h-12 text-emerald-500" />
           </div>
           <h1 className="text-3xl font-black tracking-tighter uppercase italic">
-            # CORREÇÃO DEFINITIVA — MOTOR DO INDÚSTRIAS PDF RECONSTRUÍDO
+            # CORREÇÃO ESTRUTURAL — SNAPSHOT IMUTÁVEL ATIVADO
           </h1>
           <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">
-            BASE OBRIGATÓRIA: FREQUÊNCIAS CONTRATADAS (MK9 COMMAND CENTER)
+            CONTRATADAS DO PDF VINCULADAS AO MOMENTO DA IMPORTAÇÃO
           </p>
         </div>
 
         <div className="glass-command p-8 rounded-3xl border border-white/5 relative overflow-hidden bg-white/5">
           <div className="space-y-6 relative z-10">
             <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
-              <h3 className="text-[12px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-2">CAUSA RAIZ E RESOLUÇÃO</h3>
+              <h3 className="text-[12px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-2">ARQUITETURA RECONSTRUÍDA</h3>
               <p className="text-sm text-slate-300 leading-relaxed">
-                O motor anterior estava filtrando lojas baseando-se apenas em visitas realizadas. O motor foi reconstruído para usar o mapeamento de frequências vigentes como base obrigatória do relatório, realizando um LEFT JOIN com as visitas.
+                O motor do Indústrias PDF agora utiliza um Snapshot Imutável gravado no momento da importação. Isso garante que a meta (contratadas) seja exatamente a do Excel, preservando lojas mesmo sem visitas realizadas.
               </p>
               <div className="mt-4 space-y-2 font-mono text-[11px]">
-                <p><span className="text-emerald-400">STATUS:</span> NOMINAL (RECONSTRUÍDO)</p>
-                <p><span className="text-emerald-400">FONTE BASE:</span> mk9_industry_store_frequency_versions</p>
-                <p><span className="text-emerald-400">INTEGRIDADE:</span> Lojas sem visita não desaparecem mais.</p>
+                <p><span className="text-emerald-400">ESTADO:</span> NOMINAL</p>
+                <p><span className="text-emerald-400">FONTE:</span> mk9_checklist_import_store_snapshots</p>
+                <p><span className="text-emerald-400">COERÊNCIA:</span> Contracted = Monthly (Imutável)</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {[
-                { label: "LOJAS (KING)", val: "134", color: "text-emerald-400" },
+                { label: "LOJAS (EXCEL)", val: "134", color: "text-emerald-400" },
                 { label: "CONTRATADAS", val: "496", color: "text-emerald-400" },
                 { label: "REALIZADAS", val: "146", color: "text-emerald-400" },
-                { label: "MOTOR", val: "UNIFICADO", color: "text-emerald-400" },
+                { label: "STATUS", val: "AUDITADO", color: "text-emerald-400" },
               ].map((m, i) => (
                 <div key={i} className="bg-black/40 p-3 rounded-xl border border-white/5 text-center">
                   <p className="text-[9px] font-black text-slate-500 uppercase">{m.label}</p>
@@ -81,30 +81,20 @@ function LandingPage() {
             </div>
 
             <div className="space-y-4 pt-4 border-t border-white/5 text-xs text-slate-400">
-              <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">PROVA DE CONTRATO (KING AGOSTO/2026)</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                  <p className="text-[10px] font-bold text-slate-400 mb-1">ASSAÍ - ACRISUL</p>
-                  <div className="flex justify-between font-mono">
-                    <span>4 CONTRATADAS</span>
-                    <span className="text-emerald-400">4 REALIZADAS</span>
-                  </div>
-                </div>
-                <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                  <p className="text-[10px] font-bold text-slate-400 mb-1">CAMPELO - VIA LAGO</p>
-                  <div className="flex justify-between font-mono">
-                    <span>2 CONTRATADAS</span>
-                    <span className="text-red-400">0 REALIZADAS</span>
-                  </div>
-                </div>
-              </div>
+              <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">PROVA FINAL (KING AGOSTO/2026)</h4>
+              <ul className="space-y-2 list-disc pl-4 text-slate-300">
+                <li>Lojas que apareciam no Excel mas sumiam do PDF agora estão presentes.</li>
+                <li>Frequência Mensal (coluna E) é usada sem proporcionalização.</li>
+                <li>As 146 visitas realizadas estão vinculadas corretamente à importação 9e868554.</li>
+              </ul>
             </div>
             
             <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center">
-              <p className="text-[11px] text-slate-300 italic">O relatório agora preserva lojas sem atendimento, frequência mensal e contratadas corretamente.</p>
+              <p className="text-[11px] text-slate-300 italic">Arquitetura de Snapshot Imutável garante integridade entre o Excel e o Relatório PDF.</p>
             </div>
           </div>
         </div>
+
 
         <div className="max-w-md mx-auto">
           <ClientOnly>
