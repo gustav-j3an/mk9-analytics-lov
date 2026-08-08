@@ -234,7 +234,22 @@ export function Mk9AnalyticsDashboard() {
         </div>
       </div>
 
+      {/* Top 3 Prioridades Críticas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {topPriorities.slice(0, 3).map((p) => (
+          <div key={`${p.storeId}-${p.industryName}`} className="glass-command p-4 rounded-2xl border border-rose-500/20 bg-rose-500/5 flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-2">
+              <Mk9Badge variant="danger" className="text-[8px]">PRIORIDADE {p.score}</Mk9Badge>
+              <AlertTriangle className="h-4 w-4 text-rose-500" />
+            </div>
+            <span className="text-xs font-black text-white uppercase tracking-tighter truncate">{p.storeName}</span>
+            <span className="text-[9px] font-bold text-slate-500 uppercase mt-1">{p.reason}</span>
+          </div>
+        ))}
+      </div>
+
       {/* Main KPIs Row */}
+
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         <AnalyticsMetricCard 
           label="Visitas Contratadas" 
