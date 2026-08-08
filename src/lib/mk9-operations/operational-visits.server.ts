@@ -38,7 +38,7 @@ export const getOperationalVisits = async (params: {
   // 2. Query de visitas
   let query = supabaseAdmin
     .from("mk9_actual_visits")
-    .select("id, scheduled_date, store_id, source_import_id, store:mk9_stores(id,name,chain,uf)")
+    .select("id, industry_id, scheduled_date, store_id, source_import_id, store:mk9_stores(id,name,chain,uf)")
     .eq("industry_id", industryId)
     .gte("scheduled_date", startDate)
     .lte("scheduled_date", endDate);
