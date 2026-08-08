@@ -49,7 +49,12 @@ export const getOperationalVisits = async (params: {
 
   if (activeImportIds.length > 0) {
     // Regra: source_import_id é NULL OR source_import_id IN (activeIds)
-    query = query.or(`source_import_id.is.null,source_import_id.in.(${activeImportIds.map(id => `"${id}"`).join(",")})`);
+    if (sourceImportId) {
+      query = query.eq("source_import_id", sourceImportId);
+    } else {
+      query = query.or(`source_import_id.is.null,source_import_id.in.(${activeImportIds.map(id => `"${id}"`).join(",")})`);
+    }
+
   } else {
     // Se não há importações vigentes e nenhuma específica foi pedida, apenas as manuais
     query = query.is("source_import_id", null);

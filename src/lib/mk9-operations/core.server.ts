@@ -100,19 +100,23 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
 
 
   queryCount += 2;
-  const [cfgRes, industriesList] = await Promise.all([
-    supabase
+  const cfgRes = await supabase
+    .from("mk9_industry_period_config")
+    .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping, active")
+    .eq("active", true);
 
-      .from("mk9_industry_period_config")
-      .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping, active")
-      .eq("active", true),
-    mk9ListIndustries(),
-  ]);
+  const industriesList = await supabase
+    .from("mk9_industries")
+    .select("id, name, requires_checklist, checklist_enabled_at")
+    .order("name", { ascending: true });
+
+
   if (cfgRes.error) throw new Error(cfgRes.error.message);
 
-  let industries = (industriesList ?? []) as any[];
+  let industries = (industriesList.data ?? []) as any[];
   if (filters.industryId) industries = industries.filter(i => i.id === filters.industryId);
   if (scopeIndustryIds) industries = industries.filter(i => scopeIndustryIds!.includes(i.id));
+
 
   const cfgByIndustry = new Map<string, PeriodConfig>();
   for (const c of cfgRes.data ?? []) {
