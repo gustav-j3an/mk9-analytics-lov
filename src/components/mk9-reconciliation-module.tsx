@@ -1077,7 +1077,7 @@ function StoreLinkDialog({
   const [uf, setUf] = useState<string>(row.raw_store_uf ?? "__ALL__");
   const [selected, setSelected] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
-  const dq = useDebounced(q, 300);
+  const dq = useDebouncedValue(q, 300);
 
   const storesQ = useQuery({
     queryKey: ["mk9-reco", "store-search", dq, uf],
