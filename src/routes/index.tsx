@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import { Loader2, Zap, BarChart3, Shield, Cpu, Activity, Info } from "lucide-react";

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { Mk9AnalyticsApp } from "@/components/mk9-analytics-app";
 import { createServerFn } from "@tanstack/react-start";
+import { useMk9Session } from "@/lib/mk9-auth/session";
 
 const checkAdmin = createServerFn({ method: "GET" }).handler(async () => {
   const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
