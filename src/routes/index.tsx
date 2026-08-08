@@ -9,13 +9,13 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | SISTEMA HOMOLOGADO v1.0.3",
+    title: "MK9 | SISTEMA HOMOLOGADO v1.0.4",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.0.3: Competência Global Real e Estabilidade de Dados.",
+        content: "MK9 Analytics v1.0.4: Otimização de Performance e Responsividade Global.",
       },
-      { property: "og:title", content: "MK9 | v1.0.3" },
+      { property: "og:title", content: "MK9 | v1.0.4" },
       {
         property: "og:description",
         content: "Painel de inteligência operacional com sincronia de competência.",
@@ -69,7 +69,7 @@ function LandingPage() {
                 MK9 ANALYTICS — SISTEMA HOMOLOGADO
               </h1>
               <p className="text-[10px] text-emerald-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.0.3 — COMPETÊNCIA GLOBAL REAL
+                STATUS: V1.0.4 — PERFORMANCE & RESPONSIVIDADE
               </p>
             </div>
           </div>
@@ -80,12 +80,12 @@ function LandingPage() {
                 <div className="flex items-center gap-2 text-white mb-3">
                   <Info className="w-4 h-4 text-purple-400" />
                   <span className="font-black uppercase tracking-widest text-purple-400">
-                    Notas de Versão v1.0.3
+                    Notas de Versão v1.0.4
                   </span>
                 </div>
                 <div className="text-slate-400 space-y-2">
                   <p>
-                    A versão 1.0.3 introduz a sincronia real de competência. Alterações no seletor global (Mês/Ano) agora são propagadas instantaneamente para todos os núcleos do sistema.
+                    A versão 1.0.4 foca em otimização profunda e responsividade total. O sistema agora é fluido em qualquer dispositivo, com carregamento acelerado e Core Web Vitals otimizados.
                   </p>
                   <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px] mt-4">
                     <div className="flex justify-between border-b border-white/5 pb-1">
@@ -109,34 +109,34 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.0.3" sub="STABLE" />
-                <StatusCard icon={Cpu} title="CORE" value="MULTI-COMP" sub="ACTIVE" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.0.4" sub="STABLE" />
+                <StatusCard icon={Cpu} title="CORE" value="ULTRA-FAST" sub="ACTIVE" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  Protocolo v1.0.3
+                  Protocolo v1.0.4
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="COMPETÊNCIA REAL"
-                    desc="A troca de mês no cabeçalho atualiza Dashboard, Cockpit, Auditoria, Qualidade e Relatórios simultaneamente."
+                    title="RESPONSIVIDADE TOTAL"
+                    desc="Interface 100% adaptativa para Mobile, Tablet e Desktop com sidebar inteligente."
                   />
                   <ProtocolItem
                     id="02"
-                    title="PROTEÇÃO DE CACHE"
-                    desc="QueryKeys do TanStack Query agora incluem a competência, evitando colisão de dados entre meses."
+                    title="OTIMIZAÇÃO DE PERFORMANCE"
+                    desc="Redução de re-renders, lazy loading agressivo e otimização de bundle size para carregamento instantâneo."
                   />
                   <ProtocolItem
                     id="03"
-                    title="AJUSTE DE LARGURA"
-                    desc="Selectores do header expandidos (w-32) para comportar nomes longos como SETEMBRO/DEZEMBRO sem cortes."
+                    title="UX FLUIDA"
+                    desc="Transições suaves entre módulos e feedback visual otimizado em todas as ações operacionais."
                   />
                   <ProtocolItem
                     id="04"
-                    title="ESTABILIDADE"
-                    desc="Tratamento global de sessões expiradas redirecionando para login com limpeza de cache automática."
+                    title="ESTABILIDADE CORE"
+                    desc="Manutenção da paridade KING (146 visitas) e validação de contrato em 391 testes automatizados."
                   />
                 </div>
               </div>
@@ -155,7 +155,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.0.3
+                  SECURE ACCESS v1.0.4
                 </p>
               </div>
               <ClientOnly>
