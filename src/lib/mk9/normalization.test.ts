@@ -12,9 +12,9 @@ describe("formatPercentage", () => {
 
   it("should handle null or undefined or NaN", () => {
     // @ts-ignore
-    expect(formatPercentage(null)).toBe("0%");
+    expect(formatPercentage(null)).toBe("—");
     // @ts-ignore
-    expect(formatPercentage(undefined)).toBe("0%");
-    expect(formatPercentage(NaN)).toBe("0%");
+    expect(formatPercentage(undefined)).toBe("—");
+    expect(formatPercentage(NaN)).toBe("—");
   });
 });
