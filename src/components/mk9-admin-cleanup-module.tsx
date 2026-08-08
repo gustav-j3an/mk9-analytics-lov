@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -64,6 +64,14 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
   const [industryId, setIndustryId] = useState("");
   const [month, setMonth] = useState(props.month);
   const [year, setYear] = useState(props.year);
+
+  useEffect(() => {
+    setMonth(props.month);
+  }, [props.month]);
+
+  useEffect(() => {
+    setYear(props.year);
+  }, [props.year]);
   const [justification, setJustification] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selections, setSelections] = useState({
@@ -159,7 +167,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
               Competência (Mês)
             </label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white">
+              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white uppercase px-3 gap-2 shrink-0 min-w-[130px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10">
