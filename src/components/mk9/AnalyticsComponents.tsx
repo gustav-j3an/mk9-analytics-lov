@@ -9,10 +9,12 @@ interface AnalyticsMetricCardProps {
   icon?: LucideIcon;
   color?: "purple" | "blue" | "emerald" | "amber" | "rose" | "cyan";
   comparison?: {
-    value: number;
+    value: number | string;
     label: string;
     trend: "up" | "down" | "neutral";
+    percentChange?: number;
   };
+
   onClick?: () => void;
   className?: string;
 }
