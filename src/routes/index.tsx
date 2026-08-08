@@ -56,11 +56,11 @@ function LandingPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 ANALYTICS — HOTFIX v1.0.1
+                MK9 ANALYTICS — HOTFIX v1.0.1 (OK)
               </h1>
 
-              <p className="text-[10px] text-rose-500 font-black tracking-[0.3em] uppercase">
-                PATCH: PROTEÇÃO CONTRA CRASH EM riskStatus
+              <p className="text-[10px] text-emerald-500 font-black tracking-[0.3em] uppercase">
+                PATCH: riskStatus RESOLVIDO (DEPLOY CONFIRMADO)
               </p>
             </div>
           </div>

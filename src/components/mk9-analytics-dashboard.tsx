@@ -120,13 +120,13 @@ export function Mk9AnalyticsDashboard() {
   const { executive, industries, ufs, frequencies, matrix, projection: rawProjection, topPriorities, lastUpdate } =
     data;
 
-  // HOTFIX v1.0.1: Guard against missing projection data
-  const projection = rawProjection || {
-    realized: 0,
-    projected: 0,
-    contracted: 0,
-    riskStatus: "LOW",
-    daysRemaining: 0,
+  // HOTFIX v1.0.1: Guard against missing projection data or missing fields
+  const projection = {
+    realized: rawProjection?.realized ?? 0,
+    projected: rawProjection?.projected ?? 0,
+    contracted: rawProjection?.contracted ?? 0,
+    riskStatus: rawProjection?.riskStatus ?? ("N/D" as any),
+    daysRemaining: rawProjection?.daysRemaining ?? 0,
   };
 
   return (
