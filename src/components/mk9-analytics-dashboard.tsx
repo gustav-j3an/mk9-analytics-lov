@@ -806,7 +806,7 @@ export function Mk9AnalyticsDashboard() {
               <div className="flex-1 h-1 bg-white/5 rounded-full min-w-[60px] hidden md:block">
                 <div
                   className="h-full bg-command-purple rounded-full"
-                  style={{ width: `${formatPercentage(u.coverage)}` }}
+                  style={{ width: `${u.coverage}%` }}
                 />
               </div>
             </div>,
@@ -818,7 +818,8 @@ export function Mk9AnalyticsDashboard() {
               )}
             >
               {u.variationVsPrevious > 0 ? "+" : ""}
-              {u.variationVsPrevious.toFixed(1)}
+              {formatPercentage(u.variationVsPrevious)}
+
             </span>,
             <Mk9Badge variant={u.zeroVisits > 0 ? "danger" : "default"} key={u.uf}>
               {u.zeroVisits} LOJAS
