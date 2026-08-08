@@ -332,6 +332,11 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
     out.warnings.push(
       `Divergência de checksum: a coluna REALIZADO soma ${out.realizadoSum}, mas foram identificadas ${out.marks.length} marcações "✅" na planilha. Usando as ${out.marks.length} marcações reais para processamento.`,
     );
+  } else if (out.realizadoSum === 0 && out.marks.length > 0) {
+    // Caso a coluna REALIZADO esteja vazia mas existam marcações
+    out.warnings.push(
+      `Coluna REALIZADO zerada ou ausente, mas foram identificadas ${out.marks.length} marcações "✅" na planilha.`,
+    );
   }
 
   debug("parser-complete", "Parser de checklist finalizado", {

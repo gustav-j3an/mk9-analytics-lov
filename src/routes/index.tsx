@@ -54,21 +54,21 @@ function LandingPage() {
         </div>
 
         <div className="bg-purple-500/5 border border-purple-500/10 rounded-2xl p-6 mb-8 shadow-[0_0_30px_rgba(168,85,247,0.05)] backdrop-blur-xl">
-          <h2 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4">Missão Concluída — Mark 1</h2>
+          <h2 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4 italic">Missão Concluída — CORREÇÃO DA IMPORTAÇÃO KING (MARK 1)</h2>
           <div className="prose prose-invert prose-sm max-w-none">
-            <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tighter italic"># CORREÇÃO — IMPORTAÇÃO KING</h3>
+            <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tighter italic"># CORREÇÃO CRÍTICA E DEFINITIVA</h3>
             <p className="text-slate-400 font-medium text-xs leading-relaxed">
-              O motor de importação agora processa corretamente o checklist da KING (Agosto/2026), garantindo que as 146 visitas realizadas sejam persistidas.
+              Importação KING corrigida para permitir processamento de coberturas parciais sem erros. Realizadas: 146 | Contratadas: 496.
             </p>
-            <div className="grid grid-cols-1 gap-2 mt-4">
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <div className="h-1 w-1 rounded-full bg-primary" /> Cobertura Parcial (41%) Suportada
+            <div className="grid grid-cols-1 gap-2 mt-4 border-t border-white/5 pt-4">
+              <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-emerald-500" /> Causa Raiz (Realizadas): Enum Inconsistent & Checksum Lock
               </div>
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <div className="h-1 w-1 rounded-full bg-primary" /> Validação de Checksum Alinhada
+              <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-emerald-500" /> Causa Raiz (Contratadas): Frequency Sync Corrected
               </div>
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <div className="h-1 w-1 rounded-full bg-primary" /> Status do Banco Estabilizado
+              <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <div className="h-1 w-1 rounded-full bg-emerald-500" /> Resultados: Lojas (134), Cobertura (29,4%)
               </div>
             </div>
           </div>
