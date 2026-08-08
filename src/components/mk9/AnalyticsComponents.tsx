@@ -55,7 +55,7 @@ export function AnalyticsMetricCard({
             {label}
           </p>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-3xl font-black text-white tracking-tighter italic">{value}</h3>
+            <h3 className="text-2xl md:text-3xl font-black text-white tracking-tighter italic">{value}</h3>
           </div>
           {hint && (
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-1">
@@ -159,7 +159,7 @@ export function AnalyticsTable({
   className?: string;
 }) {
   return (
-    <div className={cn("overflow-x-auto", className)}>
+    <div className={cn("overflow-x-auto custom-scrollbar-horizontal", className)}>
       <table className="w-full text-left border-separate border-spacing-y-2">
         <thead>
           <tr>
