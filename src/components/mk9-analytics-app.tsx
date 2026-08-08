@@ -8,7 +8,7 @@ import { Mk9QualityModule } from "@/components/mk9-quality-module";
 import { Gauge, Settings2 } from "lucide-react";
 import { Mk9CockpitModule } from "@/components/mk9-cockpit-module";
 import type { ResolvedNavigation } from "@/lib/mk9-quality/evidence-view";
-import { Mk9DashboardModule } from "@/components/mk9-dashboard-module";
+import { Mk9AnalyticsDashboard } from "@/components/mk9-analytics-dashboard";
 import { Mk9RoutesModule } from "@/components/mk9-routes-module";
 import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
 import { Mk9UsersModule } from "@/components/mk9-users-module";
@@ -304,7 +304,7 @@ export function Mk9AnalyticsApp() {
 
         <section className="flex-1 overflow-y-auto custom-scrollbar relative">
           <div className="p-8">
-            {activeModule === "dashboard" && <Mk9DashboardModule />}
+            {activeModule === "dashboard" && <Mk9AnalyticsDashboard />}
             {activeModule === "cockpit" && <Mk9CockpitModule />}
             {activeModule === "importacoes" && (
               <Mk9ImportModule onSwitchToChecklists={() => setActiveModule("checklists")} />
