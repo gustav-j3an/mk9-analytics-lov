@@ -217,8 +217,8 @@ export async function buildIndustryReport(
   if (ePl) throw new Error(ePl.message);
 
   // 4) Visitas realizadas no período (checklist) - Fonte Única Operacional
-  const { getOperationalVisits } = await import("@/lib/mk9-operations/operational-visits.server");
-  const actuals = await getOperationalVisits({
+  const { listOperationalActualVisits } = await import("@/lib/mk9-operations/operational-visits.server");
+  const actuals = await listOperationalActualVisits({
     industryId,
     startDate: window.startDate,
     endDate: window.endDate,
