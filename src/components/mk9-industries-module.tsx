@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Factory,
@@ -25,6 +25,8 @@ import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 import {
   IndustryCreateDialog,
   IndustryEditDialog,
+  IndustryArchiveDialog,
+  IndustryReactivateDialog,
 } from "@/components/mk9/industry-admin-dialogs";
 import { 
   Mk9Panel, 
@@ -45,6 +47,8 @@ export function Mk9IndustriesModule() {
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [editingIndustry, setEditingIndustry] = useState<any | null>(null);
+  const [archivingIndustry, setArchivingIndustry] = useState<any | null>(null);
+  const [reactivatingIndustry, setReactivatingIndustry] = useState<any | null>(null);
 
   const filtered = useMemo(() => {
     return industries.filter((i: any) =>
@@ -158,9 +162,15 @@ export function Mk9IndustriesModule() {
                           <DropdownMenuItem onClick={() => setEditingIndustry(i)} className="gap-2 cursor-pointer hover:bg-white/5">
                             <Edit2 className="h-3.5 w-3.5" /> Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer text-rose-400 hover:bg-rose-400/10 focus:bg-rose-400/10">
-                            <Trash2 className="h-3.5 w-3.5" /> Arquivar
-                          </DropdownMenuItem>
+                          {i.archivedAt ? (
+                            <DropdownMenuItem onClick={() => setReactivatingIndustry(i)} className="gap-2 cursor-pointer text-emerald-400 hover:bg-emerald-400/10 focus:bg-emerald-400/10">
+                              <ShieldCheck className="h-3.5 w-3.5" /> Reativar
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onClick={() => setArchivingIndustry(i)} className="gap-2 cursor-pointer text-rose-400 hover:bg-rose-400/10 focus:bg-rose-400/10">
+                              <Trash2 className="h-3.5 w-3.5" /> Arquivar
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
@@ -176,6 +186,14 @@ export function Mk9IndustriesModule() {
       <IndustryEditDialog
         industry={editingIndustry}
         onClose={() => setEditingIndustry(null)}
+      />
+      <IndustryArchiveDialog
+        industry={archivingIndustry}
+        onClose={() => setArchivingIndustry(null)}
+      />
+      <IndustryReactivateDialog
+        industry={reactivatingIndustry}
+        onClose={() => setReactivatingIndustry(null)}
       />
     </div>
   );
