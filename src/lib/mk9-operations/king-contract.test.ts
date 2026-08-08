@@ -15,17 +15,13 @@ describe('Contrato de Frequência KING (Agosto/2026)', () => {
       monthlyFrequency: 4
     }];
 
-    // Teste 1.1: Período completo
     const res = contractedVisitsForFrequencySegments({
       segments,
       operationPeriodStart: window.startDate,
       operationPeriodEnd: window.endDate
     });
-    expect(res.contratadas).toBe(4);
-
-    // Teste 1.2: Meta até hoje (08/08) - O PDF deve mostrar o contrato MENSAL
-    // Independentemente do "expectedToDate", o "contratadas" do relatório por loja
-    // deve ser o valor total do período se a vigência for total.
+    // O valor raw deve ser 4 agora
+    expect(res.raw).toBe(4);
     expect(res.contratadas).toBe(4);
   });
 
@@ -41,6 +37,7 @@ describe('Contrato de Frequência KING (Agosto/2026)', () => {
       operationPeriodStart: window.startDate,
       operationPeriodEnd: window.endDate
     });
+    expect(res.raw).toBe(8);
     expect(res.contratadas).toBe(8);
   });
 
@@ -56,6 +53,7 @@ describe('Contrato de Frequência KING (Agosto/2026)', () => {
       operationPeriodStart: window.startDate,
       operationPeriodEnd: window.endDate
     });
+    expect(res.raw).toBe(2);
     expect(res.contratadas).toBe(2);
   });
 });
