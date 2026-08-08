@@ -50,12 +50,25 @@ export interface BuildPlanInput {
 }
 
 const emptyCounters = (): PreviewCounters => ({
-  industriesCreated: 0, industriesUpdated: 0,
-  storesCreated: 0, storesUpdated: 0,
-  promotersCreated: 0, promotersUpdated: 0,
-  routesCreated: 0, routesUpdated: 0, routesKept: 0, routesRemoved: 0,
-  visitsCreated: 0, visitsUpdated: 0, visitsKept: 0, visitsRemoved: 0, visitsPreserved: 0,
-  duplicates: 0, invalid: 0, ambiguous: 0, conflicts: 0,
+  industriesCreated: 0,
+  industriesUpdated: 0,
+  storesCreated: 0,
+  storesUpdated: 0,
+  promotersCreated: 0,
+  promotersUpdated: 0,
+  routesCreated: 0,
+  routesUpdated: 0,
+  routesKept: 0,
+  routesRemoved: 0,
+  visitsCreated: 0,
+  visitsUpdated: 0,
+  visitsKept: 0,
+  visitsRemoved: 0,
+  visitsPreserved: 0,
+  duplicates: 0,
+  invalid: 0,
+  ambiguous: 0,
+  conflicts: 0,
 });
 
 export function buildSyncPlan(input: BuildPlanInput): SyncPlan {
@@ -96,10 +109,22 @@ export function buildSyncPlan(input: BuildPlanInput): SyncPlan {
     industriesOut.push(record);
     if (existing) {
       counters.industriesUpdated++;
-      items.push({ sheet: p.sourceSheet, excelRow: p.excelRow, entityType: "industry", action: "update", payload: record as unknown as Record<string, unknown> });
+      items.push({
+        sheet: p.sourceSheet,
+        excelRow: p.excelRow,
+        entityType: "industry",
+        action: "update",
+        payload: record as unknown as Record<string, unknown>,
+      });
     } else {
       counters.industriesCreated++;
-      items.push({ sheet: p.sourceSheet, excelRow: p.excelRow, entityType: "industry", action: "create", payload: record as unknown as Record<string, unknown> });
+      items.push({
+        sheet: p.sourceSheet,
+        excelRow: p.excelRow,
+        entityType: "industry",
+        action: "create",
+        payload: record as unknown as Record<string, unknown>,
+      });
     }
   }
 
@@ -118,17 +143,31 @@ export function buildSyncPlan(input: BuildPlanInput): SyncPlan {
     storesOut.push(record);
     if (existing) {
       counters.storesUpdated++;
-      items.push({ sheet: p.sourceSheet, excelRow: p.excelRow, entityType: "store", action: "update", payload: record as unknown as Record<string, unknown> });
+      items.push({
+        sheet: p.sourceSheet,
+        excelRow: p.excelRow,
+        entityType: "store",
+        action: "update",
+        payload: record as unknown as Record<string, unknown>,
+      });
     } else {
       counters.storesCreated++;
-      items.push({ sheet: p.sourceSheet, excelRow: p.excelRow, entityType: "store", action: "create", payload: record as unknown as Record<string, unknown> });
+      items.push({
+        sheet: p.sourceSheet,
+        excelRow: p.excelRow,
+        entityType: "store",
+        action: "create",
+        payload: record as unknown as Record<string, unknown>,
+      });
     }
   }
 
   // ---- PROMOTORES ----
   for (const p of parsed.promoters) {
     // preferir external id
-    let existing = p.externalId ? snapshot.promoters.find((x) => x.externalId === p.externalId) : undefined;
+    let existing = p.externalId
+      ? snapshot.promoters.find((x) => x.externalId === p.externalId)
+      : undefined;
     if (!existing) existing = promoterMap.get(p.nameNormalized);
     const record: PromoterRecord = {
       id: existing?.id,
@@ -144,10 +183,22 @@ export function buildSyncPlan(input: BuildPlanInput): SyncPlan {
     promotersOut.push(record);
     if (existing) {
       counters.promotersUpdated++;
-      items.push({ sheet: p.sourceSheet, excelRow: p.excelRow, entityType: "promoter", action: "update", payload: record as unknown as Record<string, unknown> });
+      items.push({
+        sheet: p.sourceSheet,
+        excelRow: p.excelRow,
+        entityType: "promoter",
+        action: "update",
+        payload: record as unknown as Record<string, unknown>,
+      });
     } else {
       counters.promotersCreated++;
-      items.push({ sheet: p.sourceSheet, excelRow: p.excelRow, entityType: "promoter", action: "create", payload: record as unknown as Record<string, unknown> });
+      items.push({
+        sheet: p.sourceSheet,
+        excelRow: p.excelRow,
+        entityType: "promoter",
+        action: "create",
+        payload: record as unknown as Record<string, unknown>,
+      });
     }
   }
 
@@ -170,9 +221,22 @@ export function buildSyncPlan(input: BuildPlanInput): SyncPlan {
       if (!line.weekdays.length) continue;
 
       // resolve indústria
-      const iRes = resolveIndustry(line.industryName, industriesOut.length ? industriesOut : Array.from(industryMap.values()));
-      const sRes = resolveStore(line.storeName, line.uf ?? null, null, storesOut.length ? storesOut : Array.from(storeMap.values()));
-      const pRes = resolvePromoter(line.promoterName, null, null, promotersOut.length ? promotersOut : Array.from(promoterMap.values()));
+      const iRes = resolveIndustry(
+        line.industryName,
+        industriesOut.length ? industriesOut : Array.from(industryMap.values()),
+      );
+      const sRes = resolveStore(
+        line.storeName,
+        line.uf ?? null,
+        null,
+        storesOut.length ? storesOut : Array.from(storeMap.values()),
+      );
+      const pRes = resolvePromoter(
+        line.promoterName,
+        null,
+        null,
+        promotersOut.length ? promotersOut : Array.from(promoterMap.values()),
+      );
 
       // criar automaticamente entidades ausentes (se houver nome)
       let industry = iRes.match;
@@ -189,19 +253,35 @@ export function buildSyncPlan(input: BuildPlanInput): SyncPlan {
         industryMap.set(industry.nameNormalized, industry);
         industriesOut.push(industry);
         counters.industriesCreated++;
-        items.push({ sheet: line.sourceSheet, excelRow: line.excelRow, entityType: "industry", action: "create", payload: industry as unknown as Record<string, unknown>, warnings: ["Criado a partir do roteiro"] });
+        items.push({
+          sheet: line.sourceSheet,
+          excelRow: line.excelRow,
+          entityType: "industry",
+          action: "create",
+          payload: industry as unknown as Record<string, unknown>,
+          warnings: ["Criado a partir do roteiro"],
+        });
       }
 
       let store = sRes.match;
       if (!store && !sRes.ambiguous && line.storeName) {
         store = {
-          chain: null, name: line.storeName,
-          nameNormalized: line.storeNormalized, uf: line.uf ?? null,
+          chain: null,
+          name: line.storeName,
+          nameNormalized: line.storeNormalized,
+          uf: line.uf ?? null,
         };
         storeMap.set(storeKey(store.nameNormalized, store.uf), store);
         storesOut.push(store);
         counters.storesCreated++;
-        items.push({ sheet: line.sourceSheet, excelRow: line.excelRow, entityType: "store", action: "create", payload: store as unknown as Record<string, unknown>, warnings: ["Criado a partir do roteiro"] });
+        items.push({
+          sheet: line.sourceSheet,
+          excelRow: line.excelRow,
+          entityType: "store",
+          action: "create",
+          payload: store as unknown as Record<string, unknown>,
+          warnings: ["Criado a partir do roteiro"],
+        });
       }
 
       let promoter = pRes.match;
@@ -213,14 +293,29 @@ export function buildSyncPlan(input: BuildPlanInput): SyncPlan {
         promoterMap.set(promoter.nameNormalized, promoter);
         promotersOut.push(promoter);
         counters.promotersCreated++;
-        items.push({ sheet: line.sourceSheet, excelRow: line.excelRow, entityType: "promoter", action: "create", payload: promoter as unknown as Record<string, unknown>, warnings: ["Criado a partir do roteiro"] });
+        items.push({
+          sheet: line.sourceSheet,
+          excelRow: line.excelRow,
+          entityType: "promoter",
+          action: "create",
+          payload: promoter as unknown as Record<string, unknown>,
+          warnings: ["Criado a partir do roteiro"],
+        });
       }
 
       if (iRes.ambiguous || sRes.ambiguous || pRes.ambiguous) {
         counters.ambiguous++;
         items.push({
-          sheet: line.sourceSheet, excelRow: line.excelRow, entityType: "route", action: "ambiguous",
-          payload: { industryName: line.industryName, storeName: line.storeName, promoterName: line.promoterName, weekdays: line.weekdays },
+          sheet: line.sourceSheet,
+          excelRow: line.excelRow,
+          entityType: "route",
+          action: "ambiguous",
+          payload: {
+            industryName: line.industryName,
+            storeName: line.storeName,
+            promoterName: line.promoterName,
+            weekdays: line.weekdays,
+          },
           warnings: [
             iRes.ambiguous ? "Indústria ambígua" : "",
             sRes.ambiguous ? "Loja ambígua" : "",
@@ -233,8 +328,15 @@ export function buildSyncPlan(input: BuildPlanInput): SyncPlan {
       if (!industry || !store || !promoter) {
         counters.invalid++;
         items.push({
-          sheet: line.sourceSheet, excelRow: line.excelRow, entityType: "route", action: "invalid",
-          payload: { industryName: line.industryName, storeName: line.storeName, promoterName: line.promoterName },
+          sheet: line.sourceSheet,
+          excelRow: line.excelRow,
+          entityType: "route",
+          action: "invalid",
+          payload: {
+            industryName: line.industryName,
+            storeName: line.storeName,
+            promoterName: line.promoterName,
+          },
           warnings: ["Faltam dados obrigatórios (indústria/loja/promotor)"],
         });
         continue;
@@ -245,23 +347,37 @@ export function buildSyncPlan(input: BuildPlanInput): SyncPlan {
         if (seenRouteLine.has(dedupKey)) {
           counters.duplicates++;
           items.push({
-            sheet: line.sourceSheet, excelRow: line.excelRow, entityType: "route", action: "duplicate",
-            payload: { weekday }, warnings: ["Duplicado na planilha"],
+            sheet: line.sourceSheet,
+            excelRow: line.excelRow,
+            entityType: "route",
+            action: "duplicate",
+            payload: { weekday },
+            warnings: ["Duplicado na planilha"],
           });
           continue;
         }
         seenRouteLine.add(dedupKey);
 
-        const routeKey = logicalRouteKey(promoter, store, industry, weekday, operationMonth, operationYear);
+        const routeKey = logicalRouteKey(
+          promoter,
+          store,
+          industry,
+          weekday,
+          operationMonth,
+          operationYear,
+        );
         generatedRouteKeys.add(routeKey);
 
         const existingRoute = snapshot.plannedRoutes.find(
-          (r) => logicalRouteKey(
-            findById(promotersOut, snapshot.promoters, r.promoterId),
-            findById(storesOut, snapshot.stores, r.storeId),
-            findById(industriesOut, snapshot.industries, r.industryId),
-            r.weekday, r.operationMonth, r.operationYear,
-          ) === routeKey,
+          (r) =>
+            logicalRouteKey(
+              findById(promotersOut, snapshot.promoters, r.promoterId),
+              findById(storesOut, snapshot.stores, r.storeId),
+              findById(industriesOut, snapshot.industries, r.industryId),
+              r.weekday,
+              r.operationMonth,
+              r.operationYear,
+            ) === routeKey,
         );
 
         const record: PlannedRouteRecord = {
@@ -277,10 +393,27 @@ export function buildSyncPlan(input: BuildPlanInput): SyncPlan {
         routesOut.push(record);
         if (existingRoute) {
           counters.routesKept++;
-          items.push({ sheet: line.sourceSheet, excelRow: line.excelRow, entityType: "route", action: "keep", payload: { weekday } });
+          items.push({
+            sheet: line.sourceSheet,
+            excelRow: line.excelRow,
+            entityType: "route",
+            action: "keep",
+            payload: { weekday },
+          });
         } else {
           counters.routesCreated++;
-          items.push({ sheet: line.sourceSheet, excelRow: line.excelRow, entityType: "route", action: "create", payload: { weekday, industry: industry.name, store: store.name, promoter: promoter.name } });
+          items.push({
+            sheet: line.sourceSheet,
+            excelRow: line.excelRow,
+            entityType: "route",
+            action: "create",
+            payload: {
+              weekday,
+              industry: industry.name,
+              store: store.name,
+              promoter: promoter.name,
+            },
+          });
         }
 
         // visitas do mês para este weekday
@@ -290,14 +423,23 @@ export function buildSyncPlan(input: BuildPlanInput): SyncPlan {
           if (generatedVisitKeys.has(vKey)) continue;
           generatedVisitKeys.add(vKey);
           const existingVisit = snapshot.plannedVisits.find(
-            (v) => v.scheduledDate === date
-              && (findById(promotersOut, snapshot.promoters, v.promoterId)?.nameNormalized === promoter!.nameNormalized)
-              && (findById(storesOut, snapshot.stores, v.storeId)?.nameNormalized === store!.nameNormalized)
-              && (findById(industriesOut, snapshot.industries, v.industryId)?.nameNormalized === industry!.nameNormalized),
+            (v) =>
+              v.scheduledDate === date &&
+              findById(promotersOut, snapshot.promoters, v.promoterId)?.nameNormalized ===
+                promoter!.nameNormalized &&
+              findById(storesOut, snapshot.stores, v.storeId)?.nameNormalized ===
+                store!.nameNormalized &&
+              findById(industriesOut, snapshot.industries, v.industryId)?.nameNormalized ===
+                industry!.nameNormalized,
           );
           if (existingVisit && existingVisit.status !== "planned") {
             counters.visitsPreserved++;
-            items.push({ sheet: line.sourceSheet, entityType: "visit", action: "preserved", payload: { date, status: existingVisit.status } });
+            items.push({
+              sheet: line.sourceSheet,
+              entityType: "visit",
+              action: "preserved",
+              payload: { date, status: existingVisit.status },
+            });
             continue;
           }
           visitsOut.push({
@@ -323,18 +465,28 @@ export function buildSyncPlan(input: BuildPlanInput): SyncPlan {
           findById(promotersOut, snapshot.promoters, r.promoterId),
           findById(storesOut, snapshot.stores, r.storeId),
           findById(industriesOut, snapshot.industries, r.industryId),
-          r.weekday, r.operationMonth, r.operationYear,
+          r.weekday,
+          r.operationMonth,
+          r.operationYear,
         );
         if (!generatedRouteKeys.has(key) && r.id) {
           removedRouteIds.push(r.id);
           counters.routesRemoved++;
-          items.push({ sheet: "sistema", entityType: "route", action: "remove", payload: { routeId: r.id } });
+          items.push({
+            sheet: "sistema",
+            entityType: "route",
+            action: "remove",
+            payload: { routeId: r.id },
+          });
         }
       }
       // visitas planejadas do mês que não estão no plano — remover
       // preservar realizadas (status != planned)
       const generatedVisitLogicalKeys = new Set(
-        visitsOut.map((v) => `${resolveLogicalId(v.promoterId, promotersOut, snapshot.promoters)}|${resolveLogicalId(v.storeId, storesOut, snapshot.stores)}|${resolveLogicalId(v.industryId, industriesOut, snapshot.industries)}|${v.scheduledDate}`),
+        visitsOut.map(
+          (v) =>
+            `${resolveLogicalId(v.promoterId, promotersOut, snapshot.promoters)}|${resolveLogicalId(v.storeId, storesOut, snapshot.stores)}|${resolveLogicalId(v.industryId, industriesOut, snapshot.industries)}|${v.scheduledDate}`,
+        ),
       );
       for (const v of snapshot.plannedVisits) {
         if (v.status !== "planned") continue;
@@ -381,16 +533,24 @@ function logicalRouteKey(
   promoter: PromoterRecord | undefined | null,
   store: StoreRecord | undefined | null,
   industry: IndustryRecord | undefined | null,
-  weekday: number, month: number, year: number,
+  weekday: number,
+  month: number,
+  year: number,
 ): string {
   return `${promoter?.nameNormalized ?? "?"}|${store?.nameNormalized ?? "?"}|${store?.uf ?? ""}|${industry?.nameNormalized ?? "?"}|${weekday}|${month}|${year}`;
 }
-function findById<T extends { id?: string }>(fresh: T[], snap: T[], id: string | undefined): T | undefined {
+function findById<T extends { id?: string }>(
+  fresh: T[],
+  snap: T[],
+  id: string | undefined,
+): T | undefined {
   if (!id) return undefined;
   return fresh.find((x) => x.id === id) ?? snap.find((x) => x.id === id);
 }
 function resolveLogicalId<T extends { id?: string; nameNormalized?: string }>(
-  ref: string, fresh: T[], snap: T[],
+  ref: string,
+  fresh: T[],
+  snap: T[],
 ): string | undefined {
   if (ref.startsWith("pending:")) return ref.slice("pending:".length);
   return (fresh.find((x) => x.id === ref) ?? snap.find((x) => x.id === ref))?.nameNormalized;

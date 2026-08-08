@@ -20,9 +20,7 @@ export const projectionFrequencyDivergenceDetector: Mk9DataQualityDetector = {
     if (error) throw new Error("MK9_DQ_DETECTOR_FAILED");
 
     const allowed = ctx.scope.allowedIndustryIds;
-    const rows = (data ?? []).filter(
-      (r: any) => !allowed || allowed.includes(r.industry_id),
-    );
+    const rows = (data ?? []).filter((r: any) => !allowed || allowed.includes(r.industry_id));
     if (!rows.length) return [];
 
     return rows.map((r: any) => ({

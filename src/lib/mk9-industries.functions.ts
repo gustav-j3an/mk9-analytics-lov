@@ -20,11 +20,13 @@ import {
   deleteIndustrySchema,
 } from "./mk9-industries/admin";
 
-
 /** Nomes semelhantes exibidos antes de criar — sem criar nada. */
 export const mk9SearchSimilarIndustries = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => {
-    return z.object({ name: z.string().min(1).max(120) }).strict().parse(data);
+    return z
+      .object({ name: z.string().min(1).max(120) })
+      .strict()
+      .parse(data);
   })
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
@@ -69,24 +71,29 @@ export const mk9CreateIndustry = createServerFn({ method: "POST" })
       })),
       { confirmed: data.confirmed },
     );
-    if (decision.kind === "duplicate") return { status: "duplicate" as const, match: decision.match };
+    if (decision.kind === "duplicate")
+      return { status: "duplicate" as const, match: decision.match };
     if (decision.kind === "needs_confirmation")
       return { status: "candidates" as const, candidates: decision.candidates };
 
-    const { data: rows, error } = await supabaseAdmin.rpc("mk9_admin_create_industry" as any, {
-      p_name: decision.name,
-      p_name_normalized: decision.nameNormalized,
-      p_display_name: data.displayName ?? null,
-      p_notes: data.notes ?? null,
-      p_requires_checklist: data.requiresChecklist,
-      p_period_type: data.periodType,
-      p_start_day: data.periodType === "CUSTOM_CYCLE" ? (data.startDay ?? 1) : null,
-      p_end_day: data.periodType === "CUSTOM_CYCLE" ? (data.endDay ?? 31) : null,
-      p_uses_previous_month: data.usesPreviousMonth ?? false,
-      p_cnpj: data.cnpj ?? null,
-      p_actor: ctx.userId,
-    } as any);
-    if (error) throw new Error(industryRpcMessage(error.message, "Não foi possível cadastrar a indústria."));
+    const { data: rows, error } = await supabaseAdmin.rpc(
+      "mk9_admin_create_industry" as any,
+      {
+        p_name: decision.name,
+        p_name_normalized: decision.nameNormalized,
+        p_display_name: data.displayName ?? null,
+        p_notes: data.notes ?? null,
+        p_requires_checklist: data.requiresChecklist,
+        p_period_type: data.periodType,
+        p_start_day: data.periodType === "CUSTOM_CYCLE" ? (data.startDay ?? 1) : null,
+        p_end_day: data.periodType === "CUSTOM_CYCLE" ? (data.endDay ?? 31) : null,
+        p_uses_previous_month: data.usesPreviousMonth ?? false,
+        p_cnpj: data.cnpj ?? null,
+        p_actor: ctx.userId,
+      } as any,
+    );
+    if (error)
+      throw new Error(industryRpcMessage(error.message, "Não foi possível cadastrar a indústria."));
 
     const row = Array.isArray(rows) ? (rows[0] as any) : (rows as any);
     return {
@@ -107,22 +114,26 @@ export const mk9UpdateIndustry = createServerFn({ method: "POST" })
     const ctx = await requireMk9Role(["ADMIN"]);
     const { normalizeName } = await import("@/lib/mk9/normalization");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin.rpc("mk9_admin_update_industry" as any, {
-      p_industry_id: data.industryId,
-      p_expected_updated_at: data.expectedUpdatedAt,
-      p_name: data.name,
-      p_name_normalized: normalizeName(data.name),
-      p_display_name: data.displayName ?? null,
-      p_notes: data.notes ?? null,
-      p_requires_checklist: data.requiresChecklist ?? null,
-      p_cnpj: data.cnpj ?? null,
-      p_period_type: data.periodType ?? null,
-      p_start_day: data.startDay ?? null,
-      p_end_day: data.endDay ?? null,
-      p_uses_previous_month: data.usesPreviousMonth ?? null,
-      p_actor: ctx.userId,
-    } as any);
-    if (error) throw new Error(industryRpcMessage(error.message, "Não foi possível salvar o cadastro."));
+    const { data: rows, error } = await supabaseAdmin.rpc(
+      "mk9_admin_update_industry" as any,
+      {
+        p_industry_id: data.industryId,
+        p_expected_updated_at: data.expectedUpdatedAt,
+        p_name: data.name,
+        p_name_normalized: normalizeName(data.name),
+        p_display_name: data.displayName ?? null,
+        p_notes: data.notes ?? null,
+        p_requires_checklist: data.requiresChecklist ?? null,
+        p_cnpj: data.cnpj ?? null,
+        p_period_type: data.periodType ?? null,
+        p_start_day: data.startDay ?? null,
+        p_end_day: data.endDay ?? null,
+        p_uses_previous_month: data.usesPreviousMonth ?? null,
+        p_actor: ctx.userId,
+      } as any,
+    );
+    if (error)
+      throw new Error(industryRpcMessage(error.message, "Não foi possível salvar o cadastro."));
     const row = Array.isArray(rows) ? (rows[0] as any) : (rows as any);
     return {
       ok: true as const,
@@ -138,13 +149,17 @@ export const mk9ArchiveIndustry = createServerFn({ method: "POST" })
     const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin.rpc("mk9_admin_archive_industry" as any, {
-      p_industry_id: data.industryId,
-      p_expected_updated_at: data.expectedUpdatedAt,
-      p_reason: data.reason ?? null,
-      p_actor: ctx.userId,
-    } as any);
-    if (error) throw new Error(industryRpcMessage(error.message, "Não foi possível arquivar a indústria."));
+    const { data: rows, error } = await supabaseAdmin.rpc(
+      "mk9_admin_archive_industry" as any,
+      {
+        p_industry_id: data.industryId,
+        p_expected_updated_at: data.expectedUpdatedAt,
+        p_reason: data.reason ?? null,
+        p_actor: ctx.userId,
+      } as any,
+    );
+    if (error)
+      throw new Error(industryRpcMessage(error.message, "Não foi possível arquivar a indústria."));
     const row = Array.isArray(rows) ? (rows[0] as any) : (rows as any);
     return { ok: true as const, archivedAt: (row?.archived_at ?? null) as string | null };
   });
@@ -155,12 +170,16 @@ export const mk9ReactivateIndustry = createServerFn({ method: "POST" })
     const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin.rpc("mk9_admin_reactivate_industry" as any, {
-      p_industry_id: data.industryId,
-      p_expected_updated_at: data.expectedUpdatedAt,
-      p_actor: ctx.userId,
-    } as any);
-    if (error) throw new Error(industryRpcMessage(error.message, "Não foi possível reativar a indústria."));
+    const { data: rows, error } = await supabaseAdmin.rpc(
+      "mk9_admin_reactivate_industry" as any,
+      {
+        p_industry_id: data.industryId,
+        p_expected_updated_at: data.expectedUpdatedAt,
+        p_actor: ctx.userId,
+      } as any,
+    );
+    if (error)
+      throw new Error(industryRpcMessage(error.message, "Não foi possível reativar a indústria."));
     const row = Array.isArray(rows) ? (rows[0] as any) : (rows as any);
     return { ok: true as const, updatedAt: (row?.updated_at ?? null) as string | null };
   });
@@ -211,40 +230,50 @@ export const mk9DeleteIndustry = createServerFn({ method: "POST" })
 
     // 1. Verificar vínculos (checklists, frequências, visitas)
     const [checklists, frequencies, visits] = await Promise.all([
-      supabaseAdmin.from("mk9_checklist_imports").select("id", { count: "exact", head: true }).eq("industry_id", data.industryId),
-      supabaseAdmin.from("mk9_industry_store_frequency_versions").select("id", { count: "exact", head: true }).eq("industry_id", data.industryId),
-      supabaseAdmin.from("mk9_actual_visits").select("id", { count: "exact", head: true }).eq("industry_id", data.industryId)
+      supabaseAdmin
+        .from("mk9_checklist_imports")
+        .select("id", { count: "exact", head: true })
+        .eq("industry_id", data.industryId),
+      supabaseAdmin
+        .from("mk9_industry_store_frequency_versions")
+        .select("id", { count: "exact", head: true })
+        .eq("industry_id", data.industryId),
+      supabaseAdmin
+        .from("mk9_actual_visits")
+        .select("id", { count: "exact", head: true })
+        .eq("industry_id", data.industryId),
     ]);
 
-    const hasHistory = (checklists.count ?? 0) > 0 || (frequencies.count ?? 0) > 0 || (visits.count ?? 0) > 0;
+    const hasHistory =
+      (checklists.count ?? 0) > 0 || (frequencies.count ?? 0) > 0 || (visits.count ?? 0) > 0;
 
     if (hasHistory) {
       // Exclusão segura (soft delete / bloqueio operacional)
       const { error } = await supabaseAdmin
         .from("mk9_industries")
-        .update({ 
+        .update({
           archived_at: new Date().toISOString(),
           archived_by: ctx.userId,
           archive_reason: "Exclusão segura: indústria possui histórico operacional.",
-          requires_checklist: false
+          requires_checklist: false,
         })
         .eq("id", data.industryId);
 
       if (error) throw new Error("Não foi possível realizar a exclusão segura.");
-      
-      await logAudit(ctx, "INDUSTRY_DELETED_SOFT", "mk9_industries", data.industryId, { history: true });
+
+      await logAudit(ctx, "INDUSTRY_DELETED_SOFT", "mk9_industries", data.industryId, {
+        history: true,
+      });
       return { status: "soft_deleted" as const };
     }
 
     // Exclusão física
-    const { error } = await supabaseAdmin
-      .from("mk9_industries")
-      .delete()
-      .eq("id", data.industryId);
+    const { error } = await supabaseAdmin.from("mk9_industries").delete().eq("id", data.industryId);
 
     if (error) throw new Error("Erro ao excluir indústria.");
 
-    await logAudit(ctx, "INDUSTRY_DELETED_HARD", "mk9_industries", data.industryId, { history: false });
+    await logAudit(ctx, "INDUSTRY_DELETED_HARD", "mk9_industries", data.industryId, {
+      history: false,
+    });
     return { status: "hard_deleted" as const };
   });
-

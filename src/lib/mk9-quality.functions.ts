@@ -17,7 +17,15 @@ const competenceSchema = z.object({
 const listSchema = competenceSchema.extend({
   status: z
     .array(
-      z.enum(["OPEN", "ACKNOWLEDGED", "IN_PROGRESS", "RESOLVED", "RESOLVED_AUTO", "IGNORED", "REOPENED"]),
+      z.enum([
+        "OPEN",
+        "ACKNOWLEDGED",
+        "IN_PROGRESS",
+        "RESOLVED",
+        "RESOLVED_AUTO",
+        "IGNORED",
+        "REOPENED",
+      ]),
     )
     .nullish(),
   category: z
@@ -25,15 +33,17 @@ const listSchema = competenceSchema.extend({
     .nullish(),
   severity: z.enum(["INFO", "AVISO", "ATENCAO", "CRITICO", "BLOQUEANTE"]).nullish(),
   // Tipo é uma constante do catálogo de detectores: formato restrito.
-  issueType: z.string().trim().regex(/^[A-Z0-9_]{3,64}$/).nullish(),
+  issueType: z
+    .string()
+    .trim()
+    .regex(/^[A-Z0-9_]{3,64}$/)
+    .nullish(),
   industryId: z.string().uuid().nullish(),
   storeId: z.string().uuid().nullish(),
   uf: z.string().trim().max(20).nullish(),
   search: z.string().trim().max(80).nullish(),
   // --- Fase 2B.4 ------------------------------------------------------------
-  assignedTo: z
-    .union([z.literal("UNASSIGNED"), z.literal("ME"), z.string().uuid()])
-    .nullish(),
+  assignedTo: z.union([z.literal("UNASSIGNED"), z.literal("ME"), z.string().uuid()]).nullish(),
   priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]).nullish(),
   dueState: z.enum(["OVERDUE", "DUE_TODAY", "NO_DUE_DATE"]).nullish(),
   page: z.number().int().min(1).max(500).default(1),
@@ -184,9 +194,8 @@ export const mk9QualityFacetsFn = createServerFn({ method: "POST" })
   .handler(async () => {
     const { scope } = await qualitySession();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { loadScopedIndustries, loadScopedStores } = await import(
-      "./mk9-quality/detectors/context.server"
-    );
+    const { loadScopedIndustries, loadScopedStores } =
+      await import("./mk9-quality/detectors/context.server");
     const [industries, stores] = await Promise.all([
       loadScopedIndustries(supabaseAdmin, scope),
       loadScopedStores(supabaseAdmin, scope),
@@ -200,10 +209,10 @@ export const mk9QualityFacetsFn = createServerFn({ method: "POST" })
       role: scope.role,
       canViewAll: scope.canViewAll,
       canRunPersistentCycle:
-        (scope.role === "ADMIN" || scope.role === "DEV" || scope.role === "AUDITOR") && scope.canViewAll,
+        (scope.role === "ADMIN" || scope.role === "DEV" || scope.role === "AUDITOR") &&
+        scope.canViewAll,
     };
   });
-
 
 /** Detalhe de uma ocorrência + linha do tempo (histórico só para papéis internos). */
 export const mk9QualityDetailFn = createServerFn({ method: "POST" })
@@ -299,13 +308,11 @@ export const mk9QualityAssignFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => assignSchema.parse(d))
   .handler(async ({ data }) => {
     const { requireMk9RoleScope } = await import("@/lib/mk9-auth/read-guards.server");
-    const { canAssignOthers, canSelfAssign, canUnassign, scopeCoversIssue } = await import(
-      "./mk9-quality/assignment"
-    );
+    const { canAssignOthers, canSelfAssign, canUnassign, scopeCoversIssue } =
+      await import("./mk9-quality/assignment");
     const { scope } = await requireMk9RoleScope(["ADMIN", "AUDITOR", "SUPERVISOR"]);
 
-    const target =
-      data.assigneeId === "ME" ? (scope.userId ?? null) : (data.assigneeId ?? null);
+    const target = data.assigneeId === "ME" ? (scope.userId ?? null) : (data.assigneeId ?? null);
     const isSelf = !!target && target === scope.userId;
 
     if (target === null && !canUnassign(scope.role)) throw new Error("MK9_DQ_FORBIDDEN");
@@ -449,4 +456,3 @@ export const mk9QualityFollowUpFn = createServerFn({ method: "POST" })
     ]);
     return { summary, users, currentUserId: scope.userId, role: scope.role };
   });
-

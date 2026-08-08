@@ -3,7 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { ShieldCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
@@ -24,9 +31,11 @@ export function Mk9LoginForm() {
       });
 
       if (error) {
-        toast.error(error.message === "Invalid login credentials" 
-          ? "Credenciais inválidas. Verifique seu e-mail e senha." 
-          : error.message);
+        toast.error(
+          error.message === "Invalid login credentials"
+            ? "Credenciais inválidas. Verifique seu e-mail e senha."
+            : error.message,
+        );
       } else if (data.session) {
         toast.success("Login realizado com sucesso!");
         navigate({ to: "/dashboard" });
@@ -46,20 +55,20 @@ export function Mk9LoginForm() {
             <ShieldCheck className="text-primary-foreground h-7 w-7" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold tracking-tight">MK9 <span className="text-primary">Analytics</span></CardTitle>
-        <CardDescription>
-          Entre com suas credenciais para acessar o painel.
-        </CardDescription>
+        <CardTitle className="text-2xl font-bold tracking-tight">
+          MK9 <span className="text-primary">Analytics</span>
+        </CardTitle>
+        <CardDescription>Entre com suas credenciais para acessar o painel.</CardDescription>
       </CardHeader>
       <form onSubmit={handleLogin}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
-            <Input 
-              id="email" 
-              type="email" 
-              placeholder="seu@email.com" 
-              required 
+            <Input
+              id="email"
+              type="email"
+              placeholder="seu@email.com"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="bg-background/50"
@@ -69,10 +78,10 @@ export function Mk9LoginForm() {
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Senha</Label>
             </div>
-            <Input 
-              id="password" 
-              type="password" 
-              required 
+            <Input
+              id="password"
+              type="password"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="bg-background/50"

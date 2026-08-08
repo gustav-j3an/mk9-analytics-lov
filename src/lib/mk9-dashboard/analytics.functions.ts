@@ -28,7 +28,7 @@ export const getAnalyticsDashboard = createServerFn({ method: "POST" })
         allowedStoreIds: scope.allowedStoreIds,
         allowedPromoterIds: scope.allowedPromoterIds,
         canViewPersonalData: scope.canViewPersonalData,
-      }
+      },
     });
 
     if (core.empty) return null;
@@ -43,7 +43,7 @@ export const getAnalyticsDashboard = createServerFn({ method: "POST" })
 
     // 2. UF Aggregation
     const ufMap = new Map<string, any>();
-    
+
     // 3. Frequency Distribution
     const freqMap = new Map<number, number>();
 
@@ -76,16 +76,16 @@ export const getAnalyticsDashboard = createServerFn({ method: "POST" })
       .sort((a, b) => parseInt(a.label) - parseInt(b.label));
 
     const states = Array.from(ufMap.values())
-      .map(u => ({ ...u, cobertura: u.contratadas > 0 ? pct(u.realizadas, u.contratadas) : 0 }))
+      .map((u) => ({ ...u, cobertura: u.contratadas > 0 ? pct(u.realizadas, u.contratadas) : 0 }))
       .sort((a, b) => a.cobertura - b.cobertura);
 
     // 4. Critical Stores (Top 20)
     const criticalStores = storeRows
-      .filter(s => s.contratadas > 0)
-      .map(s => ({
+      .filter((s) => s.contratadas > 0)
+      .map((s) => ({
         ...s,
         cobertura: pct(s.realizadas, s.contratadas),
-        pendentes: Math.max(0, s.contratadas - s.realizadas)
+        pendentes: Math.max(0, s.contratadas - s.realizadas),
       }))
       .sort((a, b) => {
         if (a.realizadas === 0 && b.realizadas > 0) return -1;
@@ -101,22 +101,23 @@ export const getAnalyticsDashboard = createServerFn({ method: "POST" })
         pendentes: Math.max(0, contractedTotal - realizedToDate),
         extras,
         cobertura: contractedTotal > 0 ? pct(realizedToDate, contractedTotal) : 0,
-        lojasSemAtendimento: lojasSemVisita
+        lojasSemAtendimento: lojasSemVisita,
       },
       frequencyDistribution,
       states,
       criticalStores,
-      industries: industryRows.map(i => ({
-        id: i.industryId,
-        name: i.industryName,
-        lojas: i.lojasContratadas,
-        contratadas: i.contratadas,
-        realizadas: i.realizadas,
-        pendentes: i.pendentes,
-        cobertura: i.coberturaPct,
-        zeradas: i.zeradasCount
-      })).sort((a, b) => a.cobertura - b.cobertura),
-
+      industries: industryRows
+        .map((i) => ({
+          id: i.industryId,
+          name: i.industryName,
+          lojas: i.lojasContratadas,
+          contratadas: i.contratadas,
+          realizadas: i.realizadas,
+          pendentes: i.pendentes,
+          cobertura: i.coberturaPct,
+          zeradas: i.zeradasCount,
+        }))
+        .sort((a, b) => a.cobertura - b.cobertura),
 
       dailyExecution: buildDailySeries({
         ctxs,
@@ -127,8 +128,7 @@ export const getAnalyticsDashboard = createServerFn({ method: "POST" })
       }),
       perf: {
         coreMs: core.coreMs,
-        queryCount: core.queryCount
-      }
+        queryCount: core.queryCount,
+      },
     };
   });
-

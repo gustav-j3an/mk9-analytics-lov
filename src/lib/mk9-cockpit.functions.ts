@@ -30,7 +30,7 @@ export const mk9CockpitOverviewFn = createServerFn({ method: "POST" })
         : null;
 
     const { mk9ListIndustries, mk9ListPromoters } = await import("@/lib/mk9-data.functions");
-    
+
     // Otimização: Carregamos tudo em paralelo (Data + Metadata)
     const [overview, industries, promoters] = await Promise.all([
       buildCockpitOverview(
@@ -64,8 +64,7 @@ export const mk9CockpitOverviewFn = createServerFn({ method: "POST" })
       ...overview,
       meta: {
         industries,
-        promoters
-      }
+        promoters,
+      },
     };
-
   });

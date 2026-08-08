@@ -36,7 +36,10 @@ export function formatISODate(dt: Date): string {
 export function computeIndustryStatus(
   contracted: number | null | undefined,
   estimated: number | null | undefined,
-): { status: "DENTRO DA META" | "ACIMA DA META" | "ABAIXO DA META" | "SEM META"; diff: number | null } {
+): {
+  status: "DENTRO DA META" | "ACIMA DA META" | "ABAIXO DA META" | "SEM META";
+  diff: number | null;
+} {
   if (contracted === null || contracted === undefined) {
     return { status: "SEM META", diff: null };
   }

@@ -27,10 +27,17 @@ export function buildValidationReport(input: BuildValidationInput): ChecklistVal
   const afterCommit = persistedByStore !== undefined;
 
   // 1) marcações parseadas por (normalized|uf) com datas
-  const parsedByKey = new Map<string, { dates: Set<string>; storeName: string; uf: string | null }>();
+  const parsedByKey = new Map<
+    string,
+    { dates: Set<string>; storeName: string; uf: string | null }
+  >();
   for (const m of parsed.marks) {
     const k = keyOf(m.storeNormalized, m.uf);
-    const entry = parsedByKey.get(k) ?? { dates: new Set<string>(), storeName: m.storeName, uf: m.uf };
+    const entry = parsedByKey.get(k) ?? {
+      dates: new Set<string>(),
+      storeName: m.storeName,
+      uf: m.uf,
+    };
     if (m.scheduledDate) entry.dates.add(m.scheduledDate);
     parsedByKey.set(k, entry);
   }
@@ -75,7 +82,9 @@ export function buildValidationReport(input: BuildValidationInput): ChecklistVal
 
     const resolved = resolvedByKey.get(key);
     const storeId = storeIdHint ?? resolved?.storeId ?? null;
-    const persistedSet = storeId ? (persistedByStore?.get(storeId) ?? new Set<string>()) : new Set<string>();
+    const persistedSet = storeId
+      ? (persistedByStore?.get(storeId) ?? new Set<string>())
+      : new Set<string>();
     const persistedCount = afterCommit ? persistedSet.size : null;
     if (persistedCount !== null) persistedTotal += persistedCount;
 
@@ -141,15 +150,15 @@ export function buildValidationReport(input: BuildValidationInput): ChecklistVal
   // Status agregado
   let status: ChecklistValidationStatus;
   const declaredTotal = parsed.declaredTotal;
-  const declaredCheckMismatch =
-    declaredTotal !== null && parsedTotal !== declaredTotal;
+  const declaredCheckMismatch = declaredTotal !== null && parsedTotal !== declaredTotal;
   const anyPersistDiff = afterCommit && stores.some((s) => (s.diffPersistedVsParsed ?? 0) !== 0);
   const anyParseDiff = stores.some((s) => (s.diffParsedVsDeclared ?? 0) !== 0);
   const anyUnmatched = unmatchedStoreTotal > 0 || invalidDateTotal > 0;
 
   if (afterCommit) {
     if (anyPersistDiff) status = "INCONSISTENT";
-    else if (declaredCheckMismatch || anyParseDiff || anyUnmatched) status = "COMPLETED_WITH_ALERTS";
+    else if (declaredCheckMismatch || anyParseDiff || anyUnmatched)
+      status = "COMPLETED_WITH_ALERTS";
     else status = "CONSISTENT";
   } else {
     // No preview, nunca é INCONSISTENT (pois ainda não persistimos)
@@ -172,9 +181,11 @@ export function buildValidationReport(input: BuildValidationInput): ChecklistVal
   if (afterCommit && persistedTotal !== parsedTotal) {
     summaryLines.push(`Diferença entre identificado e persistido: ${persistedTotal - parsedTotal}`);
   }
-  if (unmatchedStoreTotal > 0) summaryLines.push(`Visitas sem loja identificada: ${unmatchedStoreTotal}`);
+  if (unmatchedStoreTotal > 0)
+    summaryLines.push(`Visitas sem loja identificada: ${unmatchedStoreTotal}`);
   if (invalidDateTotal > 0) summaryLines.push(`Linhas com data inválida: ${invalidDateTotal}`);
-  if (parsed.duplicateStores.length > 0) summaryLines.push(`Linhas duplicadas de loja: ${parsed.duplicateStores.length}`);
+  if (parsed.duplicateStores.length > 0)
+    summaryLines.push(`Linhas duplicadas de loja: ${parsed.duplicateStores.length}`);
 
   return {
     status,
@@ -198,7 +209,11 @@ export function buildValidationFromSnapshot(
   persistedByStore: Map<string, Set<string>>,
 ): ChecklistValidationReport {
   const fakeMarks = preview.items
-    .filter((i) => i.scheduledDate && (i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store"))
+    .filter(
+      (i) =>
+        i.scheduledDate &&
+        (i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store"),
+    )
     .map((i) => ({
       storeName: i.storeName,
       storeNormalized: i.storeNormalized,

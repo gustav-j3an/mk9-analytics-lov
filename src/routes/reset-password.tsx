@@ -13,7 +13,10 @@ export const Route = createFileRoute("/reset-password")({
       { title: "Redefinir senha — MK9 Analytics" },
       { name: "description", content: "Defina uma nova senha para acessar o MK9 Analytics." },
       { property: "og:title", content: "Redefinir senha — MK9 Analytics" },
-      { property: "og:description", content: "Defina uma nova senha para acessar o MK9 Analytics." },
+      {
+        property: "og:description",
+        content: "Defina uma nova senha para acessar o MK9 Analytics.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -53,7 +56,9 @@ function ResetPasswordPage() {
         <CardContent>
           <form className="space-y-4" onSubmit={submit}>
             <div>
-              <label className="mb-1 block text-xs font-medium">Nova senha (mín. 8 caracteres)</label>
+              <label className="mb-1 block text-xs font-medium">
+                Nova senha (mín. 8 caracteres)
+              </label>
               <Input
                 type="password"
                 minLength={8}

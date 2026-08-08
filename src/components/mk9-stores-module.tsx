@@ -10,7 +10,7 @@ import {
   Edit2,
   Trash2,
   Building,
-  Navigation
+  Navigation,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,17 +21,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { mk9ListStores } from "@/lib/mk9-data.functions";
+import { StoreDialog, StoreArchiveDialog } from "@/components/mk9/store-admin-dialogs";
 import {
-  StoreDialog,
-  StoreArchiveDialog,
-} from "@/components/mk9/store-admin-dialogs";
-import { 
-  Mk9Panel, 
-  Mk9PageHeader, 
-  Mk9MetricCard, 
-  Mk9LoadingState, 
-  Mk9EmptyState, 
-  Mk9Badge 
+  Mk9Panel,
+  Mk9PageHeader,
+  Mk9MetricCard,
+  Mk9LoadingState,
+  Mk9EmptyState,
+  Mk9Badge,
 } from "@/components/mk9/design-system";
 
 export function Mk9StoresModule() {
@@ -47,10 +44,11 @@ export function Mk9StoresModule() {
   const [archivingStore, setArchivingStore] = useState<any | null>(null);
 
   const filtered = useMemo(() => {
-    return stores.filter((s: any) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      (s.chain && s.chain.toLowerCase().includes(search.toLowerCase())) ||
-      (s.uf && s.uf.toLowerCase().includes(search.toLowerCase()))
+    return stores.filter(
+      (s: any) =>
+        s.name.toLowerCase().includes(search.toLowerCase()) ||
+        (s.chain && s.chain.toLowerCase().includes(search.toLowerCase())) ||
+        (s.uf && s.uf.toLowerCase().includes(search.toLowerCase())),
     );
   }, [stores, search]);
 
@@ -66,13 +64,13 @@ export function Mk9StoresModule() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <Mk9PageHeader 
+      <Mk9PageHeader
         title="Gestão de Lojas"
         subtitle="Controle de unidades operacionais e redes varejistas"
         icon={Store}
         actions={
-          <Button 
-            onClick={() => setShowCreate(true)} 
+          <Button
+            onClick={() => setShowCreate(true)}
             className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-black uppercase tracking-widest px-6 shadow-lg shadow-mk9-accent-primary/20 border-none"
           >
             <Plus className="h-4 w-4 mr-2" /> Nova Loja
@@ -122,17 +120,25 @@ export function Mk9StoresModule() {
                   <tr key={s.id} className="group hover:bg-white/[0.02] transition-colors">
                     <td className="px-4 py-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">{s.name}</span>
-                        <span className="text-[10px] text-slate-500 font-mono uppercase tracking-tighter">{s.id.split('-')[0]}</span>
+                        <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">
+                          {s.name}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-mono uppercase tracking-tighter">
+                          {s.id.split("-")[0]}
+                        </span>
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-xs text-slate-300 font-medium uppercase tracking-tight">{s.chain || "LOJA INDEPENDENTE"}</span>
+                      <span className="text-xs text-slate-300 font-medium uppercase tracking-tight">
+                        {s.chain || "LOJA INDEPENDENTE"}
+                      </span>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-1.5">
                         <MapPin className="h-3 w-3 text-slate-500" />
-                        <Mk9Badge className="bg-slate-500/10 text-slate-400 border-none font-mono">{s.uf || "??"}</Mk9Badge>
+                        <Mk9Badge className="bg-slate-500/10 text-slate-400 border-none font-mono">
+                          {s.uf || "??"}
+                        </Mk9Badge>
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -145,16 +151,29 @@ export function Mk9StoresModule() {
                     <td className="px-4 py-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-command-deep border-white/10 text-white">
-                          <DropdownMenuItem onClick={() => setEditingStore(s)} className="gap-2 cursor-pointer hover:bg-white/5">
+                        <DropdownMenuContent
+                          align="end"
+                          className="bg-command-deep border-white/10 text-white"
+                        >
+                          <DropdownMenuItem
+                            onClick={() => setEditingStore(s)}
+                            className="gap-2 cursor-pointer hover:bg-white/5"
+                          >
                             <Edit2 className="h-3.5 w-3.5" /> Editar
                           </DropdownMenuItem>
                           {!s.archivedAt && (
-                            <DropdownMenuItem onClick={() => setArchivingStore(s)} className="gap-2 cursor-pointer text-rose-400 hover:bg-rose-400/10 focus:bg-rose-400/10">
+                            <DropdownMenuItem
+                              onClick={() => setArchivingStore(s)}
+                              className="gap-2 cursor-pointer text-rose-400 hover:bg-rose-400/10 focus:bg-rose-400/10"
+                            >
                               <Trash2 className="h-3.5 w-3.5" /> Arquivar
                             </DropdownMenuItem>
                           )}
@@ -169,18 +188,18 @@ export function Mk9StoresModule() {
         </div>
       </Mk9Panel>
 
-      <StoreDialog 
-        open={showCreate || !!editingStore} 
+      <StoreDialog
+        open={showCreate || !!editingStore}
         onClose={() => {
           setShowCreate(false);
           setEditingStore(null);
-        }} 
+        }}
         store={editingStore}
       />
-      
-      <StoreArchiveDialog 
-        open={!!archivingStore} 
-        onClose={() => setArchivingStore(null)} 
+
+      <StoreArchiveDialog
+        open={!!archivingStore}
+        onClose={() => setArchivingStore(null)}
         store={archivingStore}
       />
     </div>

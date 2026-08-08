@@ -7,10 +7,7 @@ export function stripDiacritics(input: string): string {
 
 export function normalizeText(input: string | null | undefined): string {
   if (!input) return "";
-  return stripDiacritics(String(input))
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
+  return stripDiacritics(String(input)).toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 export function normalizeName(input: string | null | undefined): string {
@@ -32,9 +29,27 @@ export function normalizeStoreName(input: string | null | undefined): string {
 
 // Palavras genéricas descartadas ao gerar a chave de tokens (não distinguem lojas).
 const STORE_STOPWORDS = new Set([
-  "av", "avenida", "r", "rua", "al", "alameda", "rod", "rodovia",
-  "de", "da", "do", "das", "dos", "e",
-  "loja", "unidade", "un", "n", "no", "num", "nº",
+  "av",
+  "avenida",
+  "r",
+  "rua",
+  "al",
+  "alameda",
+  "rod",
+  "rodovia",
+  "de",
+  "da",
+  "do",
+  "das",
+  "dos",
+  "e",
+  "loja",
+  "unidade",
+  "un",
+  "n",
+  "no",
+  "num",
+  "nº",
 ]);
 
 // Forma "compacta": normalizada e SEM espaços. Serve para casar
@@ -73,13 +88,29 @@ export function normalizeExternalId(input: string | number | null | undefined): 
 
 // Reconhece marcações de dia (✓, ✔, ✅, X, x, SIM, 1, TRUE).
 const TRUTHY_MARKS = new Set([
-  "✓", "✔", "✅", "☑", "☒", "x", "sim", "s", "1", "true", "verdadeiro", "y", "yes", "ok", "feito",
+  "✓",
+  "✔",
+  "✅",
+  "☑",
+  "☒",
+  "x",
+  "sim",
+  "s",
+  "1",
+  "true",
+  "verdadeiro",
+  "y",
+  "yes",
+  "ok",
+  "feito",
 ]);
 export function isDayMarked(value: unknown): boolean {
   if (value === true) return true;
   if (typeof value === "number") return value === 1;
   if (value === null || value === undefined) return false;
-  const raw = String(value).replace(/\uFE0F/g, "").trim();
+  const raw = String(value)
+    .replace(/\uFE0F/g, "")
+    .trim();
   if (!raw) return false;
   if (TRUTHY_MARKS.has(raw)) return true;
   const norm = normalizeText(raw);
@@ -88,15 +119,29 @@ export function isDayMarked(value: unknown): boolean {
 
 // Mapa: cabeçalho -> weekday (0=dom ... 6=sab, padrão JS).
 const WEEKDAY_MAP: Record<string, 0 | 1 | 2 | 3 | 4 | 5 | 6> = {
-  dom: 0, domingo: 0,
-  seg: 1, segunda: 1, "segunda feira": 1,
-  ter: 2, terca: 2, "terca feira": 2,
-  qua: 3, quarta: 3, "quarta feira": 3,
-  qui: 4, quinta: 4, "quinta feira": 4,
-  sex: 5, sexta: 5, "sexta feira": 5,
-  sab: 6, sabado: 6,
+  dom: 0,
+  domingo: 0,
+  seg: 1,
+  segunda: 1,
+  "segunda feira": 1,
+  ter: 2,
+  terca: 2,
+  "terca feira": 2,
+  qua: 3,
+  quarta: 3,
+  "quarta feira": 3,
+  qui: 4,
+  quinta: 4,
+  "quinta feira": 4,
+  sex: 5,
+  sexta: 5,
+  "sexta feira": 5,
+  sab: 6,
+  sabado: 6,
 };
-export function parseWeekdayHeader(header: string | null | undefined): 0 | 1 | 2 | 3 | 4 | 5 | 6 | null {
+export function parseWeekdayHeader(
+  header: string | null | undefined,
+): 0 | 1 | 2 | 3 | 4 | 5 | 6 | null {
   if (!header) return null;
   const key = normalizeText(header).replace(/[-.]/g, " ").replace(/\s+/g, " ").trim();
   return WEEKDAY_MAP[key] ?? null;
@@ -161,4 +206,3 @@ export function parseNumber(value: unknown): number | null {
   if (!Number.isFinite(n)) return null;
   return negative ? -n : n;
 }
-

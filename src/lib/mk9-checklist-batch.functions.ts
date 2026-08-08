@@ -2,10 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 const batchPreviewSchema = z.object({
-  files: z.array(z.object({
-    filename: z.string().min(1),
-    base64: z.string().min(4),
-  })),
+  files: z.array(
+    z.object({
+      filename: z.string().min(1),
+      base64: z.string().min(4),
+    }),
+  ),
   operationMonth: z.number().int().min(1).max(12),
   operationYear: z.number().int().min(2020).max(2100),
 });
@@ -18,8 +20,9 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
 
     const { runChecklistPreview } = await import("./mk9-checklist/preview.server");
     const { createChecklistDiagnostics } = await import("./mk9-checklist/diagnostics");
-    const { listIndustries, createBatch, updateBatchStatus } = await import("./mk9-checklist/batch.server");
-    
+    const { listIndustries, createBatch, updateBatchStatus } =
+      await import("./mk9-checklist/batch.server");
+
     const industries = await listIndustries();
     const batch = await createBatch(ctx.userId || "");
     await updateBatchStatus(batch.id, "ANALYZING");
@@ -31,11 +34,13 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
       const diagnostics = createChecklistDiagnostics("batch-preview");
       try {
         const buffer = Buffer.from(file.base64, "base64");
-        
+
         // Detecção simplificada: tenta encontrar o nome da indústria no nome do arquivo
         const filenameLower = file.filename.toLowerCase();
-        let matchedIndustry = industries.find(i => filenameLower.includes(i.name.toLowerCase()));
-        
+        const matchedIndustry = industries.find((i) =>
+          filenameLower.includes(i.name.toLowerCase()),
+        );
+
         if (matchedIndustry) {
           const res = await runChecklistPreview(
             {
@@ -47,11 +52,14 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
               operationMonth: data.operationMonth,
               operationYear: data.operationYear,
             },
-            diagnostics
+            diagnostics,
           );
 
           // Vincula o import individual ao batch
-          await (supabaseAdmin as any).from("mk9_checklist_imports").update({ batch_id: batch.id }).eq("id", res.importId);
+          await (supabaseAdmin as any)
+            .from("mk9_checklist_imports")
+            .update({ batch_id: batch.id })
+            .eq("id", res.importId);
 
           results.push({
             importId: res.importId,
@@ -67,7 +75,8 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
           results.push({
             filename: file.filename,
             status: "NEEDS_REVIEW",
-            message: "Indústria não identificada pelo nome do arquivo. Verifique se o nome do arquivo contém o nome exato da indústria cadastrada.",
+            message:
+              "Indústria não identificada pelo nome do arquivo. Verifique se o nome do arquivo contém o nome exato da indústria cadastrada.",
           });
         }
       } catch (e: any) {
@@ -79,9 +88,9 @@ export const checklistBatchPreview = createServerFn({ method: "POST" })
       }
     }
 
-    const hasErrors = results.some(r => r.status === "ERROR");
-    const hasNeedsReview = results.some(r => r.status === "NEEDS_REVIEW");
-    
+    const hasErrors = results.some((r) => r.status === "ERROR");
+    const hasNeedsReview = results.some((r) => r.status === "NEEDS_REVIEW");
+
     let finalStatus: "READY" | "PARTIAL" | "FAILED" = "READY";
     if (hasErrors) finalStatus = "FAILED";
     else if (hasNeedsReview) finalStatus = "PARTIAL";

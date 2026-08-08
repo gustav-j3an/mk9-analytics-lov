@@ -45,16 +45,40 @@ describe("dedup do importador — nunca soma nomes diferentes do Excel", () => {
 
   it("a mesma linha repetida no arquivo continua sendo somada", () => {
     const rows = dedupIncoming([
-      { storeId: ATACADAO, storeKey: "atacadao araguaina|TO", matchKind: "EXACT", weeklyFrequency: null, monthlyFrequency: 2 },
-      { storeId: ATACADAO, storeKey: "atacadao araguaina|TO", matchKind: "EXACT", weeklyFrequency: null, monthlyFrequency: 3 },
+      {
+        storeId: ATACADAO,
+        storeKey: "atacadao araguaina|TO",
+        matchKind: "EXACT",
+        weeklyFrequency: null,
+        monthlyFrequency: 2,
+      },
+      {
+        storeId: ATACADAO,
+        storeKey: "atacadao araguaina|TO",
+        matchKind: "EXACT",
+        weeklyFrequency: null,
+        monthlyFrequency: 3,
+      },
     ]);
     expect(rows[0].monthlyFrequency).toBe(5);
   });
 
   it("sem correspondência exata, vence a maior — nunca a soma", () => {
     const rows = dedupIncoming([
-      { storeId: ATACADAO, storeKey: "a|TO", matchKind: "SIMILARITY", weeklyFrequency: 1, monthlyFrequency: 4 },
-      { storeId: ATACADAO, storeKey: "b|TO", matchKind: "SIMILARITY", weeklyFrequency: 0.5, monthlyFrequency: 2 },
+      {
+        storeId: ATACADAO,
+        storeKey: "a|TO",
+        matchKind: "SIMILARITY",
+        weeklyFrequency: 1,
+        monthlyFrequency: 4,
+      },
+      {
+        storeId: ATACADAO,
+        storeKey: "b|TO",
+        matchKind: "SIMILARITY",
+        weeklyFrequency: 0.5,
+        monthlyFrequency: 2,
+      },
     ]);
     expect(rows).toHaveLength(1);
     expect(rows[0].monthlyFrequency).toBe(4);
@@ -62,10 +86,34 @@ describe("dedup do importador — nunca soma nomes diferentes do Excel", () => {
 
   it("demais lojas do mesmo lote não são afetadas", () => {
     const rows = dedupIncoming([
-      { storeId: ATACADAO, storeKey: "atacadao araguaina|TO", matchKind: "EXACT", weeklyFrequency: 1, monthlyFrequency: 4 },
-      { storeId: ATACADAO, storeKey: "atacadao araguaina 2|TO", matchKind: "SIMILARITY", weeklyFrequency: 1, monthlyFrequency: 4 },
-      { storeId: CAMPELO, storeKey: "campelo araguaina|TO", matchKind: "EXACT", weeklyFrequency: 0.5, monthlyFrequency: 2 },
-      { storeId: ATACADAO_2, storeKey: "atacadao outro|TO", matchKind: "EXACT", weeklyFrequency: 1, monthlyFrequency: 4 },
+      {
+        storeId: ATACADAO,
+        storeKey: "atacadao araguaina|TO",
+        matchKind: "EXACT",
+        weeklyFrequency: 1,
+        monthlyFrequency: 4,
+      },
+      {
+        storeId: ATACADAO,
+        storeKey: "atacadao araguaina 2|TO",
+        matchKind: "SIMILARITY",
+        weeklyFrequency: 1,
+        monthlyFrequency: 4,
+      },
+      {
+        storeId: CAMPELO,
+        storeKey: "campelo araguaina|TO",
+        matchKind: "EXACT",
+        weeklyFrequency: 0.5,
+        monthlyFrequency: 2,
+      },
+      {
+        storeId: ATACADAO_2,
+        storeKey: "atacadao outro|TO",
+        matchKind: "EXACT",
+        weeklyFrequency: 1,
+        monthlyFrequency: 4,
+      },
     ]);
     expect(rows).toHaveLength(3);
     expect(rows.find((r) => r.storeId === CAMPELO)?.monthlyFrequency).toBe(2);

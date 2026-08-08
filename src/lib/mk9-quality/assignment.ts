@@ -10,7 +10,13 @@
  */
 import type { Mk9AccessScope } from "@/lib/mk9-auth/access-scope.server";
 
-export type Mk9QualityActorRole = "ADMIN" | "DEV" | "AUDITOR" | "SUPERVISOR" | "CLIENTE" | "PROMOTOR";
+export type Mk9QualityActorRole =
+  | "ADMIN"
+  | "DEV"
+  | "AUDITOR"
+  | "SUPERVISOR"
+  | "CLIENTE"
+  | "PROMOTOR";
 
 const MANAGERS: string[] = ["ADMIN", "DEV"];
 

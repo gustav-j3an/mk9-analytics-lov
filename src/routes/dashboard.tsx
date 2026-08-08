@@ -18,7 +18,8 @@ export const Route = createFileRoute("/dashboard")({
       { property: "og:title", content: "MK9 Analytics — MK9 Analytics" },
       {
         property: "og:description",
-        content: "Gestão operacional completa de trade marketing, o que está travando e o que fazer agora.",
+        content:
+          "Gestão operacional completa de trade marketing, o que está travando e o que fazer agora.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -34,8 +35,10 @@ function DashboardPage() {
   useEffect(() => {
     // Redirecionamento preventivo client-side se a sessão cair ou não existir
     if (!loading && !session) {
-      console.warn("[MK9-DASHBOARD] Usuário não autenticado tentando acessar rota protegida. Redirecionando...");
-      navigate({ to: '/', replace: true });
+      console.warn(
+        "[MK9-DASHBOARD] Usuário não autenticado tentando acessar rota protegida. Redirecionando...",
+      );
+      navigate({ to: "/", replace: true });
     }
   }, [loading, session, navigate]);
 

@@ -64,15 +64,11 @@ export type DirEntry = {
 };
 
 export const listRepoContents = createServerFn({ method: "GET" })
-  .inputValidator(
-    (d: { owner: string; repo: string; path?: string; ref?: string }) => d,
-  )
+  .inputValidator((d: { owner: string; repo: string; path?: string; ref?: string }) => d)
   .handler(async ({ data }): Promise<DirEntry[]> => {
     const path = data.path ? `/${encodeURI(data.path)}` : "";
     const ref = data.ref ? `?ref=${encodeURIComponent(data.ref)}` : "";
-    const result = await gh(
-      `/repos/${data.owner}/${data.repo}/contents${path}${ref}`,
-    );
+    const result = await gh(`/repos/${data.owner}/${data.repo}/contents${path}${ref}`);
     const arr = Array.isArray(result) ? result : [result];
     return arr.map((e: any) => ({
       name: e.name,
@@ -95,15 +91,43 @@ export type FileContent = {
 };
 
 const BINARY_EXT = new Set([
-  "png","jpg","jpeg","gif","webp","ico","bmp","tiff","pdf","zip","tar","gz",
-  "rar","7z","exe","dll","so","dylib","bin","woff","woff2","ttf","otf","eot",
-  "mp3","mp4","mov","avi","webm","wasm","psd","ai","sketch",
+  "png",
+  "jpg",
+  "jpeg",
+  "gif",
+  "webp",
+  "ico",
+  "bmp",
+  "tiff",
+  "pdf",
+  "zip",
+  "tar",
+  "gz",
+  "rar",
+  "7z",
+  "exe",
+  "dll",
+  "so",
+  "dylib",
+  "bin",
+  "woff",
+  "woff2",
+  "ttf",
+  "otf",
+  "eot",
+  "mp3",
+  "mp4",
+  "mov",
+  "avi",
+  "webm",
+  "wasm",
+  "psd",
+  "ai",
+  "sketch",
 ]);
 
 export const getFileContent = createServerFn({ method: "GET" })
-  .inputValidator(
-    (d: { owner: string; repo: string; path: string; ref?: string }) => d,
-  )
+  .inputValidator((d: { owner: string; repo: string; path: string; ref?: string }) => d)
   .handler(async ({ data }): Promise<FileContent> => {
     const ref = data.ref ? `?ref=${encodeURIComponent(data.ref)}` : "";
     const result: any = await gh(

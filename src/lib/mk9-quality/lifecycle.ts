@@ -42,10 +42,13 @@ export function decideOnDetection(
 }
 
 /** Problema deixou de ser detectado. `null` = não muda de status. */
-export function decideOnDisappearance(
-  current: Mk9QualityStatus,
-): LifecycleDecision | null {
-  if (current === "OPEN" || current === "ACKNOWLEDGED" || current === "IN_PROGRESS" || current === "REOPENED") {
+export function decideOnDisappearance(current: Mk9QualityStatus): LifecycleDecision | null {
+  if (
+    current === "OPEN" ||
+    current === "ACKNOWLEDGED" ||
+    current === "IN_PROGRESS" ||
+    current === "REOPENED"
+  ) {
     return { status: "RESOLVED_AUTO", event: "RESOLVED_AUTO", clearsDecision: false };
   }
   // IGNORED / RESOLVED / RESOLVED_AUTO permanecem como estão (nunca apagados).
@@ -124,4 +127,3 @@ export const REOPEN_MIN_REASON = 10;
 export function validateReopenReason(reason?: string | null): boolean {
   return typeof reason === "string" && reason.trim().length >= REOPEN_MIN_REASON;
 }
-

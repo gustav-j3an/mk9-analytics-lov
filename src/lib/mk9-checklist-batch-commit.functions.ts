@@ -15,7 +15,7 @@ export const checklistBatchCommit = createServerFn({ method: "POST" })
     const { checklistCommit } = await import("./mk9-checklist.functions");
     const { updateBatchStatus } = await import("./mk9-checklist/batch.server");
     const { loadPreviewSnapshot } = await import("./mk9-checklist/persistence.server");
-    
+
     await updateBatchStatus(data.batchId, "PROCESSING");
 
     const results = [];
@@ -25,7 +25,13 @@ export const checklistBatchCommit = createServerFn({ method: "POST" })
         if (!preview) throw new Error("Preview não encontrado");
 
         const items = preview.items
-          .filter((i: any) => (i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store") && i.scheduledDate)
+          .filter(
+            (i: any) =>
+              (i.status === "found" ||
+                i.status === "linked_by_similarity" ||
+                i.status === "new_store") &&
+              i.scheduledDate,
+          )
           .map((i: any) => ({
             storeId: i.storeId,
             storeName: i.storeName,
@@ -44,7 +50,7 @@ export const checklistBatchCommit = createServerFn({ method: "POST" })
             operationMonth: preview.operationMonth,
             operationYear: preview.operationYear,
             items,
-          }
+          },
         });
 
         results.push({ importId, status: "SUCCESS", data: res });
@@ -53,7 +59,7 @@ export const checklistBatchCommit = createServerFn({ method: "POST" })
       }
     }
 
-    const allSuccess = results.every(r => r.status === "SUCCESS");
+    const allSuccess = results.every((r) => r.status === "SUCCESS");
     await updateBatchStatus(data.batchId, allSuccess ? "COMPLETED" : "PARTIAL");
 
     return { results };

@@ -14,7 +14,11 @@ describe("cadastro manual de indústria", () => {
   });
 
   it("normaliza textos opcionais vazios para nulo", () => {
-    const out = createIndustrySchema.parse({ name: "  Nova Indústria ", displayName: "   ", notes: "" });
+    const out = createIndustrySchema.parse({
+      name: "  Nova Indústria ",
+      displayName: "   ",
+      notes: "",
+    });
     expect(out.name).toBe("Nova Indústria");
     expect(out.displayName).toBeNull();
     expect(out.notes).toBeNull();
@@ -23,7 +27,9 @@ describe("cadastro manual de indústria", () => {
   });
 
   it("exige dia inicial e final no período personalizado", () => {
-    expect(() => createIndustrySchema.parse({ name: "Teste", periodType: "CUSTOM_CYCLE" })).toThrow();
+    expect(() =>
+      createIndustrySchema.parse({ name: "Teste", periodType: "CUSTOM_CYCLE" }),
+    ).toThrow();
     const ok = createIndustrySchema.parse({
       name: "Teste",
       periodType: "CUSTOM_CYCLE",
@@ -47,7 +53,14 @@ describe("edição — payload estrito", () => {
   });
 
   it("recusa metadados administrativos no payload", () => {
-    for (const extra of ["created_by", "updated_by", "archived_by", "archived_at", "source_type", "id"]) {
+    for (const extra of [
+      "created_by",
+      "updated_by",
+      "archived_by",
+      "archived_at",
+      "source_type",
+      "id",
+    ]) {
       expect(() => updateIndustrySchema.parse({ ...base, [extra]: "x" })).toThrow();
     }
   });
@@ -65,12 +78,16 @@ describe("edição — payload estrito", () => {
 describe("mensagens seguras das RPCs", () => {
   it("traduz códigos técnicos", () => {
     expect(industryRpcMessage("erro: MK9_DUPLICATE_INDUSTRY", "fallback")).toMatch(/já existe/i);
-    expect(industryRpcMessage("MK9_CONCURRENT_UPDATE", "fallback")).toMatch(/alterado por outra pessoa/i);
+    expect(industryRpcMessage("MK9_CONCURRENT_UPDATE", "fallback")).toMatch(
+      /alterado por outra pessoa/i,
+    );
     expect(industryRpcMessage("MK9_INDUSTRY_NOT_FOUND", "fallback")).toMatch(/não encontrada/i);
   });
 
   it("usa o texto genérico quando o erro é desconhecido", () => {
-    expect(industryRpcMessage('relation "mk9_industries" violates policy', "Falhou.")).toBe("Falhou.");
+    expect(industryRpcMessage('relation "mk9_industries" violates policy', "Falhou.")).toBe(
+      "Falhou.",
+    );
   });
 });
 

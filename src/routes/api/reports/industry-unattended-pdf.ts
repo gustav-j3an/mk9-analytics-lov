@@ -25,9 +25,11 @@ export const Route = createFileRoute("/api/reports/industry-unattended-pdf")({
           const { requireMk9ReportsScope } = await import("@/lib/mk9-auth/read-guards.server");
           const { scope: access } = await requireMk9ReportsScope(request);
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { loadPeriodConfig, resolveWindow } = await import("@/lib/mk9-reports/period.server");
+          const { loadPeriodConfig, resolveWindow } =
+            await import("@/lib/mk9-reports/period.server");
           const { buildIndustryReport } = await import("@/lib/mk9-reports/industry-report.server");
-          const { renderUnattendedPdf, unattendedPdfFileName } = await import("@/lib/reports/unattended-pdf.server");
+          const { renderUnattendedPdf, unattendedPdfFileName } =
+            await import("@/lib/reports/unattended-pdf.server");
 
           const raw = await request.json();
           const body = payloadSchema.parse(raw);
@@ -38,18 +40,25 @@ export const Route = createFileRoute("/api/reports/industry-unattended-pdf")({
           const cfg = await loadPeriodConfig(supabaseAdmin, body.industryId);
           const window = resolveWindow(cfg, body.year, body.month);
 
-          const report = await buildIndustryReport(supabaseAdmin, {
-            industryId: body.industryId,
-            year: body.year,
-            month: body.month,
-            uf: body.uf ?? null,
-            access,
-          }, window);
+          const report = await buildIndustryReport(
+            supabaseAdmin,
+            {
+              industryId: body.industryId,
+              year: body.year,
+              month: body.month,
+              uf: body.uf ?? null,
+              access,
+            },
+            window,
+          );
 
           const bytes = await renderUnattendedPdf(report, body.year, body.month);
           const filename = unattendedPdfFileName(report, body.year, body.month);
 
-          const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+          const ab = bytes.buffer.slice(
+            bytes.byteOffset,
+            bytes.byteOffset + bytes.byteLength,
+          ) as ArrayBuffer;
           return new Response(ab, {
             status: 200,
             headers: {

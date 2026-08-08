@@ -41,8 +41,7 @@ export function GithubExplorer() {
     const q = filter.toLowerCase();
     return repos.filter(
       (r) =>
-        r.full_name.toLowerCase().includes(q) ||
-        (r.description ?? "").toLowerCase().includes(q),
+        r.full_name.toLowerCase().includes(q) || (r.description ?? "").toLowerCase().includes(q),
     );
   }, [reposQuery.data, filter]);
 
@@ -61,9 +60,7 @@ export function GithubExplorer() {
             onClick={() => reposQuery.refetch()}
             aria-label="Atualizar"
           >
-            <RefreshCw
-              className={cn("h-4 w-4", reposQuery.isFetching && "animate-spin")}
-            />
+            <RefreshCw className={cn("h-4 w-4", reposQuery.isFetching && "animate-spin")} />
           </Button>
         </div>
         <div className="p-3">
@@ -89,10 +86,7 @@ export function GithubExplorer() {
               <RepoItem
                 key={r.id}
                 repo={r}
-                active={
-                  selected?.owner === r.full_name.split("/")[0] &&
-                  selected?.repo === r.name
-                }
+                active={selected?.owner === r.full_name.split("/")[0] && selected?.repo === r.name}
                 onSelect={() =>
                   setSelected({
                     owner: r.full_name.split("/")[0],
@@ -103,9 +97,7 @@ export function GithubExplorer() {
               />
             ))}
             {!reposQuery.isLoading && filtered.length === 0 && (
-              <li className="p-3 text-sm text-muted-foreground">
-                Nenhum repositório encontrado.
-              </li>
+              <li className="p-3 text-sm text-muted-foreground">Nenhum repositório encontrado.</li>
             )}
           </ul>
         </ScrollArea>
@@ -152,9 +144,7 @@ function RepoItem({
             </Badge>
           )}
         </div>
-        <div className="truncate text-xs text-muted-foreground">
-          {repo.full_name}
-        </div>
+        <div className="truncate text-xs text-muted-foreground">{repo.full_name}</div>
         <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
           {repo.language && <span>{repo.language}</span>}
           {repo.stargazers_count > 0 && (
@@ -249,9 +239,7 @@ function RepoBrowser({ selected }: { selected: NonNullable<Selected> }) {
               />
             ))}
             {!contentsQuery.isLoading && sorted.length === 0 && (
-              <li className="p-3 text-sm text-muted-foreground">
-                Pasta vazia.
-              </li>
+              <li className="p-3 text-sm text-muted-foreground">Pasta vazia.</li>
             )}
           </ul>
         </ScrollArea>
@@ -271,17 +259,13 @@ function RepoBrowser({ selected }: { selected: NonNullable<Selected> }) {
           </div>
         )}
         {filePath && fileQuery.isError && (
-          <div className="p-4 text-sm text-destructive">
-            {(fileQuery.error as Error).message}
-          </div>
+          <div className="p-4 text-sm text-destructive">{(fileQuery.error as Error).message}</div>
         )}
         {filePath && fileQuery.data && (
           <>
             <div className="flex items-center justify-between gap-2 border-b p-3">
               <div className="min-w-0">
-                <div className="truncate text-sm font-medium">
-                  {fileQuery.data.path}
-                </div>
+                <div className="truncate text-sm font-medium">{fileQuery.data.path}</div>
                 <div className="text-xs text-muted-foreground">
                   {fileQuery.data.size.toLocaleString()} bytes
                 </div>
@@ -316,19 +300,13 @@ function Breadcrumbs({
 }) {
   return (
     <div className="mt-2 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-      <button
-        onClick={() => onNavigate(-1)}
-        className="hover:text-foreground hover:underline"
-      >
+      <button onClick={() => onNavigate(-1)} className="hover:text-foreground hover:underline">
         root
       </button>
       {crumbs.map((c, i) => (
         <span key={i} className="flex items-center gap-1">
           <ChevronRight className="h-3 w-3" />
-          <button
-            onClick={() => onNavigate(i)}
-            className="hover:text-foreground hover:underline"
-          >
+          <button onClick={() => onNavigate(i)} className="hover:text-foreground hover:underline">
             {c}
           </button>
         </span>

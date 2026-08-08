@@ -73,7 +73,11 @@ export const SEVERITY_META: Record<Mk9QualitySeverity, SeverityMeta> = {
 };
 
 export const SEVERITY_ORDER: Mk9QualitySeverity[] = [
-  "BLOQUEANTE", "CRITICO", "ATENCAO", "AVISO", "INFO",
+  "BLOQUEANTE",
+  "CRITICO",
+  "ATENCAO",
+  "AVISO",
+  "INFO",
 ];
 
 export function severityWeight(severity: string): number {
@@ -94,39 +98,46 @@ export interface StatusMeta {
 
 export const STATUS_META: Record<Mk9QualityStatus, StatusMeta> = {
   OPEN: {
-    label: "Aberto", open: true,
+    label: "Aberto",
+    open: true,
     hint: "Detectado e ainda sem tratativa.",
     className: "border-destructive/30 bg-destructive/10 text-destructive",
   },
   ACKNOWLEDGED: {
-    label: "Reconhecido", open: true,
+    label: "Reconhecido",
+    open: true,
     hint: "Alguém confirmou que viu o problema.",
     className: "border-border bg-muted text-foreground",
   },
   IN_PROGRESS: {
-    label: "Em andamento", open: true,
+    label: "Em andamento",
+    open: true,
     hint: "Correção em execução no módulo de origem.",
     className: "border-primary/35 bg-primary/10 text-primary",
   },
   RESOLVED: {
-    label: "Resolvido", open: false,
+    label: "Resolvido",
+    open: false,
     hint: "Resolvido manualmente, com nota de resolução.",
     className:
       "border-[color:var(--color-kpi-green)]/35 bg-[color-mix(in_oklab,var(--color-kpi-green)_14%,transparent)] text-[color:var(--color-kpi-green)]",
   },
   RESOLVED_AUTO: {
-    label: "Resolvido automaticamente", open: false,
+    label: "Resolvido automaticamente",
+    open: false,
     hint: "O detector deixou de encontrar o problema na última execução.",
     className:
       "border-[color:var(--color-kpi-green)]/25 bg-[color-mix(in_oklab,var(--color-kpi-green)_9%,transparent)] text-[color:var(--color-kpi-green)]",
   },
   IGNORED: {
-    label: "Ignorado", open: false,
+    label: "Ignorado",
+    open: false,
     hint: "Decisão registrada de não tratar. Só reabre se o contexto mudar.",
     className: "border-border bg-muted text-muted-foreground",
   },
   REOPENED: {
-    label: "Reaberto", open: true,
+    label: "Reaberto",
+    open: true,
     hint: "O problema voltou depois de resolvido ou o contexto mudou.",
     className: "border-destructive/30 bg-destructive/10 text-destructive",
   },
@@ -151,7 +162,13 @@ export const CATEGORY_LABEL: Record<Mk9QualityCategory, string> = {
 };
 
 export const CATEGORY_ORDER: Mk9QualityCategory[] = [
-  "CADASTRO", "FREQUENCIA", "ROTEIRO", "VISITA", "IMPORTACAO", "INTEGRIDADE", "SEGURANCA",
+  "CADASTRO",
+  "FREQUENCIA",
+  "ROTEIRO",
+  "VISITA",
+  "IMPORTACAO",
+  "INTEGRIDADE",
+  "SEGURANCA",
 ];
 
 // ---------------------------------------------------------------------------
@@ -170,7 +187,8 @@ export const ISSUE_TYPE_LABEL: Record<string, string> = {
   INDUSTRY_WITHOUT_PERIOD_CONFIG: "Indústria sem período configurado",
   CHECKLIST_IMPORT_WITHOUT_VALIDATION: "Checklist importado sem validação",
   FREQUENCY_WEEKLY_MONTHLY_INCONSISTENCY: "Frequência semanal e mensal divergentes",
-  FREQUENCY_WEEKLY_MONTHLY_INCONSISTENCY_SUMMARY: "Muitas frequências semanais e mensais divergentes",
+  FREQUENCY_WEEKLY_MONTHLY_INCONSISTENCY_SUMMARY:
+    "Muitas frequências semanais e mensais divergentes",
   PROJECTION_FREQUENCY_DIVERGENCE: "Projeção de frequência divergente",
   FREQUENCY_OVERLAP_GUARD_STATUS: "Proteção de vigência de frequência",
   LEGACY_OPERATIONAL_DATA: "Dado operacional legado",
@@ -220,7 +238,11 @@ export type Mk9QualityRole = "ADMIN" | "DEV" | "AUDITOR" | "SUPERVISOR" | "CLIEN
 
 /** PROMOTOR não enxerga o Centro de Qualidade nesta fase. */
 export const QUALITY_MODULE_ROLES: Mk9QualityRole[] = [
-  "ADMIN", "DEV", "AUDITOR", "SUPERVISOR", "CLIENTE",
+  "ADMIN",
+  "DEV",
+  "AUDITOR",
+  "SUPERVISOR",
+  "CLIENTE",
 ];
 
 export function canOpenQualityModule(roles: string[]): boolean {
@@ -271,7 +293,11 @@ export function availableTransitions(params: {
 }): TransitionOption[] {
   if (!params.persisted) return [];
   if (params.role === "CLIENTE" || params.role === "PROMOTOR") return [];
-  if (params.status === "RESOLVED" || params.status === "RESOLVED_AUTO" || params.status === "IGNORED") {
+  if (
+    params.status === "RESOLVED" ||
+    params.status === "RESOLVED_AUTO" ||
+    params.status === "IGNORED"
+  ) {
     return [];
   }
   return ALL_TRANSITIONS.filter((t) => {
@@ -279,7 +305,8 @@ export function availableTransitions(params: {
       return params.role === "ADMIN" || params.role === "DEV" || params.role === "AUDITOR";
     }
 
-    if (t.target === "ACKNOWLEDGED") return params.status === "OPEN" || params.status === "REOPENED";
+    if (t.target === "ACKNOWLEDGED")
+      return params.status === "OPEN" || params.status === "REOPENED";
     if (t.target === "IN_PROGRESS") return params.status !== "IN_PROGRESS";
     return true;
   });
@@ -289,7 +316,14 @@ export function availableTransitions(params: {
 // Unidades — nunca misturar ocorrência com loja/visita/sintoma
 // ---------------------------------------------------------------------------
 
-export type Mk9QualityUnit = "ocorrencia" | "loja" | "visita" | "sintoma" | "par" | "importacao" | "industria";
+export type Mk9QualityUnit =
+  | "ocorrencia"
+  | "loja"
+  | "visita"
+  | "sintoma"
+  | "par"
+  | "importacao"
+  | "industria";
 
 const UNIT_WORD: Record<Mk9QualityUnit, [string, string]> = {
   ocorrencia: ["ocorrência", "ocorrências"],
@@ -340,8 +374,18 @@ export function describeConsolidation(issues: number, symptoms: number): string 
 // ---------------------------------------------------------------------------
 
 export const MONTHS_PT = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
 
 export function competenceLabel(month: number | null, year: number | null): string {

@@ -21,21 +21,22 @@ const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data no formato AAAA-MM
 // ---------------------------------------------------------------------------
 export const mk9RoutesListVersioned = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({
-      referenceDate: isoDate.optional(),
-      promoterId: z.string().uuid().optional(),
-      industryId: z.string().uuid().optional(),
-      storeId: z.string().uuid().optional(),
-      uf: z.string().length(2).optional(),
-      weekday: z.number().int().min(0).max(6).optional(),
-      includeInactive: z.boolean().optional(),
-    }).parse(data),
+    z
+      .object({
+        referenceDate: isoDate.optional(),
+        promoterId: z.string().uuid().optional(),
+        industryId: z.string().uuid().optional(),
+        storeId: z.string().uuid().optional(),
+        uf: z.string().length(2).optional(),
+        weekday: z.number().int().min(0).max(6).optional(),
+        includeInactive: z.boolean().optional(),
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
-    const { industryFilter, ufFilter, storeFilter, promoterFilter } = await import(
-      "@/lib/mk9-auth/access-scope.server"
-    );
+    const { industryFilter, ufFilter, storeFilter, promoterFilter } =
+      await import("@/lib/mk9-auth/access-scope.server");
     const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const ref = data.referenceDate ?? new Date().toISOString().slice(0, 10);
@@ -91,15 +92,18 @@ export const mk9RoutesListVersioned = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 export const mk9RoutesListHistory = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({
-      storeId: z.string().uuid(),
-      industryId: z.string().uuid(),
-      weekday: z.number().int().min(0).max(6),
-    }).parse(data),
+    z
+      .object({
+        storeId: z.string().uuid(),
+        industryId: z.string().uuid(),
+        weekday: z.number().int().min(0).max(6),
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
-    const { assertIndustryAllowed, storeFilter } = await import("@/lib/mk9-auth/access-scope.server");
+    const { assertIndustryAllowed, storeFilter } =
+      await import("@/lib/mk9-auth/access-scope.server");
     const { scope } = await requireMk9ReadScope();
     assertIndustryAllowed(scope, data.industryId);
     if (storeFilter(scope, data.storeId).outOfScope) return [];
@@ -134,14 +138,16 @@ export const mk9RoutesListHistory = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 export const mk9RoutesUpsertItem = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({
-      id: z.string().uuid().optional(),
-      promoterId: z.string().uuid(),
-      storeId: z.string().uuid(),
-      industryId: z.string().uuid(),
-      weekday: z.number().int().min(0).max(6),
-      validFrom: isoDate,
-    }).parse(data),
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        promoterId: z.string().uuid(),
+        storeId: z.string().uuid(),
+        industryId: z.string().uuid(),
+        weekday: z.number().int().min(0).max(6),
+        validFrom: isoDate,
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(["ADMIN", "SUPERVISOR"]);
@@ -207,7 +213,10 @@ export const mk9RoutesUpsertItem = createServerFn({ method: "POST" })
       if (match) {
         const [, cId, cPromoter, cFrom, cUntil] = match;
         const { data: prow } = await supabaseAdmin
-          .from("mk9_promoters").select("name").eq("id", cPromoter).maybeSingle();
+          .from("mk9_promoters")
+          .select("name")
+          .eq("id", cPromoter)
+          .maybeSingle();
         throw new Error(
           `CONFLITO_VIGENCIA::${JSON.stringify({
             conflictRouteId: cId,
@@ -238,10 +247,12 @@ export const mk9RoutesUpsertItem = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 export const mk9RoutesDeactivate = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({
-      id: z.string().uuid(),
-      validUntil: isoDate,
-    }).parse(data),
+    z
+      .object({
+        id: z.string().uuid(),
+        validUntil: isoDate,
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(["ADMIN", "SUPERVISOR"]);
@@ -264,14 +275,19 @@ export const mk9RoutesDeactivate = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 export const mk9RoutesSetFrequency = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({
-      industryId: z.string().uuid(),
-      storeId: z.string().uuid(),
-      weeklyFrequency: z.number().nullable().optional(),
-      monthlyFrequency: z.number().nullable().optional(),
-      validFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-      reason: z.string().max(500).optional(),
-    }).parse(data),
+    z
+      .object({
+        industryId: z.string().uuid(),
+        storeId: z.string().uuid(),
+        weeklyFrequency: z.number().nullable().optional(),
+        monthlyFrequency: z.number().nullable().optional(),
+        validFrom: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        reason: z.string().max(500).optional(),
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(["ADMIN", "SUPERVISOR"]);
@@ -309,7 +325,6 @@ export const mk9RoutesSetFrequency = createServerFn({ method: "POST" })
     return { ok: true, versionId: (versionId as string) ?? null };
   });
 
-
 // ---------------------------------------------------------------------------
 // RESOLVER PROMOTOR NA EXECUÇÃO — para uma visita real (loja+indústria+data)
 //   Retorna:
@@ -319,19 +334,26 @@ export const mk9RoutesSetFrequency = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 export const mk9RoutesResolvePromoter = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({
-      storeId: z.string().uuid(),
-      industryId: z.string().uuid(),
-      visitDate: isoDate,
-    }).parse(data),
+    z
+      .object({
+        storeId: z.string().uuid(),
+        industryId: z.string().uuid(),
+        visitDate: isoDate,
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
-    const { assertIndustryAllowed, storeFilter } = await import("@/lib/mk9-auth/access-scope.server");
+    const { assertIndustryAllowed, storeFilter } =
+      await import("@/lib/mk9-auth/access-scope.server");
     const { scope } = await requireMk9ReadScope();
     assertIndustryAllowed(scope, data.industryId);
     if (storeFilter(scope, data.storeId).outOfScope) {
-      return { status: "UNASSIGNED_ROUTE" as const, weekdayRealized: new Date(data.visitDate + "T00:00:00Z").getUTCDay(), candidates: [] };
+      return {
+        status: "UNASSIGNED_ROUTE" as const,
+        weekdayRealized: new Date(data.visitDate + "T00:00:00Z").getUTCDay(),
+        candidates: [],
+      };
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -342,8 +364,12 @@ export const mk9RoutesResolvePromoter = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
     const list = (rows ?? []) as Array<{
-      route_id: string; promoter_id: string; weekday: number;
-      valid_from: string; valid_until: string | null; match_count: number;
+      route_id: string;
+      promoter_id: string;
+      weekday: number;
+      valid_from: string;
+      valid_until: string | null;
+      match_count: number;
     }>;
 
     const weekdayRealized = new Date(data.visitDate + "T00:00:00Z").getUTCDay();
@@ -362,8 +388,11 @@ export const mk9RoutesResolvePromoter = createServerFn({ method: "POST" })
         status: "AMBIGUOUS_ROUTE" as const,
         weekdayRealized,
         candidates: pool.map((c) => ({
-          routeId: c.route_id, promoterId: c.promoter_id, weekday: c.weekday,
-          validFrom: c.valid_from, validUntil: c.valid_until,
+          routeId: c.route_id,
+          promoterId: c.promoter_id,
+          weekday: c.weekday,
+          validFrom: c.valid_from,
+          validUntil: c.valid_until,
         })),
       };
     }
@@ -388,9 +417,7 @@ export const mk9RoutesResolvePromoter = createServerFn({ method: "POST" })
 // ESTRATÉGIA (Fase 0.2): cliente administrativo controlado — autentica,
 // resolve escopo e aplica restrição explícita de UF/loja em toda consulta.
 export const mk9StoresSearch = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) =>
-    z.object({ q: z.string().min(2).max(80) }).parse(data),
-  )
+  .inputValidator((data: unknown) => z.object({ q: z.string().min(2).max(80) }).parse(data))
   .handler(async ({ data }) => {
     const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
     const { scope } = await requireMk9ReadScope();
@@ -469,5 +496,3 @@ export const mk9StoreGet = createServerFn({ method: "POST" })
       uf,
     };
   });
-
-

@@ -5,11 +5,13 @@ import { requireMk9ReadScope } from "@/lib/mk9-auth/read-guards.server";
 
 export const mk9PromoterRouteStats = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({
-      promoterId: z.string().uuid(),
-      year: z.number().int(),
-      month: z.number().int(),
-    }).parse(data),
+    z
+      .object({
+        promoterId: z.string().uuid(),
+        year: z.number().int(),
+        month: z.number().int(),
+      })
+      .parse(data),
   )
   .handler(async ({ data }) => {
     const { scope } = await requireMk9ReadScope();
@@ -49,7 +51,7 @@ export const mk9PromoterRouteStats = createServerFn({ method: "POST" })
       const routeInfo = core.routeByKey.get(`${row.industryId}|${row.storeId}`);
       if (routeInfo) {
         // Se a loja tem contratadas > 0, distribuímos essas visitas entre os dias do roteiro.
-        // Como o roteiro planejado (mk9_planned_routes) é semanal, o total de contratadas 
+        // Como o roteiro planejado (mk9_planned_routes) é semanal, o total de contratadas
         // no mês é distribuído proporcionalmente.
         // Simplificação segura: se contratadas=4 e tem 1 dia na semana, aquele dia tem as 4.
         const daysCount = routeInfo.weekdays.size;
@@ -66,6 +68,6 @@ export const mk9PromoterRouteStats = createServerFn({ method: "POST" })
       totalVisits: Math.round(totalVisits),
       uniqueStores: uniqueStores.size,
       uniqueIndustries: uniqueIndustries.size,
-      byWeekday: byWeekday.map(v => Math.round(v)),
+      byWeekday: byWeekday.map((v) => Math.round(v)),
     };
   });

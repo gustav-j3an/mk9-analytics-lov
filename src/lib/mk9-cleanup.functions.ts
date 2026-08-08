@@ -23,23 +23,27 @@ export const getCleanupDiagnosis = createServerFn({ method: "POST" })
  * Execução genérica e granular da limpeza.
  */
 export const executeGranularCleanup = createServerFn({ method: "POST" })
-  .inputValidator((data) => z.object({
-    industryId: z.string().uuid(),
-    month: z.number(),
-    year: z.number(),
-    justification: z.string().min(10),
-    selections: z.object({
-      importIds: z.array(z.string().uuid()),
-      visitIds: z.array(z.string().uuid()),
-      frequencyIds: z.array(z.string().uuid()),
-      projectionIds: z.array(z.string().uuid()),
-      routeIds: z.array(z.string().uuid()),
-    })
-  }).parse(data))
+  .inputValidator((data) =>
+    z
+      .object({
+        industryId: z.string().uuid(),
+        month: z.number(),
+        year: z.number(),
+        justification: z.string().min(10),
+        selections: z.object({
+          importIds: z.array(z.string().uuid()),
+          visitIds: z.array(z.string().uuid()),
+          frequencyIds: z.array(z.string().uuid()),
+          projectionIds: z.array(z.string().uuid()),
+          routeIds: z.array(z.string().uuid()),
+        }),
+      })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(["ADMIN"]);
     const { executeGranularCleanup: exec } = await import("./mk9-cleanup/execute.server");
-    
+
     return exec({
       industryId: data.industryId,
       month: data.month,
@@ -51,7 +55,7 @@ export const executeGranularCleanup = createServerFn({ method: "POST" })
         frequencyIds: data.selections.frequencyIds,
         importIds: data.selections.importIds,
         projectionIds: data.selections.projectionIds,
-        routeIds: data.selections.routeIds
-      }
+        routeIds: data.selections.routeIds,
+      },
     });
   });

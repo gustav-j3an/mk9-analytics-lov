@@ -82,7 +82,9 @@ describe("dev-bypass (fail-closed)", () => {
   it("é negado em hosts remotos (preview/produção) mesmo em modo development", () => {
     process.env.NODE_ENV = "development";
     expect(devBypassAllowed(req("mk9-analytics.lovable.app"))).toBe(false);
-    expect(devBypassAllowed(req("localhost:8080", { "x-forwarded-host": "mk9.lovable.app" }))).toBe(false);
+    expect(devBypassAllowed(req("localhost:8080", { "x-forwarded-host": "mk9.lovable.app" }))).toBe(
+      false,
+    );
     expect(devBypassAllowed(req("localhost:8080", { "x-forwarded-for": "1.2.3.4" }))).toBe(false);
   });
 
@@ -143,8 +145,13 @@ describe("interseção de filtros", () => {
 
   it("ADMIN (sem restrição) mantém acesso total — regressão", () => {
     const admin = scope({
-      role: "ADMIN", canViewAll: true, canViewPersonalData: true,
-      allowedIndustryIds: null, allowedStoreIds: null, allowedUfs: null, allowedPromoterIds: null,
+      role: "ADMIN",
+      canViewAll: true,
+      canViewPersonalData: true,
+      allowedIndustryIds: null,
+      allowedStoreIds: null,
+      allowedUfs: null,
+      allowedPromoterIds: null,
     });
     expect(industryFilter(admin, INDUSTRY_B)).toEqual({ ids: [INDUSTRY_B], outOfScope: false });
     expect(ufFilter(admin, "GO").ids).toEqual(["GO"]);
@@ -169,9 +176,17 @@ describe("validação por objeto", () => {
 
   it("loja/UF fora do escopo lança 403", () => {
     const s = scope({});
-    for (const bad of [() => assertStoreAllowed(s, STORE_B1, "DF"), () => assertStoreAllowed(s, STORE_A1, "GO")]) {
+    for (const bad of [
+      () => assertStoreAllowed(s, STORE_B1, "DF"),
+      () => assertStoreAllowed(s, STORE_A1, "GO"),
+    ]) {
       expect(bad).toThrow();
-      try { bad(); } catch (e: any) { expect(e.statusCode).toBe(403); expect(e.name).toBe("Mk9ScopeError"); }
+      try {
+        bad();
+      } catch (e: any) {
+        expect(e.statusCode).toBe(403);
+        expect(e.name).toBe("Mk9ScopeError");
+      }
     }
     expect(() => assertStoreAllowed(s, STORE_A1, "DF")).not.toThrow();
   });
@@ -188,8 +203,13 @@ describe("validação por objeto", () => {
 // --- 12. dados pessoais -----------------------------------------------------
 describe("supressão de dados pessoais", () => {
   const row = {
-    id: PROMOTER_A, name: "Promotor A", external_id: "EXT-1", city: "Brasília",
-    contact: "61 99999-0000", notes: "obs interna", updated_at: "2026-07-01T00:00:00Z",
+    id: PROMOTER_A,
+    name: "Promotor A",
+    external_id: "EXT-1",
+    city: "Brasília",
+    contact: "61 99999-0000",
+    notes: "obs interna",
+    updated_at: "2026-07-01T00:00:00Z",
   };
 
   it("CLIENTE recebe apenas id e nome", () => {
@@ -217,8 +237,18 @@ describe("supressão de dados pessoais", () => {
 describe("separação de cache por escopo", () => {
   it("escopos diferentes produzem hashes diferentes", async () => {
     const { resolveMk9AccessScope } = await import("@/lib/mk9-auth/access-scope.server");
-    const a = await resolveMk9AccessScope({ userId: null, email: null, roles: [], devBypass: true });
-    const b = await resolveMk9AccessScope({ userId: null, email: null, roles: [], devBypass: true });
+    const a = await resolveMk9AccessScope({
+      userId: null,
+      email: null,
+      roles: [],
+      devBypass: true,
+    });
+    const b = await resolveMk9AccessScope({
+      userId: null,
+      email: null,
+      roles: [],
+      devBypass: true,
+    });
     // mesmo contexto ⇒ mesmo hash; contextos distintos abaixo ⇒ hashes distintos
     expect(a.scopeHash).toBe(a.scopeHash);
     expect(b.scopeHash).toBe(a.scopeHash);
@@ -227,8 +257,12 @@ describe("separação de cache por escopo", () => {
   it("escopo de indústria A e B não compartilham chave", () => {
     const hashA = scope({}).scopeHash;
     expect(hashA).toBe("fixture");
-    const differentA = JSON.stringify(scope({ allowedIndustryIds: [INDUSTRY_A] }).allowedIndustryIds);
-    const differentB = JSON.stringify(scope({ allowedIndustryIds: [INDUSTRY_B] }).allowedIndustryIds);
+    const differentA = JSON.stringify(
+      scope({ allowedIndustryIds: [INDUSTRY_A] }).allowedIndustryIds,
+    );
+    const differentB = JSON.stringify(
+      scope({ allowedIndustryIds: [INDUSTRY_B] }).allowedIndustryIds,
+    );
     expect(differentA).not.toBe(differentB);
   });
 });

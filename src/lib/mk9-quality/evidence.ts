@@ -12,13 +12,45 @@ import type { Mk9Evidence, Mk9JsonValue } from "./types";
 
 const FORBIDDEN_KEY = new RegExp(
   [
-    "token", "secret", "senha", "password", "apikey", "api_key", "authorization", "bearer",
-    "jwt", "cookie", "credential",
-    "phone", "telefone", "celular", "whatsapp", "email", "e_mail", "mail",
-    "contact", "contato", "cpf", "cnpj",
-    "stack", "stacktrace", "traceback", "sql", "query", "statement",
-    "payload", "raw", "body", "filecontent", "file_content", "conteudo",
-    "notes", "note", "observacao", "observacoes", "obs",
+    "token",
+    "secret",
+    "senha",
+    "password",
+    "apikey",
+    "api_key",
+    "authorization",
+    "bearer",
+    "jwt",
+    "cookie",
+    "credential",
+    "phone",
+    "telefone",
+    "celular",
+    "whatsapp",
+    "email",
+    "e_mail",
+    "mail",
+    "contact",
+    "contato",
+    "cpf",
+    "cnpj",
+    "stack",
+    "stacktrace",
+    "traceback",
+    "sql",
+    "query",
+    "statement",
+    "payload",
+    "raw",
+    "body",
+    "filecontent",
+    "file_content",
+    "conteudo",
+    "notes",
+    "note",
+    "observacao",
+    "observacoes",
+    "obs",
   ].join("|"),
   "i",
 );
@@ -59,12 +91,17 @@ function sanitizeRecord(input: Record<string, unknown>, depth: number): Mk9Evide
 }
 
 /** Sanitização obrigatória antes de qualquer persistência de evidência. */
-export function sanitizeEvidence(evidence: Record<string, unknown> | null | undefined): Mk9Evidence {
+export function sanitizeEvidence(
+  evidence: Record<string, unknown> | null | undefined,
+): Mk9Evidence {
   return sanitizeRecord(evidence ?? {}, 0);
 }
 
 /** Erros técnicos viram código controlado + contexto mínimo (nunca a mensagem crua). */
-export function technicalErrorEvidence(code: string, context: Record<string, unknown> = {}): Mk9Evidence {
+export function technicalErrorEvidence(
+  code: string,
+  context: Record<string, unknown> = {},
+): Mk9Evidence {
   return sanitizeEvidence({ errorCode: String(code).slice(0, 60).toUpperCase(), ...context });
 }
 
@@ -73,13 +110,28 @@ export function technicalErrorEvidence(code: string, context: Record<string, unk
  * lista é considerado interno/técnico e é removido na leitura.
  */
 const CLIENT_SAFE_KEYS = new Set([
-  "hasFrequency", "hasRoute", "visitsWithoutRoute", "routeCandidateCount", "symptoms",
-  "contractedVisits", "executedVisits", "pendingVisits", "storeName", "storeUf",
-  "industryName", "competence", "expected", "found", "count",
+  "hasFrequency",
+  "hasRoute",
+  "visitsWithoutRoute",
+  "routeCandidateCount",
+  "symptoms",
+  "contractedVisits",
+  "executedVisits",
+  "pendingVisits",
+  "storeName",
+  "storeUf",
+  "industryName",
+  "competence",
+  "expected",
+  "found",
+  "count",
   // Fase 2B.2 — campos operacionais dos detectores do MVP.
-  "peerStoreName", "chain", "missing", "navigationTarget", "similarity",
+  "peerStoreName",
+  "chain",
+  "missing",
+  "navigationTarget",
+  "similarity",
 ]);
-
 
 export function evidenceForClient(evidence: Mk9Evidence): Mk9Evidence {
   const out: Mk9Evidence = {};

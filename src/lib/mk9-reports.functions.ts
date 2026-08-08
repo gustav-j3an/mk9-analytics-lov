@@ -21,15 +21,19 @@ export const reportIndustry = createServerFn({ method: "POST" })
     const { buildIndustryReport } = await import("./mk9-reports/industry-report.server");
     const cfg = await loadPeriodConfig(supabaseAdmin, data.industryId);
     const window = resolveWindow(cfg, data.year, data.month);
-    return buildIndustryReport(supabaseAdmin, {
-      industryId: data.industryId,
-      year: data.year,
-      month: data.month,
-      uf: data.uf ?? null,
-      storeId: data.storeId ?? null,
-      sourceImportId: data.sourceImportId ?? null,
-      access,
-    }, window);
+    return buildIndustryReport(
+      supabaseAdmin,
+      {
+        industryId: data.industryId,
+        year: data.year,
+        month: data.month,
+        uf: data.uf ?? null,
+        storeId: data.storeId ?? null,
+        sourceImportId: data.sourceImportId ?? null,
+        access,
+      },
+      window,
+    );
   });
 
 export const reportIndustryPeriodConfig = createServerFn({ method: "POST" })
@@ -62,36 +66,41 @@ export const reportUpsertPeriodConfig = createServerFn({ method: "POST" })
     const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { error } = await supabaseAdmin
-      .from("mk9_industry_period_config")
-      .upsert(
-        {
-          industry_id: data.industryId,
-          period_type: data.periodType,
-          start_day: data.startDay,
-          end_day: data.endDay,
-          uses_previous_month: data.usesPreviousMonth,
-          week_grouping: data.weekGrouping,
-          active: data.active,
-          notes: data.notes ?? null,
-        },
-        { onConflict: "industry_id" },
-      );
+    const { error } = await supabaseAdmin.from("mk9_industry_period_config").upsert(
+      {
+        industry_id: data.industryId,
+        period_type: data.periodType,
+        start_day: data.startDay,
+        end_day: data.endDay,
+        uses_previous_month: data.usesPreviousMonth,
+        week_grouping: data.weekGrouping,
+        active: data.active,
+        notes: data.notes ?? null,
+      },
+      { onConflict: "industry_id" },
+    );
     if (error) throw new Error(error.message);
-    await logAudit(ctx, "mk9.report.upsertPeriodConfig", "mk9_industry_period_config", data.industryId, {
-      periodType: data.periodType,
-    });
+    await logAudit(
+      ctx,
+      "mk9.report.upsertPeriodConfig",
+      "mk9_industry_period_config",
+      data.industryId,
+      {
+        periodType: data.periodType,
+      },
+    );
     return { ok: true };
   });
 
-
 export const reportListChecklistImports = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
-    z.object({
-      industryId: z.string().uuid(),
-      year: z.number().int(),
-      month: z.number().int().min(1).max(12),
-    }).parse(d),
+    z
+      .object({
+        industryId: z.string().uuid(),
+        year: z.number().int(),
+        month: z.number().int().min(1).max(12),
+      })
+      .parse(d),
   )
   .handler(async ({ data }) => {
     const { requireMk9ReportsScope } = await import("@/lib/mk9-auth/read-guards.server");

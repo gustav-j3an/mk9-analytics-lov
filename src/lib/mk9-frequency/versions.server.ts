@@ -25,7 +25,6 @@ export interface FrequencyAccessScope {
   allowedStoreIds?: string[] | null;
 }
 
-
 export interface FrequencyVersionSegment extends FrequencySegmentInput {
   industryId: string;
   storeId: string;

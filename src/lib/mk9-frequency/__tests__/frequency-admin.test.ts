@@ -58,11 +58,19 @@ describe("combinação semanal × mensal", () => {
 describe("status de vigência", () => {
   it("classifica vigente, futura e encerrada", () => {
     const today = "2026-07-15";
-    expect(frequencyVersionStatus({ validFrom: "2026-07-01", validUntil: null }, today)).toBe("current");
-    expect(frequencyVersionStatus({ validFrom: "2026-08-01", validUntil: null }, today)).toBe("future");
-    expect(frequencyVersionStatus({ validFrom: "2026-05-01", validUntil: "2026-06-30" }, today)).toBe("ended");
+    expect(frequencyVersionStatus({ validFrom: "2026-07-01", validUntil: null }, today)).toBe(
+      "current",
+    );
+    expect(frequencyVersionStatus({ validFrom: "2026-08-01", validUntil: null }, today)).toBe(
+      "future",
+    );
+    expect(
+      frequencyVersionStatus({ validFrom: "2026-05-01", validUntil: "2026-06-30" }, today),
+    ).toBe("ended");
     // encerra exatamente hoje ainda é vigente
-    expect(frequencyVersionStatus({ validFrom: "2026-05-01", validUntil: "2026-07-15" }, today)).toBe("current");
+    expect(
+      frequencyVersionStatus({ validFrom: "2026-05-01", validUntil: "2026-07-15" }, today),
+    ).toBe("current");
   });
 });
 
@@ -88,7 +96,12 @@ describe("schemas .strict()", () => {
 
   it("recusa campos administrativos injetados", () => {
     expect(() =>
-      setFrequencySchema.parse({ ...base, weeklyFrequency: 1, monthlyFrequency: 4, sourceType: "IMPORT" }),
+      setFrequencySchema.parse({
+        ...base,
+        weeklyFrequency: 1,
+        monthlyFrequency: 4,
+        sourceType: "IMPORT",
+      }),
     ).toThrow();
     expect(() =>
       setFrequencySchema.parse({ ...base, weeklyFrequency: 1, monthlyFrequency: 4, actorId: "x" }),
@@ -96,9 +109,16 @@ describe("schemas .strict()", () => {
   });
 
   it("recusa frequência negativa e data inválida", () => {
-    expect(() => setFrequencySchema.parse({ ...base, weeklyFrequency: -1, monthlyFrequency: null })).toThrow();
     expect(() =>
-      setFrequencySchema.parse({ ...base, effectiveDate: "01/07/2026", weeklyFrequency: 1, monthlyFrequency: 4 }),
+      setFrequencySchema.parse({ ...base, weeklyFrequency: -1, monthlyFrequency: null }),
+    ).toThrow();
+    expect(() =>
+      setFrequencySchema.parse({
+        ...base,
+        effectiveDate: "01/07/2026",
+        weeklyFrequency: 1,
+        monthlyFrequency: 4,
+      }),
     ).toThrow();
   });
 
@@ -124,16 +144,23 @@ describe("schemas .strict()", () => {
     const parsed = listFrequenciesSchema.parse({ industryId: base.industryId });
     expect(parsed.page).toBe(1);
     expect(parsed.pageSize).toBe(20);
-    expect(() => listFrequenciesSchema.parse({ industryId: base.industryId, pageSize: 5000 })).toThrow();
+    expect(() =>
+      listFrequenciesSchema.parse({ industryId: base.industryId, pageSize: 5000 }),
+    ).toThrow();
   });
 });
 
 describe("erros sanitizados", () => {
   it("traduz códigos conhecidos sem vazar SQL", () => {
-    expect(frequencyRpcMessage("... MK9_FREQUENCY_CONCURRENT_MODIFICATION ...", "x")).toMatch(/outra pessoa/i);
+    expect(frequencyRpcMessage("... MK9_FREQUENCY_CONCURRENT_MODIFICATION ...", "x")).toMatch(
+      /outra pessoa/i,
+    );
     expect(frequencyRpcMessage("MK9_FREQUENCY_OVERLAP", "x")).toMatch(/vigência/i);
     expect(
-      frequencyRpcMessage('conflicting key value violates exclusion constraint "mk9_frequency_overlap"', "x"),
+      frequencyRpcMessage(
+        'conflicting key value violates exclusion constraint "mk9_frequency_overlap"',
+        "x",
+      ),
     ).toMatch(/vigência/i);
   });
 
@@ -149,7 +176,13 @@ describe("erros sanitizados", () => {
 
 describe("invalidação de cache", () => {
   it("cobre Dashboard, Cockpit, Auditoria e Relatórios", () => {
-    for (const key of ["mk9-dashboard", "mk9-cockpit", "mk9-audit", "mk9-reports", "mk9-industry-frequencies"]) {
+    for (const key of [
+      "mk9-dashboard",
+      "mk9-cockpit",
+      "mk9-audit",
+      "mk9-reports",
+      "mk9-industry-frequencies",
+    ]) {
       expect(FREQUENCY_ADMIN_CACHE_KEYS).toContain(key as any);
     }
   });

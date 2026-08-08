@@ -36,7 +36,9 @@ const CADASTRO = [
 
 describe("classificação exige checklist", () => {
   it("habilita somente as indústrias da lista aprovada presentes no cadastro", () => {
-    const habilitadas = filterChecklistIndustries(CADASTRO).map((i) => i.name).sort();
+    const habilitadas = filterChecklistIndustries(CADASTRO)
+      .map((i) => i.name)
+      .sort();
     expect(habilitadas).toEqual([...APROVADAS].sort());
   });
 
@@ -136,7 +138,10 @@ describe("countIndustriesMissingChecklist — regra temporal", () => {
 
   it("sem data registrada mantém o comportamento anterior", () => {
     expect(
-      countIndustriesMissingChecklist([{ ...base, checklistEnabledAt: null }], { month: 1, year: 2026 }),
+      countIndustriesMissingChecklist([{ ...base, checklistEnabledAt: null }], {
+        month: 1,
+        year: 2026,
+      }),
     ).toBe(1);
   });
 

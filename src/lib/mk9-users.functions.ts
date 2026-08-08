@@ -20,40 +20,42 @@ export type Mk9UserRow = {
   roles: Mk9Role[];
 };
 
-export const mk9ListUsers = createServerFn({ method: "GET" }).handler(async (): Promise<Mk9UserRow[]> => {
-  await requireMk9Role(["ADMIN"]);
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+export const mk9ListUsers = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Mk9UserRow[]> => {
+    await requireMk9Role(["ADMIN"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-  const { data: profiles, error } = await supabaseAdmin
-    .from("mk9_profiles")
-    .select("user_id, email, name, phone, avatar_url, active, last_login_at, created_at")
-    .order("created_at", { ascending: false });
-  if (error) throw new Error(error.message);
+    const { data: profiles, error } = await supabaseAdmin
+      .from("mk9_profiles")
+      .select("user_id, email, name, phone, avatar_url, active, last_login_at, created_at")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
 
-  const { data: roleRows, error: rErr } = await supabaseAdmin
-    .from("mk9_user_roles")
-    .select("user_id, role");
-  if (rErr) throw new Error(rErr.message);
+    const { data: roleRows, error: rErr } = await supabaseAdmin
+      .from("mk9_user_roles")
+      .select("user_id, role");
+    if (rErr) throw new Error(rErr.message);
 
-  const rolesByUser = new Map<string, Mk9Role[]>();
-  for (const r of roleRows ?? []) {
-    const list = rolesByUser.get(r.user_id as string) ?? [];
-    list.push(r.role as Mk9Role);
-    rolesByUser.set(r.user_id as string, list);
-  }
+    const rolesByUser = new Map<string, Mk9Role[]>();
+    for (const r of roleRows ?? []) {
+      const list = rolesByUser.get(r.user_id as string) ?? [];
+      list.push(r.role as Mk9Role);
+      rolesByUser.set(r.user_id as string, list);
+    }
 
-  return (profiles ?? []).map((p: any) => ({
-    userId: p.user_id,
-    email: p.email ?? null,
-    name: p.name ?? null,
-    phone: p.phone ?? null,
-    avatarUrl: p.avatar_url ?? null,
-    active: !!p.active,
-    lastLoginAt: p.last_login_at ?? null,
-    createdAt: p.created_at,
-    roles: rolesByUser.get(p.user_id) ?? [],
-  }));
-});
+    return (profiles ?? []).map((p: any) => ({
+      userId: p.user_id,
+      email: p.email ?? null,
+      name: p.name ?? null,
+      phone: p.phone ?? null,
+      avatarUrl: p.avatar_url ?? null,
+      active: !!p.active,
+      lastLoginAt: p.last_login_at ?? null,
+      createdAt: p.created_at,
+      roles: rolesByUser.get(p.user_id) ?? [],
+    }));
+  },
+);
 
 export const mk9CreateUser = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
@@ -82,18 +84,16 @@ export const mk9CreateUser = createServerFn({ method: "POST" })
     if (!userId) throw new Error("Falha ao criar usuário.");
 
     // Perfil (trigger deve criar, mas garantimos os campos extras).
-    await supabaseAdmin
-      .from("mk9_profiles")
-      .upsert(
-        {
-          user_id: userId,
-          email: data.email,
-          name: data.name ?? null,
-          phone: data.phone ?? null,
-          active: true,
-        },
-        { onConflict: "user_id" },
-      );
+    await supabaseAdmin.from("mk9_profiles").upsert(
+      {
+        user_id: userId,
+        email: data.email,
+        name: data.name ?? null,
+        phone: data.phone ?? null,
+        active: true,
+      },
+      { onConflict: "user_id" },
+    );
 
     if (data.role) {
       await supabaseAdmin
@@ -101,7 +101,10 @@ export const mk9CreateUser = createServerFn({ method: "POST" })
         .upsert({ user_id: userId, role: data.role }, { onConflict: "user_id,role" });
     }
 
-    await logAudit(ctx, "user.create", "mk9_profiles", userId, { email: data.email, role: data.role });
+    await logAudit(ctx, "user.create", "mk9_profiles", userId, {
+      email: data.email,
+      role: data.role,
+    });
     return { userId };
   });
 
@@ -123,7 +126,12 @@ export const mk9SetUserActive = createServerFn({ method: "POST" })
       ban_duration: data.active ? "none" : "876000h",
     } as any);
 
-    await logAudit(ctx, data.active ? "user.activate" : "user.deactivate", "mk9_profiles", data.userId);
+    await logAudit(
+      ctx,
+      data.active ? "user.activate" : "user.deactivate",
+      "mk9_profiles",
+      data.userId,
+    );
     return { ok: true };
   });
 

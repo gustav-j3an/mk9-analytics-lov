@@ -221,7 +221,12 @@ export const mk9IndustryContractSummary = createServerFn({ method: "POST" })
       check,
       groups: groupDistribution(rows),
       contract: contract
-        ? { id: contract.id, notes: contract.notes, updatedAt: contract.updatedAt, sourceType: contract.sourceType }
+        ? {
+            id: contract.id,
+            notes: contract.notes,
+            updatedAt: contract.updatedAt,
+            sourceType: contract.sourceType,
+          }
         : null,
       totalStores: rows.length,
     };
@@ -244,27 +249,36 @@ export const mk9SetIndustryContractTotal = createServerFn({ method: "POST" })
       data.competenceMonth,
     );
 
-    const { data: result, error } = await supabaseAdmin.rpc("mk9_admin_contract_total_set" as any, {
-      _industry_id: data.industryId,
-      _month: data.competenceMonth,
-      _year: data.competenceYear,
-      _total: data.contractedTotal,
-      _period_start: period.start,
-      _period_end: period.end,
-      _notes: data.notes,
-      _actor: ctx.userId,
-      _expected_updated_at: data.expectedUpdatedAt,
-    } as any);
+    const { data: result, error } = await supabaseAdmin.rpc(
+      "mk9_admin_contract_total_set" as any,
+      {
+        _industry_id: data.industryId,
+        _month: data.competenceMonth,
+        _year: data.competenceYear,
+        _total: data.contractedTotal,
+        _period_start: period.start,
+        _period_end: period.end,
+        _notes: data.notes,
+        _actor: ctx.userId,
+        _expected_updated_at: data.expectedUpdatedAt,
+      } as any,
+    );
     if (error) {
       throw new Error(rpcMessage(error.message, "Não foi possível salvar o total contratado."));
     }
 
-    await logAudit(ctx, "CONTRACT_TOTAL_SET", "mk9_industry_contract_totals", (result as any)?.id ?? null, {
-      industryId: data.industryId,
-      competence: { month: data.competenceMonth, year: data.competenceYear },
-      contractedTotal: data.contractedTotal,
-      notes: data.notes,
-    });
+    await logAudit(
+      ctx,
+      "CONTRACT_TOTAL_SET",
+      "mk9_industry_contract_totals",
+      (result as any)?.id ?? null,
+      {
+        industryId: data.industryId,
+        competence: { month: data.competenceMonth, year: data.competenceYear },
+        contractedTotal: data.contractedTotal,
+        notes: data.notes,
+      },
+    );
 
     return { status: "saved" as const, id: ((result as any)?.id ?? null) as string | null };
   });
@@ -293,7 +307,9 @@ async function buildPreview(input: any, scope: ScopeShape, supabaseAdmin: any) {
     if (sel.scope === "SELECTED" && !selected.has(s.id)) return false;
     if (sel.scope === "WITHOUT_FREQUENCY") {
       const cur = (versions.get(s.id) ?? []).find(
-        (v: any) => v.validFrom <= input.effectiveDate && (v.validUntil ?? "9999-12-31") >= input.effectiveDate,
+        (v: any) =>
+          v.validFrom <= input.effectiveDate &&
+          (v.validUntil ?? "9999-12-31") >= input.effectiveDate,
       );
       if (cur) return false;
     }
@@ -304,7 +320,9 @@ async function buildPreview(input: any, scope: ScopeShape, supabaseAdmin: any) {
     const list = versions.get(s.id) ?? [];
     const current =
       list.find(
-        (v: any) => v.validFrom <= input.effectiveDate && (v.validUntil ?? "9999-12-31") >= input.effectiveDate,
+        (v: any) =>
+          v.validFrom <= input.effectiveDate &&
+          (v.validUntil ?? "9999-12-31") >= input.effectiveDate,
       ) ?? null;
     return {
       storeId: s.id,
@@ -439,15 +457,20 @@ export const mk9BulkFrequencyApply = createServerFn({ method: "POST" })
       return { status: "nothing_to_do" as const, counters: preview.counters };
     }
 
-    const { data: result, error } = await supabaseAdmin.rpc("mk9_admin_frequency_bulk_apply" as any, {
-      _industry_id: data.industryId,
-      _items: preview.rpcItems,
-      _actor: ctx.userId,
-      _reason: data.reason,
-      _allow_retroactive: data.confirmRetroactive,
-    } as any);
+    const { data: result, error } = await supabaseAdmin.rpc(
+      "mk9_admin_frequency_bulk_apply" as any,
+      {
+        _industry_id: data.industryId,
+        _items: preview.rpcItems,
+        _actor: ctx.userId,
+        _reason: data.reason,
+        _allow_retroactive: data.confirmRetroactive,
+      } as any,
+    );
     if (error) {
-      throw new Error(rpcMessage(error.message, "Não foi possível aplicar as frequências em lote."));
+      throw new Error(
+        rpcMessage(error.message, "Não foi possível aplicar as frequências em lote."),
+      );
     }
 
     await logAudit(ctx, "FREQUENCY_BULK_APPLY", "mk9_industry_store_frequency_versions", null, {
@@ -479,12 +502,18 @@ export const mk9AcceptContractDivergence = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { requireMk9Role, logAudit } = await import("@/lib/mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
-    await logAudit(ctx, "CONTRACT_DIVERGENCE_ACCEPTED", "mk9_industry_contract_totals", data.industryId, {
-      competence: { month: data.competenceMonth, year: data.competenceYear },
-      contractedTotal: data.contractedTotal,
-      distributedTotal: data.distributedTotal,
-      difference: data.distributedTotal - data.contractedTotal,
-      reason: data.reason,
-    });
+    await logAudit(
+      ctx,
+      "CONTRACT_DIVERGENCE_ACCEPTED",
+      "mk9_industry_contract_totals",
+      data.industryId,
+      {
+        competence: { month: data.competenceMonth, year: data.competenceYear },
+        contractedTotal: data.contractedTotal,
+        distributedTotal: data.distributedTotal,
+        difference: data.distributedTotal - data.contractedTotal,
+        reason: data.reason,
+      },
+    );
     return { status: "accepted" as const };
   });

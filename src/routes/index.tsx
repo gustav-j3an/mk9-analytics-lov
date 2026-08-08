@@ -1,19 +1,25 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
-import { Mk9LoginForm } from '@/components/mk9-login-form';
-import { useMk9Session } from '@/lib/mk9-auth/session';
-import { Loader2, Zap, BarChart3, Shield, Cpu, Activity, Info } from 'lucide-react';
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { Mk9LoginForm } from "@/components/mk9-login-form";
+import { useMk9Session } from "@/lib/mk9-auth/session";
+import { Loader2, Zap, BarChart3, Shield, Cpu, Activity, Info } from "lucide-react";
 import { ClientOnly } from "@/components/client-only";
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
     title: "MK9 | FASE 5.3 — CADASTROS & NAVEGAÇÃO",
     meta: [
-      { name: "description", content: "Fase 5.3: Acabamento de cadastros, administração e nova estrutura de navegação." },
+      {
+        name: "description",
+        content: "Fase 5.3: Acabamento de cadastros, administração e nova estrutura de navegação.",
+      },
       { property: "og:title", content: "MK9 | FASE 5.3" },
-      { property: "og:description", content: "Refinamento visual de Indústrias, Lojas, Promotores, Usuários e Sidebar." },
+      {
+        property: "og:description",
+        content: "Refinamento visual de Indústrias, Lojas, Promotores, Usuários e Sidebar.",
+      },
 
-      { name: "twitter:card", content: "summary_large_image" }
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
 });
@@ -30,7 +36,7 @@ function LandingPage() {
   }
 
   if (session) {
-    throw redirect({ to: '/dashboard' });
+    throw redirect({ to: "/dashboard" });
   }
 
   return (
@@ -55,7 +61,6 @@ function LandingPage() {
               <p className="text-[10px] text-purple-400 font-black tracking-[0.3em] uppercase">
                 CADASTROS, ADMINISTRAÇÃO E NAVEGAÇÃO
               </p>
-
             </div>
           </div>
 
@@ -64,21 +69,46 @@ function LandingPage() {
               <section>
                 <div className="flex items-center gap-2 text-white mb-3">
                   <Info className="w-4 h-4 text-purple-400" />
-                  <span className="font-black uppercase tracking-widest text-purple-400">Contexto Confirmado</span>
+                  <span className="font-black uppercase tracking-widest text-purple-400">
+                    Contexto Confirmado
+                  </span>
                 </div>
                 <div className="text-slate-400 space-y-2">
-                  <p>FASE 5.2 concluída. Conciliação, Importação, Qualidade e Roteiros homologados.</p>
+                  <p>
+                    FASE 5.2 concluída. Conciliação, Importação, Qualidade e Roteiros homologados.
+                  </p>
                   <p className="text-purple-400/80 font-bold mt-2 italic">STATUS OPERACIONAL:</p>
                   <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px]">
-                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Dashboard</span><span className="text-emerald-400 font-bold">OK</span></div>
-                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Inteligência</span><span className="text-emerald-400 font-bold">OK</span></div>
-                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Cockpit</span><span className="text-emerald-400 font-bold">OK</span></div>
-                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Operacional</span><span className="text-emerald-400 font-bold">OK</span></div>
-                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Relatórios</span><span className="text-emerald-400 font-bold">OK</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span>Dashboard</span>
+                      <span className="text-emerald-400 font-bold">OK</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span>Inteligência</span>
+                      <span className="text-emerald-400 font-bold">OK</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span>Cockpit</span>
+                      <span className="text-emerald-400 font-bold">OK</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span>Operacional</span>
+                      <span className="text-emerald-400 font-bold">OK</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span>Relatórios</span>
+                      <span className="text-emerald-400 font-bold">OK</span>
+                    </div>
 
-                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Console</span><span className="text-emerald-400 font-bold">LIMPO</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span>Console</span>
+                      <span className="text-emerald-400 font-bold">LIMPO</span>
+                    </div>
                   </div>
-                  <p className="mt-4">O núcleo operacional está blindado. Agora aplicamos o Design System MK9 aos cadastros e reestruturamos a navegação global.</p>
+                  <p className="mt-4">
+                    O núcleo operacional está blindado. Agora aplicamos o Design System MK9 aos
+                    cadastros e reestruturamos a navegação global.
+                  </p>
                 </div>
               </section>
 
@@ -88,22 +118,51 @@ function LandingPage() {
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
-                <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">MISSÃO 5.3 — MÓDULOS ALVO</h3>
+                <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
+                  MISSÃO 5.3 — MÓDULOS ALVO
+                </h3>
                 <div className="space-y-4 text-slate-400">
-                  <ProtocolItem id="01" title="INDÚSTRIAS / LOJAS" desc="Padronização de cadastros com Mk9Panel, tabelas de alta densidade e filtros inteligentes." />
-                  <ProtocolItem id="02" title="PROMOTORES / USUÁRIOS" desc="Refinamento da gestão de campo e controle de acesso com o novo Command Center UX." />
-                  <ProtocolItem id="03" title="LIMPEZA MANUAL" desc="Nova interface de manutenção de dados com avisos de impacto e segurança destrutiva." />
-                  <ProtocolItem id="04" title="SIDEBAR / NAVEGAÇÃO" desc="Nova estrutura de menu colapsável organizada por camadas (Visão Geral, Operação, Análise)." />
-                  <ProtocolItem id="05" title="CONFIRMAÇÃO E TOASTS" desc="Unificação de diálogos de exclusão e notificações de sistema em todo o ambiente." />
-                  <ProtocolItem id="06" title="REGRA ZERO" desc="Persistência, RLS, regra KING e motores operacionais blindados. Foco 100% em acabamento e UX." />
+                  <ProtocolItem
+                    id="01"
+                    title="INDÚSTRIAS / LOJAS"
+                    desc="Padronização de cadastros com Mk9Panel, tabelas de alta densidade e filtros inteligentes."
+                  />
+                  <ProtocolItem
+                    id="02"
+                    title="PROMOTORES / USUÁRIOS"
+                    desc="Refinamento da gestão de campo e controle de acesso com o novo Command Center UX."
+                  />
+                  <ProtocolItem
+                    id="03"
+                    title="LIMPEZA MANUAL"
+                    desc="Nova interface de manutenção de dados com avisos de impacto e segurança destrutiva."
+                  />
+                  <ProtocolItem
+                    id="04"
+                    title="SIDEBAR / NAVEGAÇÃO"
+                    desc="Nova estrutura de menu colapsável organizada por camadas (Visão Geral, Operação, Análise)."
+                  />
+                  <ProtocolItem
+                    id="05"
+                    title="CONFIRMAÇÃO E TOASTS"
+                    desc="Unificação de diálogos de exclusão e notificações de sistema em todo o ambiente."
+                  />
+                  <ProtocolItem
+                    id="06"
+                    title="REGRA ZERO"
+                    desc="Persistência, RLS, regra KING e motores operacionais blindados. Foco 100% em acabamento e UX."
+                  />
                 </div>
-
               </div>
 
               <div className="bg-purple-900/20 border border-purple-500/20 p-4 rounded-lg">
-                <p className="text-purple-300 font-black uppercase text-[9px] tracking-widest mb-1 italic">ATENÇÃO: PROTEÇÃO DO CORE</p>
+                <p className="text-purple-300 font-black uppercase text-[9px] tracking-widest mb-1 italic">
+                  ATENÇÃO: PROTEÇÃO DO CORE
+                </p>
                 <p className="text-[10px] text-purple-200/60 leading-tight">
-                  Proibido alterar core.server.ts, operational-visits.server.ts ou segments.ts. A paridade KING de 146 visitas realizadas deve ser preservada em todos os relatórios.
+                  Proibido alterar core.server.ts, operational-visits.server.ts ou segments.ts. A
+                  paridade KING de 146 visitas realizadas deve ser preservada em todos os
+                  relatórios.
                 </p>
               </div>
             </div>
@@ -113,18 +172,22 @@ function LandingPage() {
         {/* Right Column: Login */}
         <div className="lg:col-span-4 flex flex-col justify-center space-y-6">
           <div className="bg-black/40 border border-white/5 p-8 rounded-2xl shadow-2xl relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-4 opacity-10">
-               <Shield className="w-16 h-16 text-purple-500" />
-             </div>
-             <div className="relative z-10">
-               <div className="mb-6">
-                 <h2 className="text-lg font-black text-white tracking-widest uppercase mb-1 italic">ACCESS CONTROL</h2>
-                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">SECURE OPERATIONAL GATEWAY</p>
-               </div>
-               <ClientOnly>
-                 <Mk9LoginForm />
-               </ClientOnly>
-             </div>
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <Shield className="w-16 h-16 text-purple-500" />
+            </div>
+            <div className="relative z-10">
+              <div className="mb-6">
+                <h2 className="text-lg font-black text-white tracking-widest uppercase mb-1 italic">
+                  ACCESS CONTROL
+                </h2>
+                <p className="text-[9px] text-slate-500 uppercase tracking-widest">
+                  SECURE OPERATIONAL GATEWAY
+                </p>
+              </div>
+              <ClientOnly>
+                <Mk9LoginForm />
+              </ClientOnly>
+            </div>
           </div>
 
           <div className="text-center">
@@ -138,7 +201,17 @@ function LandingPage() {
   );
 }
 
-function StatusCard({ icon: Icon, title, value, sub }: { icon: any, title: string, value: string, sub: string }) {
+function StatusCard({
+  icon: Icon,
+  title,
+  value,
+  sub,
+}: {
+  icon: any;
+  title: string;
+  value: string;
+  sub: string;
+}) {
   return (
     <div className="bg-white/[0.02] border border-white/5 p-4 rounded-xl flex items-center gap-4">
       <div className="p-2 bg-purple-500/10 rounded">
@@ -155,12 +228,14 @@ function StatusCard({ icon: Icon, title, value, sub }: { icon: any, title: strin
   );
 }
 
-function ProtocolItem({ id, title, desc }: { id: string, title: string, desc: string }) {
+function ProtocolItem({ id, title, desc }: { id: string; title: string; desc: string }) {
   return (
     <div className="flex gap-4">
       <span className="text-purple-500/40 font-black text-[10px] mt-0.5">{id}</span>
       <div>
-        <h4 className="text-[11px] font-black text-slate-200 uppercase tracking-widest mb-1">{title}</h4>
+        <h4 className="text-[11px] font-black text-slate-200 uppercase tracking-widest mb-1">
+          {title}
+        </h4>
         <p className="text-[11px] text-slate-500 leading-tight">{desc}</p>
       </div>
     </div>

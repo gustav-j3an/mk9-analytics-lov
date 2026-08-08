@@ -70,9 +70,7 @@ export function canPersistDetections(scope: Mk9AccessScope): boolean {
   return privileged && scope.canViewAll;
 }
 
-export async function runQualityDetectors(
-  params: RunDetectorsParams,
-): Promise<RunDetectorsResult> {
+export async function runQualityDetectors(params: RunDetectorsParams): Promise<RunDetectorsResult> {
   const detectors = params.detectors ?? MK9_QUALITY_DETECTORS;
   const ctx = { supabase: params.supabase, scope: params.scope, competence: params.competence };
   const persist = params.persist !== false && canPersistDetections(params.scope);
@@ -120,7 +118,6 @@ export async function runQualityDetectors(
   return { realtime, persistedSummary, failedDetectors };
 }
 
-
 /**
  * Overview: contagens agregadas das ocorrências persistidas + sinais REALTIME
  * da execução atual. Nunca carrega evidências para montar os cards.
@@ -165,4 +162,3 @@ export async function buildQualityOverview(params: {
     generatedAt: new Date().toISOString(),
   };
 }
-

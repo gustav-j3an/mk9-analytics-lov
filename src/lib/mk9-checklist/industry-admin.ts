@@ -121,7 +121,10 @@ export function findSimilarIndustries(
 }
 
 /** Duplicidade é sempre por nome normalizado — nunca pelo texto digitado. */
-export function findExactIndustry(name: string, existing: IndustryCandidate[]): IndustryCandidate | null {
+export function findExactIndustry(
+  name: string,
+  existing: IndustryCandidate[],
+): IndustryCandidate | null {
   const norm = normalizeName(name);
   return existing.find((i) => i.nameNormalized === norm) ?? null;
 }

@@ -14,10 +14,7 @@
  */
 import { z } from "zod";
 
-import {
-  contractedVisitsForFrequencySegments,
-  type FrequencySegmentInput,
-} from "./segments";
+import { contractedVisitsForFrequencySegments, type FrequencySegmentInput } from "./segments";
 
 // ---------------------------------------------------------------------------
 // Modos de aplicação
@@ -332,7 +329,8 @@ function fmt(n: number): string {
 export function distributionLabel(segments: FrequencySegmentInput[]): string {
   if (!segments.length) return "sem frequência";
   const s = segments[segments.length - 1];
-  if (s.monthlyFrequency != null && s.monthlyFrequency > 0) return `${fmt(s.monthlyFrequency)}x/mês`;
+  if (s.monthlyFrequency != null && s.monthlyFrequency > 0)
+    return `${fmt(s.monthlyFrequency)}x/mês`;
   if (s.weeklyFrequency != null && s.weeklyFrequency > 0) return `${fmt(s.weeklyFrequency)}x/sem`;
   return "sem frequência";
 }
@@ -373,7 +371,9 @@ export function groupDistribution(rows: StoreDistribution[]): FrequencyGroup[] {
     g.visits += r.contratadas;
     map.set(r.label, g);
   }
-  return Array.from(map.values()).sort((a, b) => b.visits - a.visits || a.label.localeCompare(b.label));
+  return Array.from(map.values()).sort(
+    (a, b) => b.visits - a.visits || a.label.localeCompare(b.label),
+  );
 }
 
 // ---------------------------------------------------------------------------

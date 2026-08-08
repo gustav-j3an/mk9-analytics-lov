@@ -67,7 +67,14 @@ function addStore(
     uf: "MS",
     weekly,
     monthly,
-    segments: [{ validFrom: WIN.startDate, validUntil: null, weeklyFrequency: weekly, monthlyFrequency: monthly }],
+    segments: [
+      {
+        validFrom: WIN.startDate,
+        validUntil: null,
+        weeklyFrequency: weekly,
+        monthlyFrequency: monthly,
+      },
+    ],
     visits,
   });
 }
@@ -146,7 +153,9 @@ describe("núcleo compartilhado — linhas de loja", () => {
     const routeByKey = new Map<string, RouteInfo>([
       ["ind-1|s1", { votes: new Map([["p1", { name: "Ana", count: 3 }]]), weekdays: new Set([4]) }],
     ]);
-    expect(buildStoreRows({ ctxs: [c], routeByKey, today: "2026-07-15", promoterFilter: "p2" })).toHaveLength(0);
+    expect(
+      buildStoreRows({ ctxs: [c], routeByKey, today: "2026-07-15", promoterFilter: "p2" }),
+    ).toHaveLength(0);
     expect(
       buildStoreRows({ ctxs: [c], routeByKey, today: "2026-07-15", allowedPromoterIds: ["p9"] }),
     ).toHaveLength(0);
@@ -172,12 +181,36 @@ describe("núcleo compartilhado — linhas de loja", () => {
 describe("núcleo compartilhado — indústrias e séries", () => {
   it("classificação segue a ordem determinística acordada", () => {
     const base = { lojasContratadas: 10, checklistImports: 1, hasExecutionOrRoute: true };
-    expect(classifyIndustry({ ...base, contratadas: 0, realizadas: 0, expectedToDate: 0, lojasContratadas: 0 })).toBe("SEM_FREQUENCIA");
-    expect(classifyIndustry({ ...base, contratadas: 100, realizadas: 0, expectedToDate: 50, checklistImports: 0 })).toBe("SEM_CHECKLIST");
-    expect(classifyIndustry({ ...base, contratadas: 100, realizadas: 100, expectedToDate: 50 })).toBe("CONCLUIDA");
-    expect(classifyIndustry({ ...base, contratadas: 100, realizadas: 50, expectedToDate: 50 })).toBe("EM_DIA");
-    expect(classifyIndustry({ ...base, contratadas: 100, realizadas: 46, expectedToDate: 50 })).toBe("ATENCAO");
-    expect(classifyIndustry({ ...base, contratadas: 100, realizadas: 20, expectedToDate: 50 })).toBe("CRITICA");
+    expect(
+      classifyIndustry({
+        ...base,
+        contratadas: 0,
+        realizadas: 0,
+        expectedToDate: 0,
+        lojasContratadas: 0,
+      }),
+    ).toBe("SEM_FREQUENCIA");
+    expect(
+      classifyIndustry({
+        ...base,
+        contratadas: 100,
+        realizadas: 0,
+        expectedToDate: 50,
+        checklistImports: 0,
+      }),
+    ).toBe("SEM_CHECKLIST");
+    expect(
+      classifyIndustry({ ...base, contratadas: 100, realizadas: 100, expectedToDate: 50 }),
+    ).toBe("CONCLUIDA");
+    expect(
+      classifyIndustry({ ...base, contratadas: 100, realizadas: 50, expectedToDate: 50 }),
+    ).toBe("EM_DIA");
+    expect(
+      classifyIndustry({ ...base, contratadas: 100, realizadas: 46, expectedToDate: 50 }),
+    ).toBe("ATENCAO");
+    expect(
+      classifyIndustry({ ...base, contratadas: 100, realizadas: 20, expectedToDate: 50 }),
+    ).toBe("CRITICA");
   });
 
   it("linha da indústria soma exatamente as linhas de loja (paridade)", () => {
@@ -194,7 +227,9 @@ describe("núcleo compartilhado — indústrias e séries", () => {
     expect(industry.contratadas).toBe(storeRows.reduce((a, s) => a + s.contratadas, 0));
     expect(industry.realizadas).toBe(storeRows.reduce((a, s) => a + s.realizadas, 0));
     expect(industry.lojasAtendidas).toBe(2);
-    expect(industry.coberturaPct).toBe(Math.min(100, pct(industry.realizadas, industry.contratadas)));
+    expect(industry.coberturaPct).toBe(
+      Math.min(100, pct(industry.realizadas, industry.contratadas)),
+    );
   });
 
   it("indústria sem execução, sem frequência e sem roteiro não entra na lista", () => {
@@ -202,7 +237,12 @@ describe("núcleo compartilhado — indústrias e séries", () => {
     addStore(c, "s1", null, null, []);
     const storeRows = buildStoreRows({ ctxs: [c], routeByKey: new Map(), today: "2026-07-31" });
     expect(
-      buildIndustryRows({ ctxs: [c], storeRows, industriesWithRoute: new Set(), today: "2026-07-31" }),
+      buildIndustryRows({
+        ctxs: [c],
+        storeRows,
+        industriesWithRoute: new Set(),
+        today: "2026-07-31",
+      }),
     ).toHaveLength(0);
   });
 
@@ -210,7 +250,12 @@ describe("núcleo compartilhado — indústrias e séries", () => {
     const c = ctx({ fraction: 1 });
     addStore(c, "s1", 1, 4, ["2026-07-02", "2026-07-20"]);
     const storeRows = buildStoreRows({ ctxs: [c], routeByKey: new Map(), today: "2026-07-31" });
-    const industryRows = buildIndustryRows({ ctxs: [c], storeRows, industriesWithRoute: new Set(), today: "2026-07-31" });
+    const industryRows = buildIndustryRows({
+      ctxs: [c],
+      storeRows,
+      industriesWithRoute: new Set(),
+      today: "2026-07-31",
+    });
     const series = buildDailySeries({
       ctxs: [c],
       industryRows,
@@ -229,8 +274,19 @@ describe("núcleo compartilhado — indústrias e séries", () => {
     const c = ctx({ fraction: 1 });
     addStore(c, "s1", 1, 4, ["2026-07-02", "2026-07-20"]);
     const storeRows = buildStoreRows({ ctxs: [c], routeByKey: new Map(), today: "2026-07-31" });
-    const industryRows = buildIndustryRows({ ctxs: [c], storeRows, industriesWithRoute: new Set(), today: "2026-07-31" });
-    const daily = buildDailySeries({ ctxs: [c], industryRows, storeRows, globalStart: WIN.startDate, globalEnd: WIN.endDate });
+    const industryRows = buildIndustryRows({
+      ctxs: [c],
+      storeRows,
+      industriesWithRoute: new Set(),
+      today: "2026-07-31",
+    });
+    const daily = buildDailySeries({
+      ctxs: [c],
+      industryRows,
+      storeRows,
+      globalStart: WIN.startDate,
+      globalEnd: WIN.endDate,
+    });
     const weekly = toWeeklySeries(daily);
     expect(weekly.length).toBeLessThan(daily.length);
     expect(weekly[weekly.length - 1].realized).toBe(daily[daily.length - 1].realized);
@@ -249,7 +305,9 @@ describe("cockpit — saúde geral", () => {
   };
 
   it("bloqueante vence qualquer outro sinal", () => {
-    expect(evaluateHealth({ ...base, blockingIssues: 1, pacePercentage: 10 }).level).toBe("BLOQUEADA");
+    expect(evaluateHealth({ ...base, blockingIssues: 1, pacePercentage: 10 }).level).toBe(
+      "BLOQUEADA",
+    );
   });
 
   it("importação falha também bloqueia", () => {
@@ -257,8 +315,12 @@ describe("cockpit — saúde geral", () => {
   });
 
   it("ritmo abaixo de 80% é crítico", () => {
-    expect(evaluateHealth({ ...base, pacePercentage: CRITICAL_PACE - 1, realizedToDate: 79 }).level).toBe("CRITICA");
-    expect(evaluateHealth({ ...base, pacePercentage: CRITICAL_PACE, realizedToDate: 80 }).level).toBe("ATENCAO");
+    expect(
+      evaluateHealth({ ...base, pacePercentage: CRITICAL_PACE - 1, realizedToDate: 79 }).level,
+    ).toBe("CRITICA");
+    expect(
+      evaluateHealth({ ...base, pacePercentage: CRITICAL_PACE, realizedToDate: 80 }).level,
+    ).toBe("ATENCAO");
   });
 
   it("ritmo entre 80% e 95% é atenção", () => {
@@ -285,7 +347,11 @@ describe("cockpit — saúde geral", () => {
 
 // ---------------------------------------------------------------------------
 describe("cockpit — prioridades", () => {
-  const item = (kind: Mk9PriorityItem["kind"], impact: number, id: string = kind): Mk9PriorityItem => ({
+  const item = (
+    kind: Mk9PriorityItem["kind"],
+    impact: number,
+    id: string = kind,
+  ): Mk9PriorityItem => ({
     id,
     kind,
     score: scoreFor(kind, impact),
@@ -326,7 +392,10 @@ describe("cockpit — prioridades", () => {
   });
 
   it("empate é desempatado por impacto e id (ordenação estável)", () => {
-    const ranked = rankPriorities([item("LOJA_SEM_VISITA", 5, "z"), item("LOJA_SEM_VISITA", 5, "a")]);
+    const ranked = rankPriorities([
+      item("LOJA_SEM_VISITA", 5, "z"),
+      item("LOJA_SEM_VISITA", 5, "a"),
+    ]);
     expect(ranked.map((r) => r.id)).toEqual(["a", "z"]);
   });
 });
@@ -350,26 +419,74 @@ describe("cockpit — previsão", () => {
   });
 
   it("queda recente reduz a projeção mesmo com boa média geral", () => {
-    const forte = forecastClose({ contracted: 200, realizedToDate: 100, realizedLastTwoWeeks: 70, elapsedDays: 20, totalDays: 30 });
-    const fraca = forecastClose({ contracted: 200, realizedToDate: 100, realizedLastTwoWeeks: 14, elapsedDays: 20, totalDays: 30 });
+    const forte = forecastClose({
+      contracted: 200,
+      realizedToDate: 100,
+      realizedLastTwoWeeks: 70,
+      elapsedDays: 20,
+      totalDays: 30,
+    });
+    const fraca = forecastClose({
+      contracted: 200,
+      realizedToDate: 100,
+      realizedLastTwoWeeks: 14,
+      elapsedDays: 20,
+      totalDays: 30,
+    });
     expect(fraca.projected).toBeLessThan(forte.projected);
   });
 
   it("confiança cresce com dias decorridos", () => {
-    expect(forecastClose({ contracted: 10, realizedToDate: 1, realizedLastTwoWeeks: 1, elapsedDays: 2, totalDays: 30 }).confidence).toBe("BAIXA");
-    expect(forecastClose({ contracted: 10, realizedToDate: 3, realizedLastTwoWeeks: 3, elapsedDays: 6, totalDays: 30 }).confidence).toBe("MEDIA");
-    expect(forecastClose({ contracted: 10, realizedToDate: 5, realizedLastTwoWeeks: 5, elapsedDays: 12, totalDays: 30 }).confidence).toBe("ALTA");
+    expect(
+      forecastClose({
+        contracted: 10,
+        realizedToDate: 1,
+        realizedLastTwoWeeks: 1,
+        elapsedDays: 2,
+        totalDays: 30,
+      }).confidence,
+    ).toBe("BAIXA");
+    expect(
+      forecastClose({
+        contracted: 10,
+        realizedToDate: 3,
+        realizedLastTwoWeeks: 3,
+        elapsedDays: 6,
+        totalDays: 30,
+      }).confidence,
+    ).toBe("MEDIA");
+    expect(
+      forecastClose({
+        contracted: 10,
+        realizedToDate: 5,
+        realizedLastTwoWeeks: 5,
+        elapsedDays: 12,
+        totalDays: 30,
+      }).confidence,
+    ).toBe("ALTA");
   });
 
   it("período encerrado projeta exatamente o realizado", () => {
-    const f = forecastClose({ contracted: 120, realizedToDate: 90, realizedLastTwoWeeks: 40, elapsedDays: 30, totalDays: 30 });
+    const f = forecastClose({
+      contracted: 120,
+      realizedToDate: 90,
+      realizedLastTwoWeeks: 40,
+      elapsedDays: 30,
+      totalDays: 30,
+    });
     expect(f.projected).toBe(90);
     expect(f.gap).toBe(-30);
     expect(f.requiredDailyPace).toBe(30);
   });
 
   it("período não iniciado não inventa projeção", () => {
-    const f = forecastClose({ contracted: 100, realizedToDate: 0, realizedLastTwoWeeks: 0, elapsedDays: 0, totalDays: 30 });
+    const f = forecastClose({
+      contracted: 100,
+      realizedToDate: 0,
+      realizedLastTwoWeeks: 0,
+      elapsedDays: 0,
+      totalDays: 30,
+    });
     expect(f.projected).toBe(0);
     expect(f.confidence).toBe("BAIXA");
   });
@@ -384,8 +501,19 @@ describe("performance das agregações", () => {
     }
     const t0 = Date.now();
     const storeRows = buildStoreRows({ ctxs: [c], routeByKey: new Map(), today: "2026-07-20" });
-    const industryRows = buildIndustryRows({ ctxs: [c], storeRows, industriesWithRoute: new Set(), today: "2026-07-20" });
-    buildDailySeries({ ctxs: [c], industryRows, storeRows, globalStart: WIN.startDate, globalEnd: WIN.endDate });
+    const industryRows = buildIndustryRows({
+      ctxs: [c],
+      storeRows,
+      industriesWithRoute: new Set(),
+      today: "2026-07-20",
+    });
+    buildDailySeries({
+      ctxs: [c],
+      industryRows,
+      storeRows,
+      globalStart: WIN.startDate,
+      globalEnd: WIN.endDate,
+    });
     const elapsedMs = Date.now() - t0;
     expect(storeRows).toHaveLength(1500);
     expect(industryRows[0].realizadas).toBe(6000);

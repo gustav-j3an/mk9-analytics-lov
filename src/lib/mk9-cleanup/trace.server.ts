@@ -32,7 +32,9 @@ export async function traceIndustryReportSources(params: {
     .from("mk9_industry_store_frequency_versions")
     .select("id, store_id, valid_from, valid_until, archived_at, source_import_id, source_type")
     .eq("industry_id", industryId)
-    .or(`valid_until.is.null,and(valid_until.gte.${window.startDate},valid_from.lte.${window.endDate})`);
+    .or(
+      `valid_until.is.null,and(valid_until.gte.${window.startDate},valid_from.lte.${window.endDate})`,
+    );
 
   // 4. Investigar Roteiros Planejados (mk9_planned_visits é a tabela de auditoria usada no motor do PDF)
   const { data: routes } = await supabaseAdmin
@@ -45,16 +47,17 @@ export async function traceIndustryReportSources(params: {
 
   // 5. Identificar Importações Únicas das Fontes
   const importIdsSet = new Set<string>();
-  visits?.forEach(v => v.source_import_id && importIdsSet.add(v.source_import_id));
-  frequencies?.forEach(f => f.source_import_id && importIdsSet.add(f.source_import_id));
+  visits?.forEach((v) => v.source_import_id && importIdsSet.add(v.source_import_id));
+  frequencies?.forEach((f) => f.source_import_id && importIdsSet.add(f.source_import_id));
 
   const importIds = Array.from(importIdsSet);
-  const { data: imports } = importIds.length > 0 
-    ? await supabaseAdmin
-        .from("mk9_checklist_imports")
-        .select("id, filename, started_at, status, operation_month, operation_year")
-        .in("id", importIds)
-    : { data: [] };
+  const { data: imports } =
+    importIds.length > 0
+      ? await supabaseAdmin
+          .from("mk9_checklist_imports")
+          .select("id, filename, started_at, status, operation_month, operation_year")
+          .in("id", importIds)
+      : { data: [] };
 
   // 6. Projeções legadas (apenas para invalidar)
   const { data: projections } = await supabaseAdmin
@@ -68,20 +71,20 @@ export async function traceIndustryReportSources(params: {
     report: {
       totals: report.totals,
       storesCount: report.stores.length,
-      stores: report.stores.map(s => ({
+      stores: report.stores.map((s) => ({
         id: s.storeId,
         name: s.storeName,
         contracted: s.expected,
         actual: s.actual,
-        source: s.contractedSource
-      }))
+        source: s.contractedSource,
+      })),
     },
     sources: {
       visits: visits || [],
       frequencies: frequencies || [],
       routes: routes || [],
       imports: imports || [],
-      projections: projections || []
-    }
+      projections: projections || [],
+    },
   };
 }

@@ -17,7 +17,9 @@ vi.mock("@/integrations/supabase/client.server", () => ({
 }));
 
 vi.mock("../period.server", () => ({
-  resolveWindow: vi.fn().mockReturnValue({ startDate: "2026-07-23", endDate: "2026-08-22", totalDays: 31 }),
+  resolveWindow: vi
+    .fn()
+    .mockReturnValue({ startDate: "2026-07-23", endDate: "2026-08-22", totalDays: 31 }),
 }));
 
 vi.mock("../metrics", () => ({
@@ -27,10 +29,13 @@ vi.mock("../metrics", () => ({
     validas: Math.min(contratadas, executadas),
     extras: Math.max(0, executadas - contratadas),
     pendencias: Math.max(0, contratadas - Math.min(contratadas, executadas)),
-    coberturaPct: contratadas > 0 ? Math.round((Math.min(contratadas, executadas) / contratadas) * 100) : 0,
+    coberturaPct:
+      contratadas > 0 ? Math.round((Math.min(contratadas, executadas) / contratadas) * 100) : 0,
   })),
   aggregateVisitMetrics: vi.fn().mockImplementation((pairs) => {
-    let contratadas = 0, executadas = 0, validas = 0;
+    let contratadas = 0,
+      executadas = 0,
+      validas = 0;
     pairs.forEach((p: any) => {
       contratadas += p.contratadas;
       executadas += p.executadas;
@@ -51,7 +56,9 @@ vi.mock("@/lib/mk9-frequency/versions.server", () => ({
 }));
 
 vi.mock("@/lib/mk9-frequency/segments", () => ({
-  contractedVisitsForFrequencySegments: vi.fn().mockReturnValue({ contratadas: 4, source: "MONTHLY_FREQUENCY" }),
+  contractedVisitsForFrequencySegments: vi
+    .fn()
+    .mockReturnValue({ contratadas: 4, source: "MONTHLY_FREQUENCY" }),
   describeFrequencySegments: vi.fn().mockReturnValue("4x/mês"),
 }));
 
@@ -66,12 +73,12 @@ describe("Paridade de Lojas Não Atendidas", () => {
     ];
 
     // No PDF de "Lojas não atendidas", apenas a s3 deve aparecer.
-    const unattended = mockStores.filter(s => s.expected > 0 && s.actual === 0);
-    
+    const unattended = mockStores.filter((s) => s.expected > 0 && s.actual === 0);
+
     expect(unattended).toHaveLength(1);
     expect(unattended[0].storeId).toBe("s3");
-    
+
     // Validamos que a s2 (parcial) está FORA, cumprindo o requisito 2
-    expect(unattended.find(s => s.storeId === "s2")).toBeUndefined();
+    expect(unattended.find((s) => s.storeId === "s2")).toBeUndefined();
   });
 });

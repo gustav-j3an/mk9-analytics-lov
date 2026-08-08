@@ -1,6 +1,13 @@
 import type { ChecklistPreview } from "./types";
 
-export type BatchStatus = "DRAFT" | "ANALYZING" | "READY" | "PROCESSING" | "COMPLETED" | "PARTIAL" | "FAILED";
+export type BatchStatus =
+  | "DRAFT"
+  | "ANALYZING"
+  | "READY"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "PARTIAL"
+  | "FAILED";
 
 export interface ChecklistBatchFile {
   id: string;
@@ -9,7 +16,16 @@ export interface ChecklistBatchFile {
   industryName?: string;
   operationMonth: number;
   operationYear: number;
-  status: "PENDING" | "ANALYZING" | "READY" | "NEEDS_REVIEW" | "DUPLICATE" | "INVALID" | "ERROR" | "IMPORTED" | "FAILED";
+  status:
+    | "PENDING"
+    | "ANALYZING"
+    | "READY"
+    | "NEEDS_REVIEW"
+    | "DUPLICATE"
+    | "INVALID"
+    | "ERROR"
+    | "IMPORTED"
+    | "FAILED";
   preview?: ChecklistPreview;
   error?: string;
   warnings: string[];

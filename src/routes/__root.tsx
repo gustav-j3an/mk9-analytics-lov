@@ -39,14 +39,14 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  
+
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   // Se o erro for de autenticação (401), redireciona para a home (login)
-  if ((error as any)?.statusCode === 401 || (error as any)?.name === 'Mk9UnauthenticatedError') {
-    window.location.href = '/';
+  if ((error as any)?.statusCode === 401 || (error as any)?.name === "Mk9UnauthenticatedError") {
+    window.location.href = "/";
     return null;
   }
 
@@ -87,10 +87,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "MK9 Analytics" },
-      { name: "description", content: "Gestão operacional de trade marketing com operações, roteiros, visitas e conciliação." },
+      {
+        name: "description",
+        content:
+          "Gestão operacional de trade marketing com operações, roteiros, visitas e conciliação.",
+      },
       { name: "author", content: "MK9 Analytics" },
       { property: "og:title", content: "MK9 Analytics" },
-      { property: "og:description", content: "Gestão operacional de trade marketing com operações, roteiros, visitas e conciliação." },
+      {
+        property: "og:description",
+        content:
+          "Gestão operacional de trade marketing com operações, roteiros, visitas e conciliação.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },

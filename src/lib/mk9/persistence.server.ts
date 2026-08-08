@@ -16,7 +16,9 @@ import type {
 
 // mapeamento snake_case (DB) <-> camelCase (domínio)
 const mapIndustry = (r: any): IndustryRecord => ({
-  id: r.id, name: r.name, nameNormalized: r.name_normalized,
+  id: r.id,
+  name: r.name,
+  nameNormalized: r.name_normalized,
   monthlyContractedFrequency: r.monthly_contracted_frequency,
   monthlyEstimatedFrequency: r.monthly_estimated_frequency,
   frequencyDifference: r.frequency_difference,
@@ -24,22 +26,40 @@ const mapIndustry = (r: any): IndustryRecord => ({
   weeksCount: r.weeks_count,
 });
 const mapStore = (r: any): StoreRecord => ({
-  id: r.id, chain: r.chain, name: r.name,
-  nameNormalized: r.name_normalized, uf: r.uf,
+  id: r.id,
+  chain: r.chain,
+  name: r.name,
+  nameNormalized: r.name_normalized,
+  uf: r.uf,
 });
 const mapPromoter = (r: any): PromoterRecord => ({
-  id: r.id, externalId: r.external_id, name: r.name,
-  nameNormalized: r.name_normalized, city: r.city,
-  contact: r.contact, contactNormalized: r.contact_normalized, notes: r.notes,
+  id: r.id,
+  externalId: r.external_id,
+  name: r.name,
+  nameNormalized: r.name_normalized,
+  city: r.city,
+  contact: r.contact,
+  contactNormalized: r.contact_normalized,
+  notes: r.notes,
 });
 const mapRoute = (r: any): PlannedRouteRecord => ({
-  id: r.id, promoterId: r.promoter_id, storeId: r.store_id, industryId: r.industry_id,
-  weekday: r.weekday, operationMonth: r.operation_month, operationYear: r.operation_year,
+  id: r.id,
+  promoterId: r.promoter_id,
+  storeId: r.store_id,
+  industryId: r.industry_id,
+  weekday: r.weekday,
+  operationMonth: r.operation_month,
+  operationYear: r.operation_year,
   sourceSheet: r.source_sheet,
 });
 const mapVisit = (r: any): PlannedVisitRecord => ({
-  id: r.id, promoterId: r.promoter_id, storeId: r.store_id, industryId: r.industry_id,
-  routeId: r.route_id, scheduledDate: r.scheduled_date, status: r.status,
+  id: r.id,
+  promoterId: r.promoter_id,
+  storeId: r.store_id,
+  industryId: r.industry_id,
+  routeId: r.route_id,
+  scheduledDate: r.scheduled_date,
+  status: r.status,
   sourceSheet: r.source_sheet,
 });
 
@@ -73,8 +93,10 @@ export function createSupabaseRepository(): Mk9Repository {
     },
     async listPlannedRoutes(month, year) {
       const { data, error } = await supabaseAdmin
-        .from("mk9_planned_routes").select("*")
-        .eq("operation_month", month).eq("operation_year", year);
+        .from("mk9_planned_routes")
+        .select("*")
+        .eq("operation_month", month)
+        .eq("operation_year", year);
       if (error) throw error;
       return (data ?? []).map(mapRoute);
     },
@@ -82,8 +104,10 @@ export function createSupabaseRepository(): Mk9Repository {
       const first = new Date(Date.UTC(year, month - 1, 1)).toISOString().slice(0, 10);
       const last = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
       const { data, error } = await supabaseAdmin
-        .from("mk9_planned_visits").select("*")
-        .gte("scheduled_date", first).lte("scheduled_date", last)
+        .from("mk9_planned_visits")
+        .select("*")
+        .gte("scheduled_date", first)
+        .lte("scheduled_date", last)
         .is("archived_at", null);
       if (error) throw error;
       return (data ?? []).map(mapVisit);
@@ -91,29 +115,39 @@ export function createSupabaseRepository(): Mk9Repository {
     async upsertIndustries(records, importId) {
       if (!records.length) return [];
       const dedup = new Map<string, IndustryRecord>();
-      for (const r of records) dedup.set(r.nameNormalized, { ...dedup.get(r.nameNormalized), ...r });
+      for (const r of records)
+        dedup.set(r.nameNormalized, { ...dedup.get(r.nameNormalized), ...r });
       const list = Array.from(dedup.values());
 
       // Pré-busca ids estáveis por name_normalized para NÃO trocar o id no UPDATE do ON CONFLICT.
       // Sem isso, o PostgREST envia id=DEFAULT no upsert, gera novo UUID e quebra as FKs (industry_store_frequency, routes, visits).
       const names = list.map((r) => r.nameNormalized);
       const { data: existingRows, error: exErr } = await supabaseAdmin
-        .from("mk9_industries").select("id, name_normalized").in("name_normalized", names);
+        .from("mk9_industries")
+        .select("id, name_normalized")
+        .in("name_normalized", names);
       if (exErr) throw exErr;
       const idByName = new Map<string, string>();
-      for (const row of existingRows ?? []) idByName.set(row.name_normalized as string, row.id as string);
+      for (const row of existingRows ?? [])
+        idByName.set(row.name_normalized as string, row.id as string);
 
-      const payload = list.map((r) => withOptionalId({
-        id: r.id ?? idByName.get(r.nameNormalized), name: r.name, name_normalized: r.nameNormalized,
-        monthly_contracted_frequency: r.monthlyContractedFrequency,
-        monthly_estimated_frequency: r.monthlyEstimatedFrequency,
-        frequency_difference: r.frequencyDifference,
-        frequency_status: r.frequencyStatus,
-        weeks_count: r.weeksCount,
-        last_import_id: importId,
-      }));
+      const payload = list.map((r) =>
+        withOptionalId({
+          id: r.id ?? idByName.get(r.nameNormalized),
+          name: r.name,
+          name_normalized: r.nameNormalized,
+          monthly_contracted_frequency: r.monthlyContractedFrequency,
+          monthly_estimated_frequency: r.monthlyEstimatedFrequency,
+          frequency_difference: r.frequencyDifference,
+          frequency_status: r.frequencyStatus,
+          weeks_count: r.weeksCount,
+          last_import_id: importId,
+        }),
+      );
       const { data, error } = await supabaseAdmin
-        .from("mk9_industries").upsert(payload, { onConflict: "name_normalized", defaultToNull: false }).select();
+        .from("mk9_industries")
+        .upsert(payload, { onConflict: "name_normalized", defaultToNull: false })
+        .select();
       if (error) throw error;
       return (data ?? []).map(mapIndustry);
     },
@@ -131,7 +165,9 @@ export function createSupabaseRepository(): Mk9Repository {
       // em mk9_planned_routes, mk9_planned_visits, mk9_industry_store_frequency, mk9_actual_visits, reconciliations.
       const names = Array.from(new Set(list.map((r) => r.nameNormalized)));
       const { data: existingRows, error: exErr } = await supabaseAdmin
-        .from("mk9_stores").select("id, name_normalized, uf").in("name_normalized", names);
+        .from("mk9_stores")
+        .select("id, name_normalized, uf")
+        .in("name_normalized", names);
       if (exErr) throw exErr;
       const idByKey = new Map<string, string>();
       for (const row of existingRows ?? []) {
@@ -141,8 +177,12 @@ export function createSupabaseRepository(): Mk9Repository {
       const payload = list.map((r) => {
         const key = `${r.nameNormalized}::${r.uf ?? ""}`;
         return withOptionalId({
-          id: r.id ?? idByKey.get(key), chain: r.chain, name: r.name,
-          name_normalized: r.nameNormalized, uf: r.uf, last_import_id: importId,
+          id: r.id ?? idByKey.get(key),
+          chain: r.chain,
+          name: r.name,
+          name_normalized: r.nameNormalized,
+          uf: r.uf,
+          last_import_id: importId,
         });
       });
       // (name_normalized, uf) unique treats NULL uf as distinct; split NULL-uf rows into insert-if-missing
@@ -151,21 +191,34 @@ export function createSupabaseRepository(): Mk9Repository {
       const out: StoreRecord[] = [];
       if (withUf.length) {
         const { data, error } = await supabaseAdmin
-          .from("mk9_stores").upsert(withUf, { onConflict: "name_normalized,uf", defaultToNull: false }).select();
+          .from("mk9_stores")
+          .upsert(withUf, { onConflict: "name_normalized,uf", defaultToNull: false })
+          .select();
         if (error) throw error;
         out.push(...(data ?? []).map(mapStore));
       }
       for (const p of withoutUf) {
-        const { data: existing } = await supabaseAdmin.from("mk9_stores")
-          .select("*").eq("name_normalized", p.name_normalized).is("uf", null).maybeSingle();
+        const { data: existing } = await supabaseAdmin
+          .from("mk9_stores")
+          .select("*")
+          .eq("name_normalized", p.name_normalized)
+          .is("uf", null)
+          .maybeSingle();
         if (existing) {
-          const { data, error } = await supabaseAdmin.from("mk9_stores")
+          const { data, error } = await supabaseAdmin
+            .from("mk9_stores")
             .update({ chain: p.chain, name: p.name, last_import_id: importId })
-            .eq("id", existing.id).select().single();
+            .eq("id", existing.id)
+            .select()
+            .single();
           if (error) throw error;
           out.push(mapStore(data));
         } else {
-          const { data, error } = await supabaseAdmin.from("mk9_stores").insert(p).select().single();
+          const { data, error } = await supabaseAdmin
+            .from("mk9_stores")
+            .insert(p)
+            .select()
+            .single();
           if (error) throw error;
           out.push(mapStore(data));
         }
@@ -203,7 +256,8 @@ export function createSupabaseRepository(): Mk9Repository {
 
       // 2) Snapshot do banco para correspondência
       const { data: dbAll, error: dbErr } = await supabaseAdmin
-        .from("mk9_promoters").select("id, external_id, name, name_normalized");
+        .from("mk9_promoters")
+        .select("id, external_id, name, name_normalized");
       if (dbErr) throw dbErr;
       const dbByExt = new Map<string, any>();
       const dbByName = new Map<string, any>();
@@ -247,15 +301,22 @@ export function createSupabaseRepository(): Mk9Repository {
         };
 
         if (existing) {
-          const { data, error } = await supabaseAdmin.from("mk9_promoters")
-            .update(payload).eq("id", existing.id).select().single();
+          const { data, error } = await supabaseAdmin
+            .from("mk9_promoters")
+            .update(payload)
+            .eq("id", existing.id)
+            .select()
+            .single();
           if (error) throw error;
           out.push(mapPromoter(data));
           if (data.external_id) dbByExt.set(String(data.external_id), data);
           if (data.name_normalized) dbByName.set(data.name_normalized, data);
         } else {
-          const { data, error } = await supabaseAdmin.from("mk9_promoters")
-            .insert(payload).select().single();
+          const { data, error } = await supabaseAdmin
+            .from("mk9_promoters")
+            .insert(payload)
+            .select()
+            .single();
           if (error) throw error;
           out.push(mapPromoter(data));
           if (data.external_id) dbByExt.set(String(data.external_id), data);
@@ -287,21 +348,33 @@ export function createSupabaseRepository(): Mk9Repository {
           row.id as string,
         );
       }
-      const { data, error } = await supabaseAdmin.from("mk9_planned_routes").upsert(
-        list.map((r) => {
-          const key = `${r.promoterId}|${r.storeId}|${r.industryId}|${r.weekday}|${r.operationMonth}|${r.operationYear}`;
-          // valid_from = primeiro dia da competência (mesma regra do backfill).
-          // Rotas reimportadas mantêm id/vigência estáveis via UPDATE do onConflict.
-          const validFrom = `${r.operationYear}-${String(r.operationMonth).padStart(2, "0")}-01`;
-          return withOptionalId({
-            id: r.id ?? routeIdByKey.get(key), promoter_id: r.promoterId, store_id: r.storeId, industry_id: r.industryId,
-            weekday: r.weekday, operation_month: r.operationMonth, operation_year: r.operationYear,
-            source_sheet: r.sourceSheet, last_import_id: importId,
-            valid_from: validFrom,
-          });
-        }),
-        { onConflict: "promoter_id,store_id,industry_id,weekday,operation_month,operation_year", defaultToNull: false },
-      ).select();
+      const { data, error } = await supabaseAdmin
+        .from("mk9_planned_routes")
+        .upsert(
+          list.map((r) => {
+            const key = `${r.promoterId}|${r.storeId}|${r.industryId}|${r.weekday}|${r.operationMonth}|${r.operationYear}`;
+            // valid_from = primeiro dia da competência (mesma regra do backfill).
+            // Rotas reimportadas mantêm id/vigência estáveis via UPDATE do onConflict.
+            const validFrom = `${r.operationYear}-${String(r.operationMonth).padStart(2, "0")}-01`;
+            return withOptionalId({
+              id: r.id ?? routeIdByKey.get(key),
+              promoter_id: r.promoterId,
+              store_id: r.storeId,
+              industry_id: r.industryId,
+              weekday: r.weekday,
+              operation_month: r.operationMonth,
+              operation_year: r.operationYear,
+              source_sheet: r.sourceSheet,
+              last_import_id: importId,
+              valid_from: validFrom,
+            });
+          }),
+          {
+            onConflict: "promoter_id,store_id,industry_id,weekday,operation_month,operation_year",
+            defaultToNull: false,
+          },
+        )
+        .select();
       if (error) throw error;
       return (data ?? []).map(mapRoute);
     },
@@ -355,24 +428,37 @@ export function createSupabaseRepository(): Mk9Repository {
       });
       // Arquivamento lógico: preserva o id e as reconciliações vinculadas.
       // Apenas visitas ainda planejadas são arquivadas; realizadas/canceladas ficam intactas.
-      const { error } = await supabaseAdmin.from("mk9_planned_visits")
+      const { error } = await supabaseAdmin
+        .from("mk9_planned_visits")
         .update({ archived_at: new Date().toISOString() })
-        .in("id", ids).eq("status", "planned").is("archived_at", null);
+        .in("id", ids)
+        .eq("status", "planned")
+        .is("archived_at", null);
       if (error) throw error;
     },
     async createImport(input) {
-      const { data, error } = await supabaseAdmin.from("mk9_imports").insert({
-        filename: input.filename, file_hash: input.fileHash,
-        operation_month: input.operationMonth, operation_year: input.operationYear,
-        sync_mode: input.syncMode, sheets_analyzed: input.sheetsAnalyzed,
-        status: "previewing", user_id: input.userId ?? null,
-      }).select("id").single();
+      const { data, error } = await supabaseAdmin
+        .from("mk9_imports")
+        .insert({
+          filename: input.filename,
+          file_hash: input.fileHash,
+          operation_month: input.operationMonth,
+          operation_year: input.operationYear,
+          sync_mode: input.syncMode,
+          sheets_analyzed: input.sheetsAnalyzed,
+          status: "previewing",
+          user_id: input.userId ?? null,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
       return { id: data.id as string };
     },
     async savePreview(importId, preview) {
-      const { error } = await supabaseAdmin.from("mk9_imports")
-        .update({ preview: preview as any, counters: preview.counters as any }).eq("id", importId);
+      const { error } = await supabaseAdmin
+        .from("mk9_imports")
+        .update({ preview: preview as any, counters: preview.counters as any })
+        .eq("id", importId);
       if (error) throw error;
     },
     async saveImportItems(importId, items) {
@@ -382,9 +468,13 @@ export function createSupabaseRepository(): Mk9Repository {
         const slice = items.slice(i, i + CHUNK);
         const { error } = await supabaseAdmin.from("mk9_import_items").insert(
           slice.map((it) => ({
-            import_id: importId, sheet: it.sheet, excel_row: it.excelRow ?? null,
-            entity_type: it.entityType, action: it.action,
-            payload: it.payload as any, resolved_ids: (it.resolvedIds ?? {}) as any,
+            import_id: importId,
+            sheet: it.sheet,
+            excel_row: it.excelRow ?? null,
+            entity_type: it.entityType,
+            action: it.action,
+            payload: it.payload as any,
+            resolved_ids: (it.resolvedIds ?? {}) as any,
             warnings: (it.warnings ?? []) as any,
           })) as any,
         );
@@ -398,37 +488,59 @@ export function createSupabaseRepository(): Mk9Repository {
       if (patch.errorMessage !== undefined) update.error_message = patch.errorMessage;
       if (patch.finishedAt) update.finished_at = patch.finishedAt.toISOString();
       if (patch.durationMs !== undefined) update.duration_ms = patch.durationMs;
-      const { error } = await supabaseAdmin.from("mk9_imports").update(update as any).eq("id", importId);
+      const { error } = await supabaseAdmin
+        .from("mk9_imports")
+        .update(update as any)
+        .eq("id", importId);
       if (error) throw error;
     },
 
     async listImports(limit = 30) {
-      const { data, error } = await supabaseAdmin.from("mk9_imports")
-        .select("*").order("started_at", { ascending: false }).limit(limit);
+      const { data, error } = await supabaseAdmin
+        .from("mk9_imports")
+        .select("*")
+        .order("started_at", { ascending: false })
+        .limit(limit);
       if (error) throw error;
       return (data ?? []).map((r: any) => ({
-        id: r.id, filename: r.filename, operationMonth: r.operation_month,
-        operationYear: r.operation_year, syncMode: r.sync_mode as SyncMode,
-        status: r.status, counters: r.counters ?? {},
-        sheetsAnalyzed: r.sheets_analyzed ?? [], errorMessage: r.error_message,
-        startedAt: r.started_at, finishedAt: r.finished_at, durationMs: r.duration_ms,
+        id: r.id,
+        filename: r.filename,
+        operationMonth: r.operation_month,
+        operationYear: r.operation_year,
+        syncMode: r.sync_mode as SyncMode,
+        status: r.status,
+        counters: r.counters ?? {},
+        sheetsAnalyzed: r.sheets_analyzed ?? [],
+        errorMessage: r.error_message,
+        startedAt: r.started_at,
+        finishedAt: r.finished_at,
+        durationMs: r.duration_ms,
       }));
     },
     async getImport(id) {
-      const { data, error } = await supabaseAdmin.from("mk9_imports")
-        .select("preview").eq("id", id).maybeSingle();
+      const { data, error } = await supabaseAdmin
+        .from("mk9_imports")
+        .select("preview")
+        .eq("id", id)
+        .maybeSingle();
       if (error) throw error;
       if (!data) return null;
-      const { data: items, error: itErr } = await supabaseAdmin.from("mk9_import_items")
-        .select("*").eq("import_id", id).limit(2000);
+      const { data: items, error: itErr } = await supabaseAdmin
+        .from("mk9_import_items")
+        .select("*")
+        .eq("import_id", id)
+        .limit(2000);
       if (itErr) throw itErr;
       const mappedItems: ImportItem[] = (items ?? []).map((r: any) => ({
-        sheet: r.sheet, excelRow: r.excel_row, entityType: r.entity_type,
-        action: r.action, payload: r.payload ?? {}, resolvedIds: r.resolved_ids ?? {},
+        sheet: r.sheet,
+        excelRow: r.excel_row,
+        entityType: r.entity_type,
+        action: r.action,
+        payload: r.payload ?? {},
+        resolvedIds: r.resolved_ids ?? {},
         warnings: r.warnings ?? [],
       }));
       return { preview: (data.preview as unknown as ImportPreview) ?? null, items: mappedItems };
-
     },
   };
 }

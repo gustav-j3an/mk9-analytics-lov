@@ -34,14 +34,14 @@ export async function auditChecklistImport(importId: string) {
     industryId: importData.industry_id,
     startDate: window.startDate,
     endDate: window.endDate,
-    sourceImportId: importId
+    sourceImportId: importId,
   });
 
   // 5. Cruzamento de Lojas (Snapshot vs Banco)
   const preview = (importData.preview as any) || {};
   const items = (preview.items as any[]) || [];
-  const storesInPreview = new Set(items.map(i => i.storeId).filter(Boolean));
-  const storesInVisits = new Set(visits?.map(v => v.store_id).filter(Boolean));
+  const storesInPreview = new Set(items.map((i) => i.storeId).filter(Boolean));
+  const storesInVisits = new Set(visits?.map((v) => v.store_id).filter(Boolean));
 
   return {
     summary: {
@@ -52,20 +52,20 @@ export async function auditChecklistImport(importId: string) {
       window: { start: window.startDate, end: window.endDate },
       status: importData.status,
       isOperationalCurrent: !!importData.is_operational_current,
-      revertedAt: importData.reverted_at
+      revertedAt: importData.reverted_at,
     },
     counters: {
       previewItems: items.length,
       visitsPersisted: visits?.length || 0,
       visitsOperational: operationalVisits.length,
       storesInPreview: storesInPreview.size,
-      storesInVisits: storesInVisits.size
+      storesInVisits: storesInVisits.size,
     },
     diagnostics: {
       isCurrent: !!importData.is_operational_current,
       hasRevertedAt: !!importData.reverted_at,
-      hasStatusDone: importData.status === 'done',
-      lostVisits: (visits?.length || 0) - operationalVisits.length
-    }
+      hasStatusDone: importData.status === "done",
+      lostVisits: (visits?.length || 0) - operationalVisits.length,
+    },
   };
 }

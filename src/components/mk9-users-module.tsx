@@ -11,19 +11,19 @@ import {
 } from "@/lib/mk9-users.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Plus, 
-  X, 
-  Shield, 
-  Ban, 
-  Check, 
-  Users, 
-  Search, 
-  MoreVertical, 
-  UserPlus, 
+import {
+  Plus,
+  X,
+  Shield,
+  Ban,
+  Check,
+  Users,
+  Search,
+  MoreVertical,
+  UserPlus,
   Key,
   ShieldAlert,
-  Clock
+  Clock,
 } from "lucide-react";
 
 import {
@@ -39,13 +39,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Mk9Panel, 
-  Mk9PageHeader, 
-  Mk9MetricCard, 
-  Mk9LoadingState, 
-  Mk9EmptyState, 
-  Mk9Badge 
+import {
+  Mk9Panel,
+  Mk9PageHeader,
+  Mk9MetricCard,
+  Mk9LoadingState,
+  Mk9EmptyState,
+  Mk9Badge,
 } from "@/components/mk9/design-system";
 import { toast } from "sonner";
 
@@ -60,9 +60,9 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
   const assignFn = useServerFn(mk9AssignRole);
   const removeFn = useServerFn(mk9RemoveRole);
 
-  const { data: users = [], isLoading } = useQuery({ 
-    queryKey: ["mk9-users-admin"], 
-    queryFn: () => listFn() 
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ["mk9-users-admin"],
+    queryFn: () => listFn(),
   });
 
   const [search, setSearch] = useState("");
@@ -71,9 +71,10 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
   const [form, setForm] = useState({ email: "", password: "", name: "", role: "PROMOTOR" as Role });
 
   const filtered = useMemo(() => {
-    return users.filter((u: Mk9UserRow) =>
-      (u.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
-      (u.email?.toLowerCase() || "").includes(search.toLowerCase())
+    return users.filter(
+      (u: Mk9UserRow) =>
+        (u.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
+        (u.email?.toLowerCase() || "").includes(search.toLowerCase()),
     );
   }, [users, search]);
 
@@ -135,13 +136,13 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <Mk9PageHeader 
+      <Mk9PageHeader
         title="Controle de Acesso"
         subtitle="Gestão de identidades, papéis e permissões do sistema"
         icon={ShieldAlert}
         actions={
-          <Button 
-            onClick={() => setShowNew(true)} 
+          <Button
+            onClick={() => setShowNew(true)}
             className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-black uppercase tracking-widest px-6 shadow-lg shadow-mk9-accent-primary/20 border-none"
           >
             <UserPlus className="h-4 w-4 mr-2" /> Novo Usuário
@@ -161,34 +162,81 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
             <div className="p-2 rounded-lg bg-mk9-accent-primary/10 border border-mk9-accent-primary/20">
               <UserPlus className="h-4 w-4 text-mk9-accent-primary" />
             </div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider">Novo Cadastro de Acesso</h3>
+            <h3 className="text-sm font-black text-white uppercase tracking-wider">
+              Novo Cadastro de Acesso
+            </h3>
           </div>
 
           <form className="grid gap-6 md:grid-cols-2" onSubmit={createUser}>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-mail de Login *</label>
-              <Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-black/40 border-white/10 text-white h-10" />
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                E-mail de Login *
+              </label>
+              <Input
+                type="email"
+                required
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="bg-black/40 border-white/10 text-white h-10"
+              />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome Completo</label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-black/40 border-white/10 text-white h-10" />
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                Nome Completo
+              </label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="bg-black/40 border-white/10 text-white h-10"
+              />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Senha Temporária (Mín. 8 caracteres)</label>
-              <Input type="password" minLength={8} required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="bg-black/40 border-white/10 text-white h-10" />
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                Senha Temporária (Mín. 8 caracteres)
+              </label>
+              <Input
+                type="password"
+                minLength={8}
+                required
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="bg-black/40 border-white/10 text-white h-10"
+              />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Papel Inicial</label>
-              <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as Role })}>
-                <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white"><SelectValue /></SelectTrigger>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                Papel Inicial
+              </label>
+              <Select
+                value={form.role}
+                onValueChange={(v) => setForm({ ...form, role: v as Role })}
+              >
+                <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent className="bg-command-deep border-white/10">
-                  {ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                  {ROLES.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {r}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="md:col-span-2 flex justify-end gap-3 pt-4 border-t border-white/5">
-              <Button type="button" variant="ghost" onClick={() => setShowNew(false)} className="text-slate-400 hover:text-white">Cancelar</Button>
-              <Button type="submit" disabled={busy} className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-black uppercase tracking-widest px-8">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowNew(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={busy}
+                className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-black uppercase tracking-widest px-8"
+              >
                 {busy ? "Processando..." : "Finalizar Cadastro"}
               </Button>
             </div>
@@ -232,8 +280,12 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                   <tr key={u.userId} className="group hover:bg-white/[0.02] transition-colors">
                     <td className="px-4 py-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">{u.name || "Sem Nome"}</span>
-                        <span className="text-[10px] text-slate-500 font-mono tracking-tight uppercase">{u.email}</span>
+                        <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">
+                          {u.name || "Sem Nome"}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-mono tracking-tight uppercase">
+                          {u.email}
+                        </span>
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -257,7 +309,13 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                           </SelectTrigger>
                           <SelectContent className="bg-command-deep border-white/10">
                             {ROLES.filter((r) => !u.roles.includes(r)).map((r) => (
-                              <SelectItem key={r} value={r} className="text-[10px] font-bold uppercase tracking-widest">{r}</SelectItem>
+                              <SelectItem
+                                key={r}
+                                value={r}
+                                className="text-[10px] font-bold uppercase tracking-widest"
+                              >
+                                {r}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -277,19 +335,38 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2 text-slate-500">
                         <Clock className="h-3 w-3" />
-                        <span className="text-[10px] font-mono">{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString("pt-BR") : "NUNCA"}</span>
+                        <span className="text-[10px] font-mono">
+                          {u.lastLoginAt
+                            ? new Date(u.lastLoginAt).toLocaleString("pt-BR")
+                            : "NUNCA"}
+                        </span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-command-deep border-white/10 text-white">
-                          <DropdownMenuItem onClick={() => toggleActive(u)} disabled={u.userId === currentUserId} className="gap-2 cursor-pointer hover:bg-white/5">
-                            {u.active ? <Ban className="h-3.5 w-3.5 text-rose-400" /> : <Check className="h-3.5 w-3.5 text-emerald-400" />}
+                        <DropdownMenuContent
+                          align="end"
+                          className="bg-command-deep border-white/10 text-white"
+                        >
+                          <DropdownMenuItem
+                            onClick={() => toggleActive(u)}
+                            disabled={u.userId === currentUserId}
+                            className="gap-2 cursor-pointer hover:bg-white/5"
+                          >
+                            {u.active ? (
+                              <Ban className="h-3.5 w-3.5 text-rose-400" />
+                            ) : (
+                              <Check className="h-3.5 w-3.5 text-emerald-400" />
+                            )}
                             {u.active ? "Desativar Acesso" : "Reativar Acesso"}
                           </DropdownMenuItem>
                           <DropdownMenuItem className="gap-2 cursor-pointer hover:bg-white/5">

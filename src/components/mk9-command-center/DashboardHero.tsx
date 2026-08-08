@@ -17,17 +17,23 @@ export function DashboardHero({ percentage, label, status }: DashboardHeroProps)
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="space-y-4">
           <div className="space-y-1">
-            <h2 className="text-muted-foreground text-sm font-bold uppercase tracking-widest">{label}</h2>
+            <h2 className="text-muted-foreground text-sm font-bold uppercase tracking-widest">
+              {label}
+            </h2>
             <p className="text-white text-5xl font-black tracking-tighter">{percentage}%</p>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <span className={cn(
-              "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
-              percentage > 85 ? "bg-emerald-500/10 text-emerald-500" : 
-              percentage > 60 ? "bg-amber-500/10 text-amber-500" : 
-              "bg-rose-500/10 text-rose-500"
-            )}>
+            <span
+              className={cn(
+                "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
+                percentage > 85
+                  ? "bg-emerald-500/10 text-emerald-500"
+                  : percentage > 60
+                    ? "bg-amber-500/10 text-amber-500"
+                    : "bg-rose-500/10 text-rose-500",
+              )}
+            >
               Status: {status}
             </span>
           </div>
@@ -40,7 +46,7 @@ export function DashboardHero({ percentage, label, status }: DashboardHeroProps)
               <span>Meta: 100%</span>
             </div>
             <div className="h-4 w-full bg-white/5 rounded-full p-1 border border-white/5">
-              <div 
+              <div
                 className="h-full rounded-full bg-gradient-to-r from-command-purple to-command-blue shadow-[0_0_10px_rgba(168,85,247,0.5)] transition-all duration-1000"
                 style={{ width: `${percentage}%` }}
               />

@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
           const { scope: access } = await requireMk9ReadScope(request);
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          
+
           const raw = await request.json();
           const body = payloadSchema.parse(raw);
 
@@ -39,10 +39,15 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
             return errorResponse(404, "Nenhum dado encontrado para este promotor no período.");
           }
 
-          const { renderPromoterRoutePdf, promoterPdfFileName } = await import("@/lib/reports/promoter-pdf.server");
-          
+          const { renderPromoterRoutePdf, promoterPdfFileName } =
+            await import("@/lib/reports/promoter-pdf.server");
+
           // Busca o nome do promotor
-          const { data: promoter } = await supabaseAdmin.from("mk9_promoters").select("name, employee_number").eq("id", body.promoterId).maybeSingle();
+          const { data: promoter } = await supabaseAdmin
+            .from("mk9_promoters")
+            .select("name, employee_number")
+            .eq("id", body.promoterId)
+            .maybeSingle();
 
           const bytes = await renderPromoterRoutePdf({
             core,
@@ -50,11 +55,14 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
             promoterName: promoter?.name ?? "Promotor",
             promoterEmployeeNumber: promoter?.employee_number ?? null,
             year: body.year,
-            month: body.month
+            month: body.month,
           });
 
           const filename = promoterPdfFileName(promoter?.name ?? "Promotor", body.year, body.month);
-          const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+          const ab = bytes.buffer.slice(
+            bytes.byteOffset,
+            bytes.byteOffset + bytes.byteLength,
+          ) as ArrayBuffer;
 
           return new Response(ab, {
             status: 200,

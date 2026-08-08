@@ -68,7 +68,6 @@ export function escapeLike(term: string): string {
     .trim();
 }
 
-
 /** Aplica o escopo do servidor a uma query PostgREST. */
 function applyScope(query: any, scope: Mk9AccessScope) {
   let q = query.is("archived_at", null);
@@ -154,10 +153,7 @@ export async function attachAssigneeNames(
   );
   if (!ids.length) return rows;
 
-  const { data } = await supabase
-    .from("mk9_profiles")
-    .select("user_id, name")
-    .in("user_id", ids);
+  const { data } = await supabase.from("mk9_profiles").select("user_id, name").in("user_id", ids);
 
   const names = new Map<string, string>();
   for (const p of (data ?? []) as any[]) names.set(p.user_id, p.name ?? "Sem nome");
@@ -259,7 +255,6 @@ export interface ListFilters {
   pageSize: number;
 }
 
-
 /** Peso de gravidade — usado para ordenar a página já carregada. */
 const SEVERITY_WEIGHT: Record<string, number> = {
   BLOQUEANTE: 5,
@@ -338,7 +333,6 @@ export async function listIssues(
     pageSize: filters.pageSize,
   };
 }
-
 
 export async function getIssue(
   supabase: any,
@@ -425,10 +419,7 @@ export async function diagnosticSummary(
   };
 
   const { data, error } = await applyScope(
-    supabase
-      .from("mk9_data_quality_issues")
-      .select("issue_type, store_id, evidence")
-      .limit(2000),
+    supabase.from("mk9_data_quality_issues").select("issue_type, store_id, evidence").limit(2000),
     scope,
   )
     .in("status", ["OPEN", "ACKNOWLEDGED", "IN_PROGRESS", "REOPENED"])
@@ -458,7 +449,6 @@ export async function diagnosticSummary(
   empty.incompleteStores = stores.size;
   return empty;
 }
-
 
 /**
  * Transição manual (Fase 2B.4). A RPC v2 valida transição, justificativa,
@@ -834,4 +824,3 @@ export async function assignableUsers(
 
 /** Reexportado para o servidor validar escopo antes de atribuir. */
 export { scopeCoversIssue };
-

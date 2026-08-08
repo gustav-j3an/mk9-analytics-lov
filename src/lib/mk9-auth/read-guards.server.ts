@@ -55,6 +55,9 @@ export async function requireMk9AdminReadScope(request?: Request): Promise<Mk9Re
   return withScope(await requireMk9AdminRead(request));
 }
 
-export async function requireMk9RoleScope(roles: Mk9Role[], request?: Request): Promise<Mk9ReadSession> {
+export async function requireMk9RoleScope(
+  roles: Mk9Role[],
+  request?: Request,
+): Promise<Mk9ReadSession> {
   return withScope(await requireMk9Role(roles, request ? { request } : undefined));
 }

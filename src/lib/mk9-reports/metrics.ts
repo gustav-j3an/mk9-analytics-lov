@@ -35,8 +35,7 @@ export function computeVisitMetrics(input: {
   const validas = Math.min(contratadas, executadas);
   const extras = Math.max(0, executadas - contratadas);
   const pendencias = Math.max(0, contratadas - validas);
-  const coberturaPct =
-    contratadas > 0 ? Math.round((validas / contratadas) * 100) : 0;
+  const coberturaPct = contratadas > 0 ? Math.round((validas / contratadas) * 100) : 0;
   return { contratadas, executadas, validas, extras, pendencias, coberturaPct };
 }
 
@@ -60,7 +59,6 @@ export function aggregateVisitMetrics(
     extras += m.extras;
     pendencias += m.pendencias;
   }
-  const coberturaPct =
-    contratadas > 0 ? Math.round((validas / contratadas) * 100) : 0;
+  const coberturaPct = contratadas > 0 ? Math.round((validas / contratadas) * 100) : 0;
   return { contratadas, executadas, validas, extras, pendencias, coberturaPct };
 }

@@ -5,7 +5,7 @@ async function run() {
   const targetImportId = "2d7aa544-a44d-48fa-af4b-da243890ecd6";
 
   console.log("--- CORRIGINDO VÍNCULO DIA A DIA - FORMOSA (DF -> GO) ---");
-  
+
   // 1. Localizar a loja correta em GO
   const { data: storeGo } = await supabaseAdmin
     .from("mk9_stores")
@@ -13,7 +13,7 @@ async function run() {
     .eq("name", "DIA A DIA - FORMOSA")
     .eq("uf", "GO")
     .single();
-  
+
   // 2. Localizar a loja errada em DF
   const { data: storeDf } = await supabaseAdmin
     .from("mk9_stores")
@@ -24,14 +24,14 @@ async function run() {
 
   if (storeGo && storeDf) {
     console.log(`GO ID: ${storeGo.id}, DF ID: ${storeDf.id}`);
-    
+
     // Atualiza a visita na tabela de realizadas
     const { error: visitErr } = await supabaseAdmin
       .from("mk9_actual_visits")
       .update({ store_id: storeGo.id })
       .eq("source_import_id", targetImportId)
       .eq("store_id", storeDf.id);
-    
+
     if (visitErr) console.error("Erro ao atualizar visita:", visitErr);
     else console.log("Visita atualizada para GO.");
 
@@ -41,7 +41,7 @@ async function run() {
       .update({ store_id: storeGo.id })
       .eq("source_import_id", targetImportId)
       .eq("store_id", storeDf.id);
-    
+
     if (freqErr) console.error("Erro ao atualizar frequência:", freqErr);
     else console.log("Frequência atualizada para GO.");
   }

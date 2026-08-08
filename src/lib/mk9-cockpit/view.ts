@@ -47,7 +47,8 @@ export function buildPromoterAttention(
     cur.totalStores += 1;
     if (row.promoterResolution === "AMBIGUOUS_ROUTE") cur.ambiguousStores += 1;
     if (row.contratadas > 0 && row.realizadas === 0) cur.lojasSemVisita += 1;
-    if (row.lastVisit && (!cur.lastVisit || row.lastVisit > cur.lastVisit)) cur.lastVisit = row.lastVisit;
+    if (row.lastVisit && (!cur.lastVisit || row.lastVisit > cur.lastVisit))
+      cur.lastVisit = row.lastVisit;
     if (!cur.industries.includes(row.industryName)) cur.industries.push(row.industryName);
 
     acc.set(row.promoterId, cur);
@@ -78,7 +79,11 @@ export function buildPromoterAttention(
 
 const ACTION_CATALOG: Record<string, Mk9QuickAction> = {
   IMPORT_BASE: { id: "IMPORT_BASE", label: "Importar Base", target: "/?module=importacoes" },
-  IMPORT_CHECKLIST: { id: "IMPORT_CHECKLIST", label: "Importar Checklist", target: "/?module=checklists" },
+  IMPORT_CHECKLIST: {
+    id: "IMPORT_CHECKLIST",
+    label: "Importar Checklist",
+    target: "/?module=checklists",
+  },
   AUDIT: { id: "AUDIT", label: "Auditoria", target: "/?module=audit" },
   QUALITY: { id: "QUALITY", label: "Qualidade", target: "/?module=quality" },
   ROUTES: { id: "ROUTES", label: "Roteiros", target: "/?module=roteiros" },

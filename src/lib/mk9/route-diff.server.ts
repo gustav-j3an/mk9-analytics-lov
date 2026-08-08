@@ -8,11 +8,7 @@
 //   2. Importação da competência corrente.
 //   3. Importação histórica anterior (fecha via valid_until).
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import type {
-  PlannedRouteRecord,
-  RouteDiffItem,
-  RouteDiffReport,
-} from "./types";
+import type { PlannedRouteRecord, RouteDiffItem, RouteDiffReport } from "./types";
 
 interface DbRouteRow {
   id: string;
@@ -38,8 +34,7 @@ interface NameMaps {
 const routeKey = (storeId: string, industryId: string, weekday: number) =>
   `${storeId}|${industryId}|${weekday}`;
 
-const storeIndustryKey = (storeId: string, industryId: string) =>
-  `${storeId}|${industryId}`;
+const storeIndustryKey = (storeId: string, industryId: string) => `${storeId}|${industryId}`;
 
 function firstDayOfCompetency(month: number, year: number): string {
   return `${year}-${String(month).padStart(2, "0")}-01`;
@@ -125,11 +120,7 @@ export async function buildRouteDiff(
   const promoterIdsAll = new Set<string>();
   incomingRoutes.forEach((r) => promoterIdsAll.add(r.promoterId));
   dbRows.forEach((r) => promoterIdsAll.add(r.promoter_id));
-  const names = await loadNameMaps(
-    Array.from(promoterIdsAll),
-    storeIds,
-    industryIds,
-  );
+  const names = await loadNameMaps(Array.from(promoterIdsAll), storeIds, industryIds);
 
   const items: RouteDiffItem[] = [];
   const seenIncomingKeys = new Set<string>();
@@ -142,7 +133,9 @@ export async function buildRouteDiff(
   ): RouteDiffItem => {
     const storeInfo = incoming
       ? names.store.get(incoming.storeId)
-      : currentRow ? names.store.get(currentRow.store_id) : undefined;
+      : currentRow
+        ? names.store.get(currentRow.store_id)
+        : undefined;
     const industryId = incoming?.industryId ?? currentRow?.industry_id ?? "";
     const weekday = incoming?.weekday ?? currentRow?.weekday ?? 0;
     return {
@@ -153,13 +146,9 @@ export async function buildRouteDiff(
       industryName: industryId ? (names.industry.get(industryId) ?? null) : null,
       weekday,
       currentPromoterId: currentRow?.promoter_id ?? null,
-      currentPromoterName: currentRow
-        ? (names.promoter.get(currentRow.promoter_id) ?? null)
-        : null,
+      currentPromoterName: currentRow ? (names.promoter.get(currentRow.promoter_id) ?? null) : null,
       incomingPromoterId: incoming?.promoterId ?? null,
-      incomingPromoterName: incoming
-        ? (names.promoter.get(incoming.promoterId) ?? null)
-        : null,
+      incomingPromoterName: incoming ? (names.promoter.get(incoming.promoterId) ?? null) : null,
       newRoute: incoming
         ? {
             promoter_id: incoming.promoterId,
@@ -184,13 +173,12 @@ export async function buildRouteDiff(
     // Existe versão MANUAL vigente que cobre o início da competência?
     const currentForKey = (dbByKey.get(k1) ?? []).filter((r) => coversDate(r, competencyStart));
     // Versão futura na mesma (store, industry, weekday) começando depois da competência?
-    const futureForKey = (dbByKey.get(k1) ?? []).filter(
-      (r) => r.valid_from > competencyStart,
-    );
+    const futureForKey = (dbByKey.get(k1) ?? []).filter((r) => r.valid_from > competencyStart);
 
     // Versão vigente na (store, industry) qualquer dia da semana — pra CHANGED_WEEKDAY
-    const currentSameStoreIndustry = (dbByStoreIndustry.get(storeIndustryKey(inc.storeId, inc.industryId)) ?? [])
-      .filter((r) => coversDate(r, competencyStart));
+    const currentSameStoreIndustry = (
+      dbByStoreIndustry.get(storeIndustryKey(inc.storeId, inc.industryId)) ?? []
+    ).filter((r) => coversDate(r, competencyStart));
 
     // MANUAL na mesma chave vigente → conflito manual
     const manualCurrent = currentForKey.find((r) => r.source_type === "MANUAL");

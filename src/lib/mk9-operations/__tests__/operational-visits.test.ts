@@ -31,10 +31,10 @@ describe("getOperationalVisits", () => {
           select: () => ({
             eq: () => ({
               eq: () => ({
-                is: () => Promise.resolve({ data: [{ id: "imp-123" }], error: null })
-              })
-            })
-          })
+                is: () => Promise.resolve({ data: [{ id: "imp-123" }], error: null }),
+              }),
+            }),
+          }),
         } as any;
       }
       return mockSupabase;
@@ -45,12 +45,12 @@ describe("getOperationalVisits", () => {
     await getOperationalVisits({
       industryId: "ind-1",
       startDate: "2026-08-01",
-      endDate: "2026-08-31"
+      endDate: "2026-08-31",
     });
 
     // Verificação exata da string com as aspas duplas escapadas corretamente pelo PostgREST/Supabase-js
     expect(mockSupabase.or).toHaveBeenCalledWith(
-      expect.stringContaining('source_import_id.is.null,source_import_id.in.("imp-123")')
+      expect.stringContaining('source_import_id.is.null,source_import_id.in.("imp-123")'),
     );
   });
 
@@ -61,10 +61,10 @@ describe("getOperationalVisits", () => {
           select: () => ({
             eq: () => ({
               eq: () => ({
-                is: () => Promise.resolve({ data: [], error: null })
-              })
-            })
-          })
+                is: () => Promise.resolve({ data: [], error: null }),
+              }),
+            }),
+          }),
         } as any;
       }
       return mockSupabase;
@@ -75,7 +75,7 @@ describe("getOperationalVisits", () => {
     await getOperationalVisits({
       industryId: "ind-1",
       startDate: "2026-08-01",
-      endDate: "2026-08-31"
+      endDate: "2026-08-31",
     });
 
     expect(mockSupabase.is).toHaveBeenCalledWith("source_import_id", null);
@@ -88,10 +88,10 @@ describe("getOperationalVisits", () => {
           select: () => ({
             eq: () => ({
               eq: () => ({
-                is: () => Promise.resolve({ data: [{ id: "outra-imp" }], error: null })
-              })
-            })
-          })
+                is: () => Promise.resolve({ data: [{ id: "outra-imp" }], error: null }),
+              }),
+            }),
+          }),
         } as any;
       }
       return mockSupabase;
@@ -101,7 +101,7 @@ describe("getOperationalVisits", () => {
       industryId: "ind-1",
       startDate: "2026-08-01",
       endDate: "2026-08-31",
-      sourceImportId: "target-imp"
+      sourceImportId: "target-imp",
     });
 
     expect(mockSupabase.eq).toHaveBeenCalledWith("source_import_id", "target-imp");

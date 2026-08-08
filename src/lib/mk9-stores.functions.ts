@@ -24,7 +24,7 @@ export const mk9CreateStore = createServerFn({ method: "POST" })
         name_normalized: normalizeName(data.name),
         chain: data.chain || null,
         uf: data.uf || null,
-        notes: data.city ? `Cidade: ${data.city}` : null, 
+        notes: data.city ? `Cidade: ${data.city}` : null,
       })
       .select()
       .single();
@@ -34,10 +34,14 @@ export const mk9CreateStore = createServerFn({ method: "POST" })
   });
 
 export const mk9UpdateStore = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({
-    id: z.string().uuid(),
-    data: storeSchema
-  }).parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        data: storeSchema,
+      })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
     await requireMk9Role(["ADMIN"]);
@@ -62,10 +66,14 @@ export const mk9UpdateStore = createServerFn({ method: "POST" })
   });
 
 export const mk9ArchiveStore = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({
-    id: z.string().uuid(),
-    reason: z.string().max(500).nullable().optional(),
-  }).parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        reason: z.string().max(500).nullable().optional(),
+      })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
@@ -88,9 +96,13 @@ export const mk9ArchiveStore = createServerFn({ method: "POST" })
   });
 
 export const mk9ReactivateStore = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({
-    id: z.string().uuid(),
-  }).parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+      })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
     await requireMk9Role(["ADMIN"]);

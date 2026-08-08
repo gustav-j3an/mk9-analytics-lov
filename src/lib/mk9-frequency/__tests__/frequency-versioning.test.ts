@@ -57,9 +57,8 @@ vi.mock("@/integrations/supabase/client.server", () => {
   };
 });
 
-const { buildFrequencyDiff, applyFrequencyDiff, dedupIncoming } = await import(
-  "@/lib/mk9-frequency/diff.server"
-);
+const { buildFrequencyDiff, applyFrequencyDiff, dedupIncoming } =
+  await import("@/lib/mk9-frequency/diff.server");
 
 const INDUSTRY = "11111111-1111-1111-1111-111111111111";
 const STORE_1 = "aaaaaaa1-0000-0000-0000-000000000001";

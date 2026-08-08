@@ -92,9 +92,11 @@ export const mk9ListIndustryFrequencies = createServerFn({ method: "POST" })
     }
 
     const from = (data.page - 1) * data.pageSize;
-    const { data: rows, error, count } = await q
-      .order("valid_from", { ascending: false })
-      .range(from, from + data.pageSize - 1);
+    const {
+      data: rows,
+      error,
+      count,
+    } = await q.order("valid_from", { ascending: false }).range(from, from + data.pageSize - 1);
     if (error) throw new Error("Não foi possível carregar as frequências.");
 
     let items = (rows ?? []).map(mapRow);
@@ -132,7 +134,10 @@ export const mk9IndustryFrequencyHistory = createServerFn({ method: "POST" })
       .order("valid_from", { ascending: false })
       .limit(200);
     if (error) throw new Error("Não foi possível carregar o histórico.");
-    return (rows ?? []).map((r: any) => ({ ...mapRow(r), archivedAt: (r.archived_at ?? null) as string | null }));
+    return (rows ?? []).map((r: any) => ({
+      ...mapRow(r),
+      archivedAt: (r.archived_at ?? null) as string | null,
+    }));
   });
 
 // ---------------------------------------------------------------------------
@@ -167,21 +172,22 @@ export const mk9SetIndustryFrequency = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: result, error } = await supabaseAdmin.rpc("mk9_admin_frequency_set" as any, {
-      _industry_id: data.industryId,
-      _store_id: data.storeId,
-      _weekly: data.weeklyFrequency,
-      _monthly: data.monthlyFrequency,
-      _effective_date: data.effectiveDate,
-      _reason: data.reason ?? null,
-      _actor: ctx.userId,
-      _expected_updated_at: data.expectedUpdatedAt,
-      _allow_retroactive: data.confirmRetroactive,
-    } as any);
+    const { data: result, error } = await supabaseAdmin.rpc(
+      "mk9_admin_frequency_set" as any,
+      {
+        _industry_id: data.industryId,
+        _store_id: data.storeId,
+        _weekly: data.weeklyFrequency,
+        _monthly: data.monthlyFrequency,
+        _effective_date: data.effectiveDate,
+        _reason: data.reason ?? null,
+        _actor: ctx.userId,
+        _expected_updated_at: data.expectedUpdatedAt,
+        _allow_retroactive: data.confirmRetroactive,
+      } as any,
+    );
     if (error) {
-      throw new Error(
-        frequencyRpcMessage(error.message, "Não foi possível salvar a frequência."),
-      );
+      throw new Error(frequencyRpcMessage(error.message, "Não foi possível salvar a frequência."));
     }
 
     const payload = (result ?? {}) as any;
@@ -227,13 +233,16 @@ export const mk9CloseIndustryFrequency = createServerFn({ method: "POST" })
       .maybeSingle();
     if (readErr || !current) throw new Error("Frequência não encontrada.");
 
-    const { error } = await supabaseAdmin.rpc("mk9_admin_frequency_close" as any, {
-      _version_id: data.versionId,
-      _end_date: data.endDate,
-      _reason: data.reason,
-      _actor: ctx.userId,
-      _expected_updated_at: data.expectedUpdatedAt,
-    } as any);
+    const { error } = await supabaseAdmin.rpc(
+      "mk9_admin_frequency_close" as any,
+      {
+        _version_id: data.versionId,
+        _end_date: data.endDate,
+        _reason: data.reason,
+        _actor: ctx.userId,
+        _expected_updated_at: data.expectedUpdatedAt,
+      } as any,
+    );
     if (error) {
       throw new Error(
         frequencyRpcMessage(error.message, "Não foi possível encerrar a frequência."),
