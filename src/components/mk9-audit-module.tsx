@@ -207,7 +207,7 @@ export function Mk9AuditModule({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
               Mês
@@ -299,7 +299,7 @@ export function Mk9AuditModule({
         </div>
       </Mk9Panel>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <Mk9MetricCard
           label="Contratadas"
           value={globalTotals.contratadas}
@@ -323,8 +323,8 @@ export function Mk9AuditModule({
       </div>
 
       <Mk9Panel>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="w-auto">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+          <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="w-full lg:w-auto overflow-x-auto">
             <TabsList className="bg-command-deep border border-white/5 p-1">
               <TabsTrigger
                 value="industry"
@@ -355,13 +355,13 @@ export function Mk9AuditModule({
 
           {tab !== "review" && (
             <div className="flex items-center gap-2">
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <SearchIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
                 <Input
                   placeholder="Filtrar resultados..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 h-9 w-[240px] bg-command-deep border-white/10 text-white text-xs"
+                  className="pl-9 h-9 w-full sm:w-[240px] bg-command-deep border-white/10 text-white text-xs"
                 />
               </div>
               <Button
