@@ -124,6 +124,9 @@ export function Mk9AnalyticsApp() {
 
         <div className="flex-1 overflow-y-auto py-6">
           <nav className="px-3 space-y-1">
+            <div className="pt-2 pb-2">
+              {!collapsed && <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">Visão Geral</p>}
+            </div>
             <SidebarItem
               icon={BarChart3}
               label="Dashboard"
@@ -136,6 +139,38 @@ export function Mk9AnalyticsApp() {
               active={activeModule === "cockpit"}
               onClick={() => setActiveModule("cockpit")}
             />
+            <SidebarItem
+              icon={Layers}
+              label="Inteligência"
+              active={activeModule === "dashboard"}
+              onClick={() => setActiveModule("dashboard")}
+            />
+
+            <div className="pt-4 pb-2">
+              {!collapsed && <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">Operação</p>}
+            </div>
+            <SidebarItem
+              icon={Settings2}
+              label="Gestão Operacional"
+              active={activeModule === "importacoes"}
+              onClick={() => setActiveModule("importacoes")}
+            />
+            <SidebarItem
+              icon={Upload}
+              label="Importar Checklist"
+              active={activeModule === "checklists"}
+              onClick={() => setActiveModule("checklists")}
+            />
+            <SidebarItem
+              icon={Route}
+              label="Roteiros"
+              active={activeModule === "roteiros"}
+              onClick={() => setActiveModule("roteiros")}
+            />
+
+            <div className="pt-4 pb-2">
+              {!collapsed && <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">Análise e Controle</p>}
+            </div>
             <SidebarItem
               icon={ClipboardCheck}
               label="Conciliação"
@@ -154,8 +189,9 @@ export function Mk9AnalyticsApp() {
               active={activeModule === "relatorio_industria"}
               onClick={() => setActiveModule("relatorio_industria")}
             />
+
             <div className="pt-4 pb-2">
-              {!collapsed && <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-80">Cadastros</p>}
+              {!collapsed && <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">Cadastros</p>}
             </div>
             <SidebarItem
               icon={Factory}
@@ -176,38 +212,11 @@ export function Mk9AnalyticsApp() {
               onClick={() => setActiveModule("promotores")}
             />
 
-            <div className="pt-4 pb-2">
-              {!collapsed && <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Operação</p>}
-            </div>
-            <SidebarItem
-              icon={Settings2}
-              label="Gestão Operacional"
-              active={activeModule === "importacoes"}
-              onClick={() => setActiveModule("importacoes")}
-            />
-            <SidebarItem
-              icon={Upload}
-              label="Importar Checklist"
-              active={activeModule === "checklists"}
-              onClick={() => setActiveModule("checklists")}
-            />
-            <SidebarItem
-              icon={Route}
-              label="Roteiros"
-              active={activeModule === "roteiros"}
-              onClick={() => setActiveModule("roteiros")}
-            />
             {isAdmin && (
               <>
                 <div className="pt-4 pb-2">
-                  {!collapsed && <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Administração</p>}
+                  {!collapsed && <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">Administração</p>}
                 </div>
-                <SidebarItem
-                  icon={ShieldCheck}
-                  label="Homologação"
-                  active={activeModule === "homologacao"}
-                  onClick={() => setActiveModule("homologacao")}
-                />
                 <SidebarItem
                   icon={ShieldAlert}
                   label="Limpeza Manual"
@@ -222,6 +231,7 @@ export function Mk9AnalyticsApp() {
                 />
               </>
             )}
+
           </nav>
         </div>
 
