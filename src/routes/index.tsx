@@ -80,7 +80,6 @@ function LandingPage() {
                     <li>Command Center / Score de Risco / Projeção ativos</li>
                   </ul>
                   <p className="mt-4">A partir de agora: NÃO estamos desenvolvendo novas regras operacionais. Estamos preparando o MK9 Analytics para uma versão estável v1.0.</p>
-
                 </div>
               </section>
 
@@ -93,23 +92,22 @@ function LandingPage() {
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
-                <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">OBJETIVOS DA INTELIGÊNCIA ANALÍTICA</h3>
+                <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">OBJETIVOS DA FASE 5 — ACABAMENTO</h3>
                 <div className="space-y-4 text-slate-400">
-                  <ProtocolItem id="01" title="VISÃO EXECUTIVA & EVOLUÇÃO" desc="Comparativo direto entre competências (atual vs anterior) com variação de cobertura e lojas zeradas." />
-                  <ProtocolItem id="02" title="DETECÇÃO DE REINCIDÊNCIA" desc="Identificar lojas que repetem falhas ou ausência de visita em competências consecutivas." />
-                  <ProtocolItem id="03" title="SCORE DE RISCO DA LOJA" desc="Cálculo determinístico (Baixo a Crítico) baseado em execução, recorrência e volume de pendência." />
-                  <ProtocolItem id="04" title="PERFORMANCE POR UF & INDÚSTRIA" desc="Rankings de evolução, identificando onde a operação está ganhando ou perdendo ritmo." />
-                  <ProtocolItem id="05" title="MATRIZ FREQUÊNCIA X EXECUÇÃO" desc="Análise profunda de cumprimento por faixa (2x, 4x, 8x/mês) para identificar gargalos." />
-                  <ProtocolItem id="06" title="PROJEÇÃO DE FECHAMENTO" desc="Estimativa matemática de entrega baseada no ritmo atual vs dias restantes na competência." />
-                  <ProtocolItem id="07" title="DRILL-DOWN HISTÓRICO" desc="Acesso instantâneo ao passado operacional de indústrias e lojas para análise de tendência." />
-
+                  <ProtocolItem id="01" title="VISUAL CONSISTENTE" desc="Auditoria de espaçamento, tipografia, cores e design system unificado em todos os módulos." />
+                  <ProtocolItem id="02" title="HIERARQUIA & DENSIDADE" desc="Padronização de Page Headers, filtros ativos e tabelas analíticas com foco em leitura rápida." />
+                  <ProtocolItem id="03" title="FEEDBACK & ERROS" desc="Melhoria de loading states (skeletons), empty states e feedback de ações com confirmações destrutivas." />
+                  <ProtocolItem id="04" title="RESPONSIVIDADE DESKTOP" desc="Otimização para notebooks 1366x768 e telas 1920x1080 garantindo KPIs sempre visíveis." />
+                  <ProtocolItem id="05" title="SIDEBAR & NAVEGAÇÃO" desc="Nova sidebar agrupada, colapsável e breadcrumbs inteligentes para melhorar o fluxo de uso." />
+                  <ProtocolItem id="06" title="PROTEÇÃO DO CORE" desc="Refinamento estético absoluto SEM alterar regras de negócio, parsers ou cálculos operacionais." />
+                  <ProtocolItem id="07" title="ESTABILIDADE V1.0" desc="Ponto de restauração estável, documentação técnica atualizada e suíte de testes (npm run verify) verde." />
                 </div>
               </div>
 
               <div className="bg-purple-900/20 border border-purple-500/20 p-4 rounded-lg">
-                <p className="text-purple-300 font-black uppercase text-[9px] tracking-widest mb-1">DATA SCIENCE UNIT</p>
+                <p className="text-purple-300 font-black uppercase text-[9px] tracking-widest mb-1">MK9 PRODUCT UNIT</p>
                 <p className="text-[10px] text-purple-200/60 leading-tight">
-                  Toda análise é baseada em regras determinísticas e dados homologados. Proibido alterar o núcleo operacional durante a implementação da camada analítica.
+                  A Fase 5 é sobre polir, padronizar e estabilizar. O objetivo é entregar um produto profissional, previsível e resistente a erros para uso diário.
                 </p>
 
               </div>
