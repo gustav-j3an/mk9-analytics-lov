@@ -21,8 +21,15 @@ import {
   Users,
   ShieldAlert,
   ShieldCheck,
+  Search,
 } from "lucide-react";
 import { DashboardErrorBoundary } from "./mk9/dashboard-error-boundary";
+import { MetricCard } from "./mk9-command-center/MetricCard";
+import { PerformanceCard } from "./mk9-command-center/PerformanceCard";
+import { ChartCard } from "./mk9-command-center/ChartCard";
+import { RankingCard } from "./mk9-command-center/RankingCard";
+import { IndustryCard } from "./mk9-command-center/IndustryCard";
+import { DashboardHeader } from "./mk9-command-center/DashboardHeader";
 
 
 import {
