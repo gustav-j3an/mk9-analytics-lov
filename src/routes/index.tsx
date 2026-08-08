@@ -74,16 +74,16 @@ function LandingPage() {
 
             <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/5">
               <div className="space-y-1">
+                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Lojas (Auditado)</p>
+                <p className="text-xl font-black text-emerald-400 italic underline">134</p>
+              </div>
+              <div className="space-y-1">
                 <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Contratadas</p>
                 <p className="text-xl font-black text-white italic">496</p>
               </div>
               <div className="space-y-1">
                 <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Realizadas</p>
-                <p className="text-xl font-black text-emerald-400 italic underline">146</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Cobertura</p>
-                <p className="text-xl font-black text-white italic">29,4%</p>
+                <p className="text-xl font-black text-white italic">146</p>
               </div>
             </div>
           </div>
