@@ -435,8 +435,8 @@ export async function persistImportSnapshot(
   const CHUNK = 500;
   for (let i = 0; i < payload.length; i += CHUNK) {
     const slice = payload.slice(i, i + CHUNK);
-    const { error } = await supabaseAdmin
-      .from("mk9_checklist_import_store_snapshots" as any)
+    const { error } = await (supabaseAdmin
+      .from("mk9_checklist_import_store_snapshots" as any) as any)
       .upsert(slice as any);
     if (error) throw new Error(error.message);
   }

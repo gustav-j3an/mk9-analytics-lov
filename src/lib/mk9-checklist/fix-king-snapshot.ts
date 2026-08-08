@@ -1,6 +1,5 @@
 
 import { supabaseAdmin } from "../../integrations/supabase/client.server";
-import { persistImportSnapshot } from "./persistence.server";
 
 async function fix() {
   const industryId = '6f36bb9d-e679-4538-9b58-e6adeb6638e2';
@@ -22,17 +21,24 @@ async function fix() {
   const preview = importRow.preview as any;
   const freqs = preview.storeFrequencies || [];
   
-  console.log(`Encontradas ${freqs.length} lojas no preview. Persistindo no snapshot...`);
+  console.log(`Encontradas ${freqs.length} lojas no preview. Persistindo no snapshot via REST direto...`);
   
   const snapshotRows = freqs.map((f: any) => ({
-    storeId: f.storeId,
-    storeName: f.storeName,
+    import_id: importId,
+    industry_id: industryId,
+    store_id: f.storeId,
+    source_store_name: f.storeName,
     uf: f.uf,
-    weeklyFrequency: f.weeklyFrequency,
-    monthlyFrequency: f.monthlyFrequency,
-  })).filter((r: any) => !!r.storeId);
+    weekly_frequency: f.weeklyFrequency,
+    monthly_frequency: f.monthlyFrequency,
+  })).filter((r: any) => !!r.store_id);
+
+  const { error } = await (supabaseAdmin.from('mk9_checklist_import_store_snapshots' as any) as any).upsert(snapshotRows);
   
-  await persistImportSnapshot(importId, industryId, snapshotRows);
+  if (error) {
+    console.error('Erro ao persistir snapshot:', error.message);
+    return;
+  }
   
   console.log('Snapshot persistido com sucesso.');
 }
