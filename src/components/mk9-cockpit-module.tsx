@@ -20,6 +20,7 @@ import {
   Upload,
   Users,
   Route as RouteIcon,
+  TrendingUp,
 } from "lucide-react";
 import {
   CartesianGrid,
@@ -144,8 +145,8 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
 
       {/* KPIs Superiores */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Mk9MetricCard color="blue" icon={RouteIcon} label="Contratadas" value={data.kpis.contractedTotal} hint="Meta total" />
-        <Mk9MetricCard color="emerald" icon={CheckCircle2} label="Realizadas" value={data.kpis.realizedToDate} hint={`${data.kpis.coberturaPct}% cobertura`} />
+        <Mk9MetricCard color="blue" icon={RouteIcon} label="Contratadas" value={data.kpis.contratadas} hint="Meta total" />
+        <Mk9MetricCard color="emerald" icon={CheckCircle2} label="Realizadas" value={data.kpis.realizadas} hint={`${data.kpis.coberturaPct}% cobertura`} />
         <Mk9MetricCard color="amber" icon={AlertTriangle} label="Pendentes" value={data.kpis.pendentes} hint="Visitas em aberto" />
         <Mk9MetricCard color="rose" icon={AlertTriangle} label="Críticas" value={data.health.blockingIssues} hint="Bloqueantes" />
         <Mk9MetricCard color="purple" icon={TrendingUp} label="Cobertura" value={`${data.kpis.coberturaPct}%`} hint={`Ritmo: ${data.health.pacePercentage}%`} />
