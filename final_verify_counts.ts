@@ -9,40 +9,33 @@ async function verify() {
   const year = 2026;
   const month = 8;
 
-  // 1. Resolve Window
   const cfg = await loadPeriodConfig(supabaseAdmin, industryId);
   const window = resolveWindow(cfg, year, month);
-  console.log('Window:', window.startDate, 'to', window.endDate);
 
-  // 2. Direct count from domain function
   const operational = await getOperationalVisits({
     industryId,
     startDate: window.startDate,
     endDate: window.endDate
   });
-  console.log('OPERATIONAL_VISITS (getOperationalVisits):', operational.length);
 
-  // 3. Count from Operation Core (Dashboard/Cockpit source)
   const core = await loadOperationCore(supabaseAdmin, {
     industryId,
     year,
     month
   });
   
-  const totalRealizedCore = core.industryRows[0]?.actual || 0;
-  console.log('DASHBOARD_REALIZED (loadOperationCore):', totalRealizedCore);
+  const totalRealizedCore = core.industryRows[0]?.realizadas || 0;
 
-  // 4. Verification against expected numbers
   console.log('--- FINAL PROOF ---');
-  console.log('Excel válidas:', 146);
-  console.log('Persistidas:', 146);
-  console.log('Operacionais:', operational.length);
-  console.log('Dashboard:', totalRealizedCore);
+  console.log('Excel válidas:  146');
+  console.log('Banco (Operac): ' + operational.length);
+  console.log('Dashboard:      ' + totalRealizedCore);
   
   if (operational.length === 146 && totalRealizedCore === 146) {
-    console.log('SUCCESS: All counts are aligned at 146.');
+    console.log('\x1b[32m%s\x1b[0m', 'SUCCESS: All counts are aligned at 146.');
   } else {
-    console.error('FAILURE: Mismatch in counts.');
+    console.log('\x1b[31m%s\x1b[0m', 'FAILURE: Mismatch in counts.');
+    process.exit(1);
   }
 }
 
