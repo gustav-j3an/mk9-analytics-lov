@@ -136,6 +136,23 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
                 {[year - 1, year, year + 1].map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
+            
+            <Select value={industryId} onValueChange={setIndustryId}>
+              <SelectTrigger className="h-9 w-[160px] bg-command-deep border-white/10 text-white"><SelectValue placeholder="Indústria" /></SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10 text-white">
+                <SelectItem value={ALL}>Todas as Indústrias</SelectItem>
+                {industries.map((i: any) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+
+            <Select value={promoterId} onValueChange={setPromoterId}>
+              <SelectTrigger className="h-9 w-[160px] bg-command-deep border-white/10 text-white"><SelectValue placeholder="Promotor" /></SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10 text-white">
+                <SelectItem value={ALL}>Todos os Promotores</SelectItem>
+                {promoters.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+
             <Button size="sm" variant="outline" className="h-9 border-white/10 bg-white/5 text-slate-400 hover:text-white" onClick={() => q.refetch()}>
               <RefreshCw className={cn("h-3.5 w-3.5 mr-2", q.isFetching && "animate-spin")} /> Sincronizar
             </Button>
@@ -150,7 +167,7 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
         <Mk9MetricCard color="amber" icon={AlertTriangle} label="Pendentes" value={data.kpis.pendentes} hint="Visitas em aberto" />
         <Mk9MetricCard color="rose" icon={AlertTriangle} label="Críticas" value={data.health.blockingIssues} hint="Bloqueantes" />
         <Mk9MetricCard color="purple" icon={TrendingUp} label="Cobertura" value={`${data.kpis.coberturaPct}%`} hint={`Ritmo: ${data.health.pacePercentage}%`} />
-        <Mk9MetricCard color="blue" icon={Users} label="Promotores" value={promotersQ.data?.length ?? 0} hint="Time em campo" />
+        <Mk9MetricCard color="blue" icon={Users} label="Promotores" value={promoters.length} hint="Time em campo" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
