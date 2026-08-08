@@ -46,8 +46,10 @@ function emptyCore(
 }
 
 export async function loadOperationCore(supabase: any, filters: OperationFilters): Promise<OperationCore> {
+  const { mk9ListIndustries } = await import("@/lib/mk9-data.functions");
   const startedAt = Date.now();
   const today = todayIso();
+
   const { year, month } = filters;
   let queryCount = 0;
 
@@ -158,9 +160,9 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   // Se uma consulta de visitas falhar, o dashboard ainda carrega o roteiro.
   queryCount += 5;
   const { listBulkOperationalActualVisits } = await import("./operational-visits.server");
-  const { mk9ListIndustries } = await import("@/lib/mk9-data.functions");
   
   const safeQuery = async (promise: Promise<any>, fallback: any = { data: [], error: null }) => {
+
 
     try {
       const res = await promise;
