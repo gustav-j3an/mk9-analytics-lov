@@ -117,14 +117,6 @@ export function Mk9AnalyticsDashboard() {
     return [y - 1, y, y + 1];
   }, []);
 
-  if (isLoading) return <Mk9LoadingState message="Inicializando Comando Analítico..." />;
-  if (error)
-    return <Mk9ErrorState message="Erro ao carregar matriz analítica." onRetry={() => refetch()} />;
-  if (!data)
-    return (
-      <Mk9ErrorState message="Nenhum dado retornado para este período." onRetry={() => refetch()} />
-    );
-
   const {
     executive: rawExecutive,
     industries = [],
@@ -134,7 +126,7 @@ export function Mk9AnalyticsDashboard() {
     projection: rawProjection,
     topPriorities = [],
     lastUpdate,
-  } = data;
+  } = data ?? {};
 
   // HOTFIX v1.0.2: Normalização robusta para evitar crashes de undefined (.coverage, .riskStatus, etc)
   const executive = useMemo(() => {
@@ -149,13 +141,24 @@ export function Mk9AnalyticsDashboard() {
     };
   }, [rawExecutive]);
 
-  const projection = useMemo(() => ({
-    realized: rawProjection?.realized ?? 0,
-    projected: rawProjection?.projected ?? 0,
-    contracted: rawProjection?.contracted ?? 0,
-    riskStatus: (rawProjection?.riskStatus ?? "N/D") as any,
-    daysRemaining: rawProjection?.daysRemaining ?? 0,
-  }), [rawProjection]);
+  const projection = useMemo(
+    () => ({
+      realized: rawProjection?.realized ?? 0,
+      projected: rawProjection?.projected ?? 0,
+      contracted: rawProjection?.contracted ?? 0,
+      riskStatus: (rawProjection?.riskStatus ?? "N/D") as any,
+      daysRemaining: rawProjection?.daysRemaining ?? 0,
+    }),
+    [rawProjection],
+  );
+
+  if (isLoading) return <Mk9LoadingState message="Inicializando Comando Analítico..." />;
+  if (error)
+    return <Mk9ErrorState message="Erro ao carregar matriz analítica." onRetry={() => refetch()} />;
+  if (!data)
+    return (
+      <Mk9ErrorState message="Nenhum dado retornado para este período." onRetry={() => refetch()} />
+    );
 
   return (
     <div className="space-y-8 animate-fade-in pb-20 selection:bg-purple-500/30">
