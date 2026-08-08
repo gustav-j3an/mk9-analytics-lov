@@ -155,10 +155,7 @@ export function Mk9AnalyticsApp() {
               onClick={() => setActiveModule("relatorio_industria")}
             />
             <div className="pt-4 pb-2">
-              {!collapsed && <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Configurações</p>}
-            </div>
-            <div className="pt-4 pb-2">
-              {!collapsed && <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Cadastros</p>}
+              {!collapsed && <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-80">Cadastros</p>}
             </div>
             <SidebarItem
               icon={Factory}
@@ -228,29 +225,30 @@ export function Mk9AnalyticsApp() {
           </nav>
         </div>
 
-        <div className="p-4 border-t space-y-2">
+        <div className="p-4 border-t border-white/5 space-y-2">
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className={cn("w-full flex items-center gap-3 px-4 py-2 text-muted-foreground hover:text-foreground transition-colors", collapsed && "justify-center px-0")}
+            className={cn("w-full flex items-center gap-3 px-4 py-2 text-slate-400 hover:text-white transition-colors hover:bg-white/5 rounded-lg", collapsed && "justify-center px-0")}
           >
             {collapsed ? <ChevronsRight className="h-5 w-5" /> : <ChevronsLeft className="h-5 w-5" />}
-            {!collapsed && "Recolher"}
+            {!collapsed && <span className="text-sm font-bold uppercase tracking-tighter">Recolher</span>}
           </button>
           <button
-            className={cn("w-full flex items-center gap-3 px-4 py-2 text-red-500 hover:text-red-600 hover:bg-red-500/5 transition-colors", collapsed && "justify-center px-0")}
+            className={cn("w-full flex items-center gap-3 px-4 py-2 text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors rounded-lg", collapsed && "justify-center px-0")}
             onClick={() => signOut()}
           >
             <LogOut className="h-5 w-5" />
-            {!collapsed && "Sair"}
+            {!collapsed && <span className="text-sm font-bold uppercase tracking-tighter">Sair</span>}
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 bg-background/50 backdrop-blur-sm">
-        <header className="h-16 border-b flex items-center justify-between px-8 glass-panel z-10 shrink-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#080812]">
+        <header className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-command-deep/80 backdrop-blur-md z-10 shrink-0">
           <div className="flex items-center gap-4">
-            <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground">
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-3">
+              <div className="h-1.5 w-1.5 rounded-full bg-command-purple animate-pulse" />
               {activeModule === "dashboard" && "Dashboard Operacional"}
               {activeModule === "cockpit" && "Cockpit de Comando"}
               {activeModule === "importacoes" && "Gestão Operacional"}
@@ -268,35 +266,35 @@ export function Mk9AnalyticsApp() {
             </h2>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-muted/30 p-1.5 rounded-lg border">
+            <div className="flex items-center gap-2 bg-white/5 p-1 rounded-lg border border-white/5">
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-                <SelectTrigger className="w-32 h-8 border-none bg-transparent shadow-none focus:ring-0">
-                  <Calendar className="h-3 w-3 mr-2 text-primary" />
+                <SelectTrigger className="w-28 h-7 border-none bg-transparent shadow-none focus:ring-0 text-[10px] font-bold text-white uppercase tracking-tighter">
+                  <Calendar className="h-3 w-3 mr-1.5 text-command-purple" />
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-command-deep border-white/10 text-white text-xs">
                   {["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"].map((m, i) => (
                     <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <div className="w-[1px] h-4 bg-muted" />
+              <div className="w-[1px] h-3 bg-white/10" />
               <Input
                 type="number"
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="w-20 h-8 border-none bg-transparent shadow-none focus-visible:ring-0"
+                className="w-16 h-7 border-none bg-transparent shadow-none focus-visible:ring-0 text-[10px] font-bold text-white text-center"
               />
             </div>
             {user && (
-              <div className="flex items-center gap-3 pl-4 border-l">
+              <div className="flex items-center gap-3 pl-4 border-l border-white/10">
                 <div className="flex flex-col items-end">
-                  <span className="text-xs font-bold truncate max-w-[120px]">{user.email?.split("@")[0]}</span>
-                  <Badge variant="outline" className="text-[9px] py-0 px-1 border-primary/20 bg-primary/5 text-primary">
+                  <span className="text-[10px] font-black text-white truncate max-w-[100px] uppercase tracking-tighter">{user.email?.split("@")[0]}</span>
+                  <Badge variant="outline" className="text-[8px] py-0 px-1 border-command-purple/30 bg-command-purple/10 text-command-purple font-black">
                     {isAdmin ? "ADMIN" : isSupervisor ? "SUPERVISOR" : isAuditor ? "AUDITOR" : "USER"}
                   </Badge>
                 </div>
-                <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-primary to-primary/60 flex items-center justify-center text-white font-bold shadow-lg">
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-command-purple to-command-blue flex items-center justify-center text-white font-black text-xs shadow-lg shadow-purple-500/20">
                   {user.email?.[0].toUpperCase()}
                 </div>
               </div>
@@ -373,15 +371,17 @@ function SidebarItem({ icon: Icon, label, active, onClick }: { icon: any; label:
     <button
       onClick={onClick}
       className={cn(
-        "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+        "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 relative group",
         active
-          ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          ? "bg-command-purple/10 text-white shadow-[0_0_20px_rgba(168,85,247,0.15)] neon-border-purple"
+          : "text-slate-400 hover:bg-white/5 hover:text-white"
       )}
     >
-      <Icon className={cn("h-5 w-5", active ? "text-primary-foreground" : "text-primary/70")} />
+      <Icon className={cn("h-5 w-5 transition-transform duration-300 group-hover:scale-110", active ? "text-command-purple" : "text-slate-500")} />
       <span className="truncate">{label}</span>
-      {active && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-white shadow-glow" />}
+      {active && (
+        <div className="ml-auto h-1.5 w-1.5 rounded-full bg-command-purple shadow-[0_0_8px_#A855F7]" />
+      )}
     </button>
   );
 }
