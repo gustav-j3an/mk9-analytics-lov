@@ -34,7 +34,23 @@ async function debug() {
     console.log(`  Freq: ${s.frequencyLabel}`);
     console.log(`  Monthly: ${s.monthlyFrequency}`);
     console.log(`  Contracted (expected): ${s.expected}`);
+    
+    // We need to look deeper into where buildIndustryReport calls contractedVisitsForFrequencySegments
   });
+
+  // Let's manually check for one store
+  const storeId = samples[0].storeId;
+  const { loadFrequencyVersionsForPeriod } = await import('./src/lib/mk9-frequency/versions.server');
+  const freqVersions = await loadFrequencyVersionsForPeriod(supabaseAdmin, {
+    industryIds: [industryId],
+    storeIds: [storeId],
+    periodStart: window.startDate,
+    periodEnd: window.endDate,
+  });
+
+  const segs = freqVersions.get(`${industryId}|${storeId}`);
+  console.log('Segments for sample store:', JSON.stringify(segs, null, 2));
+
 }
 
 debug().catch(console.error);
