@@ -135,11 +135,15 @@ export function contractedVisitsForFrequencySegments(input: {
     let segRaw = 0;
     if (monthly != null) {
       source = "MONTHLY_FREQUENCY";
-      // REGRA MK9 (HOTFIX KING): Se o segmento cobre o período todo, retorna o valor mensal cheio.
-      // A proporcionalidade só deve ser aplicada se o segmento INICIA ou TERMINA dentro do período.
-      const segCobrePeriodoTodo = seg.validFrom <= periodStart && (seg.validUntil === null || seg.validUntil >= periodEnd);
+      // REGRA MK9 (HOTFIX KING): O valor contratado mensal é a meta do período.
+      // Em competências mensais normais (mesmo as personalizadas como a KING 23 a 22),
+      // o usuário espera que a meta seja o valor total do arquivo.
+      // Só proporcionalizamos se o segmento for parcial em relação ao período operacional total.
+      const segCobreInicio = seg.validFrom <= periodStart;
+      const segCobreFim = seg.validUntil === null || seg.validUntil >= periodEnd;
       
-      if (segCobrePeriodoTodo && !input.untilDate) {
+      if (!input.untilDate && (segCobreInicio || segCobreFim)) {
+        // Se cobre o início ou o fim (ou ambos), tratamos como a frequência principal do período
         segRaw = monthly;
       } else {
         segRaw = monthly * (days / periodDays);
