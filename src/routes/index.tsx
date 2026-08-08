@@ -22,7 +22,7 @@ function LandingPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-950">
+      <div className="flex h-screen w-full items-center justify-center bg-[#080812]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -33,7 +33,7 @@ function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[#080812] flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center space-y-2">
           <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-2xl mb-4">
