@@ -103,12 +103,39 @@ export function Mk9AnalyticsApp() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-[#080812] text-foreground flex overflow-hidden font-sans">
+    <main className="min-h-screen w-full bg-[#080812] text-foreground flex flex-col md:flex-row overflow-hidden font-sans">
+      {/* Mobile Top Header */}
+      <div className="md:hidden h-14 shrink-0 bg-[#111122] border-b border-white/5 flex items-center justify-between px-4 z-30">
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-lg bg-command-purple flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <ShieldCheck className="text-white h-4 w-4" />
+          </div>
+          <span className="font-black tracking-tighter text-sm text-white">MK9</span>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-white"
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          {collapsed ? <ChevronsRight className="h-5 w-5" /> : <ChevronsLeft className="h-5 w-5" />}
+        </Button>
+      </div>
+
+      {/* Sidebar Overlay for Mobile */}
+      {!collapsed && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-20"
+          onClick={() => setCollapsed(true)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
         className={cn(
-          "bg-[#111122] border-r border-white/5 transition-all duration-300 flex flex-col shrink-0 z-20",
-          collapsed ? "w-20" : "w-64",
+          "bg-[#111122] border-r border-white/5 transition-all duration-300 flex flex-col shrink-0 z-30",
+          "fixed inset-y-0 left-0 md:relative",
+          collapsed ? "-translate-x-full md:translate-x-0 md:w-20" : "translate-x-0 w-64",
         )}
       >
         <div className="h-16 flex items-center px-6 border-b border-white/5 bg-command-deep/50">
@@ -118,7 +145,7 @@ export function Mk9AnalyticsApp() {
                 <ShieldCheck className="text-white h-5 w-5" />
               </div>
               <span className="font-black tracking-tighter text-lg text-white">
-                MK9 <span className="text-command-purple">COMMAND</span> <span className="text-[8px] opacity-30 ml-1">v1.0.3</span>
+                MK9 <span className="text-command-purple">COMMAND</span> <span className="text-[8px] opacity-30 ml-1">v1.0.4</span>
               </span>
             </div>
           )}
@@ -138,19 +165,28 @@ export function Mk9AnalyticsApp() {
               icon={BarChart3}
               label="Dashboard"
               active={activeModule === "dashboard"}
-              onClick={() => setActiveModule("dashboard")}
+              onClick={() => {
+                setActiveModule("dashboard");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
             <SidebarItem
               icon={Gauge}
               label="Cockpit"
               active={activeModule === "cockpit"}
-              onClick={() => setActiveModule("cockpit")}
+              onClick={() => {
+                setActiveModule("cockpit");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
             <SidebarItem
               icon={Layers}
               label="Inteligência"
               active={activeModule === "dashboard"}
-              onClick={() => setActiveModule("dashboard")}
+              onClick={() => {
+                setActiveModule("dashboard");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
 
             <div className="pt-4 pb-2">
@@ -164,19 +200,28 @@ export function Mk9AnalyticsApp() {
               icon={Settings2}
               label="Gestão Operacional"
               active={activeModule === "importacoes"}
-              onClick={() => setActiveModule("importacoes")}
+              onClick={() => {
+                setActiveModule("importacoes");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
             <SidebarItem
               icon={Upload}
               label="Importar Checklist"
               active={activeModule === "checklists"}
-              onClick={() => setActiveModule("checklists")}
+              onClick={() => {
+                setActiveModule("checklists");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
             <SidebarItem
               icon={Route}
               label="Roteiros"
               active={activeModule === "roteiros"}
-              onClick={() => setActiveModule("roteiros")}
+              onClick={() => {
+                setActiveModule("roteiros");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
 
             <div className="pt-4 pb-2">
@@ -190,19 +235,28 @@ export function Mk9AnalyticsApp() {
               icon={ClipboardCheck}
               label="Conciliação"
               active={activeModule === "conciliacao"}
-              onClick={() => setActiveModule("conciliacao")}
+              onClick={() => {
+                setActiveModule("conciliacao");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
             <SidebarItem
               icon={PackageCheck}
               label="Qualidade"
               active={activeModule === "qualidade"}
-              onClick={() => setActiveModule("qualidade")}
+              onClick={() => {
+                setActiveModule("qualidade");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
             <SidebarItem
               icon={FileSpreadsheet}
               label="Indústrias (PDF)"
               active={activeModule === "relatorio_industria"}
-              onClick={() => setActiveModule("relatorio_industria")}
+              onClick={() => {
+                setActiveModule("relatorio_industria");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
 
             <div className="pt-4 pb-2">
@@ -216,19 +270,28 @@ export function Mk9AnalyticsApp() {
               icon={Factory}
               label="Indústrias"
               active={activeModule === "industrias"}
-              onClick={() => setActiveModule("industrias")}
+                  onClick={() => {
+                    setActiveModule("industrias");
+                    if (window.innerWidth < 768) setCollapsed(true);
+                  }}
             />
             <SidebarItem
               icon={Store}
               label="Lojas"
               active={activeModule === "lojas"}
-              onClick={() => setActiveModule("lojas")}
+                  onClick={() => {
+                    setActiveModule("lojas");
+                    if (window.innerWidth < 768) setCollapsed(true);
+                  }}
             />
             <SidebarItem
               icon={Users}
               label="Promotores"
               active={activeModule === "promotores"}
-              onClick={() => setActiveModule("promotores")}
+                  onClick={() => {
+                    setActiveModule("promotores");
+                    if (window.innerWidth < 768) setCollapsed(true);
+                  }}
             />
 
             {isAdmin && (
@@ -244,13 +307,19 @@ export function Mk9AnalyticsApp() {
                   icon={ShieldAlert}
                   label="Limpeza Manual"
                   active={activeModule === "cleanup_admin"}
-                  onClick={() => setActiveModule("cleanup_admin")}
+                  onClick={() => {
+                    setActiveModule("cleanup_admin");
+                    if (window.innerWidth < 768) setCollapsed(true);
+                  }}
                 />
                 <SidebarItem
                   icon={Users}
                   label="Usuários"
                   active={activeModule === "usuarios"}
-                  onClick={() => setActiveModule("usuarios")}
+                  onClick={() => {
+                    setActiveModule("usuarios");
+                    if (window.innerWidth < 768) setCollapsed(true);
+                  }}
                 />
               </>
             )}
@@ -291,30 +360,30 @@ export function Mk9AnalyticsApp() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#080812]">
-        <header className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-command-deep/80 backdrop-blur-md z-10 shrink-0">
+        <header className="h-16 md:h-20 border-b border-white/5 flex items-center justify-between px-4 md:px-8 bg-command-deep/80 backdrop-blur-md z-10 shrink-0">
           <div className="flex items-center gap-4">
             <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-3">
               <div className="h-1.5 w-1.5 rounded-full bg-command-purple animate-pulse" />
-              {activeModule === "dashboard" && "Dashboard Operacional"}
-              {activeModule === "cockpit" && "Cockpit de Comando"}
-              {activeModule === "importacoes" && "Gestão Operacional"}
-              {activeModule === "industrias" && "Gestão de Indústrias"}
-              {activeModule === "lojas" && "Gestão de Lojas"}
-              {activeModule === "promotores" && "Gestão de Promotores"}
-              {activeModule === "checklists" && "Importador de Checklists"}
-              {activeModule === "conciliacao" && "Conciliação de Visitas"}
-              {activeModule === "qualidade" && "Centro de Qualidade"}
-              {activeModule === "roteiros" && "Roteiros & Frequências"}
-              {activeModule === "relatorio_industria" && "Central de Relatórios"}
-              {activeModule === "cleanup_admin" && "Limpeza Administrativa"}
-              {activeModule === "homologacao" && "Saúde do Sistema"}
-              {activeModule === "usuarios" && "Gestão de Acessos"}
+              {activeModule === "dashboard" && "Dashboard"}
+              {activeModule === "cockpit" && "Cockpit"}
+              {activeModule === "importacoes" && "Gestão"}
+              {activeModule === "industrias" && "Indústrias"}
+              {activeModule === "lojas" && "Lojas"}
+              {activeModule === "promotores" && "Promotores"}
+              {activeModule === "checklists" && "Checklists"}
+              {activeModule === "conciliacao" && "Conciliação"}
+              {activeModule === "qualidade" && "Qualidade"}
+              {activeModule === "roteiros" && "Roteiros"}
+              {activeModule === "relatorio_industria" && "Relatórios"}
+              {activeModule === "cleanup_admin" && "Admin"}
+              {activeModule === "homologacao" && "Saúde"}
+              {activeModule === "usuarios" && "Usuários"}
             </h2>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-white/5 p-1 rounded-lg border border-white/5">
+            <div className="flex items-center gap-1 md:gap-2 bg-white/5 p-1 rounded-lg border border-white/5">
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-                <SelectTrigger className="w-32 h-7 border-none bg-transparent shadow-none focus:ring-0 text-[10px] font-bold text-white uppercase tracking-tighter shrink-0 px-2 gap-1">
+                <SelectTrigger className="w-24 md:w-32 h-7 border-none bg-transparent shadow-none focus:ring-0 text-[9px] md:text-[10px] font-bold text-white uppercase tracking-tighter shrink-0 px-1 md:px-2 gap-0.5 md:gap-1">
                   <Calendar className="h-3 w-3 mr-1.5 text-command-purple" />
                   <SelectValue />
                 </SelectTrigger>
@@ -339,20 +408,20 @@ export function Mk9AnalyticsApp() {
                   ))}
                 </SelectContent>
               </Select>
-              <div className="w-[1px] h-3 bg-white/10" />
+              <div className="w-[1px] h-3 bg-white/10 mx-0.5" />
               <Input
                 type="number"
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="w-16 h-7 border-none bg-transparent shadow-none focus-visible:ring-0 text-[10px] font-bold text-white text-center shrink-0 p-0"
+                className="w-12 md:w-16 h-7 border-none bg-transparent shadow-none focus-visible:ring-0 text-[9px] md:text-[10px] font-bold text-white text-center shrink-0 p-0"
                 min={2000}
                 max={2099}
               />
             </div>
             {user && (
-              <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-                <div className="flex flex-col items-end">
-                  <span className="text-[10px] font-black text-white truncate max-w-[100px] uppercase tracking-tighter">
+              <div className="flex items-center gap-2 md:gap-3 pl-2 md:pl-4 border-l border-white/10">
+                <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-[9px] md:text-[10px] font-black text-white truncate max-w-[60px] md:max-w-[100px] uppercase tracking-tighter">
                     {user.email?.split("@")[0]}
                   </span>
                   <Badge
@@ -377,7 +446,7 @@ export function Mk9AnalyticsApp() {
         </header>
 
         <section className="flex-1 overflow-y-auto custom-scrollbar relative">
-          <div className="p-8">
+          <div className="p-4 md:p-8">
             {activeModule === "dashboard" && (
               <Mk9AnalyticsDashboard initialMonth={month} initialYear={year} />
             )}

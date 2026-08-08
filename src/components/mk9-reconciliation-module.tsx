@@ -345,7 +345,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
       />
 
       <Mk9Panel>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 items-end">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
               Ano
@@ -380,7 +380,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-2 space-y-1.5">
+          <div className="sm:col-span-2 space-y-1.5">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
               Indústria
             </label>
@@ -398,7 +398,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-2 space-y-1.5">
+          <div className="sm:col-span-2 space-y-1.5">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
               Promotor
             </label>
@@ -434,7 +434,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-2 space-y-1.5">
+          <div className="sm:col-span-2 space-y-1.5">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
               Checklist
             </label>
@@ -452,7 +452,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-3 flex gap-2">
+          <div className="col-span-1 sm:col-span-2 md:col-span-3 flex flex-col sm:flex-row gap-2">
             <Button
               onClick={() => runMut.mutate()}
               disabled={runMut.isPending}
@@ -477,7 +477,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
         </div>
 
         {s && (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-white/5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-white/5">
             <Mk9MetricCard label="Contratadas" value={s.metrics.contratadas} color="purple" />
             <Mk9MetricCard label="Executadas" value={s.metrics.executadas} color="blue" />
             <Mk9MetricCard label="Válidas" value={s.metrics.validas} color="emerald" />
@@ -499,23 +499,23 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
       </Mk9Panel>
 
       <Mk9Panel>
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
             Registros de Conciliação ({total})
           </h3>
-          <div className="relative w-[280px] max-w-full">
+          <div className="relative w-full md:w-[280px]">
             <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <Input
               placeholder="Buscar loja, promotor, indústria…"
               value={rawSearch}
               onChange={(e) => setRawSearch(e.target.value)}
-              className="pl-9 h-9 bg-command-deep border-white/10 text-white text-xs"
+              className="pl-9 h-9 bg-command-deep border-white/10 text-white text-xs w-full"
             />
           </div>
         </div>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mb-6">
-          <TabsList className="flex flex-wrap h-auto bg-black/20 border border-white/5 p-1">
+        <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mb-6 overflow-x-auto">
+          <TabsList className="flex md:flex-wrap h-auto bg-black/20 border border-white/5 p-1 w-max md:w-auto">
             <TabsTrigger
               value="all"
               className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white"
@@ -564,7 +564,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
             conciliação.
           </div>
         ) : (
-          <div className="overflow-auto max-h-[640px] border border-white/5 rounded-xl bg-white/[0.01]">
+          <div className="overflow-auto max-h-[640px] border border-white/5 rounded-xl bg-white/[0.01] custom-scrollbar-horizontal">
             <Table>
               <TableHeader>
                 <TableRow className="border-b border-white/5 hover:bg-transparent">
@@ -1096,7 +1096,7 @@ function StoreLinkDialog({
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl w-[95vw] sm:w-full">
         <DialogHeader>
           <DialogTitle>Vincular loja</DialogTitle>
           <DialogDescription>
@@ -1106,7 +1106,7 @@ function StoreLinkDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -1117,7 +1117,7 @@ function StoreLinkDialog({
             />
           </div>
           <Select value={uf} onValueChange={setUf}>
-            <SelectTrigger className="w-28">
+            <SelectTrigger className="w-full sm:w-28">
               <SelectValue placeholder="UF" />
             </SelectTrigger>
             <SelectContent>

@@ -268,3 +268,23 @@
   --muted: var(--mk9-surface);
   --muted-foreground: var(--mk9-text-secondary);
 }
+
+@layer utilities {
+  .custom-scrollbar-horizontal::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .custom-scrollbar-horizontal::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar-horizontal::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.2);
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar-horizontal::-webkit-scrollbar-thumb:hover {
+    background: rgba(168, 85, 247, 0.4);
+  }
+}

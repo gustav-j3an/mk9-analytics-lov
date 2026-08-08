@@ -170,7 +170,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
       )}
 
       {/* Visão de Risco e Projeção (Executive View) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div
           className={cn(
             "glass-command p-5 rounded-2xl border flex flex-col justify-between transition-all duration-300",
@@ -255,11 +255,11 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
       </div>
 
       {/* Header & Filters */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" />
-            <h1 className="text-3xl font-black text-white tracking-tighter uppercase italic">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tighter uppercase italic">
               MK9 <span className="text-command-purple">ANALYTICS</span>
             </h1>
           </div>
@@ -268,7 +268,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </p>
         </div>
 
-        <div className="glass-command p-2 rounded-2xl flex flex-wrap items-center gap-2 border border-white/5">
+        <div className="glass-command p-1.5 md:p-2 rounded-2xl flex flex-wrap items-center gap-1.5 md:gap-2 border border-white/5">
           <div className="flex items-center gap-2 px-2 border-r border-white/5 mr-2 hidden sm:flex">
             <Filter className="h-3 w-3 text-slate-500" />
             <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
@@ -277,7 +277,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </div>
 
           <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-            <SelectTrigger className="h-8 min-w-[130px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider px-3 gap-2 shrink-0">
+            <SelectTrigger className="h-8 min-w-[110px] md:min-w-[130px] bg-black/40 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase tracking-wider px-2 md:px-3 gap-1 md:gap-2 shrink-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-command-deep border-white/10 text-white">
@@ -294,7 +294,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </Select>
 
           <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-            <SelectTrigger className="h-8 min-w-[90px] bg-black/40 border-white/5 text-[10px] font-bold text-white">
+            <SelectTrigger className="h-8 min-w-[70px] md:min-w-[90px] bg-black/40 border-white/5 text-[9px] md:text-[10px] font-bold text-white">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-command-deep border-white/10 text-white">
@@ -307,7 +307,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </Select>
 
           <Select value={industryId} onValueChange={setIndustryId}>
-            <SelectTrigger className="h-8 min-w-[160px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase">
+            <SelectTrigger className="h-8 min-w-[140px] md:min-w-[160px] bg-black/40 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-command-deep border-white/10 text-white">
@@ -323,7 +323,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </Select>
 
           <Select value={uf} onValueChange={setUf}>
-            <SelectTrigger className="h-8 min-w-[80px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase">
+            <SelectTrigger className="h-8 min-w-[60px] md:min-w-[80px] bg-black/40 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-command-deep border-white/10 text-white">
@@ -379,7 +379,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
       </div>
 
       {/* Top 3 Prioridades Críticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {topPriorities.slice(0, 3).map((p) => (
           <div
             key={`${p.storeId}-${p.industryName}`}
@@ -401,7 +401,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
 
       {/* Main KPIs Row */}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         <AnalyticsMetricCard
           label="Visitas Contratadas"
           value={nf(executive.contracted.current)}
