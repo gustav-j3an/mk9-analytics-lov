@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -74,14 +74,22 @@ function nf(v: number) {
   return new Intl.NumberFormat("pt-BR").format(v);
 }
 
-export function Mk9AnalyticsDashboard() {
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMonth?: number; initialYear?: number }) {
+  const [month, setMonth] = useState(initialMonth || new Date().getMonth() + 1);
+  const [year, setYear] = useState(initialYear || new Date().getFullYear());
   const [industryId, setIndustryId] = useState("__ALL__");
   const [uf, setUf] = useState("__ALL__");
 
   const analyticsFn = useServerFn(getMk9AnalyticsDashboardFn);
   const industriesFn = useServerFn(mk9ListIndustries);
+
+  useEffect(() => {
+    if (initialMonth) setMonth(initialMonth);
+  }, [initialMonth]);
+
+  useEffect(() => {
+    if (initialYear) setYear(initialYear);
+  }, [initialYear]);
 
   const industriesQ = useQuery({
     queryKey: ["mk9-industries-list"],
@@ -97,7 +105,7 @@ export function Mk9AnalyticsDashboard() {
   };
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ["mk9-analytics-data", params],
+    queryKey: ["mk9-analytics-data", year, month, industryId, uf],
     queryFn: () => analyticsFn({ data: params }),
     staleTime: 60000,
   });
@@ -256,7 +264,7 @@ export function Mk9AnalyticsDashboard() {
             </h1>
           </div>
           <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-5">
-            Inteligência Operacional · V1.0.0
+            Inteligência Operacional · V1.0.3
           </p>
         </div>
 
@@ -269,7 +277,7 @@ export function Mk9AnalyticsDashboard() {
           </div>
 
           <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-            <SelectTrigger className="h-8 min-w-[120px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider">
+            <SelectTrigger className="h-8 min-w-[130px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider px-3 gap-2 shrink-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-command-deep border-white/10 text-white">

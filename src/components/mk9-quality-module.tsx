@@ -92,6 +92,10 @@ export function Mk9QualityModule({
   const [running, setRunning] = useState(false);
 
   useEffect(() => {
+    setFilters((f) => ({ ...f, month, year, page: 1 }));
+  }, [month, year]);
+
+  useEffect(() => {
     const t = setTimeout(() => {
       setFilters((f) => (f.search === searchInput ? f : { ...f, search: searchInput, page: 1 }));
     }, 300);

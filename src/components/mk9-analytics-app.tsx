@@ -118,7 +118,7 @@ export function Mk9AnalyticsApp() {
                 <ShieldCheck className="text-white h-5 w-5" />
               </div>
               <span className="font-black tracking-tighter text-lg text-white">
-                MK9 <span className="text-command-purple">COMMAND</span>
+                MK9 <span className="text-command-purple">COMMAND</span> <span className="text-[8px] opacity-30 ml-1">v1.0.3</span>
               </span>
             </div>
           )}
@@ -314,7 +314,7 @@ export function Mk9AnalyticsApp() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 bg-white/5 p-1 rounded-lg border border-white/5">
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-                <SelectTrigger className="w-28 h-7 border-none bg-transparent shadow-none focus:ring-0 text-[10px] font-bold text-white uppercase tracking-tighter">
+                <SelectTrigger className="w-32 h-7 border-none bg-transparent shadow-none focus:ring-0 text-[10px] font-bold text-white uppercase tracking-tighter shrink-0 px-2 gap-1">
                   <Calendar className="h-3 w-3 mr-1.5 text-command-purple" />
                   <SelectValue />
                 </SelectTrigger>
@@ -378,8 +378,10 @@ export function Mk9AnalyticsApp() {
 
         <section className="flex-1 overflow-y-auto custom-scrollbar relative">
           <div className="p-8">
-            {activeModule === "dashboard" && <Mk9AnalyticsDashboard />}
-            {activeModule === "cockpit" && <Mk9CockpitModule />}
+            {activeModule === "dashboard" && (
+              <Mk9AnalyticsDashboard initialMonth={month} initialYear={year} />
+            )}
+            {activeModule === "cockpit" && <Mk9CockpitModule initialMonth={month} initialYear={year} />}
             {activeModule === "importacoes" && (
               <Mk9ImportModule onSwitchToChecklists={() => setActiveModule("checklists")} />
             )}
@@ -394,10 +396,17 @@ export function Mk9AnalyticsApp() {
               />
             )}
             {activeModule === "checklists" && (
-              <Mk9ChecklistImportModule onSwitchToBase={() => setActiveModule("importacoes")} />
+              <Mk9ChecklistImportModule
+                onSwitchToBase={() => setActiveModule("importacoes")}
+                initialMonth={month}
+                initialYear={year}
+              />
             )}
             {activeModule === "conciliacao" && (
-              <Mk9AuditModule key={auditKey} initialFilters={auditFilters} />
+              <Mk9AuditModule
+                key={auditKey}
+                initialFilters={{ ...auditFilters, month, year }}
+              />
             )}
             {activeModule === "qualidade" && (
               <Mk9QualityModule
@@ -430,7 +439,9 @@ export function Mk9AnalyticsApp() {
               />
             )}
 
-            {activeModule === "relatorio_industria" && <Mk9IndustryReportModule />}
+            {activeModule === "relatorio_industria" && (
+              <Mk9IndustryReportModule initialMonth={month} initialYear={year} />
+            )}
             {activeModule === "cleanup_admin" && (
               <Mk9AdminCleanupModule month={month} year={year} />
             )}

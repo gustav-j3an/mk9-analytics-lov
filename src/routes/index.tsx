@@ -9,16 +9,16 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | HOTFIX v1.0.2 — ROUTE LOOP",
+    title: "MK9 | SISTEMA HOMOLOGADO v1.0.3",
     meta: [
       {
         name: "description",
-        content: "Hotfix v1.0.2: Correção de loop de redirecionamento e Runtime Error Response 307.",
+        content: "MK9 Analytics v1.0.3: Competência Global Real e Estabilidade de Dados.",
       },
-      { property: "og:title", content: "MK9 | HOTFIX v1.0.2" },
+      { property: "og:title", content: "MK9 | v1.0.3" },
       {
         property: "og:description",
-        content: "Estabilização do fluxo de autenticação e navegação MK9.",
+        content: "Painel de inteligência operacional com sincronia de competência.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -28,21 +28,17 @@ export const Route = createFileRoute("/")({
 function LandingPage() {
   const { session, loading, signOut } = useMk9Session();
   const search = Route.useSearch() as { session_expired?: string };
-
-  // O redirecionamento no componente deve ser via useEffect para evitar throw durante render
   const navigate = useNavigate();
 
   useEffect(() => {
     if (search.session_expired === "true") {
       signOut();
       toast.info("Sua sessão expirou. Faça login novamente.");
-      // Limpa a URL sem redirecionar
       navigate({ to: "/", replace: true });
       return;
     }
 
     if (!loading && session) {
-      console.log("[MK9-AUTH] Sessão detectada em /, redirecionando para /dashboard");
       navigate({ to: "/dashboard", replace: true });
     }
   }, [session, loading, navigate, search.session_expired, signOut]);
@@ -57,14 +53,12 @@ function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#05050a] flex flex-col items-center justify-center p-4 relative overflow-hidden text-slate-300 font-mono selection:bg-purple-500/30">
-      {/* Matrix-like Background Effects */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-10">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,#3b0764_0%,transparent_70%)]" />
         <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
       </div>
 
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 z-10">
-        {/* Left Column: Mission Status */}
         <div className="lg:col-span-8 space-y-6 overflow-hidden flex flex-col max-h-[85vh]">
           <div className="flex items-center gap-4 mb-2">
             <div className="p-2 bg-purple-500/20 rounded border border-purple-500/30">
@@ -72,14 +66,11 @@ function LandingPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 ANALYTICS — HOTFIX TOOLTIP (FREQUENCY)
+                MK9 ANALYTICS — SISTEMA HOMOLOGADO
               </h1>
-
               <p className="text-[10px] text-emerald-500 font-black tracking-[0.3em] uppercase">
-                STATUS: DEPLOYED - HIGH CONTRAST ANALYTICS
+                STATUS: V1.0.3 — COMPETÊNCIA GLOBAL REAL
               </p>
-
-
             </div>
           </div>
 
@@ -89,129 +80,88 @@ function LandingPage() {
                 <div className="flex items-center gap-2 text-white mb-3">
                   <Info className="w-4 h-4 text-purple-400" />
                   <span className="font-black uppercase tracking-widest text-purple-400">
-                    Protocolo de Homologação
+                    Notas de Versão v1.0.3
                   </span>
                 </div>
                 <div className="text-slate-400 space-y-2">
                   <p>
-                    FASE 5.3 concluída. Cadastros, Administração e Sidebar refinados. Todo o Command
-                    Center aplicado.
+                    A versão 1.0.3 introduz a sincronia real de competência. Alterações no seletor global (Mês/Ano) agora são propagadas instantaneamente para todos os núcleos do sistema.
                   </p>
-                  <p className="text-purple-400/80 font-bold mt-2 italic">STATUS ATUAL:</p>
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px]">
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px] mt-4">
                     <div className="flex justify-between border-b border-white/5 pb-1">
                       <span>Testes (npm verify)</span>
-                      <span className="text-emerald-400 font-bold">384 PASS</span>
+                      <span className="text-emerald-400 font-bold">391 PASS</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
                       <span>Paridade KING</span>
                       <span className="text-emerald-400 font-bold">146 VISITS</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Design System</span>
-                      <span className="text-emerald-400 font-bold">UNIFICADO</span>
+                      <span>Sincronia Global</span>
+                      <span className="text-emerald-400 font-bold">ATIVA</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Navegação</span>
-                      <span className="text-emerald-400 font-bold">ESTÁVEL</span>
-                    </div>
-                    <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Core Operacional</span>
-                      <span className="text-emerald-400 font-bold">BLINDADO</span>
-                    </div>
-                    <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Release</span>
-                      <span className="text-purple-400 font-bold">V1.0.0-READY</span>
+                      <span>Layout Header</span>
+                      <span className="text-emerald-400 font-bold">CORRIGIDO</span>
                     </div>
                   </div>
-                  <p className="mt-4">
-                    Iniciando a última etapa de validação. O objetivo é congelar a v1.0.0 sem novas
-                    funcionalidades, garantindo estabilidade total.
-                  </p>
                 </div>
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="PHASE" value="5.4" sub="RELEASE" />
-                <StatusCard icon={Cpu} title="VERSION" value="V1.0.1" sub="PATCH" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.0.3" sub="STABLE" />
+                <StatusCard icon={Cpu} title="CORE" value="MULTI-COMP" sub="ACTIVE" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  HOTFIX v1.0.1 — DASHBOARD GUARD
+                  Protocolo v1.0.3
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="VALIDAÇÃO INTEGRAL"
-                    desc="Execução de todos os fluxos: Login, Dashboard, Inteligência, Cockpit, PDF e Cadastros."
+                    title="COMPETÊNCIA REAL"
+                    desc="A troca de mês no cabeçalho atualiza Dashboard, Cockpit, Auditoria, Qualidade e Relatórios simultaneamente."
                   />
                   <ProtocolItem
                     id="02"
-                    title="REGRESSÃO KING"
-                    desc="Confirmação mandatória de 146 visitas realizadas na KING. Zero tolerância a desvios."
+                    title="PROTEÇÃO DE CACHE"
+                    desc="QueryKeys do TanStack Query agora incluem a competência, evitando colisão de dados entre meses."
                   />
                   <ProtocolItem
                     id="03"
-                    title="RESPONSIVIDADE 1366x768"
-                    desc="Garantir que todos os módulos operam perfeitamente em notebooks padrão de campo."
+                    title="AJUSTE DE LARGURA"
+                    desc="Selectores do header expandidos (w-32) para comportar nomes longos como SETEMBRO/DEZEMBRO sem cortes."
                   />
                   <ProtocolItem
                     id="04"
-                    title="LIMPEZA DE CONSOLE"
-                    desc="Remoção de warnings, logs desnecessários e garantia de hidratação SSR estável."
-                  />
-                  <ProtocolItem
-                    id="05"
-                    title="DOCUMENTAÇÃO"
-                    desc="Atualização dos manuais e contratos operacionais no repositório (docs/)."
-                  />
-                  <ProtocolItem
-                    id="06"
-                    title="CONGELAMENTO V1.0.0"
-                    desc="Bloqueio de novas funcionalidades. Somente correções críticas de regressão são permitidas."
+                    title="ESTABILIDADE"
+                    desc="Tratamento global de sessões expiradas redirecionando para login com limpeza de cache automática."
                   />
                 </div>
-              </div>
-
-              <div className="bg-purple-900/20 border border-purple-500/20 p-4 rounded-lg">
-                <p className="text-purple-300 font-black uppercase text-[9px] tracking-widest mb-1 italic">
-                  PROTOCOLO DE RELEASE
-                </p>
-                <p className="text-[10px] text-purple-200/60 leading-tight">
-                  A versão v1.0.0 será a base oficial para implantação. Nenhuma alteração de regra de
-                  negócio deve ocorrer nesta fase. Integridade KING: 146 visitas.
-                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Login */}
         <div className="lg:col-span-4 flex flex-col justify-center space-y-6">
           <div className="bg-black/40 border border-white/5 p-8 rounded-2xl shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Shield className="w-16 h-16 text-purple-500" />
+              <Shield className="w-16 h-16 text-purple-400" />
             </div>
             <div className="relative z-10">
               <div className="mb-6">
                 <h2 className="text-lg font-black text-white tracking-widest uppercase mb-1 italic">
-                  ACCESS CONTROL
+                  OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE OPERATIONAL GATEWAY
+                  SECURE ACCESS v1.0.3
                 </p>
               </div>
               <ClientOnly>
                 <Mk9LoginForm />
               </ClientOnly>
             </div>
-          </div>
-
-          <div className="text-center">
-            <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em]">
-              MK9 DATA SCIENCE UNIT
-            </p>
           </div>
         </div>
       </div>

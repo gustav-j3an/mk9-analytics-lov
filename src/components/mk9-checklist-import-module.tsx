@@ -227,14 +227,22 @@ async function requestChecklistPreview(input: {
   return payload as ChecklistPreviewResponse;
 }
 
-export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: () => void } = {}) {
+export function Mk9ChecklistImportModule({
+  onSwitchToBase,
+  initialMonth,
+  initialYear,
+}: {
+  onSwitchToBase?: () => void;
+  initialMonth?: number;
+  initialYear?: number;
+} = {}) {
   const [viewMode, setViewMode] = useState<"individual" | "batch">("batch");
 
   // Estados para importação individual
   const now = new Date();
   const [file, setFile] = useState<File | null>(null);
-  const [month, setMonth] = useState<number>(now.getMonth() + 1);
-  const [year, setYear] = useState<number>(now.getFullYear());
+  const [month, setMonth] = useState<number>(initialMonth || now.getMonth() + 1);
+  const [year, setYear] = useState<number>(initialYear || now.getFullYear());
   const [industryId, setIndustryId] = useState<string>("");
   const [preview, setPreview] = useState<ChecklistPreview | null>(null);
   const [importId, setImportId] = useState<string | null>(null);
@@ -270,6 +278,14 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const createIndustryFn = useServerFn(mk9CreateChecklistIndustry);
   const qc = useQueryClient();
 
+  useEffect(() => {
+    if (initialMonth) setMonth(initialMonth);
+  }, [initialMonth]);
+
+  useEffect(() => {
+    if (initialYear) setYear(initialYear);
+  }, [initialYear]);
+
   const clearPhaseTimers = () => {
     for (const t of phaseTimersRef.current) window.clearTimeout(t);
     phaseTimersRef.current = [];
@@ -280,7 +296,10 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     queryKey: ["mk9-checklist-industries"],
     queryFn: () => industriesFn(),
   });
-  const historyQ = useQuery({ queryKey: ["mk9-checklist-imports"], queryFn: () => listFn() });
+  const historyQ = useQuery({ 
+    queryKey: ["mk9-checklist-imports", year, month], 
+    queryFn: () => listFn({ data: { month, year } }) 
+  });
 
   const previewMut = useMutation({
     mutationFn: async () => {
@@ -303,7 +322,7 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
       setImportId(res.importId);
       setLastError(null);
       toast.success("Prévia gerada");
-      qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
+      qc.invalidateQueries({ queryKey: ["mk9-checklist-imports", year, month] });
     },
     onError: (e: any) => {
       const rich = parseServerError(e);
