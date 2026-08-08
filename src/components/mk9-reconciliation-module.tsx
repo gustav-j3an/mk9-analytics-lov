@@ -345,7 +345,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
       />
 
       <Mk9Panel>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 items-end">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
               Ano
@@ -380,7 +380,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-2 space-y-1.5">
+          <div className="sm:col-span-2 space-y-1.5">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
               Indústria
             </label>
@@ -398,7 +398,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-2 space-y-1.5">
+          <div className="sm:col-span-2 space-y-1.5">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
               Promotor
             </label>
@@ -434,7 +434,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-2 space-y-1.5">
+          <div className="sm:col-span-2 space-y-1.5">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
               Checklist
             </label>
@@ -452,7 +452,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-3 flex gap-2">
+          <div className="col-span-1 sm:col-span-2 md:col-span-3 flex flex-col sm:flex-row gap-2">
             <Button
               onClick={() => runMut.mutate()}
               disabled={runMut.isPending}
@@ -477,7 +477,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
         </div>
 
         {s && (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-white/5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-white/5">
             <Mk9MetricCard label="Contratadas" value={s.metrics.contratadas} color="purple" />
             <Mk9MetricCard label="Executadas" value={s.metrics.executadas} color="blue" />
             <Mk9MetricCard label="Válidas" value={s.metrics.validas} color="emerald" />
