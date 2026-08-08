@@ -423,20 +423,20 @@ export function Mk9AnalyticsDashboard() {
               </div>
               <span className="font-black text-white">{u.uf}</span>
             </div>,
-            <span key={u.uf} className="font-bold text-slate-400">{u.storeCount}</span>,
-            <span key={u.uf} className="font-bold text-slate-400">{u.contracted.current}</span>,
-            <span key={u.uf} className="font-bold text-white">{u.realized.current}</span>,
+            <span key={u.uf} className="font-bold text-slate-400">{u.stores}</span>,
+            <span key={u.uf} className="font-bold text-slate-400">{u.contracted}</span>,
+            <span key={u.uf} className="font-bold text-white">{u.realized}</span>,
             <div key={u.uf} className="flex items-center gap-2">
-               <span className={cn("font-black text-xs", u.coverage.delta >= 0 ? "text-emerald-400" : "text-amber-400")}>{u.coverage.current}%</span>
+               <span className={cn("font-black text-xs", u.variationVsPrevious >= 0 ? "text-emerald-400" : "text-amber-400")}>{u.coverage}%</span>
                <div className="flex-1 h-1 bg-white/5 rounded-full min-w-[60px] hidden md:block">
-                 <div className="h-full bg-command-purple rounded-full" style={{ width: `${u.coverage.current}%` }} />
+                 <div className="h-full bg-command-purple rounded-full" style={{ width: `${u.coverage}%` }} />
                </div>
             </div>,
-            <span key={u.uf} className={cn("font-bold text-xs", u.coverage.delta >= 0 ? "text-emerald-500" : "text-rose-500")}>
-              {u.coverage.delta > 0 ? "+" : ""}{u.coverage.delta.toFixed(1)}
+            <span key={u.uf} className={cn("font-bold text-xs", u.variationVsPrevious >= 0 ? "text-emerald-500" : "text-rose-500")}>
+              {u.variationVsPrevious > 0 ? "+" : ""}{u.variationVsPrevious.toFixed(1)}
             </span>,
-            <Mk9Badge variant={u.zeroVisits.current > 0 ? "danger" : "default"} key={u.uf}>
-              {u.zeroVisits.current} LOJAS
+            <Mk9Badge variant={u.zeroVisits > 0 ? "danger" : "default"} key={u.uf}>
+              {u.zeroVisits} LOJAS
             </Mk9Badge>
           ])}
         />
