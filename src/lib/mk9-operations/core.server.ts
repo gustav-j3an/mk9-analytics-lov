@@ -181,16 +181,10 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       return new Map();
     }),
     safeQuery((async () => {
-      if (industryIds.length === 1) {
-        return { data: await getOperationalVisits({ industryId: industryIds[0], startDate: globalStart, endDate: globalEnd }), error: null };
-      }
-      return supabase
-        .from("mk9_actual_visits")
-        .select("industry_id, store_id, scheduled_date, source_import_id, store:mk9_stores(id,name,chain,uf)")
-        .in("industry_id", industryIds)
-        .gte("scheduled_date", globalStart)
-        .lte("scheduled_date", globalEnd)
-        .limit(100000);
+      // Usar a função de domínio centralizada (listOperationalActualVisits) para garantir paridade.
+      // Se for apenas uma indústria, a listOperationalActualVisits já é otimizada.
+      // Se forem várias, buscamos todas as visitas operacionais para o período global.
+      return { data: await getOperationalVisits({ industryId: industryIds[0], startDate: globalStart, endDate: globalEnd }), error: null };
     })()),
     safeQuery(supabase
       .from("mk9_planned_routes")
