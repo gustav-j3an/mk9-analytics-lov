@@ -28,6 +28,9 @@ import { MetricCard } from "./mk9-command-center/MetricCard";
 import { PerformanceCard } from "./mk9-command-center/PerformanceCard";
 import { ChartCard } from "./mk9-command-center/ChartCard";
 import { RankingCard } from "./mk9-command-center/RankingCard";
+import { IndustryCard as MK9IndustryCard } from "./mk9-command-center/IndustryCard";
+import { DashboardHeader } from "./mk9-command-center/DashboardHeader";
+import { RankingCard } from "./mk9-command-center/RankingCard";
 import { IndustryCard } from "./mk9-command-center/IndustryCard";
 import { DashboardHeader } from "./mk9-command-center/DashboardHeader";
 
