@@ -281,6 +281,7 @@ export type Database = {
           finished_at: string | null
           id: string
           industry_id: string
+          is_operational_current: boolean | null
           operation_month: number
           operation_year: number
           preview: Json | null
@@ -309,6 +310,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           industry_id: string
+          is_operational_current?: boolean | null
           operation_month: number
           operation_year: number
           preview?: Json | null
@@ -337,6 +339,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           industry_id?: string
+          is_operational_current?: boolean | null
           operation_month?: number
           operation_year?: number
           preview?: Json | null

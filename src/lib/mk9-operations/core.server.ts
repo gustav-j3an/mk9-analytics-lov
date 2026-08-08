@@ -181,16 +181,11 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       return new Map();
     }),
     safeQuery((async () => {
-      if (industryIds.length === 1) {
-        return { data: await getOperationalVisits({ industryId: industryIds[0], startDate: globalStart, endDate: globalEnd }), error: null };
-      }
-      return supabase
-        .from("mk9_actual_visits")
-        .select("industry_id, store_id, scheduled_date, source_import_id, store:mk9_stores(id,name,chain,uf)")
-        .in("industry_id", industryIds)
-        .gte("scheduled_date", globalStart)
-        .lte("scheduled_date", globalEnd)
-        .limit(100000);
+      // Usar a função de domínio centralizada (listOperationalActualVisits) para garantir paridade.
+      // Se forem várias, precisamos iterar ou ajustar a listOperationalActualVisits para aceitar array.
+      // Por enquanto, resolvemos para a primeira (ou todas as solicitadas em paralelo).
+      const results = await Promise.all(industryIds.map(id => getOperationalVisits({ industryId: id, startDate: globalStart, endDate: globalEnd })));
+      return { data: results.flat(), error: null };
     })()),
     safeQuery(supabase
       .from("mk9_planned_routes")
@@ -298,34 +293,15 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
 
   // Nota: O filtro operacional (is_operational_current) deve ser aplicado aqui para dashboards
   // se quisermos paridade absoluta com o PDF.
-  // 1. Mapear importações vigentes
-  const activeImportsByIndustry = new Map<string, Set<string>>();
-  // Buscar importações vigentes explicitamente para o dashboard se não vierem da query acima
-  const { data: currentImports } = await supabase
-    .from("mk9_checklist_imports")
-    .select("id, industry_id")
-    .in("industry_id", industryIds)
-    .eq("is_operational_current" as any, true)
-    .is("reverted_at", null);
-
-  for (const imp of currentImports ?? []) {
-    const set = activeImportsByIndustry.get(imp.industry_id) ?? new Set();
-    set.add(imp.id);
-    activeImportsByIndustry.set(imp.industry_id, set);
-  }
-
+  // ---- processamento de visitas operacionais ----
+  // A filtragem operacional já foi realizada na query inicial via getOperationalVisits.
+  // Aqui apenas distribuímos as visitas nos buckets correspondentes.
   for (const v of visitRes.data ?? []) {
     const ctx = ctxById.get(v.industry_id);
     if (!ctx || !v.store_id) continue;
     
-    // Filtro Operacional de Dashboard:
-    // Uma visita importada só conta se a importação for a vigente da indústria.
-    if (v.source_import_id) {
-      const activeSet = activeImportsByIndustry.get(v.industry_id);
-      if (!activeSet || !activeSet.has(v.source_import_id)) continue;
-    }
-
     const d = String(v.scheduled_date);
+    // Embora a query já filtre, mantemos a verificação de segurança por janela específica da indústria
     if (d < ctx.win.startDate || d > ctx.win.endDate) continue;
     if (!passesUf(v.store?.uf ?? null)) continue;
     if (!passesStore(v.store_id)) continue;
