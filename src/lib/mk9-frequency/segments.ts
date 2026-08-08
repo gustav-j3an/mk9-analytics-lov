@@ -135,7 +135,15 @@ export function contractedVisitsForFrequencySegments(input: {
     let segRaw = 0;
     if (monthly != null) {
       source = "MONTHLY_FREQUENCY";
-      segRaw = monthly * (days / periodDays);
+      // REGRA MK9 (HOTFIX KING): Se o segmento cobre o período todo, retorna o valor mensal cheio.
+      // A proporcionalidade só deve ser aplicada se o segmento INICIA ou TERMINA dentro do período.
+      const segCobrePeriodoTodo = seg.validFrom <= periodStart && (seg.validUntil === null || seg.validUntil >= periodEnd);
+      
+      if (segCobrePeriodoTodo && !input.untilDate) {
+        segRaw = monthly;
+      } else {
+        segRaw = monthly * (days / periodDays);
+      }
       sawMonthly = true;
     } else if (weekly != null) {
       source = "WEEKLY_FREQUENCY";
