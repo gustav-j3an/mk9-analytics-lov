@@ -1,4 +1,5 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import { Loader2, Zap, BarChart3, Shield, Cpu, Activity, Info } from "lucide-react";
@@ -7,18 +8,17 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | HOTFIX v1.0.1 — riskStatus CRASH",
+    title: "MK9 | HOTFIX v1.0.2 — ROUTE LOOP",
     meta: [
       {
         name: "description",
-        content: "Fase 5.4: Homologação final, correção de regressões, documentação e release v1.0.0.",
+        content: "Hotfix v1.0.2: Correção de loop de redirecionamento e Runtime Error Response 307.",
       },
-      { property: "og:title", content: "MK9 | HOTFIX v1.0.1" },
+      { property: "og:title", content: "MK9 | HOTFIX v1.0.2" },
       {
         property: "og:description",
-        content: "Validação completa do MK9 Command Center e congelamento da versão estável.",
+        content: "Estabilização do fluxo de autenticação e navegação MK9.",
       },
-
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
@@ -27,16 +27,23 @@ export const Route = createFileRoute("/")({
 function LandingPage() {
   const { session, loading } = useMk9Session();
 
-  if (loading) {
+  // O redirecionamento no componente deve ser via useEffect para evitar throw durante render
+  // que pode causar hydration mismatch ou loops se não tratado corretamente pelo router.
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && session) {
+      console.log("[MK9-AUTH] Sessão detectada em /, redirecionando para /dashboard");
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [session, loading, navigate]);
+
+  if (loading || session) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#05050a]">
         <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
       </div>
     );
-  }
-
-  if (session) {
-    throw redirect({ to: "/dashboard" });
   }
 
   return (
@@ -56,11 +63,11 @@ function LandingPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 ANALYTICS — HOTFIX v1.0.1 (OK)
+                MK9 ANALYTICS — HOTFIX v1.0.2 (AUTH LOOP)
               </h1>
 
               <p className="text-[10px] text-emerald-500 font-black tracking-[0.3em] uppercase">
-                PATCH: riskStatus RESOLVIDO (DEPLOY CONFIRMADO)
+                STATUS: DEPLOY v1.0.2 - ROUTING STABILIZED
               </p>
             </div>
           </div>

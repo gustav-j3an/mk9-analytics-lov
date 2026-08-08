@@ -36,7 +36,7 @@ function DashboardPage() {
     // Redirecionamento preventivo client-side se a sessão cair ou não existir
     if (!loading && !session) {
       console.warn(
-        "[MK9-DASHBOARD] Usuário não autenticado tentando acessar rota protegida. Redirecionando...",
+        "[MK9-DASHBOARD] Usuário não autenticado em /dashboard. Redirecionando para /",
       );
       navigate({ to: "/", replace: true });
     }
