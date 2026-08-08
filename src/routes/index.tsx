@@ -9,13 +9,13 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | SISTEMA HOMOLOGADO v1.0.4",
+    title: "MK9 | SISTEMA HOMOLOGADO v1.0.5",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.0.4: Otimização de Performance e Responsividade Global.",
+        content: "MK9 Analytics v1.0.5: Auditoria de Segurança, RLS e Otimização de Banco de Dados.",
       },
-      { property: "og:title", content: "MK9 | v1.0.4" },
+      { property: "og:title", content: "MK9 | v1.0.5" },
       {
         property: "og:description",
         content: "Painel de inteligência operacional com sincronia de competência.",
@@ -69,7 +69,7 @@ function LandingPage() {
                 MK9 ANALYTICS — SISTEMA HOMOLOGADO
               </h1>
               <p className="text-[10px] text-emerald-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.0.4 — PERFORMANCE & RESPONSIVIDADE
+                STATUS: V1.0.5 — SEGURANÇA & DATABASE HARDENING
               </p>
             </div>
           </div>
@@ -80,12 +80,12 @@ function LandingPage() {
                 <div className="flex items-center gap-2 text-white mb-3">
                   <Info className="w-4 h-4 text-purple-400" />
                   <span className="font-black uppercase tracking-widest text-purple-400">
-                    Notas de Versão v1.0.4
+                    Notas de Versão v1.0.5
                   </span>
                 </div>
                 <div className="text-slate-400 space-y-2">
                   <p>
-                    A versão 1.0.4 foca em otimização profunda e responsividade total. O sistema agora é fluido em qualquer dispositivo, com carregamento acelerado e Core Web Vitals otimizados.
+                    A versão 1.0.5 foca em segurança máxima e integridade de dados. Implementamos auditoria profunda de RLS, proteção contra injeção e otimização de relações no banco de dados.
                   </p>
                   <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px] mt-4">
                     <div className="flex justify-between border-b border-white/5 pb-1">
@@ -109,34 +109,34 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.0.4" sub="STABLE" />
-                <StatusCard icon={Cpu} title="CORE" value="ULTRA-FAST" sub="ACTIVE" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.0.5" sub="STABLE" />
+                <StatusCard icon={Shield} title="SECURITY" value="HARDENED" sub="ACTIVE" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  Protocolo v1.0.4
+                  Protocolo v1.0.5
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="RESPONSIVIDADE TOTAL"
-                    desc="Interface 100% adaptativa para Mobile, Tablet e Desktop com sidebar inteligente."
+                    title="AUDITORIA DE SEGURANÇA"
+                    desc="Políticas RLS revisadas e proteção contra exposição de dados sensíveis em todo o sistema."
                   />
                   <ProtocolItem
                     id="02"
-                    title="OTIMIZAÇÃO DE PERFORMANCE"
-                    desc="Redução de re-renders, lazy loading agressivo e otimização de bundle size para carregamento instantâneo."
+                    title="DATABASE HARDENING"
+                    desc="Otimização de chaves estrangeiras, indexação e remoção de redundâncias estruturais."
                   />
                   <ProtocolItem
                     id="03"
-                    title="UX FLUIDA"
-                    desc="Transições suaves entre módulos e feedback visual otimizado em todas as ações operacionais."
+                    title="AUTORIZAÇÃO GRANULAR"
+                    desc="Controle de acesso rigoroso baseado em papéis (RBAC) validado em nível de banco de dados."
                   />
                   <ProtocolItem
                     id="04"
-                    title="ESTABILIDADE CORE"
-                    desc="Manutenção da paridade KING (146 visitas) e validação de contrato em 391 testes automatizados."
+                    title="INTEGRIDADE v1.0.5"
+                    desc="Manutenção da paridade KING (146 visitas) com validação de segurança em 391 testes automatizados."
                   />
                 </div>
               </div>
@@ -155,7 +155,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.0.4
+                  SECURE ACCESS v1.0.5
                 </p>
               </div>
               <ClientOnly>
