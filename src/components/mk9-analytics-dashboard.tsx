@@ -245,43 +245,30 @@ export function Mk9AnalyticsDashboard() {
       </div>
 
 
-      {/* Charts Section */}
+      {/* Charts & Matrix Section */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <AnalyticsChartCard 
-          title="Evolução da Execução" 
-          subtitle="Visitas acumuladas por dia"
+          title="Matriz de Execução" 
+          subtitle="Frequência x Faixa de Cobertura"
           className="xl:col-span-2"
         >
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={dailyExecution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorReal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#A855F7" stopOpacity={0.1}/>
-                  <stop offset="95%" stopColor="#A855F7" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis 
-                dataKey="date" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 9, fill: "#64748b" }} 
-                tickFormatter={(v) => v.slice(8, 10)}
-              />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: "#64748b" }} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: "#080812", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }}
-                itemStyle={{ fontSize: "11px", color: "#fff", textTransform: "uppercase" }}
-                labelStyle={{ color: "#64748b", fontSize: "10px", marginBottom: "4px" }}
-              />
-              <Area type="monotone" dataKey="expected" stroke="#A855F7" strokeWidth={2} fillOpacity={1} fill="url(#colorExp)" name="Meta" />
-              <Area type="monotone" dataKey="realized" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorReal)" name="Realizado" />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div className="grid grid-cols-5 gap-2 h-full">
+            {["0%", "1-49%", "50-99%", "100%", ">100%"].map(label => (
+              <div key={label} className="text-[8px] font-black text-slate-500 text-center uppercase">{label}</div>
+            ))}
+            {matrix.map((cell, idx) => (
+              <div 
+                key={idx} 
+                className={cn(
+                  "flex flex-col items-center justify-center rounded-lg border border-white/5 transition-all hover:border-white/20",
+                  cell.count > 0 ? "bg-command-purple/10" : "bg-white/[0.02] opacity-50"
+                )}
+              >
+                <span className="text-lg font-black text-white">{cell.count}</span>
+                <span className="text-[7px] font-bold text-slate-500 uppercase">{cell.frequency}x</span>
+              </div>
+            ))}
+          </div>
         </AnalyticsChartCard>
 
         <AnalyticsChartCard 
@@ -289,7 +276,7 @@ export function Mk9AnalyticsDashboard() {
           subtitle="Lojas por visitas contratadas"
         >
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={frequencyDistribution} layout="vertical" margin={{ left: 20 }}>
+            <BarChart data={frequencies} layout="vertical" margin={{ left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
               <XAxis type="number" hide />
               <YAxis 
@@ -303,8 +290,8 @@ export function Mk9AnalyticsDashboard() {
                 cursor={{ fill: "rgba(255,255,255,0.02)" }}
                 contentStyle={{ backgroundColor: "#080812", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }}
               />
-              <Bar dataKey="value" radius={[0, 4, 4, 0]} name="Lojas">
-                {frequencyDistribution.map((entry, index) => (
+              <Bar dataKey="storeCount" radius={[0, 4, 4, 0]} name="Lojas">
+                {frequencies.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "#3B82F6" : "#A855F7"} />
                 ))}
               </Bar>
@@ -312,6 +299,7 @@ export function Mk9AnalyticsDashboard() {
           </ResponsiveContainer>
         </AnalyticsChartCard>
       </div>
+
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Critical Stores Table */}
