@@ -223,6 +223,10 @@
     box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
   }
 
+  .glow-rose {
+    box-shadow: 0 0 15px rgba(244, 63, 94, 0.15);
+  }
+
   .neon-border-purple {
     border: 1px solid rgba(168, 85, 247, 0.3);
     box-shadow: inset 0 0 5px rgba(168, 85, 247, 0.1);
