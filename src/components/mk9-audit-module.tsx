@@ -42,7 +42,15 @@ function fmtDate(v?: string | null) {
   return d && m && y ? `${d}/${m}/${y}` : v;
 }
 
-export function Mk9AuditModule({ initialFilters }: { initialFilters?: any } = {}) {
+export interface Mk9AuditInitialFilters {
+  month?: number;
+  year?: number;
+  industryId?: string | null;
+  uf?: string | null;
+  promoterId?: string | null;
+}
+
+export function Mk9AuditModule({ initialFilters }: { initialFilters?: Mk9AuditInitialFilters } = {}) {
   const now = new Date();
   const [year, setYear] = useState<number>(initialFilters?.year ?? now.getFullYear());
   const [month, setMonth] = useState<number>(initialFilters?.month ?? now.getMonth() + 1);
