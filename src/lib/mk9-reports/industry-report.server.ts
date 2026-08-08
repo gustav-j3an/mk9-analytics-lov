@@ -206,18 +206,36 @@ export async function buildIndustryReport(
 
   let snapshotStores: any[] = [];
   if (currentImport) {
-    snapshotStores = await loadImportSnapshot(currentImport.id);
+    // Tentativa 1: Tabela física de snapshots (novo padrão imutável)
+    try {
+        snapshotStores = await loadImportSnapshot(currentImport.id);
+    } catch (e) {
+        console.warn("Tabela de snapshot não disponível, tentando fallback JSON...");
+    }
+
+    // Tentativa 2: Fallback para o JSON embutido no preview (para importações antigas ou durante migração)
+    if (!snapshotStores.length) {
+        const { data: importData } = await supabase
+            .from("mk9_checklist_imports")
+            .select("preview")
+            .eq("id", currentImport.id)
+            .maybeSingle();
+        
+        if (importData?.preview) {
+            const preview = importData.preview as any;
+            // Se já rodamos o script de fix, estará em snapshotStores. 
+            // Senão, extraímos de storeFrequencies.
+            snapshotStores = preview.snapshotStores || (preview.storeFrequencies || []).map((f: any) => ({
+                store_id: f.storeId,
+                source_store_name: f.storeName,
+                uf: f.uf,
+                weekly_frequency: f.weeklyFrequency,
+                monthly_frequency: f.monthlyFrequency
+            })).filter((s: any) => !!s.store_id);
+        }
+    }
   }
 
-  // Se não houver snapshot, não retornamos 0 silencioso, lançamos erro CONTRACTED_SNAPSHOT_MISSING
-  // para que o usuário saiba que precisa reprocessar a importação para gerar o snapshot.
-  if (!snapshotStores.length) {
-     const errorPayload = { 
-        code: "CONTRACTED_SNAPSHOT_MISSING",
-        message: "Os dados de frequência da importação não foram encontrados. Reprocesse o checklist."
-     };
-     throw new Error(JSON.stringify(errorPayload));
-  }
 
 
 

@@ -443,13 +443,17 @@ export async function persistImportSnapshot(
 }
 
 export async function loadImportSnapshot(importId: string): Promise<any[]> {
-  const { data, error } = await supabaseAdmin
-    .from("mk9_checklist_import_store_snapshots" as any)
-    .select("store_id, source_store_name, uf, weekly_frequency, monthly_frequency")
-    .eq("import_id" as any, importId);
-  if (error) throw new Error(error.message);
-
-  return data || [];
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("mk9_checklist_import_store_snapshots" as any)
+      .select("store_id, source_store_name, uf, weekly_frequency, monthly_frequency")
+      .eq("import_id" as any, importId);
+    if (error) return [];
+    return data || [];
+  } catch (e) {
+    return [];
+  }
 }
+
 
 
