@@ -18,6 +18,8 @@ import {
   EXECUTION_STATUS_LABEL,
   ROUTE_STATUS_LABEL,
 } from "@/lib/mk9-reports/industry-report.server";
+import { buildIndustryReportFilename } from "@/lib/mk9/normalization";
+
 
 const MONTHS_PT = [
   "Janeiro",
@@ -658,11 +660,11 @@ export async function renderIndustryReportPdf(
 }
 
 export function industryPdfFileName(report: IndustryReport, year: number, month: number): string {
-  const name = report.industry.name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, "_")
-    .replace(/^_|_$/g, "");
-  return `RELATORIO_${name}_${MONTHS_PT[month - 1].toUpperCase()}_${year}.pdf`;
+  return buildIndustryReportFilename({
+    industryName: report.industry.name,
+    month,
+    year,
+    reportType: "FULL",
+  });
 }
+

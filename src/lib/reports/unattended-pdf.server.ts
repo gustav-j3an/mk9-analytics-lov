@@ -6,6 +6,8 @@ import {
   type PDFFont,
 } from "pdf-lib/dist/pdf-lib.esm.js";
 import type { IndustryReport, StoreLine } from "@/lib/mk9-reports/industry-report.server";
+import { buildIndustryReportFilename } from "@/lib/mk9/normalization";
+
 
 const MONTHS_PT = [
   "Janeiro",
@@ -368,24 +370,11 @@ export async function renderUnattendedPdf(
 }
 
 export function unattendedPdfFileName(report: IndustryReport, year: number, month: number): string {
-  const name = report.industry.name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, "_");
-  const meses = [
-    "JANEIRO",
-    "FEVEREIRO",
-    "MARCO",
-    "ABRIL",
-    "MAIO",
-    "JUNHO",
-    "JULHO",
-    "AGOSTO",
-    "SETEMBRO",
-    "OUTUBRO",
-    "NOVEMBRO",
-    "DEZEMBRO",
-  ];
-  return `LOJAS_NAO_ATENDIDAS_${name}_${meses[month - 1]}_${year}.pdf`;
+  return buildIndustryReportFilename({
+    industryName: report.industry.name,
+    month,
+    year,
+    reportType: "UNVISITED_STORES",
+  });
 }
+

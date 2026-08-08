@@ -30,7 +30,9 @@ import {
   reportUpsertPeriodConfig,
   reportListChecklistImports,
 } from "@/lib/mk9-reports.functions";
+import { buildIndustryReportFilename } from "@/lib/mk9/normalization";
 import { Mk9PageHeader, Mk9MetricCard, Mk9Panel, Mk9Badge } from "./mk9/design-system";
+
 
 const MONTHS_PT = [
   "Janeiro",
@@ -159,7 +161,15 @@ export function Mk9IndustryReportModule() {
       const ct = res.headers.get("content-type") ?? "";
       if (!ct.includes("application/pdf")) throw new Error(`Resposta inesperada: ${ct}`);
       const cd = res.headers.get("content-disposition") ?? "";
-      const filename = type === "full" ? "relatorio.pdf" : "nao_atendidas.pdf";
+      
+      const industryName = industriesQ.data?.find(i => i.id === industryId)?.name || "Indústria";
+      const filename = buildIndustryReportFilename({
+        industryName,
+        month,
+        year,
+        reportType: type === "full" ? "FULL" : "UNVISITED_STORES"
+      });
+
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");

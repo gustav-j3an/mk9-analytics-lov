@@ -226,3 +226,45 @@ export function formatPercentage(value: number | null | undefined): string {
   }).format(value / 100);
 }
 
+/**
+ * Constrói o nome de arquivo para relatórios de indústria (PDF).
+ * Padrão: [NOME DA INDÚSTRIA] - [TIPO] - [MÊS] [ANO].pdf
+ * Sanitiza caracteres inválidos para sistemas de arquivos.
+ */
+export function buildIndustryReportFilename({
+  industryName,
+  month,
+  year,
+  reportType,
+}: {
+  industryName: string;
+  month: number;
+  year: number;
+  reportType: "FULL" | "UNVISITED_STORES";
+}): string {
+  const months = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
+
+  const typeLabel = reportType === "FULL" ? "Relatório" : "Lojas Não Atendidas";
+  const monthName = months[month - 1] || "";
+  
+  // Sanitização: remove caracteres proibidos em filenames (/ \ : * ? " < > |)
+  // Preserva acentos, espaços e hífens.
+  const safeName = industryName.replace(/[\/\\:\*\?"<>\|]/g, "").trim();
+  
+  return `${safeName} - ${typeLabel} - ${monthName} ${year}.pdf`;
+}
+
+
