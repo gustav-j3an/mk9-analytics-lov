@@ -7,14 +7,15 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute('/')({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | FASE 2 — PERFORMANCE & ESTABILIDADE",
+    title: "MK9 | FASE 3 — CONFIABILIDADE & TESTES",
     meta: [
-      { name: "description", content: "Fase 2: Otimização de performance, redução de payload e estabilidade total." },
-      { property: "og:title", content: "MK9 | FASE 2" },
-      { property: "og:description", content: "Missão de blindagem e velocidade para o MK9 Analytics." },
+      { name: "description", content: "Fase 3: Proteção contra regressão, testes de contrato e integridade operacional." },
+      { property: "og:title", content: "MK9 | FASE 3" },
+      { property: "og:description", content: "Missão de blindagem e testes automatizados para o MK9 Analytics." },
       { name: "twitter:card", content: "summary_large_image" }
     ],
   }),
+
 });
 
 function LandingPage() {
@@ -45,14 +46,14 @@ function LandingPage() {
         <div className="lg:col-span-8 space-y-6 overflow-hidden flex flex-col max-h-[85vh]">
           <div className="flex items-center gap-4 mb-2">
             <div className="p-2 bg-purple-500/20 rounded border border-purple-500/30">
-              <Activity className="w-6 h-6 text-purple-400" />
+              <Shield className="w-6 h-6 text-purple-400" />
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 — FASE 2
+                MK9 — FASE 3
               </h1>
               <p className="text-[10px] text-purple-400 font-black tracking-[0.3em] uppercase">
-                PERFORMANCE, VELOCIDADE E ESTABILIDADE
+                CONFIABILIDADE, TESTES DE CONTRATO E PROTEÇÃO
               </p>
             </div>
           </div>
@@ -64,40 +65,41 @@ function LandingPage() {
                   <Info className="w-4 h-4 text-purple-400" />
                   <span className="font-black uppercase tracking-widest">Contexto</span>
                 </div>
-                <p className="text-slate-400">
-                  O Dashboard Analítico v1 já ficou bom e deve ser preservado. Agora o objetivo NÃO é adicionar funcionalidades. 
-                  O foco é tornar o sistema mais rápido, responsivo e previsível, reduzindo chamadas ao banco e riscos de crash.
-                </p>
+                <div className="text-slate-400 space-y-2">
+                  <p>A Fase 2 de Performance foi concluída com sucesso (Paralelização, Cockpit consolidado, listBulkActualVisits). Agora o objetivo NÃO é adicionar funcionalidades.</p>
+                  <p>A Missão é impedir que futuras alterações voltem a quebrar: frequência, contratadas, realizadas, pendentes, extras, Indústrias PDF, importação e o período KING.</p>
+                </div>
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Zap} title="VELOCIDADE" value="SUB 1.5S" sub="Goal" />
-                <StatusCard icon={Cpu} title="QUERIES" value="CONSOLIDADO" sub="Optimized" />
-                <StatusCard icon={Shield} title="ESTABILIDADE" value="ISO-CRASH" sub="Safety" />
-                <StatusCard icon={BarChart3} title="PAYLOAD" value="MINIFICADO" sub="Efficiency" />
+                <StatusCard icon={Activity} title="CONTRACT" value="VALIDATED" sub="Parity" />
+                <StatusCard icon={Cpu} title="ENGINES" value="TESTED" sub="Automated" />
+                <StatusCard icon={Shield} title="REGRESSION" value="ZERO-TOL" sub="Safety" />
+                <StatusCard icon={BarChart3} title="KING RULES" value="LOCKED" sub="Compliance" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
-                <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">PROTOCOLOS DE OTIMIZAÇÃO</h3>
+                <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">PROTOCOLOS DE PROTEÇÃO</h3>
                 <div className="space-y-4 text-slate-400">
-                  <ProtocolItem id="01" title="MEDIR ANTES DE OTIMIZAR" desc="Registrar tempo de carga, requests e queries de todos os módulos principais." />
-                  <ProtocolItem id="02" title="IDENTIFICAR REQUESTS DUPLICADAS" desc="Consolidar carregamento de indústrias, frequências e visitas em payloads agregados." />
-                  <ProtocolItem id="03" title="EXECUÇÃO PARALELA" desc="Utilizar Promise.all para queries independentes sem dependência de estado." />
-                  <ProtocolItem id="04" title="EVITAR N+1" desc="Agrupar buscas de frequências e visitas em memória em vez de queries por linha." />
-                  <ProtocolItem id="05" title="CACHE SEGURO & INVALIDAÇÃO" desc="Implementar cache por escopo/competência com invalidação atômica pós-importação." />
-                  <ProtocolItem id="06" title="LAZY LOADING & CODE SPLITTING" desc="Carregar componentes pesados (PDF, Importadores) sob demanda." />
-                  <ProtocolItem id="07" title="ERROR BOUNDARY LOCAL" desc="Blindagem de seções individuais para evitar queda global da aplicação." />
+                  <ProtocolItem id="01" title="TESTES DE CONTRATO DO MOTOR" desc="Garantir que Dashboard, Cockpit e PDF retornem exatamente os mesmos números-base." />
+                  <ProtocolItem id="02" title="VALIDAÇÃO DE FREQUÊNCIA" desc="Bloquear regressões de cálculo (4→3, 8→6, 2→1) em lojas com frequências fixas." />
+                  <ProtocolItem id="03" title="INTEGRIDADE DE LOJAS SEM VISITA" desc="Garantir que lojas contratadas sem visitas continuem aparecendo nos relatórios." />
+                  <ProtocolItem id="04" title="MOTOR DE EXTRAS & PENDENTES" desc="Validar logicamente que extras = max(0, realizado-contratado) e pendentes = max(0, contratado-realizado)." />
+                  <ProtocolItem id="05" title="SINCRONIA DE IMPORTAÇÃO" desc="Testar substituição atômica e reversão de checklists mantendo o histórico operacional." />
+                  <ProtocolItem id="06" title="REGRA KING IMUTÁVEL" desc="Proteção específica para o período operacional customizado (23/07 → 22/08) e frequências não proporcionais." />
+                  <ProtocolItem id="07" title="SNAPSHOT IMMUTABILITY" desc="Validar que o PDF utiliza o snapshot imutável gerado no momento do commit do checklist." />
                 </div>
               </div>
 
               <div className="bg-purple-900/20 border border-purple-500/20 p-4 rounded-lg">
-                <p className="text-purple-300 font-black uppercase text-[9px] tracking-widest mb-1">PROIBIDO ALTERAR</p>
+                <p className="text-purple-300 font-black uppercase text-[9px] tracking-widest mb-1">MISSÃO DE BLINDAGEM</p>
                 <p className="text-[10px] text-purple-200/60 leading-tight">
-                  Regras KING, frequência contratada, visitas realizadas, lógica de checklist e cálculos homologados são IMUTÁVEIS nesta fase.
+                  Se qualquer alteração futura tentar reduzir números homologados ou causar divergência entre PDF e Dashboard, a suíte de testes deve falhar automaticamente.
                 </p>
               </div>
             </div>
           </div>
+
         </div>
 
         {/* Right Column: Login */}
