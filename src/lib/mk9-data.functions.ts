@@ -311,7 +311,7 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
 
   let q = supabaseAdmin
     .from("mk9_promoters")
-    .select("id, name, external_id, employee_number, city, uf, contact, notes, updated_at, archived_at, is_active")
+    .select("id, name, external_id, employee_number, city, uf, contact, notes, updated_at, archived_at, is_active, supervisor_id")
     .order("name", { ascending: true });
   if (allowedPromoterIds) q = q.in("id", allowedPromoterIds);
   const { data, error } = await q;
@@ -329,7 +329,9 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
     updatedAt: r.updated_at as string,
     archivedAt: (r.archived_at as string | null) ?? null,
     isActive: r.is_active as boolean,
+    supervisorId: (r.supervisor_id as string | null) ?? null,
   }));
+
 });
 
 
