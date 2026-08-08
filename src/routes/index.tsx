@@ -7,11 +7,11 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute('/')({
   component: LandingPage,
   head: () => ({
-    title: "MK9 Analytics | Diagnóstico Forense",
+    title: "MK9 Analytics | Sincronia de Dados",
     meta: [
-      { name: "description", content: "Diagnóstico técnico sobre contabilização de visitas." },
-      { property: "og:title", content: "MK9 | Diagnóstico Forense" },
-      { property: "og:description", content: "Prova técnica da causa raiz da contabilização de visitas." },
+      { name: "description", content: "Prova final da sincronização de visitas operacionais." },
+      { property: "og:title", content: "MK9 | Sincronia de Dados" },
+      { property: "og:description", content: "Motor operacional unificado e validado para a KING." },
       { name: "twitter:card", content: "summary_large_image" }
     ],
   }),
