@@ -21,7 +21,7 @@ async function fix() {
   const preview = importRow.preview as any;
   const freqs = preview.storeFrequencies || [];
   
-  console.log(`Encontradas ${freqs.length} lojas no preview. Persistindo no snapshot via REST direto...`);
+  console.log(`Encontradas ${freqs.length} lojas no preview. Persistindo via REST nativo...`);
   
   const snapshotRows = freqs.map((f: any) => ({
     import_id: importId,
@@ -33,14 +33,36 @@ async function fix() {
     monthly_frequency: f.monthlyFrequency,
   })).filter((r: any) => !!r.store_id);
 
-  const { error } = await (supabaseAdmin.from('mk9_checklist_import_store_snapshots' as any) as any).upsert(snapshotRows);
-  
-  if (error) {
-    console.error('Erro ao persistir snapshot:', error.message);
+  // Usando fetch direto para contornar o schema cache do PostgREST
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    // Se não tiver service role, usamos o client mas forçamos o path
+    console.log("Service role não disponível, tentando via client as any...");
+    const { error } = await (supabaseAdmin.from('mk9_checklist_import_store_snapshots' as any) as any).upsert(snapshotRows);
+    if (error) console.error("Erro final:", error.message);
+    else console.log("Sucesso via as any");
     return;
   }
-  
-  console.log('Snapshot persistido com sucesso.');
+
+  const response = await fetch(`${supabaseUrl}/rest/v1/mk9_checklist_import_store_snapshots`, {
+    method: 'POST',
+    headers: {
+      'apikey': serviceRoleKey,
+      'Authorization': `Bearer ${serviceRoleKey}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates'
+    },
+    body: JSON.stringify(snapshotRows)
+  });
+
+  if (response.ok) {
+    console.log('Snapshot persistido com sucesso via REST.');
+  } else {
+    const err = await response.text();
+    console.error('Erro REST:', response.status, err);
+  }
 }
 
 fix().catch(console.error);
