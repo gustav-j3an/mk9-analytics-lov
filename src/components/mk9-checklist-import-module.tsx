@@ -1511,20 +1511,24 @@ function IndividualImport({
 
 function PhaseRow({ active, done, label }: { active: boolean; done: boolean; label: string }) {
   return (
-    <div className="flex items-center gap-2 text-xs">
+    <div className="flex items-center gap-2.5 py-0.5">
       {done ? (
-        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+        <CheckCircle2 className="h-4 w-4 text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.3)]" />
       ) : active ? (
-        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+        <Loader2 className="h-4 w-4 animate-spin text-command-purple" />
       ) : (
-        <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/30" />
+        <div className="h-4 w-4 rounded-full border border-white/10 bg-white/5" />
       )}
-      <span className={done ? "text-muted-foreground line-through" : active ? "font-medium" : "text-muted-foreground"}>
+      <span className={cn(
+        "text-[10px] tracking-widest uppercase",
+        done ? "text-slate-500 line-through" : active ? "font-black text-white" : "text-slate-400 font-bold"
+      )}>
         {label}
       </span>
     </div>
   );
 }
+
 
 function ValidationPanel({
   importId,
