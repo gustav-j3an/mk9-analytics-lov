@@ -150,7 +150,7 @@ export function Mk9AnalyticsApp() {
             />
             <SidebarItem
               icon={Factory}
-              label="Indústrias (PDF)"
+              label="Central de Relatórios"
               active={activeModule === "relatorio_industria"}
               onClick={() => setActiveModule("relatorio_industria")}
             />
@@ -259,7 +259,7 @@ export function Mk9AnalyticsApp() {
               {activeModule === "conciliacao" && "Conciliação de Visitas"}
               {activeModule === "qualidade" && "Centro de Qualidade"}
               {activeModule === "roteiros" && "Roteiros & Frequências"}
-              {activeModule === "relatorio_industria" && "Indústrias (PDF)"}
+              {activeModule === "relatorio_industria" && "Central de Relatórios"}
               {activeModule === "cleanup_admin" && "Limpeza Administrativa"}
               {activeModule === "homologacao" && "Saúde do Sistema"}
               {activeModule === "usuarios" && "Gestão de Acessos"}
