@@ -39,7 +39,9 @@ import {
   Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatPercentage } from "@/lib/mk9/normalization";
 import { Mk9Panel, Mk9Badge, Mk9LoadingState, Mk9ErrorState } from "./mk9/design-system";
+
 
 import { AnalyticsMetricCard, AnalyticsChartCard, AnalyticsTable } from "./mk9/AnalyticsComponents";
 
@@ -191,7 +193,8 @@ export function Mk9AnalyticsDashboard() {
           <div className="flex flex-col">
             <div className="flex justify-between items-end mb-1">
               <span className="text-lg font-black text-white italic">
-                {executive.coverage.current}%
+                {formatPercentage(executive.coverage.current)}
+
               </span>
               <span className="text-[9px] font-bold text-slate-500">
                 FALTAM {nf(executive.pending.current)}
@@ -411,7 +414,7 @@ export function Mk9AnalyticsDashboard() {
         />
         <AnalyticsMetricCard
           label="Cobertura Geral"
-          value={`${executive.coverage.current}%`}
+          value={formatPercentage(executive.coverage.current)}
           icon={Activity}
           color="cyan"
           comparison={{
