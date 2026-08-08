@@ -257,6 +257,8 @@ export async function buildIndustryReport(
     actualDates: Set<string>;
   };
   const map = new Map<string, Bucket>();
+  
+  // Função auxiliar para inicializar bucket garantindo os dados da loja
   const touch = (
     id: string,
     r: { name?: string | null; chain?: string | null; uf?: string | null } | null | undefined,
@@ -284,13 +286,17 @@ export async function buildIndustryReport(
     return b;
   };
 
-  // Vigências de frequência (nunca filtrar por UF antes de existir a loja no bucket)
+  // 1) BASE OBRIGATÓRIA: TODAS as lojas com frequência contratada/vigente
+  // NUNCA construir o relatório partindo de actualVisits.
   for (const [key, segs] of freqVersions) {
     const sid = key.slice(key.indexOf("|") + 1);
     if (!sid || !segs.length) continue;
     const store = segs[0].store;
+    
+    // Filtros de escopo e UF aplicados sobre a base de frequências
     if (uf && store?.uf !== uf) continue;
     if (!inAccess(store, sid)) continue;
+
     const b = touch(sid, store);
     b.segments = segs.map((s) => ({
       validFrom: s.validFrom,
@@ -312,11 +318,14 @@ export async function buildIndustryReport(
   }
   for (const a of actuals ?? []) {
     if (!a.store_id) continue;
-    if (uf && a.store?.uf !== uf) continue;
-    if (!inAccess(a.store, a.store_id ?? null)) continue;
-    const b = touch(a.store_id, a.store);
-    b.actual += 1;
-    if (a.scheduled_date) b.actualDates.add(a.scheduled_date as string);
+    const b = map.get(a.store_id);
+    // Se a visita realizada não tem frequência contratada, ela ainda assim aparece
+    // como visita extra (ACIMA_FREQUENCIA) no relatório.
+    const effectiveBucket = b || (inAccess(a.store, a.store_id) ? touch(a.store_id, a.store) : null);
+    if (!effectiveBucket) continue;
+    
+    effectiveBucket.actual += 1;
+    if (a.scheduled_date) effectiveBucket.actualDates.add(a.scheduled_date as string);
   }
 
   // Ids de rotas planejadas dentro do escopo (para cobertura operacional)
