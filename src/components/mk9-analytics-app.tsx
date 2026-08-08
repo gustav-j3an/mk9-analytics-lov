@@ -149,8 +149,8 @@ export function Mk9AnalyticsApp() {
               onClick={() => setActiveModule("qualidade")}
             />
             <SidebarItem
-              icon={Factory}
-              label="Central de Relatórios"
+              icon={FileSpreadsheet}
+              label="Indústrias (PDF)"
               active={activeModule === "relatorio_industria"}
               onClick={() => setActiveModule("relatorio_industria")}
             />
