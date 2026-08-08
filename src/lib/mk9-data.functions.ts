@@ -14,7 +14,7 @@ export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async
   let q = supabaseAdmin
     .from("mk9_industries")
     .select(
-      "id, name, display_name, notes, source_type, archived_at, archive_reason, monthly_contracted_frequency, monthly_estimated_frequency, frequency_difference, frequency_status, weeks_count, requires_checklist, checklist_enabled_at, updated_at",
+      "id, name, display_name, cnpj, notes, source_type, archived_at, archive_reason, monthly_contracted_frequency, monthly_estimated_frequency, frequency_difference, frequency_status, weeks_count, requires_checklist, checklist_enabled_at, updated_at",
     )
     .order("name", { ascending: true });
   if (scope.allowedIndustryIds) q = q.in("id", scope.allowedIndustryIds);
@@ -24,6 +24,8 @@ export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async
     id: r.id as string,
     name: r.name as string,
     displayName: (r.display_name ?? null) as string | null,
+    cnpj: (r.cnpj ?? null) as string | null,
+
     notes: (r.notes ?? null) as string | null,
     sourceType: (r.source_type ?? "IMPORT") as string,
     archivedAt: (r.archived_at ?? null) as string | null,
@@ -261,7 +263,7 @@ export const mk9ListStores = createServerFn({ method: "GET" }).handler(async () 
   if (scope.allowedUfs?.length === 0 || scope.allowedStoreIds?.length === 0) return [];
   let q = supabaseAdmin
     .from("mk9_stores")
-    .select("id, name, chain, uf, updated_at")
+    .select("id, name, chain, uf, updated_at, archived_at")
     .order("name", { ascending: true });
   if (scope.allowedUfs) q = q.in("uf", scope.allowedUfs);
   if (scope.allowedStoreIds) q = q.in("id", scope.allowedStoreIds);
@@ -273,7 +275,9 @@ export const mk9ListStores = createServerFn({ method: "GET" }).handler(async () 
     name: r.name as string,
     uf: (r.uf as string | null) ?? null,
     updatedAt: r.updated_at as string,
+    archivedAt: (r.archived_at ?? null) as string | null,
   }));
+
 });
 
 export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async () => {
@@ -307,7 +311,7 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
 
   let q = supabaseAdmin
     .from("mk9_promoters")
-    .select("id, name, external_id, employee_number, city, uf, contact, notes, updated_at, archived_at, is_active")
+    .select("id, name, external_id, employee_number, city, uf, contact, notes, updated_at, archived_at, is_active, supervisor_id")
     .order("name", { ascending: true });
   if (allowedPromoterIds) q = q.in("id", allowedPromoterIds);
   const { data, error } = await q;
@@ -325,7 +329,9 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
     updatedAt: r.updated_at as string,
     archivedAt: (r.archived_at as string | null) ?? null,
     isActive: r.is_active as boolean,
+    supervisorId: (r.supervisor_id as string | null) ?? null,
   }));
+
 });
 
 

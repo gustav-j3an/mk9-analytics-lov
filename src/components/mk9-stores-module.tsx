@@ -8,16 +8,13 @@ import {
   Store, 
   MapPin,
   Building2,
-  CheckCircle2,
   Edit2,
   Archive,
   RefreshCcw,
-  History
 } from "lucide-react";
 import { StoreDialog, StoreArchiveDialog } from "./mk9/store-admin-dialogs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -35,6 +32,13 @@ import {
 import { mk9ListStores } from "@/lib/mk9-data.functions";
 import { mk9ReactivateStore } from "@/lib/mk9-stores.functions";
 import { useMk9Session } from "@/lib/mk9-auth/session";
+import { 
+  Mk9PageHeader, 
+  Mk9MetricCard, 
+  Mk9Panel, 
+  Mk9Badge 
+} from "./mk9/design-system";
+
 
 export function Mk9StoresModule() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -79,157 +83,161 @@ export function Mk9StoresModule() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Lojas</h2>
-          <p className="text-muted-foreground">
-            Cadastro de pontos de venda, redes e localizações.
-          </p>
-        </div>
-        {isAdmin && (
-          <Button onClick={() => { setEditingStore(null); setDialogOpen(true); }} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nova Loja
-          </Button>
-        )}
+    <div className="space-y-8 animate-fade-up">
+      <Mk9PageHeader 
+        title="Gestão de Lojas" 
+        subtitle="Controle de pontos de venda e redes"
+        icon={Store}
+        actions={
+          isAdmin && (
+            <Button onClick={() => { setEditingStore(null); setDialogOpen(true); }} className="gap-2 bg-command-purple hover:bg-command-purple/90 text-white border-none shadow-lg shadow-purple-500/20">
+              <Plus className="h-4 w-4" />
+              Nova Loja
+            </Button>
+          )
+        }
+      />
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Mk9MetricCard label="Total de lojas" value={data?.length ?? 0} color="blue" />
+        <Mk9MetricCard label="Ativas" value={data?.filter(s => !s.archivedAt).length ?? 0} color="emerald" />
+        <Mk9MetricCard label="UFs" value={new Set(data?.map(s => s.uf).filter(Boolean)).size} color="purple" />
+        <Mk9MetricCard label="Redes" value={new Set(data?.map(s => s.chain).filter(Boolean)).size} color="amber" />
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card/50 p-4 rounded-xl border border-border/50 backdrop-blur-sm">
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <Tabs value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)} className="w-full md:w-auto">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="active">Ativas</TabsTrigger>
-              <TabsTrigger value="archived">Arquivadas</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <div className="relative w-full md:max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nome, rede, cidade ou UF..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
+      <Mk9Panel>
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <Tabs value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)} className="w-full md:w-auto">
+              <TabsList className="bg-command-deep border border-white/5 p-1">
+                <TabsTrigger value="active" className="data-[state=active]:bg-command-purple data-[state=active]:text-white uppercase text-[10px] font-black tracking-widest">Ativas</TabsTrigger>
+                <TabsTrigger value="archived" className="data-[state=active]:bg-command-purple data-[state=active]:text-white uppercase text-[10px] font-black tracking-widest">Arquivadas</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="relative w-full md:max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+              <Input
+                placeholder="Busca por nome, rede, cidade ou UF..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 bg-command-deep border-white/10 text-white"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="rounded-xl border border-border/50 bg-card overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead>Loja</TableHead>
-              <TableHead>Rede / Canal</TableHead>
-              <TableHead>Localização</TableHead>
-              <TableHead>Status</TableHead>
-              {isAdmin && <TableHead className="text-right">Ações</TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell><Skeleton className="h-5 w-48" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                  {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>}
-                </TableRow>
-              ))
-            ) : filtered.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={isAdmin ? 5 : 4} className="h-32 text-center text-muted-foreground">
-                  Nenhuma loja encontrada.
-                </TableCell>
+        <div className="rounded-xl border border-white/5 overflow-hidden">
+          <Table>
+            <TableHeader className="bg-white/5">
+              <TableRow className="hover:bg-transparent border-white/5">
+                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Loja</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Rede / Canal</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Localização</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Status</TableHead>
+                {isAdmin && <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-500">Ações</TableHead>}
               </TableRow>
-            ) : (
-              filtered.map((s: any) => (
-                <TableRow key={s.id} className="group transition-colors">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
-                        <Store className="h-4 w-4 text-indigo-600" />
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i} className="border-white/5">
+                    <TableCell><Skeleton className="h-5 w-48 bg-white/5" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-32 bg-white/5" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-40 bg-white/5" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-20 bg-white/5" /></TableCell>
+                    {isAdmin && <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto bg-white/5" /></TableCell>}
+                  </TableRow>
+                ))
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={isAdmin ? 5 : 4} className="h-32 text-center text-slate-500 italic">
+                    Nenhuma loja encontrada.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((s: any) => (
+                  <TableRow key={s.id} className="group transition-colors border-white/5 hover:bg-white/[0.02]">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                          <Store className="h-4 w-4 text-indigo-400" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-white uppercase tracking-tight">{s.name}</div>
+                          <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest">ID: {s.id.slice(0, 8)}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-medium">{s.name}</div>
-                        <div className="text-xs text-muted-foreground">ID: {s.id.slice(0, 8)}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                          <Building2 className="h-3.5 w-3.5 text-slate-500" />
+                          {s.chain || "Sem rede"}
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-1.5 text-sm">
-                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        {s.chain || "Sem rede"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
+                        <MapPin className="h-3.5 w-3.5 text-slate-500" />
+                        {s.city || "—"}, {s.uf || "—"}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                      {s.city || "—"}, {s.uf || "—"}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {s.archived_at ? (
-                      <Badge variant="outline" className="gap-1.5 bg-gray-500/10 text-gray-600 border-gray-200">
-                        <History className="h-3 w-3" />
-                        Arquivada
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="gap-1.5 bg-green-500/10 text-green-600 border-green-200">
-                        <CheckCircle2 className="h-3 w-3" />
-                        Ativa
-                      </Badge>
-                    )}
-                  </TableCell>
-                  {isAdmin && (
-                    <TableCell className="text-right flex items-center justify-end gap-1">
-                      {!s.archived_at ? (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setEditingStore(s);
-                              setDialogOpen(true);
-                            }}
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
+                    </TableCell>
+                    <TableCell>
+                      {s.archived_at ? (
+                        <Mk9Badge variant="default">Arquivada</Mk9Badge>
+                      ) : (
+                        <Mk9Badge variant="success">Ativa</Mk9Badge>
+                      )}
+                    </TableCell>
+                    {isAdmin && (
+                      <TableCell className="text-right flex items-center justify-end gap-1">
+                        {!s.archived_at ? (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10 text-slate-400 hover:text-white"
+                              onClick={() => {
+                                setEditingStore(s);
+                                setDialogOpen(true);
+                              }}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-500/10 text-rose-500"
+                              onClick={() => {
+                                setEditingStore(s);
+                                setArchiveDialogOpen(true);
+                              }}
+                            >
+                              <Archive className="h-4 w-4" />
+                            </Button>
+                          </>
+                        ) : (
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="text-destructive"
-                            onClick={() => {
-                              setEditingStore(s);
-                              setArchiveDialogOpen(true);
-                            }}
+                            className="text-indigo-400 hover:bg-indigo-500/10"
+                            title="Reativar"
+                            onClick={() => reactivateMut.mutate(s.id)}
+                            disabled={reactivateMut.isPending}
                           >
-                            <Archive className="h-4 w-4" />
+                            <RefreshCcw className={`h-4 w-4 ${reactivateMut.isPending ? "animate-spin" : ""}`} />
                           </Button>
-                        </>
-                      ) : (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-indigo-600"
-                          title="Reativar"
-                          onClick={() => reactivateMut.mutate(s.id)}
-                          disabled={reactivateMut.isPending}
-                        >
-                          <RefreshCcw className={`h-4 w-4 ${reactivateMut.isPending ? "animate-spin" : ""}`} />
-                        </Button>
-                      )}
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                        )}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </Mk9Panel>
+
 
       <StoreDialog 
         open={dialogOpen} 

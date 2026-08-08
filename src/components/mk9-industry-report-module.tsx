@@ -1,19 +1,15 @@
-// Tela: Relatórios › Indústrias
 import { useMemo, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, Loader2, Settings2, AlertCircle, Archive } from "lucide-react";
+import { Download, Loader2, Settings2, AlertCircle, Factory } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { BulkExportModal } from "./mk9-bulk-export-modal";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 import {
   reportIndustry,
@@ -21,30 +17,37 @@ import {
   reportUpsertPeriodConfig,
   reportListChecklistImports,
 } from "@/lib/mk9-reports.functions";
+import { 
+  Mk9PageHeader, 
+  Mk9MetricCard, 
+  Mk9Panel, 
+  Mk9Badge 
+} from "./mk9/design-system";
 
 const MONTHS_PT = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
 
-const EXEC_TONE: Record<string, string> = {
-  INTEGRAL: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
-  PARCIAL: "bg-amber-500/15 text-amber-700 border-amber-500/30",
-  NAO_ATENDIDA: "bg-rose-500/15 text-rose-700 border-rose-500/30",
+const EXEC_TONE: Record<string, "success" | "warning" | "danger" | "default"> = {
+  INTEGRAL: "success",
+  PARCIAL: "warning",
+  NAO_ATENDIDA: "danger",
 };
 const EXEC_LABEL: Record<string, string> = {
   INTEGRAL: "Integral",
   PARCIAL: "Parcial",
   NAO_ATENDIDA: "Não atendida",
 };
-const ROUTE_TONE: Record<string, string> = {
-  DENTRO_ROTEIRO: "bg-sky-500/15 text-sky-700 border-sky-500/30",
-  FORA_ROTEIRO: "bg-orange-500/15 text-orange-700 border-orange-500/30",
+const ROUTE_TONE: Record<string, "info" | "warning" | "default"> = {
+  DENTRO_ROTEIRO: "info",
+  FORA_ROTEIRO: "warning",
 };
 const ROUTE_LABEL: Record<string, string> = {
-  DENTRO_ROTEIRO: "Dentro do roteiro",
-  FORA_ROTEIRO: "Fora do roteiro",
+  DENTRO_ROTEIRO: "No Roteiro",
+  FORA_ROTEIRO: "Fora Roteiro",
 };
+
 const SOURCE_LABEL: Record<string, string> = {
   WEEKLY_FREQUENCY: "Freq. semanal",
   MONTHLY_FREQUENCY: "Freq. mensal",
@@ -127,8 +130,7 @@ export function Mk9IndustryReportModule() {
       const ct = res.headers.get("content-type") ?? "";
       if (!ct.includes("application/pdf")) throw new Error(`Resposta inesperada: ${ct}`);
       const cd = res.headers.get("content-disposition") ?? "";
-      const match = /filename="([^"]+)"/.exec(cd);
-      const filename = match?.[1] ?? (type === "full" ? "relatorio.pdf" : "nao_atendidas.pdf");
+      const filename = type === "full" ? "relatorio.pdf" : "nao_atendidas.pdf";
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -138,7 +140,6 @@ export function Mk9IndustryReportModule() {
       toast.success(`${label} gerado`, { id: toastId });
     } catch (e: any) {
       const msg = e?.message ?? String(e);
-      console.error("[INDUSTRY PDF]", e);
       setPdfError(msg);
       toast.error(msg, { id: toastId });
     } finally {
@@ -147,29 +148,23 @@ export function Mk9IndustryReportModule() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Relatório da Indústria</h2>
-          <p className="text-sm text-muted-foreground">Documento consolidado para envio ao cliente. Números calculados a partir das visitas planejadas e realizadas.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* 
-            Exportação em massa ocultada temporariamente por erros 403 persistentes.
-            O código e componentes (BulkExportModal) foram preservados para futura reconstrução.
-            <BulkExportModal /> 
-          */}
+    <div className="space-y-8 animate-fade-up">
+      <Mk9PageHeader 
+        title="Central de Relatórios" 
+        subtitle="Consolidado operacional por indústria"
+        icon={Factory}
+        actions={
           <PeriodConfigDialog industryId={industryId} />
-        </div>
-      </div>
+        }
+      />
 
-      <Card>
-        <CardContent className="grid grid-cols-2 gap-3 pt-6 md:grid-cols-6">
+      <Mk9Panel>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="col-span-2">
-            <Label className="text-xs">Indústria</Label>
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Indústria</Label>
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent>
+              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10 text-white">
                 {(industriesQ.data ?? []).map((i) => (
                   <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
                 ))}
@@ -177,192 +172,169 @@ export function Mk9IndustryReportModule() {
             </Select>
           </div>
           <div>
-            <Label className="text-xs">Mês</Label>
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mês</Label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
+              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10 text-white">
                 {MONTHS_PT.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label className="text-xs">Ano</Label>
-            <Input type="number" value={year} onChange={(e) => setYear(Number(e.target.value) || year)} />
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Ano</Label>
+            <Input type="number" className="h-9 bg-command-deep border-white/10 text-white" value={year} onChange={(e) => setYear(Number(e.target.value) || year)} />
           </div>
           <div>
-            <Label className="text-xs">UF</Label>
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">UF</Label>
             <Select value={uf || "__all"} onValueChange={(v) => setUf(v === "__all" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
-              <SelectContent>
+              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white"><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10 text-white">
                 <SelectItem value="__all">Todas</SelectItem>
                 {ufOptions.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <Label className="text-xs">Checklist</Label>
-            <Select value={sourceImportId || "__all"} onValueChange={(v) => setSourceImportId(v === "__all" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all">Todos</SelectItem>
-                {(importsQ.data ?? []).map((imp: any) => (
-                  <SelectItem key={imp.id} value={imp.id}>{imp.filename}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </Mk9Panel>
 
       {!industryId && (
-        <Card><CardContent className="py-10 text-center text-sm text-muted-foreground">Selecione uma indústria para gerar o relatório.</CardContent></Card>
+        <Mk9Panel className="py-20 text-center">
+          <p className="text-slate-500">Selecione uma indústria para visualizar os dados e gerar relatórios.</p>
+        </Mk9Panel>
       )}
 
       {industryId && reportQ.isLoading && (
-        <Card><CardContent className="flex items-center justify-center gap-3 py-10 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Calculando indicadores...</CardContent></Card>
+        <Mk9Panel className="py-20 text-center flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-mk9-accent-primary" />
+          <p className="text-slate-400">Calculando indicadores operacionais...</p>
+        </Mk9Panel>
       )}
 
       {reportQ.isError && (
-        <Card><CardContent className="py-6 text-sm text-rose-600"><AlertCircle className="mr-2 inline h-4 w-4" />{(reportQ.error as any)?.message ?? "Falha ao carregar relatório"}</CardContent></Card>
+        <Mk9Panel className="py-10 text-rose-500 border-rose-500/20 bg-rose-500/5">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            <p>{(reportQ.error as any)?.message ?? "Falha ao carregar relatório"}</p>
+          </div>
+        </Mk9Panel>
       )}
 
       {report && (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4">
-            <div className="text-sm">
-              <div className="text-muted-foreground">Período analisado</div>
-              <div className="font-semibold">{fmtBR(report.window.startDate)} a {fmtBR(report.window.endDate)} · {report.window.totalDays} dias</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            <Mk9MetricCard label="Lojas" value={report.totals.totalStores} color="blue" />
+            <Mk9MetricCard label="Contratadas" value={report.totals.metrics.contratadas} color="purple" />
+            <Mk9MetricCard label="Realizadas" value={report.totals.metrics.executadas} color="emerald" hint={`${report.totals.metrics.coberturaPct}% cobertura`} />
+            <Mk9MetricCard label="Pendentes" value={report.totals.metrics.pendencias} color="amber" />
+            <Mk9MetricCard label="Extras" value={report.totals.metrics.extras} color="blue" />
+            <Mk9MetricCard label="Cobertura" value={`${report.totals.metrics.coberturaPct}%`} color={report.totals.metrics.coberturaPct >= 90 ? "emerald" : "amber"} />
+            <Mk9MetricCard label="Operacional" value={`${report.totals.operationalCoveragePct}%`} color={report.totals.operationalCoveragePct >= 90 ? "emerald" : "amber"} />
+            <Mk9MetricCard label="Fora Roteiro" value={report.totals.unplanned} color="rose" />
+          </div>
+
+
+          <Mk9Panel className="flex flex-wrap items-center justify-between gap-6">
+            <div className="space-y-1">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Período de Competência</p>
+              <p className="text-white font-medium">{fmtBR(report.window.startDate)} a {fmtBR(report.window.endDate)} <span className="text-slate-500 ml-2">· {report.window.totalDays} dias</span></p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button onClick={() => downloadPdf("full")} disabled={!!downloading} variant="outline" size="sm">
+            
+            <div className="flex items-center gap-3">
+              <Button onClick={() => downloadPdf("full")} disabled={!!downloading} variant="outline" className="border-mk9-accent-primary/50 text-mk9-accent-primary hover:bg-mk9-accent-primary/10">
                 {downloading === "full" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                Relatório completo
+                GERAR RELATÓRIO
               </Button>
-              <Button onClick={() => downloadPdf("unattended")} disabled={!!downloading} size="sm">
+              <Button onClick={() => downloadPdf("unattended")} disabled={!!downloading} className="bg-gradient-to-r from-mk9-accent-primary to-mk9-accent-secondary text-white">
                 {downloading === "unattended" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                Lojas não atendidas
+                LOJAS PENDENTES
               </Button>
             </div>
-          </div>
-          {pdfError && <div className="rounded-md border border-rose-500/40 bg-rose-500/10 p-3 text-sm text-rose-700">{pdfError}</div>}
+          </Mk9Panel>
 
-          <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
-            <Kpi label="Lojas" value={report.totals.totalStores} />
-            <Kpi label="Visitas contratadas" value={report.totals.metrics.contratadas} />
-            <Kpi label="Visitas realizadas" value={report.totals.metrics.executadas} tone="good" />
-            <Kpi label="Visitas pendentes" value={report.totals.metrics.pendencias} tone="bad" />
-            <Kpi label="Extras" value={report.totals.metrics.extras} tone="warn" />
-            <Kpi label="Cobertura" value={`${report.totals.metrics.coberturaPct}%`} tone={report.totals.metrics.coberturaPct >= 90 ? "good" : report.totals.metrics.coberturaPct >= 70 ? "warn" : "bad"} />
-            <Kpi label="Cobertura operacional" value={`${report.totals.operationalCoveragePct}%`} tone={report.totals.operationalCoveragePct >= 90 ? "good" : report.totals.operationalCoveragePct >= 70 ? "warn" : "bad"} />
-            <Kpi label="Fora do roteiro" value={report.totals.unplanned} tone="warn" />
-          </div>
-
-          <div className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">Critério de cálculo</p>
-            <p className="mt-1">
-              <strong>Contratadas</strong> = soma da coluna VISITA MENSAL por loja. <strong>Realizadas</strong> = TODAS as visitas confirmadas no checklist (nunca reduzido, mesmo acima do contrato). <strong>Pendentes</strong> = max(0, contratadas − realizadas) por loja. <strong>Extras</strong> = max(0, realizadas − contratadas) por loja, indicador separado. <strong>Cobertura</strong> = realizadas / contratadas, limitada a 100 %. <strong>Roteiro</strong> é auditoria separada.
-            </p>
-          </div>
-
+          {pdfError && <div className="p-3 rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-500 text-xs">{pdfError}</div>}
 
           {report.ufs.length > 0 && (
-            <Card>
-              <CardHeader><CardTitle className="text-base">Resumo por UF</CardTitle></CardHeader>
-              <CardContent>
-                <table className="w-full text-sm">
-                  <thead className="border-b text-left text-xs uppercase text-muted-foreground">
-                    <tr><th className="py-2">UF</th><th>Lojas</th><th>Contratadas</th><th>Realizadas</th><th>Pendentes</th><th>Extras</th><th>Cobertura</th></tr>
+            <Mk9Panel title="Resumo por UF">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5">
+                      <th className="pb-3 font-bold">UF</th>
+                      <th className="pb-3 font-bold">Lojas</th>
+                      <th className="pb-3 font-bold">Contratadas</th>
+                      <th className="pb-3 font-bold">Realizadas</th>
+                      <th className="pb-3 font-bold">Pendentes</th>
+                      <th className="pb-3 font-bold">Extras</th>
+                      <th className="pb-3 font-bold">Cobertura</th>
+                    </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-white/5">
                     {report.ufs.map((u) => (
-                      <tr key={u.uf} className="border-b last:border-0">
-                        <td className="py-2 font-medium">{u.uf}</td>
-                        <td>{u.stores}</td>
-                        <td>{u.expected}</td>
-                        <td>{u.actual}</td>
-                        <td>{u.pending}</td>
-                        <td>{u.extra}</td>
-                        <td>{u.coveragePct}%</td>
+                      <tr key={u.uf} className="group hover:bg-white/[0.02]">
+                        <td className="py-3 text-white font-medium">{u.uf}</td>
+                        <td className="py-3 text-slate-300">{u.stores}</td>
+                        <td className="py-3 text-slate-300">{u.expected}</td>
+                        <td className="py-3 text-white">{u.actual}</td>
+                        <td className="py-3 text-slate-400">{u.pending}</td>
+                        <td className="py-3 text-slate-400">{u.extra}</td>
+                        <td className="py-3">
+                          <Mk9Badge variant={u.coveragePct >= 90 ? "success" : "warning"}>{u.coveragePct}%</Mk9Badge>
+
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              </CardContent>
-            </Card>
+              </div>
+            </Mk9Panel>
           )}
 
-          <Card>
-            <CardHeader><CardTitle className="text-base">Resultado por loja</CardTitle></CardHeader>
-            <CardContent className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="border-b text-left text-xs uppercase text-muted-foreground">
-                  <tr>
-                    <th className="py-2">Loja</th>
-                    <th>UF</th>
-                    <th>Freq.</th>
-                    <th>Fonte</th>
-                    <th>Contratadas</th>
-                    <th>Realizadas</th>
-                    <th>Pendentes</th>
-                    <th>Extras</th>
-                    <th>Cobertura</th>
-                    <th>Execução</th>
-                    <th>Roteiro</th>
-                    <th>Datas realizadas</th>
+          <Mk9Panel title="Detalhamento por Loja">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5">
+                    <th className="pb-3 font-bold">Loja</th>
+                    <th className="pb-3 font-bold">UF</th>
+                    <th className="pb-3 font-bold">Freq.</th>
+                    <th className="pb-3 font-bold">Contratadas</th>
+                    <th className="pb-3 font-bold">Realizadas</th>
+                    <th className="pb-3 font-bold">Cobertura</th>
+                    <th className="pb-3 font-bold">Execução</th>
+                    <th className="pb-3 font-bold">Roteiro</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-white/5">
                   {report.stores.map((s: any) => {
-                    // Fase 1B.3: mostra a composição da vigência quando a
-                    // frequência mudou no meio do período.
-                    const freqLabel =
-                      s.frequencyLabel ??
-                      (s.monthlyFrequency ? `${s.monthlyFrequency}/mês` :
-                       s.weeklyFrequency ? `${s.weeklyFrequency}/sem` : "—");
-
+                    const freqLabel = s.frequencyLabel ?? (s.monthlyFrequency ? `${s.monthlyFrequency}/mês` : s.weeklyFrequency ? `${s.weeklyFrequency}/sem` : "—");
                     return (
-                      <tr key={s.storeId} className="border-b last:border-0 hover:bg-muted/30">
-                        <td className="py-2">
-                          <div className="font-medium">{s.storeName}</div>
-                          {s.chain && <div className="text-xs text-muted-foreground">{s.chain}</div>}
+                      <tr key={s.storeId} className="group hover:bg-white/[0.02]">
+                        <td className="py-3">
+                          <div className="text-white font-medium">{s.storeName}</div>
+                          {s.chain && <div className="text-[10px] text-slate-500 uppercase tracking-tighter">{s.chain}</div>}
                         </td>
-                        <td>{s.uf ?? "—"}</td>
-                        <td className="text-xs">{freqLabel}</td>
-                        <td className="text-xs text-muted-foreground">{SOURCE_LABEL[s.contractedSource] ?? s.contractedSource}</td>
-                        <td>{s.expected}</td>
-                        <td>{s.actual}</td>
-                        <td>{s.pending}</td>
-                        <td>{s.extra}</td>
-                        <td>{s.coveragePct}%</td>
-                        <td><Badge variant="outline" className={EXEC_TONE[s.executionStatus]}>{EXEC_LABEL[s.executionStatus]}</Badge></td>
-                        <td><Badge variant="outline" className={ROUTE_TONE[s.routeStatus]}>{ROUTE_LABEL[s.routeStatus]}</Badge></td>
-                        <td className="max-w-[240px] text-xs text-muted-foreground">{s.actualDates.length ? s.actualDates.map(fmtBR).join(", ") : "—"}</td>
+                        <td className="py-3 text-slate-400 font-mono">{s.uf ?? "—"}</td>
+                        <td className="py-3 text-slate-400 text-xs">{freqLabel}</td>
+                        <td className="py-3 text-slate-300 font-medium">{s.expected}</td>
+                        <td className="py-3 text-white font-bold">{s.actual}</td>
+                        <td className="py-3">
+                          <Mk9Badge variant={s.coveragePct >= 90 ? "success" : s.coveragePct >= 70 ? "warning" : "danger"}>{s.coveragePct}%</Mk9Badge>
+                        </td>
+                        <td className="py-3">
+                          <Mk9Badge variant={EXEC_TONE[s.executionStatus] as any}>{EXEC_LABEL[s.executionStatus]}</Mk9Badge>
+                        </td>
+                        <td className="py-3">
+                          <Mk9Badge variant={ROUTE_TONE[s.routeStatus] as any}>{ROUTE_LABEL[s.routeStatus]}</Mk9Badge>
+                        </td>
                       </tr>
                     );
                   })}
-                  {report.stores.length === 0 && (
-                    <tr><td colSpan={12} className="py-6 text-center text-muted-foreground">Nenhuma loja no período com esses filtros.</td></tr>
-                  )}
                 </tbody>
               </table>
-            </CardContent>
-          </Card>
+            </div>
+          </Mk9Panel>
         </>
       )}
-    </div>
-  );
-}
-
-function Kpi({ label, value, tone }: { label: string; value: number | string; tone?: "good" | "warn" | "bad" }) {
-  const toneCls =
-    tone === "good" ? "border-emerald-500/40" :
-    tone === "warn" ? "border-amber-500/40" :
-    tone === "bad"  ? "border-rose-500/40" :
-    "border-border";
-  return (
-    <div className={`rounded-lg border bg-card p-4 ${toneCls}`}>
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-1 text-2xl font-semibold">{value}</div>
     </div>
   );
 }
@@ -375,7 +347,7 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
   const [form, setForm] = useState<any>(null);
   const mut = useMutation({
     mutationFn: (v: any) => saveFn({ data: v }),
-    onSuccess: () => setOpen(false),
+    onSuccess: () => { setOpen(false); toast.success("Configuração salva com sucesso"); },
   });
 
   const current = form ?? q.data;
@@ -383,54 +355,61 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setForm(null); }}>
       <DialogTrigger asChild>
-        <Button variant="outline" disabled={!industryId}><Settings2 className="mr-2 h-4 w-4" /> Configurar período</Button>
+        <Button variant="outline" className="h-9 border-white/10 hover:bg-white/5 text-slate-300" disabled={!industryId}><Settings2 className="mr-2 h-4 w-4" /> CONFIGURAR PERÍODO</Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Configuração de competência</DialogTitle></DialogHeader>
+      <DialogContent className="bg-command-deep border-white/10 text-white max-w-md">
+        <DialogHeader><DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary">Configuração de Competência</DialogTitle></DialogHeader>
         {!current ? (
-          <div className="py-6 text-center text-sm text-muted-foreground"><Loader2 className="inline h-4 w-4 animate-spin" /> Carregando...</div>
+          <div className="py-10 text-center text-slate-500 flex flex-col items-center gap-3">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <p>Carregando configurações...</p>
+          </div>
         ) : (
-          <div className="grid gap-3">
-            <div>
-              <Label className="text-xs">Tipo de período</Label>
+          <div className="space-y-6 pt-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tipo de Período</Label>
               <Select value={current.periodType} onValueChange={(v) => setForm({ ...current, periodType: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="bg-black/40 border-white/10 h-10"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-command-deep border-white/10">
                   <SelectItem value="CALENDAR_MONTH">Mês calendário (dia 1 ao último)</SelectItem>
                   <SelectItem value="CUSTOM_CYCLE">Ciclo personalizado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs">Dia inicial</Label>
-                <Input type="number" min={1} max={31} value={current.startDay} onChange={(e) => setForm({ ...current, startDay: Number(e.target.value) || 1 })} />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dia Inicial</Label>
+                <Input type="number" min={1} max={31} className="bg-black/40 border-white/10 h-10" value={current.startDay} onChange={(e) => setForm({ ...current, startDay: Number(e.target.value) || 1 })} />
               </div>
-              <div>
-                <Label className="text-xs">Dia final</Label>
-                <Input type="number" min={1} max={31} value={current.endDay} onChange={(e) => setForm({ ...current, endDay: Number(e.target.value) || 31 })} />
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dia Final</Label>
+                <Input type="number" min={1} max={31} className="bg-black/40 border-white/10 h-10" value={current.endDay} onChange={(e) => setForm({ ...current, endDay: Number(e.target.value) || 31 })} />
               </div>
             </div>
-            <label className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
               <Switch checked={current.usesPreviousMonth} onCheckedChange={(v) => setForm({ ...current, usesPreviousMonth: v })} />
-              Ciclo começa no mês anterior (ex.: KING = dia 23 do mês anterior ao 22 do mês selecionado)
-            </label>
-            <div>
-              <Label className="text-xs">Agrupamento semanal</Label>
+              <div className="space-y-0.5">
+                <p className="text-xs font-medium">Ciclo começa no mês anterior</p>
+                <p className="text-[10px] text-slate-500">Ex: KING (23 do mês anterior ao 22 atual)</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Agrupamento Semanal</Label>
               <Select value={current.weekGrouping} onValueChange={(v) => setForm({ ...current, weekGrouping: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="bg-black/40 border-white/10 h-10"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-command-deep border-white/10">
                   <SelectItem value="CALENDAR_WEEK">Segunda a domingo</SelectItem>
-                  <SelectItem value="CYCLE_WEEK">Blocos de 7 dias a partir do início do ciclo</SelectItem>
+                  <SelectItem value="CYCLE_WEEK">Blocos de 7 dias</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {mut.isError && <div className="text-sm text-rose-600">{(mut.error as any)?.message ?? "Erro ao salvar"}</div>}
+            {mut.isError && <div className="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs">{(mut.error as any)?.message ?? "Erro ao salvar"}</div>}
           </div>
         )}
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+        <DialogFooter className="mt-6 border-t border-white/5 pt-4">
+          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={() => setOpen(false)}>CANCELAR</Button>
           <Button
+            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold"
             onClick={() => mut.mutate({
               industryId,
               periodType: current.periodType,
@@ -443,10 +422,11 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
             })}
             disabled={!current || mut.isPending}
           >
-            {mut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Salvar
+            {mut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "SALVAR CONFIGURAÇÃO"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+

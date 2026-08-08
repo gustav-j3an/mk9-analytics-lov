@@ -134,82 +134,87 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg bg-command-deep border-white/10 text-white">
         <DialogHeader>
-          <DialogTitle>Nova indústria</DialogTitle>
-          <DialogDescription>Cadastro manual — origem registrada como MANUAL.</DialogDescription>
+          <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">Nova indústria</DialogTitle>
+          <DialogDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Cadastro manual de indústria no Command Center.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
+        <div className="space-y-4 pt-4">
           <div className="space-y-1.5">
-            <Label htmlFor="ind-name">Nome *</Label>
-            <Input id="ind-name" value={name} onChange={(e) => { setName(e.target.value); setCandidates(null); }} maxLength={120} />
+            <Label htmlFor="ind-name" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome *</Label>
+            <Input id="ind-name" className="bg-black/40 border-white/10 h-10 text-white" value={name} onChange={(e) => { setName(e.target.value); setCandidates(null); }} maxLength={120} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="ind-display">Nome complementar</Label>
-            <Input id="ind-display" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={120} />
+            <Label htmlFor="ind-display" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome complementar</Label>
+            <Input id="ind-display" className="bg-black/40 border-white/10 h-10 text-white" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={120} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="ind-cnpj">CNPJ</Label>
-            <Input id="ind-cnpj" value={cnpj} onChange={(e) => setCnpj(e.target.value)} placeholder="00.000.000/0000-00" />
+            <Label htmlFor="ind-cnpj" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">CNPJ</Label>
+            <Input id="ind-cnpj" className="bg-black/40 border-white/10 h-10 text-white" value={cnpj} onChange={(e) => setCnpj(e.target.value)} placeholder="00.000.000/0000-00" />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="ind-notes">Observação operacional</Label>
-            <Textarea id="ind-notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} rows={3} />
+            <Label htmlFor="ind-notes" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Observação operacional</Label>
+            <Textarea id="ind-notes" className="bg-black/40 border-white/10 text-white min-h-[80px]" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} rows={3} />
           </div>
-          <div className="flex items-center justify-between rounded-md border p-3">
-            <div>
-              <p className="text-sm font-medium">Exige checklist</p>
-              <p className="text-xs text-muted-foreground">Participa do fluxo de importação de checklist.</p>
+          <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/5 p-4 transition-colors hover:bg-white/[0.08]">
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-white uppercase tracking-tight">Exige checklist</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest">Participa do fluxo de importação.</p>
             </div>
             <Switch checked={requiresChecklist} onCheckedChange={setRequiresChecklist} />
           </div>
           <div className="space-y-1.5">
-            <Label>Tipo de período</Label>
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tipo de período</Label>
             <Select value={periodType} onValueChange={(v) => setPeriodType(v as any)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
+              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10">
                 <SelectItem value="CALENDAR_MONTH">Mês civil</SelectItem>
                 <SelectItem value="CUSTOM_CYCLE">Período personalizado</SelectItem>
               </SelectContent>
             </Select>
           </div>
           {periodType === "CUSTOM_CYCLE" && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4 animate-fade-in">
               <div className="space-y-1.5">
-                <Label htmlFor="ind-start">Dia inicial</Label>
-                <Input id="ind-start" type="number" min={1} max={31} value={startDay} onChange={(e) => setStartDay(e.target.value)} />
+                <Label htmlFor="ind-start" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Dia inicial</Label>
+                <Input id="ind-start" type="number" min={1} max={31} className="bg-black/40 border-white/10 h-10 text-white" value={startDay} onChange={(e) => setStartDay(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="ind-end">Dia final</Label>
-                <Input id="ind-end" type="number" min={1} max={31} value={endDay} onChange={(e) => setEndDay(e.target.value)} />
+                <Label htmlFor="ind-end" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Dia final</Label>
+                <Input id="ind-end" type="number" min={1} max={31} className="bg-black/40 border-white/10 h-10 text-white" value={endDay} onChange={(e) => setEndDay(e.target.value)} />
               </div>
             </div>
           )}
 
           {candidates && candidates.length > 0 && (
-            <div className="rounded-md bg-amber-500/10 p-3 text-sm text-amber-700">
-              <p className="font-medium">Existem indústrias com nome parecido:</p>
-              <ul className="mt-1 list-disc pl-5">
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-amber-500 animate-pulse">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="h-4 w-4" />
+                <p className="font-bold uppercase tracking-widest">Indústrias Semelhantes Encontradas</p>
+              </div>
+              <ul className="list-disc pl-5 space-y-1 opacity-80">
                 {candidates.map((c) => (
                   <li key={c.id}>{c.name}</li>
                 ))}
               </ul>
-              <p className="mt-2">Confirme apenas se realmente for uma indústria diferente.</p>
+              <p className="mt-3 font-medium border-t border-amber-500/10 pt-2 opacity-70">Confirme apenas se realmente for uma nova entidade.</p>
             </div>
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+        <DialogFooter className="mt-6 border-t border-white/5 pt-4">
+          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>CANCELAR</Button>
           <Button
+            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold px-8 shadow-lg shadow-mk9-accent-primary/20"
             disabled={name.trim().length < 2 || mut.isPending}
             onClick={() => mut.mutate(Boolean(candidates))}
           >
-            {candidates ? "Criar mesmo assim" : "Criar indústria"}
+            {mut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : candidates ? "CRIAR MESMO ASSIM" : "CRIAR INDÚSTRIA"}
           </Button>
         </DialogFooter>
       </DialogContent>
+
     </Dialog>
   );
 }
@@ -280,76 +285,81 @@ export function IndustryEditDialog({
 
   return (
     <Dialog open={!!industry} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg bg-command-deep border-white/10 text-white">
         <DialogHeader>
-          <DialogTitle>Editar indústria</DialogTitle>
-          <DialogDescription>{industry?.name}</DialogDescription>
+          <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">Editar indústria</DialogTitle>
+          <DialogDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{industry?.name}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
+        <div className="space-y-4 pt-4">
           <div className="space-y-1.5">
-            <Label htmlFor="edit-name">Nome *</Label>
-            <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} />
+            <Label htmlFor="edit-name" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome *</Label>
+            <Input id="edit-name" className="bg-black/40 border-white/10 h-10 text-white" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="edit-display">Nome complementar</Label>
-            <Input id="edit-display" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={120} />
+            <Label htmlFor="edit-display" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome complementar</Label>
+            <Input id="edit-display" className="bg-black/40 border-white/10 h-10 text-white" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={120} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="edit-cnpj">CNPJ</Label>
-            <Input id="edit-cnpj" value={cnpj} onChange={(e) => setCnpj(e.target.value)} placeholder="00.000.000/0000-00" />
+            <Label htmlFor="edit-cnpj" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">CNPJ</Label>
+            <Input id="edit-cnpj" className="bg-black/40 border-white/10 h-10 text-white" value={cnpj} onChange={(e) => setCnpj(e.target.value)} placeholder="00.000.000/0000-00" />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="edit-notes">Observação operacional</Label>
-            <Textarea id="edit-notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} rows={3} />
+            <Label htmlFor="edit-notes" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Observação operacional</Label>
+            <Textarea id="edit-notes" className="bg-black/40 border-white/10 text-white min-h-[80px]" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} rows={3} />
           </div>
-          <div className="flex items-center justify-between rounded-md border p-3">
-            <div>
-              <p className="text-sm font-medium">Exige checklist</p>
-              <p className="text-xs text-muted-foreground">Controla a participação no fluxo de checklist.</p>
+          <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/5 p-4 transition-colors hover:bg-white/[0.08]">
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-white uppercase tracking-tight">Exige checklist</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest">Controla a participação no fluxo.</p>
             </div>
             <Switch checked={requiresChecklist} onCheckedChange={setRequiresChecklist} />
           </div>
 
           <div className="space-y-1.5">
-            <Label>Tipo de período</Label>
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Tipo de período</Label>
             <Select value={periodType} onValueChange={(v) => setPeriodType(v as any)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
+              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10">
                 <SelectItem value="CALENDAR_MONTH">Mês civil</SelectItem>
                 <SelectItem value="CUSTOM_CYCLE">Período personalizado</SelectItem>
               </SelectContent>
             </Select>
           </div>
           {periodType === "CUSTOM_CYCLE" && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4 animate-fade-in">
               <div className="space-y-1.5">
-                <Label htmlFor="edit-start">Dia inicial</Label>
-                <Input id="edit-start" type="number" min={1} max={31} value={startDay} onChange={(e) => setStartDay(e.target.value)} />
+                <Label htmlFor="edit-start" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Dia inicial</Label>
+                <Input id="edit-start" type="number" min={1} max={31} className="bg-black/40 border-white/10 h-10 text-white" value={startDay} onChange={(e) => setStartDay(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-end">Dia final</Label>
-                <Input id="edit-end" type="number" min={1} max={31} value={endDay} onChange={(e) => setEndDay(e.target.value)} />
+                <Label htmlFor="edit-end" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Dia final</Label>
+                <Input id="edit-end" type="number" min={1} max={31} className="bg-black/40 border-white/10 h-10 text-white" value={endDay} onChange={(e) => setEndDay(e.target.value)} />
               </div>
             </div>
           )}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
             <Switch checked={usesPreviousMonth} onCheckedChange={setUsesPreviousMonth} />
-            <Label>Utiliza mês anterior como referência</Label>
+            <Label className="text-xs text-slate-300">Utilizar mês anterior como referência</Label>
           </div>
         </div>
-        <DialogFooter className="flex justify-between items-center sm:justify-between">
-          <Button variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => setDeleteOpen(true)}>
+        <DialogFooter className="mt-6 border-t border-white/5 pt-4 flex sm:justify-between items-center gap-4">
+          <Button variant="ghost" className="text-rose-500 hover:bg-rose-500/10 hover:text-rose-500" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="h-4 w-4 mr-2" />
-            Excluir
+            EXCLUIR
           </Button>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button disabled={name.trim().length < 2 || mut.isPending} onClick={() => mut.mutate()}>
-              Salvar
+            <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>CANCELAR</Button>
+            <Button 
+              className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold px-8"
+              disabled={name.trim().length < 2 || mut.isPending} 
+              onClick={() => mut.mutate()}
+            >
+              {mut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "SALVAR ALTERAÇÕES"}
             </Button>
           </div>
         </DialogFooter>
       </DialogContent>
+
       
       <IndustryDeleteDialog 
         industry={deleteOpen ? industry : null} 
