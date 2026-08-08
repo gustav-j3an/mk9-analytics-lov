@@ -102,24 +102,24 @@ export function Mk9AnalyticsApp() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-[#f8fafc] dark:bg-[#020617] text-foreground flex overflow-hidden font-sans">
+    <main className="min-h-screen w-full bg-[#080812] text-foreground flex overflow-hidden font-sans">
       {/* Sidebar */}
       <aside
         className={cn(
-          "bg-white dark:bg-[#0f172a] border-r transition-all duration-300 flex flex-col glass-panel shrink-0 z-20",
+          "bg-[#111122] border-r border-white/5 transition-all duration-300 flex flex-col shrink-0 z-20",
           collapsed ? "w-20" : "w-64"
         )}
       >
-        <div className="h-16 flex items-center px-6 border-b">
+        <div className="h-16 flex items-center px-6 border-b border-white/5 bg-command-deep/50">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <ShieldCheck className="text-primary-foreground h-5 w-5" />
+              <div className="h-8 w-8 rounded-lg bg-command-purple flex items-center justify-center shadow-lg shadow-purple-500/20">
+                <ShieldCheck className="text-white h-5 w-5" />
               </div>
-              <span className="font-bold tracking-tight text-lg">MK9 <span className="text-primary">Analytics</span></span>
+              <span className="font-black tracking-tighter text-lg text-white">MK9 <span className="text-command-purple">COMMAND</span></span>
             </div>
           )}
-          {collapsed && <ShieldCheck className="mx-auto text-primary h-6 w-6" />}
+          {collapsed && <ShieldCheck className="mx-auto text-command-purple h-6 w-6" />}
         </div>
 
         <div className="flex-1 overflow-y-auto py-6">
