@@ -416,24 +416,26 @@ export function Mk9AnalyticsDashboard() {
           headers={["UF", "Lojas", "Contratadas", "Realizadas", "Cobertura", "Delta", "Zeradas"]}
           rows={ufs.map(u => [
 
-            <div key={s.uf} className="flex items-center gap-2">
+            <div key={u.uf} className="flex items-center gap-2">
               <div className="h-6 w-6 rounded bg-command-purple/10 flex items-center justify-center text-[10px] font-black text-command-purple border border-command-purple/20">
-                {s.uf}
+                {u.uf}
               </div>
-              <span className="font-black text-white">{s.uf}</span>
+              <span className="font-black text-white">{u.uf}</span>
             </div>,
-            <span key={s.uf} className="font-bold text-slate-400">{s.lojas}</span>,
-            <span key={s.uf} className="font-bold text-slate-400">{s.contratadas}</span>,
-            <span key={s.uf} className="font-bold text-white">{s.realizadas}</span>,
-            <span key={s.uf} className="font-bold text-slate-400">{Math.max(0, s.contratadas - s.realizadas)}</span>,
-            <div key={s.uf} className="flex items-center gap-2">
-               <span className={cn("font-black", s.cobertura > 85 ? "text-emerald-400" : "text-amber-400")}>{s.cobertura}%</span>
+            <span key={u.uf} className="font-bold text-slate-400">{u.storeCount}</span>,
+            <span key={u.uf} className="font-bold text-slate-400">{u.contracted.current}</span>,
+            <span key={u.uf} className="font-bold text-white">{u.realized.current}</span>,
+            <div key={u.uf} className="flex items-center gap-2">
+               <span className={cn("font-black text-xs", u.coverage.delta >= 0 ? "text-emerald-400" : "text-amber-400")}>{u.coverage.current}%</span>
                <div className="flex-1 h-1 bg-white/5 rounded-full min-w-[60px] hidden md:block">
-                 <div className="h-full bg-command-purple rounded-full" style={{ width: `${s.cobertura}%` }} />
+                 <div className="h-full bg-command-purple rounded-full" style={{ width: `${u.coverage.current}%` }} />
                </div>
             </div>,
-            <Mk9Badge variant={s.zeradas > 0 ? "danger" : "default"} key={s.uf}>
-              {s.zeradas} LOJAS
+            <span key={u.uf} className={cn("font-bold text-xs", u.coverage.delta >= 0 ? "text-emerald-500" : "text-rose-500")}>
+              {u.coverage.delta > 0 ? "+" : ""}{u.coverage.delta.toFixed(1)}
+            </span>,
+            <Mk9Badge variant={u.zeroVisits.current > 0 ? "danger" : "default"} key={u.uf}>
+              {u.zeroVisits.current} LOJAS
             </Mk9Badge>
           ])}
         />
@@ -441,3 +443,4 @@ export function Mk9AnalyticsDashboard() {
     </div>
   );
 }
+
