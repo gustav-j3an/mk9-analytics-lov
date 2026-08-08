@@ -93,7 +93,9 @@ export interface OperationIndustryRow {
   isHistorical: boolean;
   lojasContratadas: number;
   lojasAtendidas: number;
+  zeradasCount: number;
   contratadas: number;
+
   expectedToDate: number;
   realizadas: number;
   pendentes: number;

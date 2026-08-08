@@ -114,8 +114,9 @@ export const getAnalyticsDashboard = createServerFn({ method: "POST" })
         realizadas: i.realizadas,
         pendentes: i.pendentes,
         cobertura: i.coberturaPct,
-        zeradas: storeRows.filter(s => s.industryId === i.industryId && s.realizadas === 0 && s.contratadas > 0).length
+        zeradas: i.zeradasCount
       })).sort((a, b) => a.cobertura - b.cobertura),
+
 
       dailyExecution: buildDailySeries({
         ctxs,
