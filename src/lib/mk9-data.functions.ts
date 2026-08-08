@@ -263,7 +263,7 @@ export const mk9ListStores = createServerFn({ method: "GET" }).handler(async () 
   if (scope.allowedUfs?.length === 0 || scope.allowedStoreIds?.length === 0) return [];
   let q = supabaseAdmin
     .from("mk9_stores")
-    .select("id, name, chain, uf, updated_at")
+    .select("id, name, chain, uf, updated_at, archived_at")
     .order("name", { ascending: true });
   if (scope.allowedUfs) q = q.in("uf", scope.allowedUfs);
   if (scope.allowedStoreIds) q = q.in("id", scope.allowedStoreIds);
@@ -275,7 +275,9 @@ export const mk9ListStores = createServerFn({ method: "GET" }).handler(async () 
     name: r.name as string,
     uf: (r.uf as string | null) ?? null,
     updatedAt: r.updated_at as string,
+    archivedAt: (r.archived_at ?? null) as string | null,
   }));
+
 });
 
 export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async () => {
