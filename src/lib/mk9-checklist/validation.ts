@@ -97,7 +97,7 @@ export function buildValidationReport(input: BuildValidationInput): ChecklistVal
         diffPersistedVsParsed < 0
           ? `${Math.abs(diffPersistedVsParsed)} visita(s) identificada(s) no Excel não foram persistidas.`
           : `${diffPersistedVsParsed} visita(s) persistidas além das identificadas nesta importação.`;
-    } else if (diffParsedVsDeclared !== null && diffParsedVsDeclared !== 0) {
+    } else if (diffParsedVsDeclared !== null && diffParsedVsDeclared !== 0 && declared !== 0) {
       status = "PARSE_DIVERGENCE";
       message =
         diffParsedVsDeclared < 0

@@ -296,8 +296,9 @@ export const checklistCommit = createServerFn({ method: "POST" })
         validationError = String(vErr?.message ?? vErr);
       }
 
-      const finalStatus: "done" | "failed" | "INCONSISTENT" =
-        validation && validation.status === "INCONSISTENT" ? "INCONSISTENT" : "done";
+      const finalStatus: "done" | "failed" | "INCONSISTENT" | "COMPLETED_WITH_ALERTS" =
+        validation && validation.status === "INCONSISTENT" ? "INCONSISTENT" : 
+        (validation && validation.status === "COMPLETED_WITH_ALERTS" ? "COMPLETED_WITH_ALERTS" : "done");
 
       // SUBSTITUIÇÃO: Marcar como vigente e atualizar anterior
       if (previous) {
