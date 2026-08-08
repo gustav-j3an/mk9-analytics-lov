@@ -437,7 +437,7 @@ export async function persistImportSnapshot(
     const slice = payload.slice(i, i + CHUNK);
     const { error } = await supabaseAdmin
       .from("mk9_checklist_import_store_snapshots" as any)
-      .upsert(slice as any, { onConflict: "import_id,store_id" });
+      .upsert(slice as any);
     if (error) throw new Error(error.message);
   }
 }
