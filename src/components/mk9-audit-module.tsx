@@ -416,7 +416,7 @@ function IndustryTable({ q }: { q: any }) {
           </TableHead>
         </TableRow>
       </TableHeader>
-      <TableBody>
+      <TableBody className="whitespace-nowrap lg:whitespace-normal">
         {rows.map((r) => (
           <TableRow
             key={r.industryId}
@@ -478,7 +478,7 @@ function StoreTable({ q, search }: { q: any; search: string }) {
           </TableHead>
         </TableRow>
       </TableHeader>
-      <TableBody>
+      <TableBody className="whitespace-nowrap lg:whitespace-normal">
         {rows.map((r) => (
           <TableRow
             key={`${r.industryId}-${r.storeId}`}

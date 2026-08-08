@@ -96,7 +96,7 @@ export function Mk9MetricCard({
           <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">
             {label}
           </p>
-          <h3 className="text-2xl font-black text-white tracking-tighter">{value}</h3>
+          <h3 className="text-xl md:text-2xl font-black text-white tracking-tighter">{value}</h3>
           {hint && (
             <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">
               {hint}

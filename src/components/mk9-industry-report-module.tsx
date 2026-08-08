@@ -390,7 +390,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                       <th className="pb-3 font-bold text-right">Cobertura</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-white/5 whitespace-nowrap lg:whitespace-normal">
                     {report.ufs.map((u) => (
                       <tr key={u.uf} className="group hover:bg-white/[0.02]">
                         <td className="py-3 text-white font-medium">{u.uf}</td>
@@ -427,7 +427,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                     <th className="pb-3 font-bold text-right">Roteiro</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-white/5 whitespace-nowrap lg:whitespace-normal">
                   {report.stores.map((s: any) => {
                     const freqLabel =
                       s.frequencyLabel ??
