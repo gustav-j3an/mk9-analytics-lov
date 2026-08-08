@@ -234,14 +234,33 @@
   }
 }
 
+:root {
+  --mk9-bg-primary: #080812;
+  --mk9-bg-secondary: #111122;
+  --mk9-surface: #17172B;
+  --mk9-surface-hover: #1E1E38;
+  --mk9-border: rgba(255, 255, 255, 0.08);
+  --mk9-border-active: rgba(168, 85, 247, 0.4);
+  
+  --mk9-text-primary: #F8FAFC;
+  --mk9-text-secondary: #94A3B8;
+  --mk9-text-muted: #64748B;
+  
+  --mk9-accent-primary: #A855F7;
+  --mk9-accent-secondary: #3B82F6;
+  --mk9-success: #10B981;
+  --mk9-warning: #F59E0B;
+  --mk9-danger: #EF4444;
+}
+
 .command-center-layout {
-  --background: #080812;
-  --foreground: #F8FAFC;
-  --card: #111122;
-  --card-foreground: #F8FAFC;
-  --primary: #A855F7;
-  --secondary: #17172B;
-  --border: rgba(255, 255, 255, 0.08);
-  --muted: #1E1E38;
-  --muted-foreground: #94A3B8;
+  --background: var(--mk9-bg-primary);
+  --foreground: var(--mk9-text-primary);
+  --card: var(--mk9-bg-secondary);
+  --card-foreground: var(--mk9-text-primary);
+  --primary: var(--mk9-accent-primary);
+  --secondary: var(--mk9-surface);
+  --border: var(--mk9-border);
+  --muted: var(--mk9-surface);
+  --muted-foreground: var(--mk9-text-secondary);
 }
