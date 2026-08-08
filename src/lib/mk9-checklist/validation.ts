@@ -152,6 +152,7 @@ export function buildValidationReport(input: BuildValidationInput): ChecklistVal
     else if (declaredCheckMismatch || anyParseDiff || anyUnmatched) status = "COMPLETED_WITH_ALERTS";
     else status = "CONSISTENT";
   } else {
+    // No preview, nunca é INCONSISTENT (pois ainda não persistimos)
     if (declaredCheckMismatch || anyParseDiff || anyUnmatched) status = "COMPLETED_WITH_ALERTS";
     else status = "CONSISTENT";
   }

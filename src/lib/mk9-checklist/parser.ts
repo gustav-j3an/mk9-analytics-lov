@@ -326,9 +326,11 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
     out.lastDate = allDates[allDates.length - 1];
   }
 
+  // Validação checksum: REALIZADO da planilha (soma AK) vs marcações lidas (F-AJ)
+  // KING FIX: Apenas gera aviso, não bloqueia e não substitui a contagem real de marcações.
   if (out.realizadoSum > 0 && out.marks.length !== out.realizadoSum) {
     out.warnings.push(
-      `Divergência entre as marcações por data (${out.marks.length}) e a coluna REALIZADO (${out.realizadoSum}).`,
+      `Divergência de checksum: a coluna REALIZADO soma ${out.realizadoSum}, mas foram identificadas ${out.marks.length} marcações "✅" na planilha. Usando as ${out.marks.length} marcações reais para processamento.`,
     );
   }
 
