@@ -157,12 +157,11 @@ function LandingPage() {
 
               <div className="bg-purple-900/20 border border-purple-500/20 p-4 rounded-lg">
                 <p className="text-purple-300 font-black uppercase text-[9px] tracking-widest mb-1 italic">
-                  ATENÇÃO: PROTEÇÃO DO CORE
+                  PROTOCOLO DE RELEASE
                 </p>
                 <p className="text-[10px] text-purple-200/60 leading-tight">
-                  Proibido alterar core.server.ts, operational-visits.server.ts ou segments.ts. A
-                  paridade KING de 146 visitas realizadas deve ser preservada em todos os
-                  relatórios.
+                  A versão v1.0.0 será a base oficial para implantação. Nenhuma alteração de regra de
+                  negócio deve ocorrer nesta fase. Integridade KING: 146 visitas.
                 </p>
               </div>
             </div>
