@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   AreaChart,
   Area,
@@ -37,10 +37,18 @@ import {
   History,
   TrendingDown,
   Target,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatPercentage } from "@/lib/mk9/normalization";
 import { Mk9Panel, Mk9Badge, Mk9LoadingState, Mk9ErrorState } from "./mk9/design-system";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 
 
 import { AnalyticsMetricCard, AnalyticsChartCard, AnalyticsTable } from "./mk9/AnalyticsComponents";
@@ -481,8 +489,22 @@ export function Mk9AnalyticsDashboard() {
         </AnalyticsChartCard>
 
         <AnalyticsChartCard
-          title="Distribuição de Frequência"
-          subtitle="Lojas por visitas contratadas"
+          title={
+            <div className="flex items-center gap-2">
+              <span>Distribuição de Frequência</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-slate-500 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-command-deep border-white/10 text-white text-[10px] max-w-[200px]">
+                    Mostra quantas lojas estão contratadas em cada frequência mensal de visitas.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          }
+          subtitle="Lojas por frequência contratada"
         >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={frequencies} layout="vertical" margin={{ left: 20 }}>
@@ -499,12 +521,29 @@ export function Mk9AnalyticsDashboard() {
                 tickLine={false}
                 tick={{ fontSize: 10, fill: "#fff", fontWeight: "bold" }}
               />
-              <Tooltip
+              <RechartsTooltip
                 cursor={{ fill: "rgba(255,255,255,0.02)" }}
-                contentStyle={{
-                  backgroundColor: "#080812",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "12px",
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    const isManual = String(label).toLowerCase() === "manual";
+                    return (
+                      <div className="bg-command-deep border border-white/10 p-3 rounded-xl shadow-2xl min-w-[120px]">
+                        <p className="text-[10px] font-black text-white uppercase tracking-widest mb-1">
+                          {label}x/mês
+                        </p>
+                        <p className="text-xs font-bold text-slate-300">
+                          {data.stores} {data.stores === 1 ? "loja" : "lojas"}
+                        </p>
+                        {isManual && (
+                          <p className="text-[8px] text-slate-500 italic mt-2 border-t border-white/5 pt-1">
+                            Frequência definida por configuração específica.
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }
+                  return null;
                 }}
               />
               <Bar dataKey="stores" radius={[0, 4, 4, 0]} name="Lojas">
@@ -513,6 +552,7 @@ export function Mk9AnalyticsDashboard() {
                 ))}
               </Bar>
             </BarChart>
+
           </ResponsiveContainer>
         </AnalyticsChartCard>
       </div>
