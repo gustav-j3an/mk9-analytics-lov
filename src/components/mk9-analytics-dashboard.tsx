@@ -42,19 +42,10 @@ import {
 import { cn } from "@/lib/utils";
 import { formatPercentage } from "@/lib/mk9/normalization";
 import { Mk9Panel, Mk9Badge, Mk9LoadingState, Mk9ErrorState } from "./mk9/design-system";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
-
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AnalyticsMetricCard, AnalyticsChartCard, AnalyticsTable } from "./mk9/AnalyticsComponents";
 import {
   Select,
-
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -84,9 +75,8 @@ function nf(v: number) {
 }
 
 export function Mk9AnalyticsDashboard() {
-  const now = new Date();
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState(new Date().getFullYear());
   const [industryId, setIndustryId] = useState("__ALL__");
   const [uf, setUf] = useState("__ALL__");
 
@@ -113,8 +103,8 @@ export function Mk9AnalyticsDashboard() {
   });
 
   const years = useMemo(() => {
-    const y = now.getFullYear();
-    return [y - 1, y, y + 1];
+    const currentYear = new Date().getFullYear();
+    return [currentYear - 1, currentYear, currentYear + 1];
   }, []);
 
   if (isLoading) return <Mk9LoadingState message="Inicializando Comando Analítico..." />;
@@ -137,23 +127,22 @@ export function Mk9AnalyticsDashboard() {
   } = data;
 
   // HOTFIX v1.0.2: Normalização robusta para evitar crashes de undefined (.coverage, .riskStatus, etc)
-  const executive = useMemo(() => {
-    const fallbackMetric = { current: 0, previous: 0, delta: 0, percentChange: 0 };
-    return {
-      coverage: rawExecutive?.coverage ?? fallbackMetric,
-      pending: rawExecutive?.pending ?? fallbackMetric,
-      extras: rawExecutive?.extras ?? { current: 0 },
-      zeroVisits: rawExecutive?.zeroVisits ?? fallbackMetric,
-    };
-  }, [rawExecutive]);
+  const executive = {
+    coverage: rawExecutive?.coverage ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+    pending: rawExecutive?.pending ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+    extras: rawExecutive?.extras ?? { current: 0 },
+    zeroVisits: rawExecutive?.zeroVisits ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+    contracted: rawExecutive?.contracted ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+    realized: rawExecutive?.realized ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+  };
 
-  const projection = useMemo(() => ({
+  const projection = {
     realized: rawProjection?.realized ?? 0,
     projected: rawProjection?.projected ?? 0,
     contracted: rawProjection?.contracted ?? 0,
-    riskStatus: (rawProjection?.riskStatus ?? "N/D") as any,
+    riskStatus: (rawProjection?.riskStatus ?? "N/D") as string,
     daysRemaining: rawProjection?.daysRemaining ?? 0,
-  }), [rawProjection]);
+  };
 
   return (
     <div className="space-y-8 animate-fade-in pb-20 selection:bg-purple-500/30">
@@ -251,7 +240,7 @@ export function Mk9AnalyticsDashboard() {
           <div className="flex items-center gap-2 text-white/70">
             <Clock className="h-4 w-4 text-command-purple" />
             <span className="text-xs font-bold uppercase">
-              {new Date(lastUpdate).toLocaleTimeString("pt-BR")}
+              {lastUpdate ? new Date(lastUpdate).toLocaleTimeString("pt-BR") : "—"}
             </span>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import { Loader2, Zap, BarChart3, Shield, Cpu, Activity, Info } from "lucide-react";
+import { toast } from "sonner";
 import { ClientOnly } from "@/components/client-only";
 
 export const Route = createFileRoute("/")({
@@ -25,18 +26,26 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
-  const { session, loading } = useMk9Session();
+  const { session, loading, signOut } = useMk9Session();
+  const search = Route.useSearch() as { session_expired?: string };
 
   // O redirecionamento no componente deve ser via useEffect para evitar throw durante render
-  // que pode causar hydration mismatch ou loops se não tratado corretamente pelo router.
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (search.session_expired === "true") {
+      signOut();
+      toast.info("Sua sessão expirou. Faça login novamente.");
+      // Limpa a URL sem redirecionar
+      navigate({ to: "/", replace: true });
+      return;
+    }
+
     if (!loading && session) {
       console.log("[MK9-AUTH] Sessão detectada em /, redirecionando para /dashboard");
       navigate({ to: "/dashboard", replace: true });
     }
-  }, [session, loading, navigate]);
+  }, [session, loading, navigate, search.session_expired, signOut]);
 
   if (loading || session) {
     return (
