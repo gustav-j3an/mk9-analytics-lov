@@ -18,7 +18,10 @@ import {
   Filter,
   RefreshCw,
   Search,
-  ExternalLink
+  ExternalLink,
+  Zap,
+  Database,
+  Cpu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
