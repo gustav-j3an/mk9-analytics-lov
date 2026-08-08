@@ -44,9 +44,9 @@ import { Mk9Panel, Mk9Badge, Mk9LoadingState, Mk9ErrorState } from "./mk9/design
 
 
 import { AnalyticsMetricCard, AnalyticsChartCard, AnalyticsTable } from "./mk9/AnalyticsComponents";
-
 import {
   Select,
+
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -675,8 +675,8 @@ export function Mk9AnalyticsDashboard() {
                       {ind.coverage.delta > 0 ? "+" : ""}
                       {formatPercentage(ind.coverage.delta)}
                     </span>
-
                   </div>
+
                   <div className="flex flex-col">
                     <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">
                       Zeradas
@@ -802,6 +802,7 @@ export function Mk9AnalyticsDashboard() {
               >
                 {formatPercentage(u.coverage)}
               </span>
+
               <div className="flex-1 h-1 bg-white/5 rounded-full min-w-[60px] hidden md:block">
 
                 <div
