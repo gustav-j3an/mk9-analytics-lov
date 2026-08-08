@@ -116,7 +116,7 @@ describe('Contrato de Sincronia de Visitas Realizadas', () => {
       .from('mk9_checklist_imports')
       .select('id')
       .eq('industry_id', industryId)
-      .in('status', ['INCONSISTENT', 'COMPLETED_WITH_ALERTS'])
+      .in('status' as any, ['INCONSISTENT', 'COMPLETED_WITH_ALERTS'])
       .eq('is_operational_current' as any, true)
       .limit(1);
 
