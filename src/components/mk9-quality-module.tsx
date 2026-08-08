@@ -199,9 +199,9 @@ export function Mk9QualityModule({ month, year, onNavigate }: { month: number; y
                         {item.description}
                       </p>
                       <div className="flex items-center gap-3 mt-2 text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                        <span>{item.industryName}</span>
+                        <span>{item.industryId || "Sistema"}</span>
                         <span>•</span>
-                        <span>{dateTimeLabel(item.createdAt)}</span>
+                        <span>{dateTimeLabel(item.lastSeenAt)}</span>
                       </div>
                     </div>
                   </div>
