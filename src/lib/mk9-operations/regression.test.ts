@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { supabaseAdmin } from './src/integrations/supabase/client.server';
-import { listOperationalActualVisits } from './src/lib/mk9-operations/operational-visits.server';
-import { loadOperationCore } from './src/lib/mk9-operations/core.server';
-import { buildIndustryReport } from './src/lib/mk9-reports/industry-report.server';
-import { resolveWindow, loadPeriodConfig } from './src/lib/mk9-reports/period.server';
+import { supabaseAdmin } from '@/integrations/supabase/client.server';
+import { listOperationalActualVisits } from './operational-visits.server';
+import { loadOperationCore } from './core.server';
+import { buildIndustryReport } from '@/lib/mk9-reports/industry-report.server';
+import { resolveWindow, loadPeriodConfig } from '@/lib/mk9-reports/period.server';
 
 /**
  * TESTES DE REGRESSÃO E CONTRATO — MK9 ANALYTICS
@@ -38,7 +38,8 @@ describe('Contrato de Sincronia de Visitas Realizadas', () => {
     const report = await buildIndustryReport(supabaseAdmin, {
       industryId,
       year,
-      month
+      month,
+      access: null
     }, window);
 
     const dashboardRealized = core.industryRows[0]?.realizadas || 0;
@@ -62,22 +63,13 @@ describe('Contrato de Sincronia de Visitas Realizadas', () => {
       .not('reverted_at', 'is', null);
 
     if (revertedImports && revertedImports.length > 0) {
-      const operationalWithReverted = await listOperationalActualVisits({
-        industryId,
-        startDate: '2000-01-01',
-        endDate: '2099-12-31',
-        sourceImportId: revertedImports[0].id
-      });
-      
-      // Se pedirmos explicitamente uma revertida, ela vem (para auditoria de histórico)
-      // Mas no fluxo normal (sem sourceImportId), ela deve sumir.
       const operationalNormal = await listOperationalActualVisits({
         industryId,
         startDate: '2000-01-01',
         endDate: '2099-12-31'
       });
       
-      const containsReverted = operationalNormal.some(v => v.source_import_id === revertedImports[0].id);
+      const containsReverted = operationalNormal.some((v: any) => v.source_import_id === revertedImports[0].id);
       expect(containsReverted).toBe(false);
     }
   });
@@ -97,7 +89,7 @@ describe('Contrato de Sincronia de Visitas Realizadas', () => {
         endDate: '2099-12-31'
       });
       
-      const foundManual = operational.some(v => v.source_import_id === null);
+      const foundManual = operational.some((v: any) => v.source_import_id === null);
       expect(foundManual).toBe(true);
     }
   });
@@ -113,7 +105,7 @@ describe('Contrato de Sincronia de Visitas Realizadas', () => {
     });
 
     // Validar que nenhuma visita está fora do range
-    visits.forEach(v => {
+    visits.forEach((v: any) => {
       expect(v.scheduled_date >= startDate).toBe(true);
       expect(v.scheduled_date <= endDate).toBe(true);
     });
@@ -135,7 +127,7 @@ describe('Contrato de Sincronia de Visitas Realizadas', () => {
         endDate: '2099-12-31'
       });
       
-      const hasVisitsFromInconsistent = visits.some(v => v.source_import_id === inconsistent[0].id);
+      const hasVisitsFromInconsistent = visits.some((v: any) => v.source_import_id === inconsistent[0].id);
       expect(hasVisitsFromInconsistent).toBe(true);
     }
   });
