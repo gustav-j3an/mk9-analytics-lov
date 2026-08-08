@@ -51,10 +51,10 @@ function LandingPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 — FASE 4
+                MK9 — FASE 5
               </h1>
               <p className="text-[10px] text-purple-400 font-black tracking-[0.3em] uppercase">
-                INTELIGÊNCIA ANALÍTICA E BI OPERACIONAL
+                ACABAMENTO DE PRODUTO E PREPARAÇÃO V1.0
               </p>
 
             </div>
