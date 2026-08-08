@@ -75,39 +75,44 @@ export function StoreDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent className="bg-command-deep border-white/10 text-white max-w-md">
         <DialogHeader>
-          <DialogTitle>{store ? "Editar Loja" : "Nova Loja"}</DialogTitle>
-          <DialogDescription>Preencha os dados cadastrais da loja.</DialogDescription>
+          <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
+            {store ? "Editar Loja" : "Nova Loja"}
+          </DialogTitle>
+          <DialogDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            {store ? "Atualizar dados da unidade" : "Cadastro de nova unidade operacional"}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Nome da Loja *</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Supermercado Central" />
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome da Loja *</Label>
+            <Input className="bg-black/40 border-white/10 h-10 text-white" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Supermercado Central" />
           </div>
-          <div className="space-y-2">
-            <Label>Rede / Bandeira</Label>
-            <Input value={chain} onChange={(e) => setChain(e.target.value)} placeholder="Ex: Carrefour, Pão de Açúcar" />
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Rede / Bandeira</Label>
+            <Input className="bg-black/40 border-white/10 h-10 text-white" value={chain} onChange={(e) => setChain(e.target.value)} placeholder="Ex: Carrefour, Pão de Açúcar" />
           </div>
           <div className="grid grid-cols-4 gap-4">
-            <div className="col-span-3 space-y-2">
-              <Label>Cidade</Label>
-              <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Paulo" />
+            <div className="col-span-3 space-y-1.5">
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Cidade</Label>
+              <Input className="bg-black/40 border-white/10 h-10 text-white" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Paulo" />
             </div>
-            <div className="space-y-2">
-              <Label>UF</Label>
-              <Input value={uf} onChange={(e) => setUf(e.target.value.toUpperCase())} maxLength={2} placeholder="SP" />
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">UF</Label>
+              <Input className="bg-black/40 border-white/10 h-10 text-white font-mono" value={uf} onChange={(e) => setUf(e.target.value.toUpperCase())} maxLength={2} placeholder="SP" />
             </div>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={() => mut.mutate()} disabled={!name || mut.isPending}>
-            {mut.isPending ? "Salvando..." : "Salvar"}
+        <DialogFooter className="mt-4 border-t border-white/5 pt-4">
+          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>CANCELAR</Button>
+          <Button className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold" onClick={() => mut.mutate()} disabled={!name || mut.isPending}>
+            {mut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "SALVAR LOJA"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
   );
 }
 
@@ -143,36 +148,37 @@ export function StoreArchiveDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent className="bg-command-deep border-white/10 text-white max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-destructive">
+          <DialogTitle className="flex items-center gap-2 text-rose-500 uppercase font-black tracking-tighter">
             <AlertTriangle className="h-5 w-5" />
             Arquivar Loja
           </DialogTitle>
-          <DialogDescription>
-            Tem certeza que deseja arquivar a loja <strong>{store?.name}</strong>?
+          <DialogDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+            Esta ação é uma exclusão lógica reversível.
           </DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
-          <div className="py-10 flex flex-col items-center justify-center gap-2 text-muted-foreground">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <p className="text-sm">Analisando impacto operacional...</p>
+          <div className="py-20 flex flex-col items-center justify-center gap-4 text-slate-500">
+            <Loader2 className="h-8 w-8 animate-spin text-mk9-accent-primary/20" />
+            <p className="text-[10px] font-bold uppercase tracking-widest">Analisando impacto operacional...</p>
           </div>
         ) : (
-          <div className="space-y-4 py-4">
-            <div className="rounded-lg bg-muted p-4 space-y-2 text-sm">
-              <p className="font-medium">Impacto detectado:</p>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>{impact?.activeFrequencies || 0} frequências vigentes serão encerradas</li>
-                <li>{impact?.activeRoutes || 0} roteiros ativos serão arquivados</li>
-                <li>{impact?.visits || 0} visitas históricas serão preservadas</li>
+          <div className="space-y-6 py-4">
+            <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4 space-y-3">
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-tight">Impacto Detectado na Unidade:</p>
+              <ul className="space-y-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                <li className="flex justify-between border-b border-white/5 pb-1"><span>Frequências vigentes:</span> <span className="text-white">{impact?.activeFrequencies || 0}</span></li>
+                <li className="flex justify-between border-b border-white/5 pb-1"><span>Roteiros ativos:</span> <span className="text-white">{impact?.activeRoutes || 0}</span></li>
+                <li className="flex justify-between"><span>Visitas históricas:</span> <span className="text-slate-500">{impact?.visits || 0} (Preservadas)</span></li>
               </ul>
             </div>
 
-            <div className="space-y-2">
-              <Label>Motivo do Arquivamento (Opcional)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Motivo do Arquivamento (Opcional)</Label>
               <Textarea 
+                className="bg-black/40 border-white/10 text-white min-h-[80px]"
                 placeholder="Ex: Loja fechada definitivamente..." 
                 value={reason} 
                 onChange={(e) => setReason(e.target.value)}
@@ -181,17 +187,18 @@ export function StoreArchiveDialog({
           </div>
         )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+        <DialogFooter className="mt-4 border-t border-white/5 pt-4">
+          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>CANCELAR</Button>
           <Button 
-            variant="destructive" 
+            className="bg-rose-500 hover:bg-rose-600 text-white font-bold px-6 shadow-lg shadow-rose-500/20"
             onClick={() => mut.mutate()} 
             disabled={isLoading || mut.isPending}
           >
-            {mut.isPending ? "Arquivando..." : "Confirmar Arquivamento"}
+            {mut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "CONFIRMAR ARQUIVAMENTO"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
   );
 }
