@@ -301,22 +301,36 @@ export const checklistCommit = createServerFn({ method: "POST" })
         (validation && validation.status === "COMPLETED_WITH_ALERTS" ? "COMPLETED_WITH_ALERTS" : "done");
 
       // SUBSTITUIÇÃO: Marcar como vigente e atualizar anterior
-      if (previous) {
-        // Desativa a anterior
+      // REGRA: Somente importações com status 'done', 'INCONSISTENT' ou 'COMPLETED_WITH_ALERTS' podem ser operacionais.
+      const isSuccess = ["done", "INCONSISTENT", "COMPLETED_WITH_ALERTS"].includes(finalStatus);
+
+      if (isSuccess) {
+        if (previous) {
+          // Desativa a anterior
+          await supabaseAdmin
+            .from("mk9_checklist_imports")
+            .update({
+              is_operational_current: false,
+              superseded_at: new Date().toISOString(),
+              superseded_by: data.importId
+            } as any)
+            .eq("id", previous.id);
+          
+          // Remove visitas da importação anterior para não somar no operacional
+          await supabaseAdmin
+            .from("mk9_actual_visits")
+            .delete()
+            .eq("source_import_id", previous.id);
+        }
+
+        // Marca a atual como vigente
         await supabaseAdmin
           .from("mk9_checklist_imports")
-          .update({
-            is_operational_current: false,
-            superseded_at: new Date().toISOString(),
-            superseded_by: data.importId
+          .update({ 
+            is_operational_current: true,
+            replaces_import_id: previous?.id ?? null
           } as any)
-          .eq("id", previous.id);
-        
-        // Remove visitas da importação anterior para não somar
-        await supabaseAdmin
-          .from("mk9_actual_visits")
-          .delete()
-          .eq("source_import_id", previous.id);
+          .eq("id", data.importId);
       }
 
       await updateImportStatus(data.importId, {
@@ -326,14 +340,6 @@ export const checklistCommit = createServerFn({ method: "POST" })
         durationMs: Date.now() - startedAt,
       });
 
-      // Marca a atual como vigente
-      await supabaseAdmin
-        .from("mk9_checklist_imports")
-        .update({ 
-          is_operational_current: (finalStatus as string) !== "failed",
-          replaces_import_id: previous?.id ?? null
-        } as any)
-        .eq("id", data.importId);
 
 
       let reconciliationError: string | null = null;
