@@ -25,7 +25,9 @@ import {
   Zap,
   FileUp,
   Play,
+  FileCheck,
 } from "lucide-react";
+
 import { Mk9PageHeader, Mk9Panel, Mk9MetricCard } from "./mk9/design-system";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
@@ -38,7 +40,7 @@ import { RevertChecklistDialog, CorrectCompetenceDialog, CompetenceConflictDialo
 
 
 import { Button } from "@/components/ui/button";
-import { Card, div, div, h3 } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
