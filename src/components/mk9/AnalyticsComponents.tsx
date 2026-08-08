@@ -125,7 +125,7 @@ export function AnalyticsChartCard({
   className,
   height = 300,
 }: {
-  title: string;
+  title: React.ReactNode;
   subtitle?: string;
   children: React.ReactNode;
   className?: string;
@@ -134,7 +134,8 @@ export function AnalyticsChartCard({
   return (
     <div className={cn("glass-command p-6 rounded-2xl flex flex-col h-full", className)}>
       <div className="mb-6">
-        <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">{title}</h3>
+        <div className="text-sm font-black text-white uppercase tracking-[0.1em]">{title}</div>
+
         {subtitle && (
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
             {subtitle}
