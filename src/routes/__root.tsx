@@ -44,9 +44,14 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
-  // Se o erro for de autenticação (401), redireciona para a home (login)
+  // Se o erro for de autenticação (401), redireciona para a home (login) e limpa sessão
   if ((error as any)?.statusCode === 401 || (error as any)?.name === "Mk9UnauthenticatedError") {
-    window.location.href = "/";
+    if (typeof window !== "undefined") {
+      // Pequeno atraso para garantir que o erro não loop imediatamente se o redirecionamento falhar
+      setTimeout(() => {
+        window.location.href = "/?session_expired=true";
+      }, 100);
+    }
     return null;
   }
 
