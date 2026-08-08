@@ -125,17 +125,35 @@ export function Mk9AnalyticsDashboard() {
       <Mk9ErrorState message="Nenhum dado retornado para este período." onRetry={() => refetch()} />
     );
 
-  const { executive, industries, ufs, frequencies, matrix, projection: rawProjection, topPriorities, lastUpdate } =
-    data;
+  const {
+    executive: rawExecutive,
+    industries = [],
+    ufs = [],
+    frequencies = [],
+    matrix = [],
+    projection: rawProjection,
+    topPriorities = [],
+    lastUpdate,
+  } = data;
 
-  // HOTFIX v1.0.1: Guard against missing projection data or missing fields
-  const projection = {
+  // HOTFIX v1.0.2: Normalização robusta para evitar crashes de undefined (.coverage, .riskStatus, etc)
+  const executive = useMemo(() => {
+    const fallbackMetric = { current: 0, previous: 0, delta: 0, percentChange: 0 };
+    return {
+      coverage: rawExecutive?.coverage ?? fallbackMetric,
+      pending: rawExecutive?.pending ?? fallbackMetric,
+      extras: rawExecutive?.extras ?? { current: 0 },
+      zeroVisits: rawExecutive?.zeroVisits ?? fallbackMetric,
+    };
+  }, [rawExecutive]);
+
+  const projection = useMemo(() => ({
     realized: rawProjection?.realized ?? 0,
     projected: rawProjection?.projected ?? 0,
     contracted: rawProjection?.contracted ?? 0,
-    riskStatus: rawProjection?.riskStatus ?? ("N/D" as any),
+    riskStatus: (rawProjection?.riskStatus ?? "N/D") as any,
     daysRemaining: rawProjection?.daysRemaining ?? 0,
-  };
+  }), [rawProjection]);
 
   return (
     <div className="space-y-8 animate-fade-in pb-20 selection:bg-purple-500/30">
@@ -210,7 +228,7 @@ export function Mk9AnalyticsDashboard() {
           <div className="flex flex-col">
             <div className="flex justify-between items-end mb-1">
               <span className="text-lg font-black text-white italic">
-                {formatPercentage(executive.coverage.current)}
+                {rawExecutive?.coverage ? formatPercentage(executive.coverage.current) : "N/D"}
               </span>
               <span className="text-[9px] font-bold text-slate-500">
                 FALTAM {nf(executive.pending.current)}
@@ -431,15 +449,15 @@ export function Mk9AnalyticsDashboard() {
         />
         <AnalyticsMetricCard
           label="Cobertura Geral"
-          value={formatPercentage(executive.coverage.current)}
+          value={rawExecutive?.coverage ? formatPercentage(executive.coverage.current) : "N/D"}
           icon={Activity}
           color="cyan"
-          comparison={{
+          comparison={rawExecutive?.coverage ? {
             value: executive.coverage.previous,
             label: "anterior",
             trend: executive.coverage.delta >= 0 ? "up" : "down",
             percentChange: executive.coverage.delta,
-          }}
+          } : undefined}
         />
         <AnalyticsMetricCard
           label="Lojas Zero Visitas"

@@ -47,10 +47,11 @@ const Mk9UnauthenticatedError = (message: string) => mk9AuthError(401, message);
  */
 function authFailure(fromHttpRoute: boolean, statusCode: 401 | 403, message: string): unknown {
   if (fromHttpRoute) return mk9AuthError(statusCode, message);
-  return new Response(JSON.stringify({ error: message, code: statusCode }), {
-    status: statusCode,
-    headers: { "content-type": "application/json", "cache-control": "no-store" },
-  });
+  // Para Server Functions, não podemos retornar Response bruto, pois o TanStack Start
+  // o serializa como [object Response]. Devemos lançar um Error que a UI capture,
+  // ou usar o mecanismo de redirect se for 401.
+  const err = mk9AuthError(statusCode, message);
+  throw err;
 }
 
 /**
