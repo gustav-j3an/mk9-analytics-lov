@@ -499,23 +499,23 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
       </Mk9Panel>
 
       <Mk9Panel>
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
             Registros de Conciliação ({total})
           </h3>
-          <div className="relative w-[280px] max-w-full">
+          <div className="relative w-full md:w-[280px]">
             <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <Input
               placeholder="Buscar loja, promotor, indústria…"
               value={rawSearch}
               onChange={(e) => setRawSearch(e.target.value)}
-              className="pl-9 h-9 bg-command-deep border-white/10 text-white text-xs"
+              className="pl-9 h-9 bg-command-deep border-white/10 text-white text-xs w-full"
             />
           </div>
         </div>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mb-6">
-          <TabsList className="flex flex-wrap h-auto bg-black/20 border border-white/5 p-1">
+        <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mb-6 overflow-x-auto">
+          <TabsList className="flex md:flex-wrap h-auto bg-black/20 border border-white/5 p-1 w-max md:w-auto">
             <TabsTrigger
               value="all"
               className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white"
@@ -564,7 +564,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
             conciliação.
           </div>
         ) : (
-          <div className="overflow-auto max-h-[640px] border border-white/5 rounded-xl bg-white/[0.01]">
+          <div className="overflow-auto max-h-[640px] border border-white/5 rounded-xl bg-white/[0.01] custom-scrollbar-horizontal">
             <Table>
               <TableHeader>
                 <TableRow className="border-b border-white/5 hover:bg-transparent">
