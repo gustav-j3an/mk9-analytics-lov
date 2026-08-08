@@ -150,13 +150,20 @@ export function Mk9LoadingState({ message = "Carregando dados..." }: { message?:
   );
 }
 
-export function Mk9EmptyState({ message = "Nenhum registro encontrado." }: { message?: string }) {
+export function Mk9EmptyState({ 
+  message = "Nenhum registro encontrado.",
+  action
+}: { 
+  message?: string;
+  action?: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-4 border border-dashed border-white/5 rounded-2xl bg-white/[0.01]">
       <Inbox className="h-10 w-10 text-slate-700" />
       <p className="text-sm font-medium text-slate-500 italic">
         {message}
       </p>
+      {action && <div className="mt-2">{action}</div>}
     </div>
   );
 }
