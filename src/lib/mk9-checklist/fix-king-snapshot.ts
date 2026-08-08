@@ -21,47 +21,30 @@ async function fix() {
   const preview = importRow.preview as any;
   const freqs = preview.storeFrequencies || [];
   
-  console.log(`Encontradas ${freqs.length} lojas no preview. Persistindo via REST nativo...`);
-  
-  const snapshotRows = freqs.map((f: any) => ({
-    import_id: importId,
-    industry_id: industryId,
-    store_id: f.storeId,
-    source_store_name: f.storeName,
+  console.log(`Encontradas ${freqs.length} lojas no preview. Atualizando counters e preview snapshot...`);
+
+  // Se não podemos criar a tabela física agora por cache, garantimos que os dados
+  // estão no JSON de preview para que o motor possa ler de lá como fallback.
+  const snapshotData = freqs.map((f: any) => ({
+    storeId: f.storeId,
+    storeName: f.storeName,
     uf: f.uf,
-    weekly_frequency: f.weeklyFrequency,
-    monthly_frequency: f.monthlyFrequency,
-  })).filter((r: any) => !!r.store_id);
+    weeklyFrequency: f.weeklyFrequency,
+    monthlyFrequency: f.monthlyFrequency,
+  })).filter((r: any) => !!r.storeId);
 
-  // Usando fetch direto para contornar o schema cache do PostgREST
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const { error } = await supabaseAdmin
+    .from('mk9_checklist_imports')
+    .update({ 
+        preview: { ...preview, snapshotStores: snapshotData } as any,
+        is_operational_current: true 
+    })
+    .eq('id', importId);
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    // Se não tiver service role, usamos o client mas forçamos o path
-    console.log("Service role não disponível, tentando via client as any...");
-    const { error } = await (supabaseAdmin.from('mk9_checklist_import_store_snapshots' as any) as any).upsert(snapshotRows);
-    if (error) console.error("Erro final:", error.message);
-    else console.log("Sucesso via as any");
-    return;
-  }
-
-  const response = await fetch(`${supabaseUrl}/rest/v1/mk9_checklist_import_store_snapshots`, {
-    method: 'POST',
-    headers: {
-      'apikey': serviceRoleKey,
-      'Authorization': `Bearer ${serviceRoleKey}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'resolution=merge-duplicates'
-    },
-    body: JSON.stringify(snapshotRows)
-  });
-
-  if (response.ok) {
-    console.log('Snapshot persistido com sucesso via REST.');
+  if (error) {
+    console.error('Erro ao atualizar importação:', error.message);
   } else {
-    const err = await response.text();
-    console.error('Erro REST:', response.status, err);
+    console.log('JSON de importação atualizado com sucesso (snapshot embutido).');
   }
 }
 
