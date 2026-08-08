@@ -263,6 +263,16 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
       const storeName = String(rawName).trim();
       const storeNormalized = normalizeStoreName(storeName);
       if (!storeNormalized) continue;
+      
+      // AJUSTE FINAL: Validar que BANDEIRA (implícito), LOJA e UF estão preenchidos.
+      // Linhas de anotação/observação geralmente não têm UF nem BANDEIRA.
+      const hasUf = ufCol >= 0 && row[ufCol] !== null && String(row[ufCol]).trim() !== "";
+      // Se não tem UF, desconfiamos que seja uma linha de nota solta no meio da planilha.
+      if (!hasUf && ufCol >= 0) {
+        debug("parser-row-skipped", "Linha ignorada: UF ausente (provável anotação)", { storeName, excelRow: r + 1 });
+        continue;
+      }
+
       if (/^(total|totais|geral|subtotal)/i.test(storeName)) continue;
 
       const uf = ufCol >= 0 ? normalizeUF(row[ufCol]) : null;
