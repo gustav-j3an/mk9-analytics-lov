@@ -803,6 +803,7 @@ export function Mk9AnalyticsDashboard() {
                 {formatPercentage(u.coverage)}
               </span>
 
+
               <div className="flex-1 h-1 bg-white/5 rounded-full min-w-[60px] hidden md:block">
                 <div
                   className="h-full bg-command-purple rounded-full"
