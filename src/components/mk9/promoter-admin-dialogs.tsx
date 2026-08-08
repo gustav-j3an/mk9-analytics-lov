@@ -87,53 +87,58 @@ export function PromoterDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent className="bg-command-deep border-white/10 text-white max-w-lg">
         <DialogHeader>
-          <DialogTitle>{promoter ? "Editar Promotor" : "Novo Promotor"}</DialogTitle>
-          <DialogDescription>Dados cadastrais do promotor de campo.</DialogDescription>
+          <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
+            {promoter ? "Editar Promotor" : "Novo Promotor"}
+          </DialogTitle>
+          <DialogDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            {promoter ? "Gerenciamento de perfil operacional" : "Inclusão de novo agente de campo"}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2 space-y-2">
-              <Label>Nome Completo *</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome do promotor" />
+            <div className="col-span-2 space-y-1.5">
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome Completo *</Label>
+              <Input className="bg-black/40 border-white/10 h-10 text-white" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome do promotor" />
             </div>
-            <div className="space-y-2">
-              <Label>Matrícula</Label>
-              <Input value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="001245" />
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Matrícula</Label>
+              <Input className="bg-black/40 border-white/10 h-10 text-white" value={employeeNumber} onChange={(e) => setEmployeeNumber(e.target.value)} placeholder="001245" />
             </div>
           </div>
           <div className="grid grid-cols-4 gap-4">
-            <div className="col-span-2 space-y-2">
-              <Label>Cidade</Label>
-              <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Paulo" />
+            <div className="col-span-2 space-y-1.5">
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Cidade</Label>
+              <Input className="bg-black/40 border-white/10 h-10 text-white" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Paulo" />
             </div>
-            <div className="space-y-2">
-              <Label>UF</Label>
-              <Input value={uf} onChange={(e) => setUf(e.target.value.toUpperCase())} maxLength={2} placeholder="SP" />
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">UF</Label>
+              <Input className="bg-black/40 border-white/10 h-10 text-white font-mono" value={uf} onChange={(e) => setUf(e.target.value.toUpperCase())} maxLength={2} placeholder="SP" />
             </div>
-            <div className="space-y-2">
-              <Label>ID Externo</Label>
-              <Input value={externalId} onChange={(e) => setExternalId(e.target.value)} placeholder="ERP ID" />
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">ID Externo</Label>
+              <Input className="bg-black/40 border-white/10 h-10 text-white" value={externalId} onChange={(e) => setExternalId(e.target.value)} placeholder="ERP ID" />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label>Contato (Telefone/Email)</Label>
-            <Input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="(00) 00000-0000" />
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Contato (Telefone/Email)</Label>
+            <Input className="bg-black/40 border-white/10 h-10 text-white" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="(00) 00000-0000" />
           </div>
-          <div className="space-y-2">
-            <Label>Observações</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas internas..." />
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Observações</Label>
+            <Textarea className="bg-black/40 border-white/10 text-white min-h-[80px]" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notas internas..." />
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={() => mut.mutate()} disabled={!name || mut.isPending}>
-            {mut.isPending ? "Salvando..." : "Salvar"}
+        <DialogFooter className="mt-4 border-t border-white/5 pt-4">
+          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>CANCELAR</Button>
+          <Button className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold" onClick={() => mut.mutate()} disabled={!name || mut.isPending}>
+            {mut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "SALVAR PROMOTOR"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
   );
 }
 
@@ -168,75 +173,72 @@ export function PromoterDeleteDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent className="bg-command-deep border-white/10 text-white max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-destructive">
+          <DialogTitle className="flex items-center gap-2 text-rose-500 font-black tracking-tighter uppercase">
             <AlertTriangle className="h-5 w-5" />
             Excluir Promotor
           </DialogTitle>
-          <DialogDescription>
-            Tem certeza que deseja excluir o promotor <strong>{promoter?.name}</strong>?
+          <DialogDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            Ação irreversível ou desativação de histórico.
           </DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
-          <div className="py-10 flex flex-col items-center justify-center gap-2 text-muted-foreground">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <p className="text-sm">Analisando histórico operacional...</p>
+          <div className="py-20 flex flex-col items-center justify-center gap-4 text-slate-500">
+            <Loader2 className="h-8 w-8 animate-spin text-mk9-accent-primary/20" />
+            <p className="text-[10px] font-bold uppercase tracking-widest">Analisando histórico operacional...</p>
           </div>
         ) : (
-          <div className="space-y-4 py-4">
-            <div className="bg-slate-50 dark:bg-slate-900 border border-border rounded-lg p-4 space-y-3">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Nome</p>
-                  <p className="font-medium">{promoter?.name}</p>
+          <div className="space-y-6 py-4">
+            <div className="bg-white/5 border border-white/5 rounded-xl p-4 transition-all">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-0.5">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Agente</p>
+                  <p className="text-xs font-bold text-white">{promoter?.name}</p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Matrícula</p>
-                  <p className="font-medium">{promoter?.employeeNumber || "—"}</p>
+                <div className="space-y-0.5">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Matrícula</p>
+                  <p className="text-xs font-mono text-slate-300">{promoter?.employeeNumber || "—"}</p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">UF</p>
-                  <p className="font-medium">{promoter?.uf || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Cidade</p>
-                  <p className="font-medium">{promoter?.city || "—"}</p>
+                <div className="space-y-0.5">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Região</p>
+                  <p className="text-xs text-slate-300">{promoter?.uf || "—"} / {promoter?.city || "—"}</p>
                 </div>
               </div>
             </div>
 
             {impact && (impact.routes > 0 || impact.visits > 0) ? (
-              <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 p-4 space-y-2 text-sm">
-                <p className="font-medium text-amber-800 dark:text-amber-400">Impacto detectado:</p>
-                <p className="text-amber-700 dark:text-amber-500">
-                  Este promotor possui vínculos históricos. Para preservar a integridade dos relatórios, ele será <strong>removido da listagem ativa</strong> e não poderá receber novos roteiros.
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Restrição de Exclusão</p>
+                </div>
+                <p className="text-xs text-amber-400 opacity-80 leading-relaxed">
+                  Este agente possui <strong>{impact.visits} visitas</strong> e <strong>{impact.routes} roteiros</strong> registrados. Para manter a integridade dos relatórios, ele será <strong>arquivado</strong> e removido da listagem ativa.
                 </p>
-                <ul className="list-disc list-inside space-y-1 text-amber-700/80 dark:text-amber-500/80">
-                  <li>{impact.routes} roteiros vinculados</li>
-                  <li>{impact.visits} registros de visitas</li>
-                </ul>
               </div>
             ) : (
-              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 p-4 text-sm text-emerald-700 dark:text-emerald-400">
-                Este promotor não possui vínculos históricos e será <strong>excluído permanentemente</strong> do banco de dados.
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Sem histórico vinculado. Exclusão física permitida.</p>
               </div>
             )}
           </div>
         )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={mut.isPending}>Cancelar</Button>
+        <DialogFooter className="mt-4 border-t border-white/5 pt-4">
+          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose} disabled={mut.isPending}>CANCELAR</Button>
           <Button 
-            variant="destructive" 
+            className="bg-rose-500 hover:bg-rose-600 text-white font-bold px-6 shadow-lg shadow-rose-500/20"
             onClick={() => mut.mutate()} 
             disabled={isLoading || mut.isPending}
           >
-            {mut.isPending ? "Excluindo..." : "Confirmar Exclusão"}
+            {mut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "CONFIRMAR EXCLUSÃO"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
   );
 }
