@@ -1096,7 +1096,7 @@ function StoreLinkDialog({
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl w-[95vw] sm:w-full">
         <DialogHeader>
           <DialogTitle>Vincular loja</DialogTitle>
           <DialogDescription>
@@ -1106,7 +1106,7 @@ function StoreLinkDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -1117,7 +1117,7 @@ function StoreLinkDialog({
             />
           </div>
           <Select value={uf} onValueChange={setUf}>
-            <SelectTrigger className="w-28">
+            <SelectTrigger className="w-full sm:w-28">
               <SelectValue placeholder="UF" />
             </SelectTrigger>
             <SelectContent>

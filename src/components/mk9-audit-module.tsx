@@ -325,7 +325,7 @@ export function Mk9AuditModule({
       <Mk9Panel>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
           <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="w-full lg:w-auto overflow-x-auto">
-            <TabsList className="bg-command-deep border border-white/5 p-1">
+            <TabsList className="flex md:flex-wrap h-auto bg-command-deep border border-white/5 p-1 w-max md:w-auto">
               <TabsTrigger
                 value="industry"
                 className="data-[state=active]:bg-command-purple data-[state=active]:text-white uppercase text-[10px] font-black tracking-widest"
