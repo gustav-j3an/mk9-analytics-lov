@@ -206,77 +206,68 @@ export async function buildIndustryReport(
 
   let snapshotStores: any[] = [];
   if (currentImport) {
-    // Tentativa 1: Tabela física de snapshots (novo padrão imutável)
-    try {
-        snapshotStores = await loadImportSnapshot(currentImport.id);
-    } catch (e) {
-        console.warn("Tabela de snapshot não disponível, tentando fallback JSON...");
-    }
+    // Performance: Promise.all para carregar snapshots de múltiplas fontes em paralelo
+    const [physicalSnapshot, importData] = await Promise.all([
+      loadImportSnapshot(currentImport.id).catch(() => []),
+      supabase
+        .from("mk9_checklist_imports")
+        .select("preview")
+        .eq("id", currentImport.id)
+        .maybeSingle()
+    ]);
 
-    // Tentativa 2: Fallback para o JSON embutido no preview (para importações antigas ou durante migração)
-    if (!snapshotStores.length) {
-        const { data: importData } = await supabase
-            .from("mk9_checklist_imports")
-            .select("preview")
-            .eq("id", currentImport.id)
-            .maybeSingle();
-        
-        if (importData?.preview) {
-            const preview = importData.preview as any;
-            // Se já rodamos o script de fix, estará em snapshotStores. 
-            // Senão, extraímos de storeFrequencies.
-            snapshotStores = preview.snapshotStores || (preview.storeFrequencies || []).map((f: any) => ({
-                store_id: f.storeId,
-                source_store_name: f.storeName,
-                uf: f.uf,
-                weekly_frequency: f.weeklyFrequency,
-                monthly_frequency: f.monthlyFrequency
-            })).filter((s: any) => !!s.store_id);
-        }
+    snapshotStores = physicalSnapshot;
+
+    if (!snapshotStores.length && importData.data?.preview) {
+      const preview = importData.data.preview as any;
+      snapshotStores = preview.snapshotStores || (preview.storeFrequencies || []).map((f: any) => ({
+        store_id: f.storeId,
+        source_store_name: f.storeName,
+        uf: f.uf,
+        weekly_frequency: f.weeklyFrequency,
+        monthly_frequency: f.monthlyFrequency
+      })).filter((s: any) => !!s.store_id);
     }
   }
 
 
 
 
-  // 3) Roteiro planejado (usado só para status_roteiro; nunca altera contrato)
-  let plannedQ = supabase
-    .from("mk9_planned_visits")
-    .select("id, scheduled_date, store_id, store:mk9_stores(id,name,chain,uf)")
-    .eq("industry_id", industryId)
-    .gte("scheduled_date", window.startDate)
-    .lte("scheduled_date", window.endDate)
-    .is("archived_at", null)
-    .limit(20000);
-  if (storeId) plannedQ = plannedQ.eq("store_id", storeId);
-  const { data: planned, error: ePl } = await plannedQ;
-  if (ePl) throw new Error(ePl.message);
 
-  // 4) Visitas realizadas no período (checklist) - Fonte Única Operacional
+  // 3) Carregamento em Paralelo: Roteiros, Visitas e Reconciliações
   const { listOperationalActualVisits } = await import("@/lib/mk9-operations/operational-visits.server");
-  const actuals = await listOperationalActualVisits({
-    industryId,
-    startDate: window.startDate,
-    endDate: window.endDate,
-    storeId: storeId ?? null,
-    sourceImportId: sourceImportId ?? null
-  });
+  const [plannedRes, actuals, recsRes] = await Promise.all([
 
+    supabase
+      .from("mk9_planned_visits")
+      .select("id, scheduled_date, store_id, store:mk9_stores(id,name,chain,uf)")
+      .eq("industry_id", industryId)
+      .gte("scheduled_date", window.startDate)
+      .lte("scheduled_date", window.endDate)
+      .is("archived_at", null)
+      .limit(20000),
+    listOperationalActualVisits({
+      industryId,
+      startDate: window.startDate,
+      endDate: window.endDate,
+      storeId: storeId ?? null,
+      sourceImportId: sourceImportId ?? null
+    }),
+    supabase
+      .from("mk9_visit_reconciliations")
+      .select("status, store_id, planned_visit_id, actual_visit_id, source_import_id")
+      .eq("industry_id", industryId)
+      .eq("operation_year", input.year)
+      .eq("operation_month", input.month)
+      .limit(20000)
+  ]);
 
+  if (plannedRes.error) throw new Error(plannedRes.error.message);
+  if (recsRes.error) throw new Error(recsRes.error.message);
 
+  const planned = plannedRes.data;
+  const recs = recsRes.data;
 
-  // 5) Reconciliações no período
-  let recQ = supabase
-    .from("mk9_visit_reconciliations")
-    .select("status, store_id, planned_visit_id, actual_visit_id, source_import_id")
-    .eq("industry_id", industryId)
-    .eq("operation_year", input.year)
-    .eq("operation_month", input.month)
-    .limit(20000);
-  if (sourceImportId) recQ = recQ.eq("source_import_id", sourceImportId);
-  if (storeId) recQ = recQ.eq("store_id", storeId);
-  const { data: recs, error: eRe } = await recQ;
-  if (eRe) throw new Error(eRe.message);
 
   // -------- Agregação por loja --------
   type Bucket = {

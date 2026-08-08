@@ -18,7 +18,10 @@ import {
   Filter,
   RefreshCw,
   Search,
-  ExternalLink
+  ExternalLink,
+  Zap,
+  Database,
+  Cpu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
@@ -32,6 +35,8 @@ import {
   AnalyticsChartCard, 
   AnalyticsTable 
 } from "./mk9/AnalyticsComponents";
+
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { getAnalyticsDashboard } from "@/lib/mk9-dashboard/analytics.functions";
@@ -87,7 +92,16 @@ export function Mk9AnalyticsDashboard() {
   const { summary, frequencyDistribution, states, criticalStores, industries, dailyExecution } = data;
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
+    <div className="space-y-8 animate-fade-in pb-20 selection:bg-purple-500/30">
+      {/* Performance Debug (Visible in Dev) */}
+      {data.perf && (
+        <div className="flex items-center gap-4 text-[9px] font-mono text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2 mb-4">
+          <span className="flex items-center gap-1"><Zap className="h-3 w-3 text-amber-500" /> Core: {data.perf.coreMs}ms</span>
+          <span className="flex items-center gap-1"><Database className="h-3 w-3 text-blue-500" /> Queries: {data.perf.queryCount}</span>
+          <span className="flex items-center gap-1"><Cpu className="h-3 w-3 text-purple-500" /> Payload: Consolidade</span>
+        </div>
+      )}
+
       {/* Header & Filters */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>

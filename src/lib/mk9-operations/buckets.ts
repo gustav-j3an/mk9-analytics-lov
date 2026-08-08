@@ -187,8 +187,10 @@ export function buildIndustryRows(input: {
         isHistorical: ctx.win.endDate < today,
         lojasContratadas,
         lojasAtendidas,
+        zeradasCount: rows.filter(s => s.realizadas === 0 && s.contratadas > 0).length,
         contratadas,
         expectedToDate,
+
         realizadas,
         pendentes: Math.max(0, contratadas - realizadas),
         coberturaPct: contratadas > 0 ? Math.min(100, pct(realizadas, contratadas)) : 0,

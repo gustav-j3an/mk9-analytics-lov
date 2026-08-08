@@ -84,12 +84,7 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
   const [uf, setUf] = useState<string>(ALL);
   const [promoterId, setPromoterId] = useState<string>(ALL);
 
-  const overviewFn = useServerFn(mk9CockpitOverviewFn);
-  const industriesFn = useServerFn(mk9ListIndustries);
-  const promotersFn = useServerFn(mk9ListPromoters);
-
-  const industriesQ = useQuery({ queryKey: ["mk9-industries"], queryFn: () => industriesFn() });
-  const promotersQ = useQuery({ queryKey: ["mk9-promoters"], queryFn: () => promotersFn() });
+  const cockpitFn = useServerFn(mk9CockpitOverviewFn);
 
   const filters = {
     year, month,
@@ -98,13 +93,16 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
     promoterId: promoterId === ALL ? null : promoterId,
   };
 
-  const q = useQuery<Mk9CockpitOverview>({
-    queryKey: ["mk9-cockpit", filters.year, filters.month, filters.industryId, filters.uf, filters.promoterId],
-    queryFn: () => overviewFn({ data: filters }) as Promise<Mk9CockpitOverview>,
+  const q = useQuery<any>({
+    queryKey: ["mk9-cockpit", filters],
+    queryFn: () => cockpitFn({ data: filters }),
     staleTime: 60_000,
   });
 
   const data = q.data;
+  const industries = data?.meta?.industries ?? [];
+  const promoters = data?.meta?.promoters ?? [];
+
 
   const go = (target: string | null) => {
     if (!target) return;
@@ -136,6 +134,23 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
                 {[year - 1, year, year + 1].map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
+            
+            <Select value={industryId} onValueChange={setIndustryId}>
+              <SelectTrigger className="h-9 w-[160px] bg-command-deep border-white/10 text-white"><SelectValue placeholder="Indústria" /></SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10 text-white">
+                <SelectItem value={ALL}>Todas as Indústrias</SelectItem>
+                {industries.map((i: any) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+
+            <Select value={promoterId} onValueChange={setPromoterId}>
+              <SelectTrigger className="h-9 w-[160px] bg-command-deep border-white/10 text-white"><SelectValue placeholder="Promotor" /></SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10 text-white">
+                <SelectItem value={ALL}>Todos os Promotores</SelectItem>
+                {promoters.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+
             <Button size="sm" variant="outline" className="h-9 border-white/10 bg-white/5 text-slate-400 hover:text-white" onClick={() => q.refetch()}>
               <RefreshCw className={cn("h-3.5 w-3.5 mr-2", q.isFetching && "animate-spin")} /> Sincronizar
             </Button>
@@ -150,7 +165,7 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
         <Mk9MetricCard color="amber" icon={AlertTriangle} label="Pendentes" value={data.kpis.pendentes} hint="Visitas em aberto" />
         <Mk9MetricCard color="rose" icon={AlertTriangle} label="Críticas" value={data.health.blockingIssues} hint="Bloqueantes" />
         <Mk9MetricCard color="purple" icon={TrendingUp} label="Cobertura" value={`${data.kpis.coberturaPct}%`} hint={`Ritmo: ${data.health.pacePercentage}%`} />
-        <Mk9MetricCard color="blue" icon={Users} label="Promotores" value={promotersQ.data?.length ?? 0} hint="Time em campo" />
+        <Mk9MetricCard color="blue" icon={Users} label="Promotores" value={promoters.length} hint="Time em campo" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
@@ -176,7 +191,7 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">Alertas Ativos</h3>
             </div>
             <div className="space-y-3">
-              {data.priorities.map((p, idx) => (
+              {data.priorities.map((p: any, idx: number) => (
                 <div key={p.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors group">
                   <div className="flex items-center gap-4">
                     <span className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center text-[10px] font-black text-slate-500">{idx + 1}</span>
@@ -200,8 +215,9 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
           <Mk9Panel className="h-full">
             <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-6">Ações Rápidas</h3>
             <div className="grid grid-cols-2 gap-3">
-              {data.quickActions.map((a) => {
-                const Icon = ACTION_ICON[a.id] ?? BarChart3;
+              {data.quickActions.map((a: any) => {
+                const Icon = (ACTION_ICON as any)[a.id] ?? BarChart3;
+
                 return (
                   <button
                     key={a.id}

@@ -29,27 +29,43 @@ export const mk9CockpitOverviewFn = createServerFn({ method: "POST" })
         ? data.supervisorUserId
         : null;
 
-    return buildCockpitOverview(
-      supabaseAdmin,
-      {
-        year: data.year,
-        month: data.month,
-        industryId: data.industryId ?? null,
-        uf: data.uf ?? null,
-        promoterId: data.promoterId ?? null,
-        supervisorUserId,
-        access: {
-          allowedIndustryIds: scope.allowedIndustryIds,
-          allowedUfs: scope.allowedUfs,
-          allowedStoreIds: scope.allowedStoreIds,
-          allowedPromoterIds: scope.allowedPromoterIds,
+    const { mk9ListIndustries, mk9ListPromoters } = await import("@/lib/mk9-data.functions");
+    
+    // Otimização: Carregamos tudo em paralelo (Data + Metadata)
+    const [overview, industries, promoters] = await Promise.all([
+      buildCockpitOverview(
+        supabaseAdmin,
+        {
+          year: data.year,
+          month: data.month,
+          industryId: data.industryId ?? null,
+          uf: data.uf ?? null,
+          promoterId: data.promoterId ?? null,
+          supervisorUserId,
+          access: {
+            allowedIndustryIds: scope.allowedIndustryIds,
+            allowedUfs: scope.allowedUfs,
+            allowedStoreIds: scope.allowedStoreIds,
+            allowedPromoterIds: scope.allowedPromoterIds,
+            canViewPersonalData: scope.canViewPersonalData,
+          },
+        },
+        {
+          role: scope.role,
+          canViewImports: scope.canViewImports,
           canViewPersonalData: scope.canViewPersonalData,
         },
-      },
-      {
-        role: scope.role,
-        canViewImports: scope.canViewImports,
-        canViewPersonalData: scope.canViewPersonalData,
-      },
-    );
+      ),
+      mk9ListIndustries(),
+      mk9ListPromoters(),
+    ]);
+
+    return {
+      ...overview,
+      meta: {
+        industries,
+        promoters
+      }
+    };
+
   });
