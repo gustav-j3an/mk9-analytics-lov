@@ -58,7 +58,7 @@ export function Mk9AnalyticsDashboard() {
   const [industryId, setIndustryId] = useState("__ALL__");
   const [uf, setUf] = useState("__ALL__");
 
-  const analyticsFn = useServerFn(getAnalyticsDashboard);
+  const analyticsFn = useServerFn(getMk9AnalyticsDashboardFn);
   const industriesFn = useServerFn(mk9ListIndustries);
 
   const industriesQ = useQuery({ 
