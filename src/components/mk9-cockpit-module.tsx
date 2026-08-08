@@ -1,7 +1,7 @@
 /**
  * MK9 — Cockpit Operacional: interface (Centro de Comando).
  */
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -88,15 +88,30 @@ function shortDate(value: string | null) {
   return d ? `${d}/${m}/${y}` : iso;
 }
 
-export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string) => void }) {
-  const now = new Date();
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
+export function Mk9CockpitModule({
+  onNavigate,
+  initialMonth,
+  initialYear,
+}: {
+  onNavigate?: (target: string) => void;
+  initialMonth?: number;
+  initialYear?: number;
+}) {
+  const [month, setMonth] = useState(initialMonth || new Date().getMonth() + 1);
+  const [year, setYear] = useState(initialYear || new Date().getFullYear());
   const [industryId, setIndustryId] = useState<string>(ALL);
   const [uf, setUf] = useState<string>(ALL);
   const [promoterId, setPromoterId] = useState<string>(ALL);
 
   const cockpitFn = useServerFn(mk9CockpitOverviewFn);
+
+  useEffect(() => {
+    if (initialMonth) setMonth(initialMonth);
+  }, [initialMonth]);
+
+  useEffect(() => {
+    if (initialYear) setYear(initialYear);
+  }, [initialYear]);
 
   const filters = {
     year,
@@ -136,7 +151,7 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
         actions={
           <div className="glass-command p-1.5 rounded-xl flex flex-wrap items-center gap-2 border border-white/5">
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-8 w-[120px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider">
+              <SelectTrigger className="h-8 min-w-[130px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider px-3 gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Download, Loader2, Settings2, AlertCircle, FileText } from "lucide-react";
@@ -80,17 +80,24 @@ function fmtBR(iso?: string | null) {
   return d && m && y ? `${d}/${m}/${y}` : iso;
 }
 
-export function Mk9IndustryReportModule() {
-  const now = new Date();
+export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initialMonth?: number; initialYear?: number }) {
   const [industryId, setIndustryId] = useState<string>("");
-  const [month, setMonth] = useState<number>(now.getMonth() + 1);
-  const [year, setYear] = useState<number>(now.getFullYear());
+  const [month, setMonth] = useState<number>(initialMonth || new Date().getMonth() + 1);
+  const [year, setYear] = useState<number>(initialYear || new Date().getFullYear());
   const [uf, setUf] = useState<string>("");
   const [sourceImportId, setSourceImportId] = useState<string>("");
 
   const industriesFn = useServerFn(mk9ListIndustries);
   const reportFn = useServerFn(reportIndustry);
   const importsFn = useServerFn(reportListChecklistImports);
+
+  useEffect(() => {
+    if (initialMonth) setMonth(initialMonth);
+  }, [initialMonth]);
+
+  useEffect(() => {
+    if (initialYear) setYear(initialYear);
+  }, [initialYear]);
 
   const industriesQ = useQuery({ queryKey: ["mk9-industries"], queryFn: () => industriesFn() });
 
@@ -226,7 +233,7 @@ export function Mk9IndustryReportModule() {
               Mês
             </Label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+              <SelectTrigger className="h-9 min-w-[130px] bg-command-deep border-white/10 text-white uppercase px-3 gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">

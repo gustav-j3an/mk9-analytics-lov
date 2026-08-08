@@ -381,7 +381,7 @@ export function Mk9AnalyticsApp() {
             {activeModule === "dashboard" && (
               <Mk9AnalyticsDashboard initialMonth={month} initialYear={year} />
             )}
-            {activeModule === "cockpit" && <Mk9CockpitModule />}
+            {activeModule === "cockpit" && <Mk9CockpitModule initialMonth={month} initialYear={year} />}
             {activeModule === "importacoes" && (
               <Mk9ImportModule onSwitchToChecklists={() => setActiveModule("checklists")} />
             )}
@@ -432,7 +432,9 @@ export function Mk9AnalyticsApp() {
               />
             )}
 
-            {activeModule === "relatorio_industria" && <Mk9IndustryReportModule />}
+            {activeModule === "relatorio_industria" && (
+              <Mk9IndustryReportModule initialMonth={month} initialYear={year} />
+            )}
             {activeModule === "cleanup_admin" && (
               <Mk9AdminCleanupModule month={month} year={year} />
             )}
