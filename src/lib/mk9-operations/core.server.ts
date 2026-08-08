@@ -115,9 +115,10 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
 
   if (cfgRes.error) throw new Error(cfgRes.error.message);
 
-  let industries = (industriesList ?? []) as any[];
+  let industries = (industriesList.data ?? []) as any[];
   if (filters.industryId) industries = industries.filter(i => i.id === filters.industryId);
   if (scopeIndustryIds) industries = industries.filter(i => scopeIndustryIds!.includes(i.id));
+
 
   const cfgByIndustry = new Map<string, PeriodConfig>();
   for (const c of cfgRes.data ?? []) {
