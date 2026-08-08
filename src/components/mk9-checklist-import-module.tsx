@@ -1141,9 +1141,9 @@ function IndividualImport({
                 </Button>
               </div>
             )}
-          </div>
         </Mk9Panel>
       )}
+
 
       {lastError && <ErrorPanel err={lastError} onDismiss={() => setLastError(null)} />}
 
