@@ -280,7 +280,7 @@ export function Mk9AnalyticsDashboard() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
               <XAxis type="number" hide />
               <YAxis 
-                dataKey="label" 
+                dataKey="frequency" 
                 type="category" 
                 axisLine={false} 
                 tickLine={false} 
@@ -290,7 +290,8 @@ export function Mk9AnalyticsDashboard() {
                 cursor={{ fill: "rgba(255,255,255,0.02)" }}
                 contentStyle={{ backgroundColor: "#080812", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }}
               />
-              <Bar dataKey="storeCount" radius={[0, 4, 4, 0]} name="Lojas">
+              <Bar dataKey="stores" radius={[0, 4, 4, 0]} name="Lojas">
+
                 {frequencies.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "#3B82F6" : "#A855F7"} />
                 ))}
