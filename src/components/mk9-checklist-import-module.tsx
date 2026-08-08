@@ -38,7 +38,7 @@ import { RevertChecklistDialog, CorrectCompetenceDialog, CompetenceConflictDialo
 
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, div, div, h3 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1695,14 +1695,14 @@ function ErrorPanel({ err, onDismiss }: { err: RichError; onDismiss: () => void 
     }
   };
   return (
-    <Card className="glass-panel border-destructive/50">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-destructive">
+    <Mk9Panel className="glass-panel border-destructive/50">
+      <div>
+        <h3 className="flex items-center gap-2 text-destructive">
           <AlertTriangle className="h-5 w-5" />
           Erro na importação {err.step ? `— ${err.step}` : ""}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+        </h3>
+      </div>
+      <div className="space-y-3">
         <div className="rounded-md bg-destructive/5 border border-destructive/20 p-3 text-sm">
           <p className="font-medium text-destructive">{err.message}</p>
           {err.name && <p className="text-xs text-muted-foreground mt-1">{err.name}</p>}
@@ -1797,8 +1797,8 @@ function ErrorPanel({ err, onDismiss }: { err: RichError; onDismiss: () => void 
           <Button size="sm" variant="outline" onClick={copy}>Copiar detalhes técnicos</Button>
           <Button size="sm" variant="ghost" onClick={onDismiss}>Fechar</Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </Mk9Panel>
   );
 }
 
