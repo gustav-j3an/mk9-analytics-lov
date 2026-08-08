@@ -142,12 +142,14 @@ export function contractedVisitsForFrequencySegments(input: {
       const segCobreInicio = seg.validFrom <= periodStart;
       const segCobreFim = seg.validUntil === null || seg.validUntil >= periodEnd;
       
-      if (!input.untilDate && (segCobreInicio || segCobreFim)) {
-        // Se cobre o início ou o fim (ou ambos), tratamos como a frequência principal do período
+      if (!input.untilDate && segCobreInicio && segCobreFim) {
+        // Se o segmento cobre o período operacional inteiro, usamos o valor mensal integral.
         segRaw = monthly;
       } else {
+        // Caso contrário, proporcionalizamos os dias vigentes pelo denominador do período.
         segRaw = monthly * (days / periodDays);
       }
+
       sawMonthly = true;
     } else if (weekly != null) {
       source = "WEEKLY_FREQUENCY";
