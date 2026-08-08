@@ -203,15 +203,15 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
         subtitle="Acompanhamento de frequência, execução e cobertura"
         icon={FileText}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <PeriodConfigDialog industryId={industryId} />
           </div>
         }
       />
 
       <Mk9Panel>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="sm:col-span-2">
             <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
               Indústria
             </Label>
@@ -303,7 +303,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
 
       {report && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             <Mk9MetricCard label="Lojas" value={report.totals.totalStores} color="blue" />
             <Mk9MetricCard
               label="Contratadas"
@@ -329,7 +329,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
             />
           </div>
 
-          <Mk9Panel className="flex flex-wrap items-center justify-between gap-6">
+          <Mk9Panel className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-1">
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                 Período de Competência
@@ -340,7 +340,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
               <Button
                 onClick={() => downloadPdf("full")}
                 disabled={!!downloading}
@@ -357,7 +357,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
               <Button
                 onClick={() => downloadPdf("unattended")}
                 disabled={!!downloading}
-                className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest"
+                className="h-9 w-full sm:w-auto bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest"
               >
                 {downloading === "unattended" ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -377,7 +377,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
 
           {report.ufs.length > 0 && (
             <Mk9Panel title="Resumo por UF">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto custom-scrollbar-horizontal">
                 <table className="w-full">
                   <thead>
                     <tr className="text-left text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5">
@@ -413,7 +413,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
           )}
 
           <Mk9Panel title="Detalhamento por Loja">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto custom-scrollbar-horizontal">
               <table className="w-full">
                 <thead>
                   <tr className="text-left text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5">
