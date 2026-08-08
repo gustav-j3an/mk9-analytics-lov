@@ -198,7 +198,7 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
             <PerformanceCard 
               label="Nível de Entrega"
               percentage={data ? Math.min(100, Math.round((data.kpis.realizedToDate / (data.kpis.expectedToDate || 1)) * 100)) : 0}
-              status={(data && (data.kpis.realizedToDate / (data.kpis.expectedToDate || 1)) > 0.95) ? "Meta Batida" : "Em Progresso"}
+              status={(data && (data.kpis.realizedToDate / (data.kpis.expectedToDate || 1)) > 0.95) ? "Excelente" : "Atenção"}
               comparison={`Ritmo: ${data?.kpis.pacePercentage ?? 0}% do esperado`}
             />
             <MetricCard color="rose" icon={Factory} label="Indústrias Risco" value={nf(data?.kpis.industriasEmRisco ?? 0)} hint="Ação imediata requerida" onClick={() => drill({})} />
@@ -361,21 +361,21 @@ function DashboardIntegrityCheck({ params }: { params: any }) {
                 {data.ok ? <CheckCircle2 className="h-6 w-6 shrink-0" /> : <AlertTriangle className="h-6 w-6 shrink-0" />}
                 <div>
                   <p className="text-sm font-black uppercase tracking-tight">{data.ok ? "Integridade Confirmada" : "Inconsistências Detectadas"}</p>
-                  <p className="text-[10px] opacity-70 font-bold uppercase tracking-widest mt-0.5">{data.message}</p>
+                  <p className="text-[10px] opacity-70 font-bold uppercase tracking-widest mt-0.5">{data.ok ? "Base de dados operacional sem anomalias críticas." : "Foram encontrados problemas na matriz operacional."}</p>
                 </div>
               </div>
 
-              {!data.ok && data.findings && (
+              {!data.ok && data.issues && (
                 <div className="space-y-3 mt-8">
                   <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1">Relatório de Anomalias</h4>
-                  {data.findings.map((f: any, i: number) => (
+                  {data.issues.map((f: any, i: number) => (
                     <div key={i} className="glass-command p-4 rounded-xl border border-white/5 flex gap-4 items-start group hover:border-white/10 transition-colors">
                       <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-white/10 transition-colors">
                         <Info className="h-4 w-4 text-slate-500" />
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-xs font-black text-slate-200 uppercase tracking-tight">{f.title}</p>
-                        <p className="text-[10px] text-slate-500 font-medium leading-normal">{f.description}</p>
+                      <div className="space-y-1 flex-1">
+                        <p className="text-xs font-black text-slate-200 uppercase tracking-tight">{f.kind}</p>
+                        <p className="text-[10px] text-slate-500 font-medium leading-normal">{f.detail}</p>
                       </div>
                     </div>
                   ))}
