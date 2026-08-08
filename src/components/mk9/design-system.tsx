@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { cn } from "@/lib/utils";
 import { LucideIcon, Loader2, AlertTriangle, Inbox } from "lucide-react";
 

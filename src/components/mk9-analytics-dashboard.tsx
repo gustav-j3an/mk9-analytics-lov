@@ -35,6 +35,12 @@ import {
   AnalyticsChartCard, 
   AnalyticsTable 
 } from "./mk9/AnalyticsComponents";
+import { 
+  Zap, 
+  Database, 
+  Cpu 
+} from "lucide-react";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { getAnalyticsDashboard } from "@/lib/mk9-dashboard/analytics.functions";
