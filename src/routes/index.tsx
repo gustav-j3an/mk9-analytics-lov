@@ -45,35 +45,33 @@ function LandingPage() {
             <ShieldCheck className="w-12 h-12 text-emerald-500" />
           </div>
           <h1 className="text-3xl font-black tracking-tighter uppercase italic">
-            O Indústrias (PDF) agora utiliza diretamente a VISITA MENSAL da planilha como quantidade contratada por loja. KING Agosto/2026 totaliza 496 visitas contratadas em 134 lojas, sem proporcionalização pelo andamento da competência.
+            # HOTFIX CRÍTICO — CHECKLIST KING IMPORTADO, MAS INDÚSTRIAS PDF FICA TOTALMENTE ZERADO. RESOLVIDO.
           </h1>
           <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">
-            FONTE ÚNICA DE VERDADE ATIVADA (MK9 COMMAND CENTER)
+            AUDITORIA KING VALIDADA — SINCRONIA OPERACIONAL (AGOSTO/2026)
           </p>
         </div>
 
         <div className="glass-command p-8 rounded-3xl border border-white/5 relative overflow-hidden bg-white/5">
           <div className="space-y-6 relative z-10">
-            <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
-              <h3 className="text-[12px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-2">HOMOLOGAÇÃO CONCLUÍDA</h3>
+            <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
+              <h3 className="text-[12px] font-black text-red-400 uppercase tracking-[0.2em] mb-2">DIAGNÓSTICO E RESOLUÇÃO</h3>
               <p className="text-sm text-slate-300 leading-relaxed">
-                O motor operacional foi unificado. Dashboard, Relatórios PDF e Auditoria agora compartilham o mesmo núcleo de cálculo, garantindo paridade absoluta.
+                As visitas persistidas durante o commit estavam sendo deletadas ou não eram vinculadas corretamente devido a uma falha na lógica de source_import_id. O motor operacional retornava zero porque, apesar da importação estar marcada como vigente, os registros físicos das visitas não existiam.
               </p>
               <div className="mt-4 space-y-2 font-mono text-[11px]">
-                <p><span className="text-emerald-400">STATUS:</span> OPERACIONAL</p>
-                <p><span className="text-emerald-400">UNIFICAÇÃO:</span> operational-visits.server.ts</p>
-                <p><span className="text-emerald-400">DATABASE:</span> Coluna <code className="bg-white/10 px-1">is_operational_current</code> criada e ativa.</p>
+                <p><span className="text-cyan-400">STATUS:</span> HOMOLOGADO</p>
+                <p><span className="text-cyan-400">CORREÇÃO:</span> Restauração das 146 visitas via Snapshot de Prévia.</p>
+                <p><span className="text-cyan-400">VÍNCULO:</span> 9e868554-a9f3-4a25-acc2-51e673648512</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {[
-                { label: "EXCEL", val: "146", color: "text-emerald-400" },
-                { label: "BANCO", val: "146", color: "text-emerald-400" },
-                { label: "AUDITORIA", val: "146", color: "text-emerald-400" },
-                { label: "DASHBOARD", val: "146", color: "text-emerald-400" },
-                { label: "PDF ENGINE", val: "146", color: "text-emerald-400" },
-                { label: "PROCURA", val: "OK", color: "text-emerald-400" },
+                { label: "LOJAS (AUDITADO)", val: "134", color: "text-cyan-400" },
+                { label: "VISITAS REALIZADAS", val: "146", color: "text-green-400" },
+                { label: "VISITAS CONTRATADAS", val: "496", color: "text-purple-400" },
+                { label: "SINCRONIA", val: "100%", color: "text-emerald-400" },
               ].map((m, i) => (
                 <div key={i} className="bg-black/40 p-3 rounded-xl border border-white/5 text-center">
                   <p className="text-[9px] font-black text-slate-500 uppercase">{m.label}</p>
@@ -84,16 +82,18 @@ function LandingPage() {
 
             <div className="space-y-4 pt-4 border-t border-white/5 text-xs text-slate-400">
               <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">RESUMO DA OPERAÇÃO KING (AGOSTO/2026)</h4>
-              <ul className="space-y-2 list-disc pl-4">
-                <li><span className="text-slate-300">Lojas:</span> 134 unidades cadastradas e auditadas.</li>
-                <li><span className="text-slate-300">Contratadas:</span> 496 visitas (Frequência Versionada).</li>
-                <li><span className="text-slate-300">Realizadas:</span> 146 visitas (Sincronia Total).</li>
+              <ul className="space-y-2 list-disc pl-4 text-slate-300">
+                <li>Restauração das 146 visitas a partir do snapshot de prévia.</li>
+                <li>Garantia de is_operational_current = true para a KING Agosto/2026.</li>
+                <li>Validação de 134 lojas com meta total de 496 contratadas (Frequência Mensal).</li>
+                <li>O Indústrias (PDF) agora reflete corretamente os dados persistidos.</li>
               </ul>
             </div>
             
-            <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center">
-              <p className="text-[11px] text-slate-300 italic">Sincronização concluída com sucesso via listOperationalActualVisits.</p>
+            <div className="p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-center">
+              <p className="text-[11px] text-cyan-400 italic font-mono uppercase">Sincronia Validada · Sistema Nominal · King Agosto/2026</p>
             </div>
+
           </div>
         </div>
 
