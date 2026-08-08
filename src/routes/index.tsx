@@ -48,16 +48,15 @@ function LandingPage() {
         <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 mb-8">
           <h2 className="text-sm font-semibold text-primary uppercase tracking-wider mb-4">Missão Ativa</h2>
           <div className="prose prose-invert prose-sm max-w-none">
-            <h3 className="text-xl font-bold text-white mb-2"># MISSÃO — IMPLEMENTAR CRUD COMPLETO DE INDÚSTRIAS</h3>
+            <h3 className="text-xl font-bold text-white mb-2"># MISSÃO — REDESIGN VISUAL DO DASHBOARD MK9 COMMAND CENTER</h3>
             <p className="text-slate-300">
-              O módulo de Indústrias agora possui CRUD completo com criação, edição, CNPJ opcional e exclusão inteligente persistida no banco.
-              Garantindo integridade dos dados e auditoria de alterações.
+              Transformando o MK9 Analytics em um Centro de Controle Operacional Premium com interface futurista, cards modernos e visual tecnológico.
             </p>
             <ul className="text-xs text-slate-400 mt-4 space-y-1">
-              <li>✔ Edição completa (Nome, CNPJ, Período, Checklist)</li>
-              <li>✔ CNPJ Opcional com validação numérica</li>
-              <li>✔ Exclusão inteligente (Hard Delete se vazio / Soft Delete se tiver histórico)</li>
-              <li>✔ Persistência real e Auditoria administrativa</li>
+              <li>✔ Dashboard Dark Futurista (Paleta #080812)</li>
+              <li>✔ MK9 Command Center Dashboard</li>
+              <li>✔ Nível Operacional e Status da Operação Dinâmico</li>
+              <li>✔ Componentização Premium (MK9MetricCard, MK9ChartCard)</li>
             </ul>
           </div>
         </div>
