@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -167,7 +167,7 @@ function fmtDate(v?: string | null) {
   return d && m && y ? `${d}/${m}/${y}` : v;
 }
 
-function useDebounced<T>(value: T, ms = 350) {
+function useDebouncedValue<T>(value: T, ms = 350) {
   const [v, setV] = useState(value);
   useEffect(() => {
     const t = setTimeout(() => setV(value), ms);
@@ -176,17 +176,16 @@ function useDebounced<T>(value: T, ms = 350) {
   return v;
 }
 
-export function Mk9ReconciliationModule() {
-  const now = new Date();
-  const [year, setYear] = useState<number>(now.getFullYear());
-  const [month, setMonth] = useState<number>(now.getMonth() + 1);
+export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initialMonth?: number; initialYear?: number } = {}) {
+  const [year, setYear] = useState<number>(initialYear || new Date().getFullYear());
+  const [month, setMonth] = useState<number>(initialMonth || new Date().getMonth() + 1);
   const [industryId, setIndustryId] = useState<string>("__ALL__");
   const [promoterId, setPromoterId] = useState<string>("__ALL__");
   const [uf, setUf] = useState<string>("__ALL__");
   const [importId, setImportId] = useState<string>("__ALL__");
   const [tab, setTab] = useState<TabKey>("all");
   const [rawSearch, setRawSearch] = useState("");
-  const search = useDebounced(rawSearch, 300);
+  const search = useDebouncedValue(rawSearch, 300);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -228,6 +227,14 @@ export function Mk9ReconciliationModule() {
     }),
     [scope, importId, promoterId, uf, tab, search, page, pageSize],
   );
+
+  useEffect(() => {
+    if (initialMonth) setMonth(initialMonth);
+  }, [initialMonth]);
+
+  useEffect(() => {
+    if (initialYear) setYear(initialYear);
+  }, [initialYear]);
 
   useEffect(() => {
     setPage(1);
@@ -344,7 +351,7 @@ export function Mk9ReconciliationModule() {
               Ano
             </label>
             <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 min-w-[100px] bg-black/40 border-white/5 text-xs text-white px-3 gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10">
@@ -361,7 +368,7 @@ export function Mk9ReconciliationModule() {
               Mês
             </label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 min-w-[130px] bg-black/40 border-white/5 text-xs text-white uppercase px-3 gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10">
