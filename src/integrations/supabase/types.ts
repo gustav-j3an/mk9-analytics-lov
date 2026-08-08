@@ -2320,6 +2320,7 @@ export type Database = {
         | "done"
         | "failed"
         | "cancelled"
+        | "INCONSISTENT"
       mk9_industry_status:
         | "DENTRO DA META"
         | "ACIMA DA META"
@@ -2478,6 +2479,7 @@ export const Constants = {
         "done",
         "failed",
         "cancelled",
+        "INCONSISTENT",
       ],
       mk9_industry_status: [
         "DENTRO DA META",

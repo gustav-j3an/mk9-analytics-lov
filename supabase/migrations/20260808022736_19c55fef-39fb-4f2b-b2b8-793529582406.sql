@@ -1,0 +1,1 @@
+ALTER TYPE public.mk9_import_status ADD VALUE 'INCONSISTENT';
