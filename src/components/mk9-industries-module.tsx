@@ -21,7 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { mk9ListIndustries } from "@/lib/mk9-industries.functions";
+import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 import {
   IndustryCreateDialog,
   IndustryEditDialog,
