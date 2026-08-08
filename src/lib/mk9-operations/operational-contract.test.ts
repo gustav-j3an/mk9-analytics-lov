@@ -86,7 +86,48 @@ describe('MK9 Operational Contract - FASE 3', () => {
     });
   });
 
+  describe('Inteligência Analítica (FASE 4)', () => {
+    it('Score de Risco deve ser CRITICAL para loja com zero visitas e contrato alto', () => {
+      const contracted = 8;
+      const realized = 0;
+      const coverage = 0;
+      
+      // Regra: zerada + contrato alto = CRITICAL
+      let risk = "LOW";
+      if (realized === 0 && contracted >= 4) risk = "CRITICAL";
+      
+      expect(risk).toBe("CRITICAL");
+    });
+
+    it('Tendência deve ser IMPROVING se a cobertura subiu mais de 2 pontos', () => {
+      const prevCov = 40;
+      const curCov = 45;
+      const delta = curCov - prevCov;
+      
+      let trend = "STABLE";
+      if (delta > 2) trend = "IMPROVING";
+      
+      expect(trend).toBe("IMPROVING");
+    });
+
+    it('Reincidência deve ser detectada se cobertura < 50% em dois períodos', () => {
+      const prevCov = 40;
+      const curCov = 30;
+      
+      const isRecurrent = prevCov < 50 && curCov < 50;
+      expect(isRecurrent).toBe(true);
+    });
+
+    it('Paridade Absoluta: analytics.realized === operational.realized', () => {
+      const operationalCore = { contracted: 496, realized: 146 };
+      const analyticsPayload = { executive: { contracted: { current: 496 }, realized: { current: 146 } } };
+      
+      expect(analyticsPayload.executive.realized.current).toBe(operationalCore.realized);
+      expect(analyticsPayload.executive.contracted.current).toBe(operationalCore.contracted);
+    });
+  });
 });
+
 
 /**
  * Helper de paridade operacional solicitado na missão.

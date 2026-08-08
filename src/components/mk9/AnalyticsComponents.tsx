@@ -9,10 +9,12 @@ interface AnalyticsMetricCardProps {
   icon?: LucideIcon;
   color?: "purple" | "blue" | "emerald" | "amber" | "rose" | "cyan";
   comparison?: {
-    value: number;
+    value: number | string;
     label: string;
     trend: "up" | "down" | "neutral";
+    percentChange?: number;
   };
+
   onClick?: () => void;
   className?: string;
 }
@@ -77,7 +79,13 @@ export function AnalyticsMetricCard({
             {comparison.trend === "up" && <ArrowUpRight className="h-3 w-3" />}
             {comparison.trend === "down" && <ArrowDownRight className="h-3 w-3" />}
             {comparison.trend === "neutral" && <Minus className="h-3 w-3" />}
-            {comparison.value}%
+            {comparison.value}{typeof comparison.value === 'number' && '%'}
+            {comparison.percentChange !== undefined && (
+              <span className="ml-1 opacity-70">
+                ({comparison.percentChange > 0 ? '+' : ''}{comparison.percentChange.toFixed(1)}%)
+              </span>
+            )}
+
           </div>
           <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
             {comparison.label}
