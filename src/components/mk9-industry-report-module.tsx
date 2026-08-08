@@ -29,17 +29,17 @@ const MONTHS_PT = [
   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
 
-const EXEC_TONE: Record<string, string> = {
+const EXEC_TONE: Record<string, "success" | "warning" | "danger" | "default"> = {
   INTEGRAL: "success",
   PARCIAL: "warning",
-  NAO_ATENDIDA: "error",
+  NAO_ATENDIDA: "danger",
 };
 const EXEC_LABEL: Record<string, string> = {
   INTEGRAL: "Integral",
   PARCIAL: "Parcial",
   NAO_ATENDIDA: "Não atendida",
 };
-const ROUTE_TONE: Record<string, string> = {
+const ROUTE_TONE: Record<string, "info" | "warning" | "default"> = {
   DENTRO_ROTEIRO: "info",
   FORA_ROTEIRO: "warning",
 };
@@ -47,6 +47,7 @@ const ROUTE_LABEL: Record<string, string> = {
   DENTRO_ROTEIRO: "No Roteiro",
   FORA_ROTEIRO: "Fora Roteiro",
 };
+
 const SOURCE_LABEL: Record<string, string> = {
   WEEKLY_FREQUENCY: "Freq. semanal",
   MONTHLY_FREQUENCY: "Freq. mensal",
@@ -221,15 +222,16 @@ export function Mk9IndustryReportModule() {
       {report && (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            <Mk9MetricCard label="Lojas" value={report.totals.totalStores} />
-            <Mk9MetricCard label="Contratadas" value={report.totals.metrics.contratadas} />
-            <Mk9MetricCard label="Realizadas" value={report.totals.metrics.executadas} trend={{ value: report.totals.metrics.coberturaPct, isPositive: true }} />
-            <Mk9MetricCard label="Pendentes" value={report.totals.metrics.pendencias} variant="warning" />
-            <Mk9MetricCard label="Extras" value={report.totals.metrics.extras} variant="info" />
-            <Mk9MetricCard label="Cobertura" value={`${report.totals.metrics.coberturaPct}%`} variant={report.totals.metrics.coberturaPct >= 90 ? "default" : "warning"} />
-            <Mk9MetricCard label="Operacional" value={`${report.totals.operationalCoveragePct}%`} variant={report.totals.operationalCoveragePct >= 90 ? "default" : "warning"} />
-            <Mk9MetricCard label="Fora Roteiro" value={report.totals.unplanned} variant="warning" />
+            <Mk9MetricCard label="Lojas" value={report.totals.totalStores} color="blue" />
+            <Mk9MetricCard label="Contratadas" value={report.totals.metrics.contratadas} color="purple" />
+            <Mk9MetricCard label="Realizadas" value={report.totals.metrics.executadas} color="emerald" hint={`${report.totals.metrics.coberturaPct}% cobertura`} />
+            <Mk9MetricCard label="Pendentes" value={report.totals.metrics.pendencias} color="amber" />
+            <Mk9MetricCard label="Extras" value={report.totals.metrics.extras} color="blue" />
+            <Mk9MetricCard label="Cobertura" value={`${report.totals.metrics.coberturaPct}%`} color={report.totals.metrics.coberturaPct >= 90 ? "emerald" : "amber"} />
+            <Mk9MetricCard label="Operacional" value={`${report.totals.operationalCoveragePct}%`} color={report.totals.operationalCoveragePct >= 90 ? "emerald" : "amber"} />
+            <Mk9MetricCard label="Fora Roteiro" value={report.totals.unplanned} color="rose" />
           </div>
+
 
           <Mk9Panel className="flex flex-wrap items-center justify-between gap-6">
             <div className="space-y-1">
@@ -277,6 +279,7 @@ export function Mk9IndustryReportModule() {
                         <td className="py-3 text-slate-400">{u.extra}</td>
                         <td className="py-3">
                           <Mk9Badge variant={u.coveragePct >= 90 ? "success" : "warning"}>{u.coveragePct}%</Mk9Badge>
+
                         </td>
                       </tr>
                     ))}
@@ -315,7 +318,7 @@ export function Mk9IndustryReportModule() {
                         <td className="py-3 text-slate-300 font-medium">{s.expected}</td>
                         <td className="py-3 text-white font-bold">{s.actual}</td>
                         <td className="py-3">
-                          <Mk9Badge variant={s.coveragePct >= 90 ? "success" : s.coveragePct >= 70 ? "warning" : "error"}>{s.coveragePct}%</Mk9Badge>
+                          <Mk9Badge variant={s.coveragePct >= 90 ? "success" : s.coveragePct >= 70 ? "warning" : "danger"}>{s.coveragePct}%</Mk9Badge>
                         </td>
                         <td className="py-3">
                           <Mk9Badge variant={EXEC_TONE[s.executionStatus] as any}>{EXEC_LABEL[s.executionStatus]}</Mk9Badge>
