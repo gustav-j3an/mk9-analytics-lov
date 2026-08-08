@@ -32,7 +32,7 @@ interface Mk9PageHeaderProps {
 
 export function Mk9PageHeader({ title, subtitle, icon: Icon, actions }: Mk9PageHeaderProps) {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-8">
       <div className="flex items-center gap-4">
         {Icon && (
           <div className="h-12 w-12 rounded-xl bg-command-purple/10 flex items-center justify-center neon-border-purple">
@@ -40,7 +40,7 @@ export function Mk9PageHeader({ title, subtitle, icon: Icon, actions }: Mk9PageH
           </div>
         )}
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tighter uppercase">{title}</h1>
+          <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase">{title}</h1>
           {subtitle && (
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">
               {subtitle}
