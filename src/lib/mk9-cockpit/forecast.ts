@@ -33,7 +33,8 @@ export function forecastClose(facts: ForecastFacts): Mk9Forecast {
 
   const dailyPaceOverall = elapsed > 0 ? facts.realizedToDate / elapsed : 0;
   const recentDays = Math.min(elapsed, RECENT_WINDOW_DAYS);
-  const dailyPaceRecent = recentDays > 0 ? facts.realizedLastTwoWeeks / recentDays : dailyPaceOverall;
+  const dailyPaceRecent =
+    recentDays > 0 ? facts.realizedLastTwoWeeks / recentDays : dailyPaceOverall;
 
   const blended =
     elapsed === 0 ? 0 : dailyPaceOverall * OVERALL_WEIGHT + dailyPaceRecent * RECENT_WEIGHT;
@@ -47,13 +48,18 @@ export function forecastClose(facts: ForecastFacts): Mk9Forecast {
 
   const missing = Math.max(0, contracted - facts.realizedToDate);
   const requiredDailyPace =
-    daysRemaining > 0 ? Math.round((missing / daysRemaining) * 100) / 100 : missing > 0 ? missing : 0;
+    daysRemaining > 0
+      ? Math.round((missing / daysRemaining) * 100) / 100
+      : missing > 0
+        ? missing
+        : 0;
 
   return {
     projected,
     contracted,
     gap,
-    projectedCoveragePct: contracted > 0 ? Math.min(200, Math.round((projected / contracted) * 100)) : 0,
+    projectedCoveragePct:
+      contracted > 0 ? Math.min(200, Math.round((projected / contracted) * 100)) : 0,
     confidence,
     dailyPaceRecent: Math.round(dailyPaceRecent * 100) / 100,
     dailyPaceOverall: Math.round(dailyPaceOverall * 100) / 100,

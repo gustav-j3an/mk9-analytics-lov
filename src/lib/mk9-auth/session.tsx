@@ -15,7 +15,12 @@ export type Mk9SessionValue = {
   session: Session | null;
   user: User | null;
   roles: Mk9Role[];
-  profile: { name: string | null; email: string | null; avatarUrl: string | null; active: boolean } | null;
+  profile: {
+    name: string | null;
+    email: string | null;
+    avatarUrl: string | null;
+    active: boolean;
+  } | null;
   hasRole: (r: Mk9Role | Mk9Role[]) => boolean;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -25,20 +30,21 @@ const Ctx = createContext<Mk9SessionValue | null>(null);
 
 async function loadRolesAndProfile(userId: string) {
   try {
-    const [{ data: roleRows, error: roleError }, { data: profile, error: profileError }] = await Promise.all([
-      supabase.from("mk9_user_roles").select("role").eq("user_id", userId),
-      supabase
-        .from("mk9_profiles")
-        .select("name, email, avatar_url, active")
-        .eq("user_id", userId)
-        .maybeSingle(),
-    ]);
+    const [{ data: roleRows, error: roleError }, { data: profile, error: profileError }] =
+      await Promise.all([
+        supabase.from("mk9_user_roles").select("role").eq("user_id", userId),
+        supabase
+          .from("mk9_profiles")
+          .select("name, email, avatar_url, active")
+          .eq("user_id", userId)
+          .maybeSingle(),
+      ]);
 
     if (roleError) console.error("[MK9-SESSION] Erro ao carregar roles:", roleError);
     if (profileError) console.error("[MK9-SESSION] Erro ao carregar perfil:", profileError);
 
-    const userRoles = normalizeMk9Roles((roleRows ?? []).map(r => r.role));
-    
+    const userRoles = normalizeMk9Roles((roleRows ?? []).map((r) => r.role));
+
     return {
       roles: userRoles,
       profile: profile

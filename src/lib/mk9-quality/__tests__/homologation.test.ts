@@ -24,9 +24,20 @@ import { canSeeComment, visibleComments, effectiveVisibility } from "../comments
 import { evidenceForClient, sanitizeEvidence, technicalErrorEvidence } from "../evidence";
 import { navigationTarget } from "../navigation";
 import { defaultDueAt, isOverdue, ignoreExpired, compareQueue } from "../sla";
-import { decideOnDetection, decideOnDisappearance, canReopenStatus, validateReopenReason } from "../lifecycle";
+import {
+  decideOnDetection,
+  decideOnDisappearance,
+  canReopenStatus,
+  validateReopenReason,
+} from "../lifecycle";
 
-const scope = (over: Partial<{ allowedUfs: string[] | null; allowedIndustryIds: string[] | null; allowedStoreIds: string[] | null }> = {}) => ({
+const scope = (
+  over: Partial<{
+    allowedUfs: string[] | null;
+    allowedIndustryIds: string[] | null;
+    allowedStoreIds: string[] | null;
+  }> = {},
+) => ({
   allowedUfs: null,
   allowedIndustryIds: null,
   allowedStoreIds: null,
@@ -36,17 +47,31 @@ const scope = (over: Partial<{ allowedUfs: string[] | null; allowedIndustryIds: 
 describe("2B.5 — escopo não pode ser ampliado por ID manipulado", () => {
   it("issue de indústria fora do escopo é recusada mesmo com id válido", () => {
     expect(
-      scopeCoversIssue(scope({ allowedIndustryIds: ["i1"] }), { industryId: "i2", storeId: null, uf: null }),
+      scopeCoversIssue(scope({ allowedIndustryIds: ["i1"] }), {
+        industryId: "i2",
+        storeId: null,
+        uf: null,
+      }),
     ).toBe(false);
   });
 
   it("issue de UF fora do escopo é recusada", () => {
-    expect(scopeCoversIssue(scope({ allowedUfs: ["DF"] }), { industryId: null, storeId: null, uf: "GO" })).toBe(false);
+    expect(
+      scopeCoversIssue(scope({ allowedUfs: ["DF"] }), {
+        industryId: null,
+        storeId: null,
+        uf: "GO",
+      }),
+    ).toBe(false);
   });
 
   it("issue de loja fora do escopo é recusada (enumeração por ID)", () => {
     expect(
-      scopeCoversIssue(scope({ allowedStoreIds: ["s1"] }), { industryId: null, storeId: "s999", uf: null }),
+      scopeCoversIssue(scope({ allowedStoreIds: ["s1"] }), {
+        industryId: null,
+        storeId: "s999",
+        uf: null,
+      }),
     ).toBe(false);
   });
 
@@ -103,26 +128,41 @@ describe("2B.5 — comentários e evidência", () => {
   });
 
   it("deep-link só carrega campos preenchidos, sem vazar nulos", () => {
-    const target = navigationTarget({ module: "frequency", industryId: "i1", storeId: null, month: 7, year: 2026 });
+    const target = navigationTarget({
+      module: "frequency",
+      industryId: "i1",
+      storeId: null,
+      month: 7,
+      year: 2026,
+    });
     expect(target).toEqual({ module: "frequency", industryId: "i1", month: 7, year: 2026 });
   });
 });
 
 describe("2B.5 — resolução, reabertura e SLA", () => {
   it("resolução OTHER exige nota detalhada", () => {
-    expect(validateResolution({ resolutionType: "OTHER", note: "ok mesmo" })).toContain("DETAIL_REQUIRED");
+    expect(validateResolution({ resolutionType: "OTHER", note: "ok mesmo" })).toContain(
+      "DETAIL_REQUIRED",
+    );
     expect(
-      validateResolution({ resolutionType: "OTHER", note: "acordo comercial documentado com a indústria" }),
+      validateResolution({
+        resolutionType: "OTHER",
+        note: "acordo comercial documentado com a indústria",
+      }),
     ).toHaveLength(0);
   });
 
   it("resolução sem tipo ou sem nota é recusada", () => {
     expect(validateResolution({ note: "corrigido" })).toContain("TYPE_REQUIRED");
-    expect(validateResolution({ resolutionType: "DATA_FIXED", note: "" })).toContain("NOTE_REQUIRED");
+    expect(validateResolution({ resolutionType: "DATA_FIXED", note: "" })).toContain(
+      "NOTE_REQUIRED",
+    );
   });
 
   it("problema ainda detectado só é forçado por ADMIN", () => {
-    expect(revalidationVerdict({ stillDetected: false, role: "SUPERVISOR" }).requiresForceJustification).toBe(false);
+    expect(
+      revalidationVerdict({ stillDetected: false, role: "SUPERVISOR" }).requiresForceJustification,
+    ).toBe(false);
     const supervisor = revalidationVerdict({ stillDetected: true, role: "SUPERVISOR" });
     expect(supervisor.canForce).toBe(false);
     expect(supervisor.requiresForceJustification).toBe(true);
@@ -146,26 +186,47 @@ describe("2B.5 — resolução, reabertura e SLA", () => {
   it("ocorrência encerrada nunca fica vencida", () => {
     const past = { dueAt: "2026-01-01T00:00:00Z" };
     expect(isOverdue({ ...past, status: "OPEN" }, new Date("2026-07-30T00:00:00Z"))).toBe(true);
-    expect(isOverdue({ ...past, status: "RESOLVED" }, new Date("2026-07-30T00:00:00Z"))).toBe(false);
+    expect(isOverdue({ ...past, status: "RESOLVED" }, new Date("2026-07-30T00:00:00Z"))).toBe(
+      false,
+    );
   });
 
   it("ignore vencido volta a ser cobrado", () => {
     const now = new Date("2026-07-30T00:00:00Z");
-    expect(ignoreExpired({ status: "IGNORED", ignoreUntil: "2026-07-01T00:00:00Z" }, now)).toBe(true);
-    expect(ignoreExpired({ status: "IGNORED", ignoreUntil: "2026-08-30T00:00:00Z" }, now)).toBe(false);
+    expect(ignoreExpired({ status: "IGNORED", ignoreUntil: "2026-07-01T00:00:00Z" }, now)).toBe(
+      true,
+    );
+    expect(ignoreExpired({ status: "IGNORED", ignoreUntil: "2026-08-30T00:00:00Z" }, now)).toBe(
+      false,
+    );
   });
 
   it("fila prioriza atraso antes de prioridade e severidade", () => {
     const now = new Date("2026-07-30T00:00:00Z");
-    const atrasada = { dueAt: "2026-07-01T00:00:00Z", status: "OPEN", priority: "LOW", severity: "AVISO", lastSeenAt: "2026-07-01" };
-    const urgente = { dueAt: null, status: "OPEN", priority: "URGENT", severity: "BLOQUEANTE", lastSeenAt: "2026-07-29" };
+    const atrasada = {
+      dueAt: "2026-07-01T00:00:00Z",
+      status: "OPEN",
+      priority: "LOW",
+      severity: "AVISO",
+      lastSeenAt: "2026-07-01",
+    };
+    const urgente = {
+      dueAt: null,
+      status: "OPEN",
+      priority: "URGENT",
+      severity: "BLOQUEANTE",
+      lastSeenAt: "2026-07-29",
+    };
     expect([urgente, atrasada].sort((a, b) => compareQueue(a, b, now))[0]).toBe(atrasada);
   });
 });
 
 describe("2B.5 — ciclo de vida preservado", () => {
   it("IGNORED com mesmo contexto permanece ignorada", () => {
-    expect(decideOnDetection("IGNORED", false)).toMatchObject({ status: "IGNORED", event: "SEEN_AGAIN" });
+    expect(decideOnDetection("IGNORED", false)).toMatchObject({
+      status: "IGNORED",
+      event: "SEEN_AGAIN",
+    });
   });
 
   it("IGNORED com contexto diferente reabre", () => {

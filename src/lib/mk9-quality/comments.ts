@@ -32,7 +32,10 @@ const REDACTIONS: Array<[RegExp, string]> = [
   // telefone brasileiro (com ou sem DDD/máscara)
   [/(?:\+?55\s?)?(?:\(?\d{2}\)?[\s.-]?)?9?\d{4}[\s.-]?\d{4}\b/g, MASK],
   // token / chave / segredo declarados
-  [/\b(?:bearer|token|api[_-]?key|secret|senha|password|passwd|authorization)\b\s*[:=]?\s*\S+/gi, MASK],
+  [
+    /\b(?:bearer|token|api[_-]?key|secret|senha|password|passwd|authorization)\b\s*[:=]?\s*\S+/gi,
+    MASK,
+  ],
   // JWT e chaves longas
   [/\beyJ[A-Za-z0-9_-]{6,}\.[A-Za-z0-9_-]{6,}\.[A-Za-z0-9_-]{6,}\b/g, MASK],
   [/\b(?:sb_[a-z]+_|sk_|pk_|ghp_)[A-Za-z0-9_-]{12,}\b/g, MASK],
@@ -63,7 +66,10 @@ export interface SanitizedComment {
 
 export function sanitizeCommentBody(input: string | null | undefined): SanitizedComment {
   const raw = typeof input === "string" ? input : "";
-  let body = raw.replace(/\r\n/g, "\n").replace(/[ \t]+/g, " ").trim();
+  let body = raw
+    .replace(/\r\n/g, "\n")
+    .replace(/[ \t]+/g, " ")
+    .trim();
 
   let redacted = false;
   for (const [pattern, replacement] of REDACTIONS) {

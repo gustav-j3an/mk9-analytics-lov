@@ -5,7 +5,11 @@ import { parseChecklistWorkbook } from "./parser";
 import { diceCoefficient } from "./similarity";
 import { storeCompactKey, storeTokenSetKey } from "@/lib/mk9/normalization";
 import { buildValidationReport } from "./validation";
-import { describeFrequency, evaluateFrequencyConsistency, FREQUENCY_INCONSISTENCY_WARNING } from "@/lib/mk9-frequency/canonical";
+import {
+  describeFrequency,
+  evaluateFrequencyConsistency,
+  FREQUENCY_INCONSISTENCY_WARNING,
+} from "@/lib/mk9-frequency/canonical";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { loadPeriodConfig, resolveWindow } from "@/lib/mk9-reports/period.server";
 import {
@@ -19,8 +23,6 @@ import {
 } from "./persistence.server";
 import { createHash } from "crypto";
 
-
-
 interface ChecklistPreviewInput {
   buffer: ArrayBuffer;
   filename: string;
@@ -33,7 +35,10 @@ interface ChecklistPreviewInput {
 
 const SIMILARITY_THRESHOLD = 0.95;
 
-export async function runChecklistPreview(input: ChecklistPreviewInput, diagnostics: ChecklistDiagnostics) {
+export async function runChecklistPreview(
+  input: ChecklistPreviewInput,
+  diagnostics: ChecklistDiagnostics,
+) {
   diagnostics.info("preview-start", "Iniciando prévia do checklist", {
     parser: "parseChecklistWorkbook",
     filename: input.filename,
@@ -86,15 +91,17 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
 
   if (parsed.firstDate) {
     const totalVisits = parsed.marks.length;
-    const datesInside = parsed.marks.filter(m => m.scheduledDate >= window.startDate && m.scheduledDate <= window.endDate).length;
+    const datesInside = parsed.marks.filter(
+      (m) => m.scheduledDate >= window.startDate && m.scheduledDate <= window.endDate,
+    ).length;
     const datesOutside = totalVisits - datesInside;
-    
+
     // Regra de tolerância (Fase 3.2):
     // - VALID: Maioria absoluta (>80%) dentro da janela.
     // - NEEDS_REVIEW: Mais de 0% e menos de 80% dentro (datas cruzam meses ou erro parcial).
     // - COMPETENCE_CONFLICT: 0% dentro (arquivo claramente de outro período).
     const insideRatio = totalVisits > 0 ? datesInside / totalVisits : 0;
-    
+
     diagnostics.info("competence-validation", "Validando competência contra período real", {
       industryName: industry.name,
       periodType: periodConfig.periodType,
@@ -110,7 +117,9 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
       const selectedCompetence = `${input.operationMonth.toString().padStart(2, "0")}/${input.operationYear}`;
 
       const conflictPayload = buildRichError(
-        new Error(`As datas do arquivo estão totalmente fora do período operacional esperado para ${selectedCompetence} (${window.startDate} a ${window.endDate}).`),
+        new Error(
+          `As datas do arquivo estão totalmente fora do período operacional esperado para ${selectedCompetence} (${window.startDate} a ${window.endDate}).`,
+        ),
         {
           step: "validate-competence",
           function: "checklistPreview",
@@ -125,9 +134,9 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
             windowEnd: window.endDate,
             datesInside,
             datesOutside,
-            totalVisits
-          }
-        }
+            totalVisits,
+          },
+        },
       );
       throw new Error(JSON.stringify(conflictPayload));
     }
@@ -136,9 +145,11 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     // Se a KING tem 23/07 a 22/08, e o arquivo tem 31 dias, todos na janela, ratio = 1.0 (OK).
     // Se o usuário mandar o arquivo de Julho (23/06 a 22/07) em Agosto, ratio será 0.0 (CONFLITO).
     if (insideRatio < 0.8) {
-       const selectedCompetence = `${input.operationMonth.toString().padStart(2, "0")}/${input.operationYear}`;
-       const warningPayload = buildRichError(
-        new Error(`As datas da planilha estão majoritariamente fora do período esperado para ${selectedCompetence}.`),
+      const selectedCompetence = `${input.operationMonth.toString().padStart(2, "0")}/${input.operationYear}`;
+      const warningPayload = buildRichError(
+        new Error(
+          `As datas da planilha estão majoritariamente fora do período esperado para ${selectedCompetence}.`,
+        ),
         {
           step: "validate-competence",
           function: "checklistPreview",
@@ -152,18 +163,25 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
             totalVisits,
             firstDate: parsed.firstDate,
             lastDate: parsed.lastDate,
-            filename: input.filename
-          }
-        }
+            filename: input.filename,
+          },
+        },
       );
       // KING FIX: Não lançamos erro bloqueante se houver o ratio > 0, permitimos prosseguir com aviso na UI
-      diagnostics.error("competence-warning", "Baixa correlação com o período selecionado", (warningPayload as any).extra);
+      diagnostics.error(
+        "competence-warning",
+        "Baixa correlação com o período selecionado",
+        (warningPayload as any).extra,
+      );
     }
   }
   const stores = await loadStoresIndex();
 
   // Índice por UF para similaridade
-  const storesByUf = new Map<string, Array<{ id: string; name: string; nameNormalized: string; uf: string | null }>>();
+  const storesByUf = new Map<
+    string,
+    Array<{ id: string; name: string; nameNormalized: string; uf: string | null }>
+  >();
   for (const rec of stores.all) {
     const key = rec.uf ?? "";
     const list = storesByUf.get(key) ?? [];
@@ -326,7 +344,8 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
       uf: s.uf,
       storeId: r.kind === "new_store" ? null : r.storeId,
       status: r.kind,
-      matchedStoreName: r.kind === "linked_by_similarity" || r.kind === "found" ? r.matchedName : undefined,
+      matchedStoreName:
+        r.kind === "linked_by_similarity" || r.kind === "found" ? r.matchedName : undefined,
       similarityScore: r.kind === "linked_by_similarity" ? r.score : undefined,
       weeklyFrequency: s.weeklyFrequency,
       monthlyFrequency: s.monthlyFrequency,
@@ -334,7 +353,9 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     });
   }
 
-  const validDates = items.filter((i) => i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store").length;
+  const validDates = items.filter(
+    (i) => i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store",
+  ).length;
   const invalidDates = items.filter((i) => i.status === "invalid_date").length;
 
   // Frequências por loja (fonte: checklist parseado). Guardadas no snapshot
@@ -380,16 +401,27 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     storeFrequencies,
     warnings: [
       ...(parsed.firstDate && parsed.lastDate
-        ? [`Período detectado: ${parsed.firstDate.split("-").reverse().join("/")} a ${parsed.lastDate.split("-").reverse().join("/")} (${parsed.dateColumnCount} colunas de data). Soma REALIZADO: ${parsed.realizadoSum}. Soma VISITA MENSAL: ${parsed.monthlyFrequencySum}.`]
+        ? [
+            `Período detectado: ${parsed.firstDate.split("-").reverse().join("/")} a ${parsed.lastDate.split("-").reverse().join("/")} (${parsed.dateColumnCount} colunas de data). Soma REALIZADO: ${parsed.realizadoSum}. Soma VISITA MENSAL: ${parsed.monthlyFrequencySum}.`,
+          ]
         : []),
       ...(parsed.declaredTotal !== null
-        ? [`Total declarado na planilha (TOTAL VISITAS MÊS): ${parsed.declaredTotal}. Marcações identificadas: ${parsed.marks.length}.`]
+        ? [
+            `Total declarado na planilha (TOTAL VISITAS MÊS): ${parsed.declaredTotal}. Marcações identificadas: ${parsed.marks.length}.`,
+          ]
         : []),
       ...(parsed.duplicateStores.length
-        ? [`Duplicidades de loja detectadas: ${parsed.duplicateStores.length}. Verifique linhas: ${parsed.duplicateStores.slice(0, 10).map((d) => `${d.storeName} (${d.uf ?? "—"}) linha ${d.excelRow}`).join(", ")}${parsed.duplicateStores.length > 10 ? "…" : ""}.`]
+        ? [
+            `Duplicidades de loja detectadas: ${parsed.duplicateStores.length}. Verifique linhas: ${parsed.duplicateStores
+              .slice(0, 10)
+              .map((d) => `${d.storeName} (${d.uf ?? "—"}) linha ${d.excelRow}`)
+              .join(", ")}${parsed.duplicateStores.length > 10 ? "…" : ""}.`,
+          ]
         : []),
       ...(inconsistentFrequencies > 0
-        ? [`${FREQUENCY_INCONSISTENCY_WARNING}: ${inconsistentFrequencies} loja(s). Revise o cadastro — a importação não altera esses números automaticamente.`]
+        ? [
+            `${FREQUENCY_INCONSISTENCY_WARNING}: ${inconsistentFrequencies} loja(s). Revise o cadastro — a importação não altera esses números automaticamente.`,
+          ]
         : []),
       ...parsed.warnings,
     ],
@@ -401,7 +433,6 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     items,
     storeFrequencies,
   });
-
 
   // Identifica importação operacional vigente para comparação
   const { data: previousData } = await supabaseAdmin

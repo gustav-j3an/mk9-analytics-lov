@@ -14,7 +14,13 @@ export async function assertIndustryRequiresChecklist(industryId: string): Promi
     .maybeSingle();
   if (error) throw checklistIndustryDisabledError();
   const allowed = isChecklistIndustryAllowed(
-    data ? { id: data.id as string, name: data.name as string, requiresChecklist: (data as any).requires_checklist === true } : null,
+    data
+      ? {
+          id: data.id as string,
+          name: data.name as string,
+          requiresChecklist: (data as any).requires_checklist === true,
+        }
+      : null,
   );
   if (!allowed) throw checklistIndustryDisabledError();
 }

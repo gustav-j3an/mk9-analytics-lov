@@ -21,7 +21,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   BULK_KIND_LABEL,
@@ -42,8 +48,18 @@ import {
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
 const MONTHS = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
 
 function parseFreq(v: string): number | null {
@@ -111,18 +127,26 @@ export function IndustryContractSummary({
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-semibold">Contrato × distribuição</span>
         <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-          <SelectTrigger className="h-8 w-[140px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-8 w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             {MONTHS.map((m, i) => (
-              <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>
+              <SelectItem key={m} value={String(i + 1)}>
+                {m}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-          <SelectTrigger className="h-8 w-[100px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-8 w-[100px]">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             {years.map((y) => (
-              <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+              <SelectItem key={y} value={String(y)}>
+                {y}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -148,7 +172,13 @@ export function IndustryContractSummary({
             <Metric label="Total distribuído" value={check.distributedTotal} />
             <Metric
               label="Diferença"
-              value={check.difference === null ? "—" : check.difference > 0 ? `+${check.difference}` : check.difference}
+              value={
+                check.difference === null
+                  ? "—"
+                  : check.difference > 0
+                    ? `+${check.difference}`
+                    : check.difference
+              }
             />
             <Metric
               label="Diferença %"
@@ -159,10 +189,14 @@ export function IndustryContractSummary({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`rounded-md px-2 py-1 text-xs font-medium ${STATUS_TONE[check.status]}`}>
+            <span
+              className={`rounded-md px-2 py-1 text-xs font-medium ${STATUS_TONE[check.status]}`}
+            >
               {CONTRACT_STATUS_LABEL[check.status as keyof typeof CONTRACT_STATUS_LABEL]}
             </span>
-            {check.message && <span className="text-sm text-muted-foreground">{check.message}</span>}
+            {check.message && (
+              <span className="text-sm text-muted-foreground">{check.message}</span>
+            )}
             {isAdmin && check.message && (
               <Button size="sm" variant="ghost" onClick={() => setAcceptOpen(true)}>
                 Aceitar diferença com justificativa
@@ -177,10 +211,17 @@ export function IndustryContractSummary({
           )}
 
           <div className="space-y-1">
-            <p className="text-xs font-medium uppercase text-muted-foreground">Distribuição por frequência</p>
-            {groups.length === 0 && <p className="text-sm text-muted-foreground">Sem lojas vinculadas.</p>}
+            <p className="text-xs font-medium uppercase text-muted-foreground">
+              Distribuição por frequência
+            </p>
+            {groups.length === 0 && (
+              <p className="text-sm text-muted-foreground">Sem lojas vinculadas.</p>
+            )}
             {groups.map((g: any) => (
-              <div key={g.label} className="flex items-center justify-between rounded-md bg-background px-3 py-1.5 text-sm">
+              <div
+                key={g.label}
+                className="flex items-center justify-between rounded-md bg-background px-3 py-1.5 text-sm"
+              >
                 <span className="font-medium">{g.label}</span>
                 <span className="text-muted-foreground">
                   {g.stores} loja(s) — <span className="tabular-nums">{g.visits}</span> visita(s)
@@ -305,16 +346,31 @@ function ContractTotalDialog({
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="ct-total">Total contratado (visitas) *</Label>
-            <Input id="ct-total" value={total} onChange={(e) => setTotal(e.target.value)} placeholder="544" />
+            <Input
+              id="ct-total"
+              value={total}
+              onChange={(e) => setTotal(e.target.value)}
+              placeholder="544"
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="ct-notes">Observação</Label>
-            <Textarea id="ct-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={500} />
+            <Textarea
+              id="ct-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              maxLength={500}
+            />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button disabled={!valid || mut.isPending} onClick={() => mut.mutate()}>Salvar</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button disabled={!valid || mut.isPending} onClick={() => mut.mutate()}>
+            Salvar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -343,7 +399,9 @@ function AcceptDivergenceDialog({
 }) {
   const acceptFn = useServerFn(mk9AcceptContractDivergence);
   const [reason, setReason] = useState("");
-  useEffect(() => { if (open) setReason(""); }, [open]);
+  useEffect(() => {
+    if (open) setReason("");
+  }, [open]);
 
   const mut = useMutation({
     mutationFn: () =>
@@ -370,15 +428,24 @@ function AcceptDivergenceDialog({
         <DialogHeader>
           <DialogTitle>Aceitar diferença</DialogTitle>
           <DialogDescription>
-            Contrato {contractedTotal} × distribuição {distributedTotal}. Nada é corrigido automaticamente.
+            Contrato {contractedTotal} × distribuição {distributedTotal}. Nada é corrigido
+            automaticamente.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-1.5">
           <Label htmlFor="ad-reason">Justificativa *</Label>
-          <Textarea id="ad-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={500} />
+          <Textarea
+            id="ad-reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            rows={3}
+            maxLength={500}
+          />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button disabled={reason.trim().length < 3 || mut.isPending} onClick={() => mut.mutate()}>
             Registrar aceitação
           </Button>
@@ -408,7 +475,9 @@ function BulkFrequencyDialog({
   const previewFn = useServerFn(mk9BulkFrequencyPreview);
   const applyFn = useServerFn(mk9BulkFrequencyApply);
 
-  const [scope, setScope] = useState<"ALL_LINKED" | "WITHOUT_FREQUENCY" | "SEARCH" | "SELECTED">("ALL_LINKED");
+  const [scope, setScope] = useState<"ALL_LINKED" | "WITHOUT_FREQUENCY" | "SEARCH" | "SELECTED">(
+    "ALL_LINKED",
+  );
   const [uf, setUf] = useState("");
   const [chain, setChain] = useState("");
   const [search, setSearch] = useState("");
@@ -478,11 +547,13 @@ function BulkFrequencyDialog({
       invalidate();
       onClose();
     },
-    onError: (e) => toast.error(errorMessage(e, "Não foi possível aplicar as frequências em lote.")),
+    onError: (e) =>
+      toast.error(errorMessage(e, "Não foi possível aplicar as frequências em lote.")),
   });
 
   const c = preview?.counters;
-  const canApply = !!preview && (c?.writable ?? 0) > 0 && reason.trim().length >= 3 && !applyMut.isPending;
+  const canApply =
+    !!preview && (c?.writable ?? 0) > 0 && reason.trim().length >= 3 && !applyMut.isPending;
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -498,8 +569,16 @@ function BulkFrequencyDialog({
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Lojas afetadas</Label>
-              <Select value={scope} onValueChange={(v) => { setScope(v as any); setPreview(null); }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={scope}
+                onValueChange={(v) => {
+                  setScope(v as any);
+                  setPreview(null);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL_LINKED">Todas as lojas vinculadas</SelectItem>
                   <SelectItem value="WITHOUT_FREQUENCY">Somente lojas sem frequência</SelectItem>
@@ -509,42 +588,105 @@ function BulkFrequencyDialog({
             </div>
             <div className="space-y-1.5">
               <Label>Modo de aplicação</Label>
-              <Select value={mode} onValueChange={(v) => { setMode(v as BulkApplyMode); setPreview(null); }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={mode}
+                onValueChange={(v) => {
+                  setMode(v as BulkApplyMode);
+                  setPreview(null);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {(Object.keys(BULK_MODE_LABEL) as BulkApplyMode[]).map((m) => (
-                    <SelectItem key={m} value={m}>{BULK_MODE_LABEL[m]}</SelectItem>
+                    <SelectItem key={m} value={m}>
+                      {BULK_MODE_LABEL[m]}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="bulk-uf">UF</Label>
-              <Input id="bulk-uf" value={uf} maxLength={2} onChange={(e) => { setUf(e.target.value); setPreview(null); }} placeholder="Todas" />
+              <Input
+                id="bulk-uf"
+                value={uf}
+                maxLength={2}
+                onChange={(e) => {
+                  setUf(e.target.value);
+                  setPreview(null);
+                }}
+                placeholder="Todas"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="bulk-chain">Rede</Label>
-              <Input id="bulk-chain" value={chain} onChange={(e) => { setChain(e.target.value); setPreview(null); }} placeholder="Todas" />
+              <Input
+                id="bulk-chain"
+                value={chain}
+                onChange={(e) => {
+                  setChain(e.target.value);
+                  setPreview(null);
+                }}
+                placeholder="Todas"
+              />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="bulk-search">Busca por nome da loja</Label>
-              <Input id="bulk-search" value={search} onChange={(e) => { setSearch(e.target.value); setPreview(null); }} />
+              <Input
+                id="bulk-search"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPreview(null);
+                }}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="bulk-weekly">Frequência semanal</Label>
-              <Input id="bulk-weekly" value={weekly} onChange={(e) => { setWeekly(e.target.value); setPreview(null); }} placeholder="1" />
+              <Input
+                id="bulk-weekly"
+                value={weekly}
+                onChange={(e) => {
+                  setWeekly(e.target.value);
+                  setPreview(null);
+                }}
+                placeholder="1"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="bulk-monthly">Frequência mensal</Label>
-              <Input id="bulk-monthly" value={monthly} onChange={(e) => { setMonthly(e.target.value); setPreview(null); }} placeholder="4" />
+              <Input
+                id="bulk-monthly"
+                value={monthly}
+                onChange={(e) => {
+                  setMonthly(e.target.value);
+                  setPreview(null);
+                }}
+                placeholder="4"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="bulk-date">Data de início *</Label>
-              <Input id="bulk-date" type="date" value={effectiveDate} onChange={(e) => { setEffectiveDate(e.target.value); setPreview(null); }} />
+              <Input
+                id="bulk-date"
+                type="date"
+                value={effectiveDate}
+                onChange={(e) => {
+                  setEffectiveDate(e.target.value);
+                  setPreview(null);
+                }}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="bulk-reason">Justificativa *</Label>
-              <Input id="bulk-reason" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} />
+              <Input
+                id="bulk-reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                maxLength={500}
+              />
             </div>
           </div>
 
@@ -554,7 +696,9 @@ function BulkFrequencyDialog({
 
           <Button
             variant="outline"
-            disabled={previewMut.isPending || (parseFreq(weekly) === null && parseFreq(monthly) === null)}
+            disabled={
+              previewMut.isPending || (parseFreq(weekly) === null && parseFreq(monthly) === null)
+            }
             onClick={() => previewMut.mutate()}
           >
             {previewMut.isPending ? "Calculando…" : "Calcular prévia"}
@@ -569,8 +713,14 @@ function BulkFrequencyDialog({
                 <Metric label="Alteradas" value={c.changed} />
                 <Metric label="Conflitos manuais" value={c.manualConflicts} />
                 <Metric label="Conflitos futuros" value={c.futureConflicts} />
-                <Metric label="Distribuído antes" value={preview.distributedBefore.distributedTotal} />
-                <Metric label="Distribuído depois" value={preview.distributedAfter.distributedTotal} />
+                <Metric
+                  label="Distribuído antes"
+                  value={preview.distributedBefore.distributedTotal}
+                />
+                <Metric
+                  label="Distribuído depois"
+                  value={preview.distributedAfter.distributedTotal}
+                />
               </div>
 
               <p className="text-sm text-muted-foreground">
@@ -584,18 +734,36 @@ function BulkFrequencyDialog({
 
               {c.manualConflicts > 0 && (
                 <label className="flex items-center gap-2 text-xs text-amber-700">
-                  <input type="checkbox" checked={forceManual} onChange={(e) => { setForceManual(e.target.checked); setPreview(null); }} />
+                  <input
+                    type="checkbox"
+                    checked={forceManual}
+                    onChange={(e) => {
+                      setForceManual(e.target.checked);
+                      setPreview(null);
+                    }}
+                  />
                   Sobrescrever {c.manualConflicts} frequência(s) definida(s) manualmente.
                 </label>
               )}
               {c.futureConflicts > 0 && (
                 <label className="flex items-center gap-2 text-xs text-amber-700">
-                  <input type="checkbox" checked={forceFuture} onChange={(e) => { setForceFuture(e.target.checked); setPreview(null); }} />
+                  <input
+                    type="checkbox"
+                    checked={forceFuture}
+                    onChange={(e) => {
+                      setForceFuture(e.target.checked);
+                      setPreview(null);
+                    }}
+                  />
                   Sobrescrever {c.futureConflicts} loja(s) com vigência futura.
                 </label>
               )}
               <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                <input type="checkbox" checked={confirmRetroactive} onChange={(e) => setConfirmRetroactive(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={confirmRetroactive}
+                  onChange={(e) => setConfirmRetroactive(e.target.checked)}
+                />
                 Confirmo eventual alteração retroativa (competência encerrada).
               </label>
 
@@ -616,11 +784,20 @@ function BulkFrequencyDialog({
                         <td className="p-2">{i.storeName ?? "—"}</td>
                         <td className="p-2">{i.uf ?? "—"}</td>
                         <td className="p-2">
-                          {i.current ? describeFrequency(i.current.weeklyFrequency, i.current.monthlyFrequency) : "—"}
+                          {i.current
+                            ? describeFrequency(
+                                i.current.weeklyFrequency,
+                                i.current.monthlyFrequency,
+                              )
+                            : "—"}
                         </td>
-                        <td className="p-2">{describeFrequency(i.incomingWeekly, i.incomingMonthly)}</td>
                         <td className="p-2">
-                          <Badge variant={i.kind.includes("CONFLICT") ? "destructive" : "secondary"}>
+                          {describeFrequency(i.incomingWeekly, i.incomingMonthly)}
+                        </td>
+                        <td className="p-2">
+                          <Badge
+                            variant={i.kind.includes("CONFLICT") ? "destructive" : "secondary"}
+                          >
                             {BULK_KIND_LABEL[i.kind as keyof typeof BULK_KIND_LABEL]}
                           </Badge>
                         </td>
@@ -630,14 +807,18 @@ function BulkFrequencyDialog({
                 </table>
               </div>
               {preview.truncated && (
-                <p className="text-xs text-muted-foreground">Exibindo as 300 primeiras lojas da prévia.</p>
+                <p className="text-xs text-muted-foreground">
+                  Exibindo as 300 primeiras lojas da prévia.
+                </p>
               )}
             </div>
           )}
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button disabled={!canApply} onClick={() => applyMut.mutate()}>
             Aplicar {c ? `${c.writable} loja(s)` : ""}
           </Button>

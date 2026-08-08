@@ -75,7 +75,13 @@ export function evaluateFrequencyConsistency(
   const monthly = num(monthlyInput);
   const expectedMonthly = expectedMonthlyFromWeekly(weekly);
 
-  if (weekly === null || monthly === null || weekly <= 0 || monthly <= 0 || expectedMonthly === null) {
+  if (
+    weekly === null ||
+    monthly === null ||
+    weekly <= 0 ||
+    monthly <= 0 ||
+    expectedMonthly === null
+  ) {
     return {
       consistent: true,
       evaluable: false,

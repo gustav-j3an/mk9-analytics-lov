@@ -5,10 +5,23 @@ import { Download, Loader2, Settings2, AlertCircle, FileText } from "lucide-reac
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 import {
@@ -17,16 +30,21 @@ import {
   reportUpsertPeriodConfig,
   reportListChecklistImports,
 } from "@/lib/mk9-reports.functions";
-import { 
-  Mk9PageHeader, 
-  Mk9MetricCard, 
-  Mk9Panel, 
-  Mk9Badge 
-} from "./mk9/design-system";
+import { Mk9PageHeader, Mk9MetricCard, Mk9Panel, Mk9Badge } from "./mk9/design-system";
 
 const MONTHS_PT = [
-  "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-  "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
 
 const EXEC_TONE: Record<string, "success" | "warning" | "danger" | "default"> = {
@@ -77,11 +95,16 @@ export function Mk9IndustryReportModule() {
   const reportQ = useQuery({
     enabled: !!industryId,
     queryKey: ["report-industry", industryId, year, month, uf, sourceImportId],
-    queryFn: () => reportFn({ data: {
-      industryId, year, month,
-      uf: uf || null,
-      sourceImportId: sourceImportId || null,
-    } }),
+    queryFn: () =>
+      reportFn({
+        data: {
+          industryId,
+          year,
+          month,
+          uf: uf || null,
+          sourceImportId: sourceImportId || null,
+        },
+      }),
   });
 
   const importsQ = useQuery({
@@ -103,18 +126,22 @@ export function Mk9IndustryReportModule() {
   async function downloadPdf(type: "full" | "unattended") {
     if (!industryId) return;
     if (typeof window === "undefined") return;
-    setDownloading(type); setPdfError(null);
+    setDownloading(type);
+    setPdfError(null);
     const label = type === "full" ? "PDF completo" : "Lojas não atendidas";
     const toastId = toast.loading(`Gerando ${label}...`);
     try {
-      const endpoint = type === "full" ? "/api/reports/industry-pdf" : "/api/reports/industry-unattended-pdf";
+      const endpoint =
+        type === "full" ? "/api/reports/industry-pdf" : "/api/reports/industry-unattended-pdf";
       const { mk9AuthHeaders } = await import("@/lib/mk9-auth/fetch-headers");
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json", ...(await mk9AuthHeaders()) },
         cache: "no-store",
         body: JSON.stringify({
-          industryId, year, month,
+          industryId,
+          year,
+          month,
           uf: uf || null,
           checklistImportId: sourceImportId || null,
         }),
@@ -124,7 +151,9 @@ export function Mk9IndustryReportModule() {
         try {
           const j = await res.json();
           msg = j?.message ?? j?.error ?? msg;
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
         throw new Error(msg);
       }
       const ct = res.headers.get("content-type") ?? "";
@@ -134,8 +163,11 @@ export function Mk9IndustryReportModule() {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); a.remove();
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       toast.success(`${label} gerado`, { id: toastId });
     } catch (e: any) {
@@ -149,8 +181,8 @@ export function Mk9IndustryReportModule() {
 
   return (
     <div className="space-y-8 animate-fade-up">
-      <Mk9PageHeader 
-        title="Indústrias — Relatório Operacional" 
+      <Mk9PageHeader
+        title="Indústrias — Relatório Operacional"
         subtitle="Acompanhamento de frequência, execução e cobertura"
         icon={FileText}
         actions={
@@ -163,36 +195,65 @@ export function Mk9IndustryReportModule() {
       <Mk9Panel>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="col-span-2">
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Indústria</Label>
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              Indústria
+            </Label>
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+                <SelectValue placeholder="Selecione..." />
+              </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
                 {(industriesQ.data ?? []).map((i) => (
-                  <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
+                  <SelectItem key={i.id} value={i.id}>
+                    {i.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mês</Label>
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              Mês
+            </Label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
-                {MONTHS_PT.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
+                {MONTHS_PT.map((m, i) => (
+                  <SelectItem key={m} value={String(i + 1)}>
+                    {m}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Ano</Label>
-            <Input type="number" className="h-9 bg-command-deep border-white/10 text-white" value={year} onChange={(e) => setYear(Number(e.target.value) || year)} />
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              Ano
+            </Label>
+            <Input
+              type="number"
+              className="h-9 bg-command-deep border-white/10 text-white"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value) || year)}
+            />
           </div>
           <div>
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">UF</Label>
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              UF
+            </Label>
             <Select value={uf || "__all"} onValueChange={(v) => setUf(v === "__all" ? "" : v)}>
-              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white"><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+                <SelectValue placeholder="Todas" />
+              </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
                 <SelectItem value="__all">Todas</SelectItem>
-                {ufOptions.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                {ufOptions.map((u) => (
+                  <SelectItem key={u} value={u}>
+                    {u}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -201,7 +262,9 @@ export function Mk9IndustryReportModule() {
 
       {!industryId && (
         <Mk9Panel className="py-20 text-center">
-          <p className="text-slate-500">Selecione uma indústria para visualizar os dados e gerar relatórios.</p>
+          <p className="text-slate-500">
+            Selecione uma indústria para visualizar os dados e gerar relatórios.
+          </p>
         </Mk9Panel>
       )}
 
@@ -225,33 +288,75 @@ export function Mk9IndustryReportModule() {
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <Mk9MetricCard label="Lojas" value={report.totals.totalStores} color="blue" />
-            <Mk9MetricCard label="Contratadas" value={report.totals.metrics.contratadas} color="purple" />
-            <Mk9MetricCard label="Realizadas" value={report.totals.metrics.executadas} color="emerald" hint={`${report.totals.metrics.coberturaPct}% cobertura`} />
-            <Mk9MetricCard label="Pendentes" value={report.totals.metrics.pendencias} color="amber" />
+            <Mk9MetricCard
+              label="Contratadas"
+              value={report.totals.metrics.contratadas}
+              color="purple"
+            />
+            <Mk9MetricCard
+              label="Realizadas"
+              value={report.totals.metrics.executadas}
+              color="emerald"
+              hint={`${report.totals.metrics.coberturaPct}% cobertura`}
+            />
+            <Mk9MetricCard
+              label="Pendentes"
+              value={report.totals.metrics.pendencias}
+              color="amber"
+            />
             <Mk9MetricCard label="Extras" value={report.totals.metrics.extras} color="blue" />
-            <Mk9MetricCard label="Cobertura" value={`${report.totals.metrics.coberturaPct}%`} color={report.totals.metrics.coberturaPct >= 90 ? "emerald" : "amber"} />
+            <Mk9MetricCard
+              label="Cobertura"
+              value={`${report.totals.metrics.coberturaPct}%`}
+              color={report.totals.metrics.coberturaPct >= 90 ? "emerald" : "amber"}
+            />
           </div>
-
 
           <Mk9Panel className="flex flex-wrap items-center justify-between gap-6">
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Período de Competência</p>
-              <p className="text-white font-medium">{fmtBR(report.window.startDate)} a {fmtBR(report.window.endDate)} <span className="text-slate-500 ml-2">· {report.window.totalDays} dias</span></p>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                Período de Competência
+              </p>
+              <p className="text-white font-medium">
+                {fmtBR(report.window.startDate)} a {fmtBR(report.window.endDate)}{" "}
+                <span className="text-slate-500 ml-2">· {report.window.totalDays} dias</span>
+              </p>
             </div>
-            
+
             <div className="flex items-center gap-3">
-              <Button onClick={() => downloadPdf("full")} disabled={!!downloading} variant="outline" className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 uppercase text-[10px] font-black tracking-widest">
-                {downloading === "full" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+              <Button
+                onClick={() => downloadPdf("full")}
+                disabled={!!downloading}
+                variant="outline"
+                className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 uppercase text-[10px] font-black tracking-widest"
+              >
+                {downloading === "full" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
                 Exportar Relatório
               </Button>
-              <Button onClick={() => downloadPdf("unattended")} disabled={!!downloading} className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest">
-                {downloading === "unattended" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+              <Button
+                onClick={() => downloadPdf("unattended")}
+                disabled={!!downloading}
+                className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest"
+              >
+                {downloading === "unattended" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
                 Lojas não atendidas
               </Button>
             </div>
           </Mk9Panel>
 
-          {pdfError && <div className="p-3 rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-500 text-xs">{pdfError}</div>}
+          {pdfError && (
+            <div className="p-3 rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-500 text-xs">
+              {pdfError}
+            </div>
+          )}
 
           {report.ufs.length > 0 && (
             <Mk9Panel title="Resumo por UF">
@@ -278,8 +383,9 @@ export function Mk9IndustryReportModule() {
                         <td className="py-3 text-slate-400 text-right">{u.pending}</td>
                         <td className="py-3 text-slate-400 text-right">{u.extra}</td>
                         <td className="py-3 text-right">
-                          <Mk9Badge variant={u.coveragePct >= 90 ? "success" : "warning"}>{u.coveragePct}%</Mk9Badge>
-
+                          <Mk9Badge variant={u.coveragePct >= 90 ? "success" : "warning"}>
+                            {u.coveragePct}%
+                          </Mk9Badge>
                         </td>
                       </tr>
                     ))}
@@ -306,25 +412,49 @@ export function Mk9IndustryReportModule() {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {report.stores.map((s: any) => {
-                    const freqLabel = s.frequencyLabel ?? (s.monthlyFrequency ? `${s.monthlyFrequency}/mês` : s.weeklyFrequency ? `${s.weeklyFrequency}/sem` : "—");
+                    const freqLabel =
+                      s.frequencyLabel ??
+                      (s.monthlyFrequency
+                        ? `${s.monthlyFrequency}/mês`
+                        : s.weeklyFrequency
+                          ? `${s.weeklyFrequency}/sem`
+                          : "—");
                     return (
                       <tr key={s.storeId} className="group hover:bg-white/[0.02]">
                         <td className="py-3">
                           <div className="text-white font-medium">{s.storeName}</div>
-                          {s.chain && <div className="text-[10px] text-slate-500 uppercase tracking-tighter">{s.chain}</div>}
+                          {s.chain && (
+                            <div className="text-[10px] text-slate-500 uppercase tracking-tighter">
+                              {s.chain}
+                            </div>
+                          )}
                         </td>
                         <td className="py-3 text-slate-400 font-mono">{s.uf ?? "—"}</td>
                         <td className="py-3 text-slate-400 text-xs">{freqLabel}</td>
                         <td className="py-3 text-slate-300 font-medium text-right">{s.expected}</td>
                         <td className="py-3 text-white font-bold text-right">{s.actual}</td>
                         <td className="py-3 text-right">
-                          <Mk9Badge variant={s.coveragePct >= 90 ? "success" : s.coveragePct >= 70 ? "warning" : "danger"}>{s.coveragePct}%</Mk9Badge>
+                          <Mk9Badge
+                            variant={
+                              s.coveragePct >= 90
+                                ? "success"
+                                : s.coveragePct >= 70
+                                  ? "warning"
+                                  : "danger"
+                            }
+                          >
+                            {s.coveragePct}%
+                          </Mk9Badge>
                         </td>
                         <td className="py-3 text-right">
-                          <Mk9Badge variant={EXEC_TONE[s.executionStatus] as any}>{EXEC_LABEL[s.executionStatus]}</Mk9Badge>
+                          <Mk9Badge variant={EXEC_TONE[s.executionStatus] as any}>
+                            {EXEC_LABEL[s.executionStatus]}
+                          </Mk9Badge>
                         </td>
                         <td className="py-3 text-right">
-                          <Mk9Badge variant={ROUTE_TONE[s.routeStatus] as any}>{ROUTE_LABEL[s.routeStatus]}</Mk9Badge>
+                          <Mk9Badge variant={ROUTE_TONE[s.routeStatus] as any}>
+                            {ROUTE_LABEL[s.routeStatus]}
+                          </Mk9Badge>
                         </td>
                       </tr>
                     );
@@ -343,22 +473,45 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
   const [open, setOpen] = useState(false);
   const loadFn = useServerFn(reportIndustryPeriodConfig);
   const saveFn = useServerFn(reportUpsertPeriodConfig);
-  const q = useQuery({ enabled: open && !!industryId, queryKey: ["period-config", industryId], queryFn: () => loadFn({ data: { industryId } }) });
+  const q = useQuery({
+    enabled: open && !!industryId,
+    queryKey: ["period-config", industryId],
+    queryFn: () => loadFn({ data: { industryId } }),
+  });
   const [form, setForm] = useState<any>(null);
   const mut = useMutation({
     mutationFn: (v: any) => saveFn({ data: v }),
-    onSuccess: () => { setOpen(false); toast.success("Configuração salva com sucesso"); },
+    onSuccess: () => {
+      setOpen(false);
+      toast.success("Configuração salva com sucesso");
+    },
   });
 
   const current = form ?? q.data;
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setForm(null); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) setForm(null);
+      }}
+    >
       <DialogTrigger asChild>
-        <Button variant="outline" className="h-9 border-white/10 hover:bg-white/5 text-slate-300" disabled={!industryId}><Settings2 className="mr-2 h-4 w-4" /> CONFIGURAR PERÍODO</Button>
+        <Button
+          variant="outline"
+          className="h-9 border-white/10 hover:bg-white/5 text-slate-300"
+          disabled={!industryId}
+        >
+          <Settings2 className="mr-2 h-4 w-4" /> CONFIGURAR PERÍODO
+        </Button>
       </DialogTrigger>
       <DialogContent className="bg-command-deep border-white/10 text-white max-w-md">
-        <DialogHeader><DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary">Configuração de Competência</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary">
+            Configuração de Competência
+          </DialogTitle>
+        </DialogHeader>
         {!current ? (
           <div className="py-10 text-center text-slate-500 flex flex-col items-center gap-3">
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -367,9 +520,16 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
         ) : (
           <div className="space-y-6 pt-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tipo de Período</Label>
-              <Select value={current.periodType} onValueChange={(v) => setForm({ ...current, periodType: v })}>
-                <SelectTrigger className="bg-black/40 border-white/10 h-10"><SelectValue /></SelectTrigger>
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                Tipo de Período
+              </Label>
+              <Select
+                value={current.periodType}
+                onValueChange={(v) => setForm({ ...current, periodType: v })}
+              >
+                <SelectTrigger className="bg-black/40 border-white/10 h-10">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent className="bg-command-deep border-white/10">
                   <SelectItem value="CALENDAR_MONTH">Mês calendário (dia 1 ao último)</SelectItem>
                   <SelectItem value="CUSTOM_CYCLE">Ciclo personalizado</SelectItem>
@@ -378,55 +538,100 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dia Inicial</Label>
-                <Input type="number" min={1} max={31} className="bg-black/40 border-white/10 h-10" value={current.startDay} onChange={(e) => setForm({ ...current, startDay: Number(e.target.value) || 1 })} />
+                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  Dia Inicial
+                </Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={31}
+                  className="bg-black/40 border-white/10 h-10"
+                  value={current.startDay}
+                  onChange={(e) => setForm({ ...current, startDay: Number(e.target.value) || 1 })}
+                />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dia Final</Label>
-                <Input type="number" min={1} max={31} className="bg-black/40 border-white/10 h-10" value={current.endDay} onChange={(e) => setForm({ ...current, endDay: Number(e.target.value) || 31 })} />
+                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  Dia Final
+                </Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={31}
+                  className="bg-black/40 border-white/10 h-10"
+                  value={current.endDay}
+                  onChange={(e) => setForm({ ...current, endDay: Number(e.target.value) || 31 })}
+                />
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
-              <Switch checked={current.usesPreviousMonth} onCheckedChange={(v) => setForm({ ...current, usesPreviousMonth: v })} />
+              <Switch
+                checked={current.usesPreviousMonth}
+                onCheckedChange={(v) => setForm({ ...current, usesPreviousMonth: v })}
+              />
               <div className="space-y-0.5">
                 <p className="text-xs font-medium">Ciclo começa no mês anterior</p>
-                <p className="text-[10px] text-slate-500">Ex: KING (23 do mês anterior ao 22 atual)</p>
+                <p className="text-[10px] text-slate-500">
+                  Ex: KING (23 do mês anterior ao 22 atual)
+                </p>
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Agrupamento Semanal</Label>
-              <Select value={current.weekGrouping} onValueChange={(v) => setForm({ ...current, weekGrouping: v })}>
-                <SelectTrigger className="bg-black/40 border-white/10 h-10"><SelectValue /></SelectTrigger>
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                Agrupamento Semanal
+              </Label>
+              <Select
+                value={current.weekGrouping}
+                onValueChange={(v) => setForm({ ...current, weekGrouping: v })}
+              >
+                <SelectTrigger className="bg-black/40 border-white/10 h-10">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent className="bg-command-deep border-white/10">
                   <SelectItem value="CALENDAR_WEEK">Segunda a domingo</SelectItem>
                   <SelectItem value="CYCLE_WEEK">Blocos de 7 dias</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {mut.isError && <div className="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs">{(mut.error as any)?.message ?? "Erro ao salvar"}</div>}
+            {mut.isError && (
+              <div className="p-2 rounded bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs">
+                {(mut.error as any)?.message ?? "Erro ao salvar"}
+              </div>
+            )}
           </div>
         )}
         <DialogFooter className="mt-6 border-t border-white/5 pt-4">
-          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={() => setOpen(false)}>CANCELAR</Button>
+          <Button
+            variant="ghost"
+            className="text-slate-400 hover:text-white"
+            onClick={() => setOpen(false)}
+          >
+            CANCELAR
+          </Button>
           <Button
             className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold"
-            onClick={() => mut.mutate({
-              industryId,
-              periodType: current.periodType,
-              startDay: current.startDay,
-              endDay: current.endDay,
-              usesPreviousMonth: current.usesPreviousMonth,
-              weekGrouping: current.weekGrouping,
-              active: true,
-              notes: null,
-            })}
+            onClick={() =>
+              mut.mutate({
+                industryId,
+                periodType: current.periodType,
+                startDay: current.startDay,
+                endDay: current.endDay,
+                usesPreviousMonth: current.usesPreviousMonth,
+                weekGrouping: current.weekGrouping,
+                active: true,
+                notes: null,
+              })
+            }
             disabled={!current || mut.isPending}
           >
-            {mut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "SALVAR CONFIGURAÇÃO"}
+            {mut.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              "SALVAR CONFIGURAÇÃO"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-

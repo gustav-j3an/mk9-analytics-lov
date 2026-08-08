@@ -16,12 +16,14 @@ export interface PeriodConfig {
 
 export interface PeriodWindow {
   startDate: string; // yyyy-mm-dd inclusive
-  endDate: string;   // yyyy-mm-dd inclusive
+  endDate: string; // yyyy-mm-dd inclusive
   totalDays: number;
   config: PeriodConfig;
 }
 
-function pad(n: number) { return n < 10 ? `0${n}` : `${n}`; }
+function pad(n: number) {
+  return n < 10 ? `0${n}` : `${n}`;
+}
 function isoUTC(y: number, m: number, d: number) {
   return `${y}-${pad(m)}-${pad(d)}`;
 }
@@ -76,7 +78,10 @@ export function resolveWindow(config: PeriodConfig, year: number, month: number)
   const startMonth = config.usesPreviousMonth ? month - 1 : month;
   let startY = year;
   let startM = startMonth;
-  if (startM < 1) { startM = 12; startY -= 1; }
+  if (startM < 1) {
+    startM = 12;
+    startY -= 1;
+  }
   const startD = Math.min(config.startDay, lastDayOfMonth(startY, startM));
   const endD = Math.min(config.endDay, lastDayOfMonth(year, month));
   const start = isoUTC(startY, startM, startD);

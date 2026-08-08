@@ -8,9 +8,7 @@ import { z } from "zod";
 
 import { evaluateFrequencyConsistency } from "./canonical";
 
-const isoDate = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida (use aaaa-mm-dd).");
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida (use aaaa-mm-dd).");
 
 const justification = z
   .string()
@@ -146,8 +144,7 @@ export const FREQUENCY_ERROR_MESSAGES: Record<string, string> = {
     "Esta frequência foi alterada por outra pessoa enquanto você editava. Recarregue e tente novamente.",
   MK9_FREQUENCY_OVERLAP:
     "Já existe uma vigência para esta loja no período informado. Encerre a vigência atual antes de criar outra.",
-  MK9_FREQUENCY_RETROACTIVE_CONFIRMATION:
-    "Alteração retroativa exige confirmação e justificativa.",
+  MK9_FREQUENCY_RETROACTIVE_CONFIRMATION: "Alteração retroativa exige confirmação e justificativa.",
   MK9_FREQUENCY_VALUE_REQUIRED: "Informe a frequência semanal ou a mensal.",
   MK9_FREQUENCY_VALUE_INVALID: "Frequência inválida.",
   MK9_FREQUENCY_END_BEFORE_START:

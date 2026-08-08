@@ -18,7 +18,8 @@ export const Route = createFileRoute("/cockpit")({
       { property: "og:title", content: "Cockpit Operacional — MK9 Analytics" },
       {
         property: "og:description",
-        content: "Entenda em segundos como está a operação, o que está travando e o que fazer agora.",
+        content:
+          "Entenda em segundos como está a operação, o que está travando e o que fazer agora.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

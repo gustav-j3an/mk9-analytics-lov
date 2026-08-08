@@ -50,10 +50,10 @@ export const createIndustrySchema = z
     confirmed: z.boolean().optional(),
   })
   .strict()
-  .refine(
-    (v) => v.periodType !== "CUSTOM_CYCLE" || (v.startDay != null && v.endDay != null),
-    { message: "Informe o dia inicial e o dia final do período personalizado.", path: ["startDay"] },
-  );
+  .refine((v) => v.periodType !== "CUSTOM_CYCLE" || (v.startDay != null && v.endDay != null), {
+    message: "Informe o dia inicial e o dia final do período personalizado.",
+    path: ["startDay"],
+  });
 
 /** Edição: somente campos cadastrais + concorrência otimista. */
 export const updateIndustrySchema = z
@@ -77,7 +77,6 @@ export const deleteIndustrySchema = z
     industryId: z.string().uuid(),
   })
   .strict();
-
 
 export const archiveIndustrySchema = z
   .object({

@@ -40,5 +40,5 @@ export async function listIndustries() {
     .select("id, name, requires_checklist, archived_at");
   if (error) throw new Error(error.message);
   // @ts-ignore
-  return (data as any[]).filter(i => i.requires_checklist && !i.archived_at);
+  return (data as any[]).filter((i) => i.requires_checklist && !i.archived_at);
 }

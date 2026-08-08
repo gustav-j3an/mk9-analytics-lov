@@ -27,6 +27,6 @@ export const getMk9AnalyticsDashboardFn = createServerFn({ method: "POST" })
         allowedStoreIds: scope.allowedStoreIds,
         allowedPromoterIds: scope.allowedPromoterIds,
         canViewPersonalData: scope.canViewPersonalData,
-      }
+      },
     });
   });

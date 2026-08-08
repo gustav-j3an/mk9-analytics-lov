@@ -26,7 +26,10 @@ function pad(n: number): string {
 }
 
 /** Janela de mês-calendário (fallback quando a indústria não tem período próprio). */
-export function calendarWindow(year: number, month: number): { startDate: string; endDate: string } {
+export function calendarWindow(
+  year: number,
+  month: number,
+): { startDate: string; endDate: string } {
   const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
   return {
     startDate: `${year}-${pad(month)}-01`,

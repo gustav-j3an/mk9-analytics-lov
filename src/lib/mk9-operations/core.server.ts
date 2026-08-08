@@ -10,11 +10,20 @@
  * navegador nunca ampliam o que o usuário enxerga.
  */
 import { resolveWindow, type PeriodConfig } from "@/lib/mk9-reports/period.server";
-import { loadFrequencyVersionsForPeriod, segmentsForWindow } from "@/lib/mk9-frequency/versions.server";
+import {
+  loadFrequencyVersionsForPeriod,
+  segmentsForWindow,
+} from "@/lib/mk9-frequency/versions.server";
 
 import { buildIndustryRows, buildStoreRows } from "./buckets";
 import { DEFAULT_PERIOD_CONFIG, elapsedFraction, todayIso } from "./periods";
-import type { IndustryContext, OperationCore, OperationFilters, RouteInfo, StoreBucket } from "./types";
+import type {
+  IndustryContext,
+  OperationCore,
+  OperationFilters,
+  RouteInfo,
+  StoreBucket,
+} from "./types";
 
 function emptyCore(
   today: string,
@@ -45,7 +54,10 @@ function emptyCore(
   };
 }
 
-export async function loadOperationCore(supabase: any, filters: OperationFilters): Promise<OperationCore> {
+export async function loadOperationCore(
+  supabase: any,
+  filters: OperationFilters,
+): Promise<OperationCore> {
   const { mk9ListIndustries } = await import("@/lib/mk9-data.functions");
   const startedAt = Date.now();
   const today = todayIso();
@@ -63,8 +75,12 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       .select("scope_type, scope_value")
       .eq("user_id", filters.supervisorUserId);
     if (error) throw new Error(error.message);
-    const inds = (scopes ?? []).filter((s: any) => s.scope_type === "INDUSTRY").map((s: any) => s.scope_value);
-    const ufs = (scopes ?? []).filter((s: any) => s.scope_type === "UF").map((s: any) => s.scope_value);
+    const inds = (scopes ?? [])
+      .filter((s: any) => s.scope_type === "INDUSTRY")
+      .map((s: any) => s.scope_value);
+    const ufs = (scopes ?? [])
+      .filter((s: any) => s.scope_type === "UF")
+      .map((s: any) => s.scope_value);
     if (inds.length) scopeIndustryIds = inds;
     if (ufs.length) scopeUfs = ufs;
   }
@@ -76,14 +92,18 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       : access.allowedIndustryIds;
   }
   if (access?.allowedUfs) {
-    scopeUfs = scopeUfs ? scopeUfs.filter((u) => access.allowedUfs!.includes(u)) : access.allowedUfs;
+    scopeUfs = scopeUfs
+      ? scopeUfs.filter((u) => access.allowedUfs!.includes(u))
+      : access.allowedUfs;
   }
   const accessStoreIds = access?.allowedStoreIds ?? null;
   const accessPromoterIds = access?.allowedPromoterIds ?? null;
   const ufFilter = filters.uf ?? null;
 
   if (
-    (filters.industryId && access?.allowedIndustryIds && !access.allowedIndustryIds.includes(filters.industryId)) ||
+    (filters.industryId &&
+      access?.allowedIndustryIds &&
+      !access.allowedIndustryIds.includes(filters.industryId)) ||
     (ufFilter && access?.allowedUfs && !access.allowedUfs.includes(ufFilter)) ||
     (filters.promoterId && accessPromoterIds && !accessPromoterIds.includes(filters.promoterId)) ||
     scopeIndustryIds?.length === 0 ||
@@ -98,11 +118,12 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   // No longer needed: if (filters.industryId) indQuery = indQuery.eq("id", filters.industryId);
   // No longer needed: if (scopeIndustryIds) indQuery = indQuery.in("id", scopeIndustryIds);
 
-
   queryCount += 2;
   const cfgRes = await supabase
     .from("mk9_industry_period_config")
-    .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping, active")
+    .select(
+      "industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping, active",
+    )
     .eq("active", true);
 
   const industriesList = await supabase
@@ -110,13 +131,11 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
     .select("id, name, requires_checklist, checklist_enabled_at")
     .order("name", { ascending: true });
 
-
   if (cfgRes.error) throw new Error(cfgRes.error.message);
 
   let industries = (industriesList.data ?? []) as any[];
-  if (filters.industryId) industries = industries.filter(i => i.id === filters.industryId);
-  if (scopeIndustryIds) industries = industries.filter(i => scopeIndustryIds!.includes(i.id));
-
+  if (filters.industryId) industries = industries.filter((i) => i.id === filters.industryId);
+  if (scopeIndustryIds) industries = industries.filter((i) => scopeIndustryIds!.includes(i.id));
 
   const cfgByIndustry = new Map<string, PeriodConfig>();
   for (const c of cfgRes.data ?? []) {
@@ -132,7 +151,11 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   }
 
   const ctxs: IndustryContext[] = industries.map((ind) => {
-    const win = resolveWindow(cfgByIndustry.get(ind.id) ?? DEFAULT_PERIOD_CONFIG(ind.id), year, month);
+    const win = resolveWindow(
+      cfgByIndustry.get(ind.id) ?? DEFAULT_PERIOD_CONFIG(ind.id),
+      year,
+      month,
+    );
     const w = { startDate: win.startDate, endDate: win.endDate, totalDays: win.totalDays };
     return {
       id: ind.id,
@@ -164,10 +187,8 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   // Se uma consulta de visitas falhar, o dashboard ainda carrega o roteiro.
   queryCount += 5;
   const { listBulkOperationalActualVisits } = await import("./operational-visits.server");
-  
+
   const safeQuery = async (promise: Promise<any>, fallback: any = { data: [], error: null }) => {
-
-
     try {
       const res = await promise;
       if (res && res.error) {
@@ -180,7 +201,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       return fallback;
     }
   };
-  
+
   // Otimização: Promise.all centralizado para evitar N+1
   const [freqVersions, bulkVisits, routeRes, importRes, storeRes] = await Promise.all([
     loadFrequencyVersionsForPeriod(supabase, {
@@ -189,47 +210,57 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       periodStart: globalStart,
       periodEnd: globalEnd,
       accessScope: access,
-    }).catch(err => {
+    }).catch((err) => {
       console.error("[CORE_FREQ_ERROR]", err);
       return new Map<string, any[]>();
     }),
-    safeQuery(listBulkOperationalActualVisits({ 
-      industryIds, 
-      startDate: globalStart, 
-      endDate: globalEnd 
-    })),
-    safeQuery(supabase
-      .from("mk9_planned_routes")
-      .select("industry_id, store_id, promoter_id, weekday, valid_from, valid_until, promoter:mk9_promoters(id,name,employee_number)")
-      .in("industry_id", industryIds)
-      .eq("is_active", true)
-      .is("archived_at", null)
-      .lte("valid_from", globalEnd)
-      .or(`valid_until.is.null,valid_until.gte.${globalStart}`)
-      .limit(100000)),
-    safeQuery(supabase
-      .from("mk9_checklist_imports")
-      .select("id, industry_id, status")
-      .in("industry_id", industryIds)
-      .eq("operation_month", month)
-      .eq("operation_year", year)
-      .in("status", ["done", "confirmed", "committing"])
-      .limit(5000)),
-    safeQuery((() => {
-      let q = supabase.from("mk9_stores").select("uf").not("uf", "is", null).limit(50000);
-      if (scopeUfs) q = q.in("uf", scopeUfs);
-      if (accessStoreIds) q = q.in("id", accessStoreIds);
-      return q;
-    })()),
+    safeQuery(
+      listBulkOperationalActualVisits({
+        industryIds,
+        startDate: globalStart,
+        endDate: globalEnd,
+      }),
+    ),
+    safeQuery(
+      supabase
+        .from("mk9_planned_routes")
+        .select(
+          "industry_id, store_id, promoter_id, weekday, valid_from, valid_until, promoter:mk9_promoters(id,name,employee_number)",
+        )
+        .in("industry_id", industryIds)
+        .eq("is_active", true)
+        .is("archived_at", null)
+        .lte("valid_from", globalEnd)
+        .or(`valid_until.is.null,valid_until.gte.${globalStart}`)
+        .limit(100000),
+    ),
+    safeQuery(
+      supabase
+        .from("mk9_checklist_imports")
+        .select("id, industry_id, status")
+        .in("industry_id", industryIds)
+        .eq("operation_month", month)
+        .eq("operation_year", year)
+        .in("status", ["done", "confirmed", "committing"])
+        .limit(5000),
+    ),
+    safeQuery(
+      (() => {
+        let q = supabase.from("mk9_stores").select("uf").not("uf", "is", null).limit(50000);
+        if (scopeUfs) q = q.in("uf", scopeUfs);
+        if (accessStoreIds) q = q.in("id", accessStoreIds);
+        return q;
+      })(),
+    ),
   ]);
 
-  
   // Normalizar bulkVisits
-  const visitRes = Array.isArray(bulkVisits) ? { data: bulkVisits } : { data: (bulkVisits as any)?.data || [] };
+  const visitRes = Array.isArray(bulkVisits)
+    ? { data: bulkVisits }
+    : { data: (bulkVisits as any)?.data || [] };
 
   // BLINDAGEM: Não lançamos erro se uma query secundária falhar. O dashboard deve tentar renderizar.
   // if (r.error) throw new Error(r.error.message); // REMOVIDO PARA PROTEÇÃO
-
 
   const availableUfs = Array.from(
     new Set((storeRes.data ?? []).map((s: any) => s.uf).filter(Boolean) as string[]),
@@ -248,7 +279,11 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
     const info = (routeByKey.get(key) ?? { votes: new Map(), weekdays: new Set<number>() }) as any;
     info.weekdays.add(Number(r.weekday));
     if (r.promoter_id) {
-      const cur = info.votes.get(r.promoter_id) ?? { name: r.promoter?.name ?? "—", employeeNumber: r.promoter?.employee_number ?? null, count: 0 };
+      const cur = info.votes.get(r.promoter_id) ?? {
+        name: r.promoter?.name ?? "—",
+        employeeNumber: r.promoter?.employee_number ?? null,
+        count: 0,
+      };
       cur.count += 1;
       info.votes.set(r.promoter_id, cur);
       if (!info.promoterEmployeeNumber && r.promoter?.employee_number) {
@@ -312,7 +347,7 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   for (const v of visitRes.data ?? []) {
     const ctx = ctxById.get(v.industry_id);
     if (!ctx || !v.store_id) continue;
-    
+
     const d = String(v.scheduled_date);
     // Embora a query já filtre, mantemos a verificação de segurança por janela específica da indústria
     if (d < ctx.win.startDate || d > ctx.win.endDate) continue;

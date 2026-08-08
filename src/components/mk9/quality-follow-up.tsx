@@ -196,7 +196,9 @@ export function FollowUpPanel({
         {cards.map((card) => (
           <button
             key={card.key}
-            onClick={() => onFilter(card.active ? { assignedTo: null, dueState: null } : card.apply)}
+            onClick={() =>
+              onFilter(card.active ? { assignedTo: null, dueState: null } : card.apply)
+            }
             className={cn(
               "card-hover rounded-xl border border-border/70 bg-card p-4 text-left transition-colors hover:border-primary/40",
               card.danger && card.value > 0 && "border-destructive/30",
@@ -228,7 +230,9 @@ export function FollowUpPanel({
                 </button>
                 <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
                   {w.open} em aberto
-                  {w.overdue > 0 && <span className="text-destructive"> · {w.overdue} vencida(s)</span>}
+                  {w.overdue > 0 && (
+                    <span className="text-destructive"> · {w.overdue} vencida(s)</span>
+                  )}
                 </span>
               </li>
             ))}
@@ -575,7 +579,10 @@ export function TreatmentSection({
 
       {issue.resolutionType && (
         <p className="text-xs text-muted-foreground">
-          Resolução registrada: <strong>{RESOLUTION_LABEL[issue.resolutionType as Mk9ResolutionType] ?? issue.resolutionType}</strong>
+          Resolução registrada:{" "}
+          <strong>
+            {RESOLUTION_LABEL[issue.resolutionType as Mk9ResolutionType] ?? issue.resolutionType}
+          </strong>
           {issue.resolutionForced && " · registrada com o problema ainda presente"}
         </p>
       )}
@@ -631,9 +638,9 @@ export function TreatmentSection({
               {stillDetected && (
                 <div className="space-y-2 rounded-md border border-destructive/35 bg-destructive/8 p-2.5">
                   <p className="flex items-start gap-2 text-xs text-destructive">
-                    <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    O problema ainda foi detectado na última execução. Resolver agora não corrige o
-                    dado — apenas registra a decisão.
+                    <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />O problema ainda foi
+                    detectado na última execução. Resolver agora não corrige o dado — apenas
+                    registra a decisão.
                   </p>
                   {mayForce ? (
                     <label className="flex items-start gap-2 text-xs">
@@ -790,7 +797,10 @@ export function CommentsSection({
                       Visível ao cliente
                     </Badge>
                   )}
-                  <span className="text-[11px] text-muted-foreground" title={dateTimeLabel(c.createdAt)}>
+                  <span
+                    className="text-[11px] text-muted-foreground"
+                    title={dateTimeLabel(c.createdAt)}
+                  >
                     {relativeLabel(c.createdAt)}
                     {c.edited ? " · editado" : ""}
                   </span>
@@ -799,7 +809,11 @@ export function CommentsSection({
 
               {editingId === c.id ? (
                 <div className="mt-2 space-y-2">
-                  <Textarea rows={3} value={editBody} onChange={(e) => setEditBody(e.target.value)} />
+                  <Textarea
+                    rows={3}
+                    value={editBody}
+                    onChange={(e) => setEditBody(e.target.value)}
+                  />
                   <div className="flex justify-end gap-2">
                     <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
                       Cancelar

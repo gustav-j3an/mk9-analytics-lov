@@ -141,7 +141,7 @@ export function contractedVisitsForFrequencySegments(input: {
       // Só proporcionalizamos se o segmento for parcial em relação ao período operacional total.
       const segCobreInicio = seg.validFrom <= periodStart;
       const segCobreFim = seg.validUntil === null || seg.validUntil >= periodEnd;
-      
+
       if (!input.untilDate && segCobreInicio && segCobreFim) {
         // Se o segmento cobre o período operacional inteiro, usamos o valor mensal integral.
         segRaw = monthly;
@@ -225,7 +225,8 @@ export function describeFrequencySegments(
   return segs
     .map((s, i) => {
       if (i === 0 && s.endDate < period.end) return `${segLabel(s)} até ${brDay(s.endDate)}`;
-      if (i === segs.length - 1 && s.startDate > period.start) return `${segLabel(s)} desde ${brDay(s.startDate)}`;
+      if (i === segs.length - 1 && s.startDate > period.start)
+        return `${segLabel(s)} desde ${brDay(s.startDate)}`;
       return `${segLabel(s)} ${brDay(s.startDate)}–${brDay(s.endDate)}`;
     })
     .join(" · ");

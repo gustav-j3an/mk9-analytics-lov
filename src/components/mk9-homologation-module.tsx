@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { 
-  ShieldCheck, 
-  Activity, 
-  PlayCircle, 
-  CheckCircle2, 
-  AlertCircle, 
-  XCircle, 
+import {
+  ShieldCheck,
+  Activity,
+  PlayCircle,
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
   RefreshCw,
   FileText,
-  Wrench
+  Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -48,18 +48,18 @@ export function Mk9HomologationModule() {
     ];
 
     let currentResults: ValidationItem[] = [];
-    
+
     for (let i = 0; i < steps.length; i++) {
       const step = steps[i];
-      await new Promise(r => setTimeout(r, step.delay));
-      
+      await new Promise((r) => setTimeout(r, step.delay));
+
       const newResult: ValidationItem = {
         id: Math.random().toString(),
         category: step.category,
         label: step.label,
         status: "OK", // Mock OK for now
       };
-      
+
       currentResults = [...currentResults, newResult];
       setResults(currentResults);
       setProgress(((i + 1) / steps.length) * 100);
@@ -71,10 +71,14 @@ export function Mk9HomologationModule() {
 
   const getStatusIcon = (status: HealthStatus) => {
     switch (status) {
-      case "OK": return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
-      case "WARNING": return <AlertCircle className="h-4 w-4 text-amber-500" />;
-      case "ERROR": return <XCircle className="h-4 w-4 text-red-500" />;
-      default: return <Activity className="h-4 w-4 text-slate-400" />;
+      case "OK":
+        return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
+      case "WARNING":
+        return <AlertCircle className="h-4 w-4 text-amber-500" />;
+      case "ERROR":
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Activity className="h-4 w-4 text-slate-400" />;
     }
   };
 
@@ -83,19 +87,25 @@ export function Mk9HomologationModule() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Saúde do Sistema</h1>
-          <p className="text-muted-foreground">Homologação operacional e integridade de dados MK9.</p>
+          <p className="text-muted-foreground">
+            Homologação operacional e integridade de dados MK9.
+          </p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="gap-2">
             <FileText className="h-4 w-4" />
             Gerar Relatório PDF
           </Button>
-          <Button 
-            onClick={runFullHealthCheck} 
+          <Button
+            onClick={runFullHealthCheck}
             disabled={isRunning}
             className="gap-2 shadow-lg shadow-primary/20"
           >
-            {isRunning ? <RefreshCw className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+            {isRunning ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <PlayCircle className="h-4 w-4" />
+            )}
             Executar Verificação Completa
           </Button>
         </div>
@@ -133,7 +143,10 @@ export function Mk9HomologationModule() {
             ) : (
               <div className="space-y-3">
                 {results.map((res) => (
-                  <div key={res.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-transparent hover:border-border transition-colors">
+                  <div
+                    key={res.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-transparent hover:border-border transition-colors"
+                  >
                     <div className="flex items-center gap-3">
                       {getStatusIcon(res.status)}
                       <div>
@@ -141,7 +154,14 @@ export function Mk9HomologationModule() {
                         <p className="text-xs text-muted-foreground">{res.category}</p>
                       </div>
                     </div>
-                    <Badge variant={res.status === "OK" ? "outline" : "destructive"} className={res.status === "OK" ? "border-emerald-500/50 text-emerald-600 bg-emerald-50" : ""}>
+                    <Badge
+                      variant={res.status === "OK" ? "outline" : "destructive"}
+                      className={
+                        res.status === "OK"
+                          ? "border-emerald-500/50 text-emerald-600 bg-emerald-50"
+                          : ""
+                      }
+                    >
                       {res.status}
                     </Badge>
                   </div>
@@ -154,7 +174,9 @@ export function Mk9HomologationModule() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Status Geral</CardTitle>
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                Status Geral
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {[
@@ -165,7 +187,7 @@ export function Mk9HomologationModule() {
                 { label: "Roteiros", status: "OK" },
                 { label: "Dashboard", status: "OK" },
                 { label: "Banco", status: "OK" },
-              ].map(item => (
+              ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between">
                   <span className="text-sm">{item.label}</span>
                   <div className="flex items-center gap-2">
@@ -188,7 +210,11 @@ export function Mk9HomologationModule() {
               <p className="text-xs text-amber-600 mb-4">
                 Problemas seguros detectados podem ser corrigidos automaticamente.
               </p>
-              <Button size="sm" variant="outline" className="w-full border-amber-200 text-amber-700 hover:bg-amber-100">
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full border-amber-200 text-amber-700 hover:bg-amber-100"
+              >
                 Corrigir Automaticamente
               </Button>
             </CardContent>

@@ -6,8 +6,13 @@ import { buildSyncPlan } from "./sync";
 import { buildRouteDiff, applyRouteDiff } from "./route-diff.server";
 import type { Mk9Repository } from "./repository";
 import type {
-  IndustryRecord, PromoterRecord, StoreRecord,
-  ImportPreview, SyncMode, PlannedRouteRecord, PlannedVisitRecord,
+  IndustryRecord,
+  PromoterRecord,
+  StoreRecord,
+  ImportPreview,
+  SyncMode,
+  PlannedRouteRecord,
+  PlannedVisitRecord,
 } from "./types";
 
 export interface PreviewInput {
@@ -44,14 +49,19 @@ export async function generatePreview(repo: Mk9Repository, input: PreviewInput) 
     const industryIdBy = indexByNorm(industries, industries);
     const storeIdBy = indexStore(stores, stores);
     const promoterIdBy = indexByNorm(promoters, promoters);
-    const previewRoutes: PlannedRouteRecord[] = plan.toUpsert.routes.map((r) => ({
-      ...r,
-      promoterId: safeResolve(r.promoterId, promoterIdBy) ?? r.promoterId,
-      storeId: safeResolve(r.storeId, storeIdBy) ?? r.storeId,
-      industryId: safeResolve(r.industryId, industryIdBy) ?? r.industryId,
-    })).filter((r) => !r.promoterId.startsWith("pending:")
-      && !r.storeId.startsWith("pending:")
-      && !r.industryId.startsWith("pending:"));
+    const previewRoutes: PlannedRouteRecord[] = plan.toUpsert.routes
+      .map((r) => ({
+        ...r,
+        promoterId: safeResolve(r.promoterId, promoterIdBy) ?? r.promoterId,
+        storeId: safeResolve(r.storeId, storeIdBy) ?? r.storeId,
+        industryId: safeResolve(r.industryId, industryIdBy) ?? r.industryId,
+      }))
+      .filter(
+        (r) =>
+          !r.promoterId.startsWith("pending:") &&
+          !r.storeId.startsWith("pending:") &&
+          !r.industryId.startsWith("pending:"),
+      );
     routeDiff = await buildRouteDiff(previewRoutes, input.operationMonth, input.operationYear);
   }
 
@@ -145,7 +155,7 @@ export async function commitImport(repo: Mk9Repository, input: CommitInput) {
       manualConflicts: routeDiff.manualConflicts,
       futureConflicts: routeDiff.futureConflicts,
     });
-    if ((routeDiff.manualConflicts + routeDiff.futureConflicts) > 0 && !input.resolveConflicts) {
+    if (routeDiff.manualConflicts + routeDiff.futureConflicts > 0 && !input.resolveConflicts) {
       throw new Error(
         `ROUTE_DIFF_CONFLICTS::${JSON.stringify({
           manualConflicts: routeDiff.manualConflicts,
@@ -195,9 +205,14 @@ function serializeError(err: unknown): string {
   if (typeof err === "object") {
     const e = err as Record<string, unknown>;
     const parts = [e.message, e.details, e.hint, e.code ? `code=${e.code}` : null]
-      .filter(Boolean).map(String);
+      .filter(Boolean)
+      .map(String);
     if (parts.length) return parts.join(" · ");
-    try { return JSON.stringify(err); } catch { return String(err); }
+    try {
+      return JSON.stringify(err);
+    } catch {
+      return String(err);
+    }
   }
   return String(err);
 }

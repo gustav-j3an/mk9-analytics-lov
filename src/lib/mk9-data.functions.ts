@@ -123,8 +123,11 @@ export const mk9GetIndustryOperationConfig = createServerFn({ method: "GET" })
       name: ind.name as string,
       requiresChecklist: (ind as any).requires_checklist === true,
       checklistEnabledAt: ((ind as any).checklist_enabled_at ?? null) as string | null,
-      periodType: ((cfg as any)?.period_type ?? "CALENDAR_MONTH") as "CALENDAR_MONTH" | "CUSTOM_CYCLE",
-      hasCustomPeriod: !!cfg && (cfg as any).period_type === "CUSTOM_CYCLE" && (cfg as any).active === true,
+      periodType: ((cfg as any)?.period_type ?? "CALENDAR_MONTH") as
+        | "CALENDAR_MONTH"
+        | "CUSTOM_CYCLE",
+      hasCustomPeriod:
+        !!cfg && (cfg as any).period_type === "CUSTOM_CYCLE" && (cfg as any).active === true,
       period: cfg
         ? {
             startDay: (cfg as any).start_day as number,
@@ -173,7 +176,8 @@ export const mk9SetIndustryRequiresChecklist = createServerFn({ method: "POST" }
     if (error) {
       const raw = error.message ?? "";
       if (raw.includes("MK9_INDUSTRY_NOT_FOUND")) throw mk9IndustryError("INDUSTRY_NOT_FOUND", 404);
-      if (raw.includes("MK9_INDUSTRY_ALREADY_ENABLED")) throw mk9IndustryError("INDUSTRY_ALREADY_ENABLED", 409);
+      if (raw.includes("MK9_INDUSTRY_ALREADY_ENABLED"))
+        throw mk9IndustryError("INDUSTRY_ALREADY_ENABLED", 409);
       throw new Error("Não foi possível alterar a classificação de checklist desta indústria.");
     }
     const row = Array.isArray(rows) ? (rows[0] as any) : (rows as any);
@@ -204,9 +208,8 @@ export const mk9CreateChecklistIndustry = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
-    const { decideIndustryCreation, mk9IndustryError } = await import(
-      "@/lib/mk9-checklist/industry-admin"
-    );
+    const { decideIndustryCreation, mk9IndustryError } =
+      await import("@/lib/mk9-checklist/industry-admin");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: existing, error: listErr } = await supabaseAdmin
       .from("mk9_industries")
@@ -277,7 +280,6 @@ export const mk9ListStores = createServerFn({ method: "GET" }).handler(async () 
     updatedAt: r.updated_at as string,
     archivedAt: (r.archived_at ?? null) as string | null,
   }));
-
 });
 
 export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async () => {
@@ -288,7 +290,10 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
   // Escopo de promotor: explícito (mk9_user_scopes) ou derivado do roteiro
   // dentro das indústrias/UFs permitidas (resolvido em lote, sem N+1).
   let allowedPromoterIds: string[] | null = scope.allowedPromoterIds;
-  if (!allowedPromoterIds && (scope.allowedIndustryIds || scope.allowedUfs || scope.allowedStoreIds)) {
+  if (
+    !allowedPromoterIds &&
+    (scope.allowedIndustryIds || scope.allowedUfs || scope.allowedStoreIds)
+  ) {
     let rq = supabaseAdmin
       .from("mk9_planned_routes")
       .select("promoter_id, store:mk9_stores(uf)")
@@ -302,7 +307,9 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
     allowedPromoterIds = Array.from(
       new Set(
         (routes ?? [])
-          .filter((r: any) => !scope.allowedUfs || (r.store?.uf && scope.allowedUfs.includes(r.store.uf)))
+          .filter(
+            (r: any) => !scope.allowedUfs || (r.store?.uf && scope.allowedUfs.includes(r.store.uf)),
+          )
           .map((r: any) => r.promoter_id as string),
       ),
     );
@@ -311,7 +318,9 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
 
   let q = supabaseAdmin
     .from("mk9_promoters")
-    .select("id, name, external_id, employee_number, city, uf, contact, notes, updated_at, archived_at, is_active, supervisor_id")
+    .select(
+      "id, name, external_id, employee_number, city, uf, contact, notes, updated_at, archived_at, is_active, supervisor_id",
+    )
     .order("name", { ascending: true });
   if (allowedPromoterIds) q = q.in("id", allowedPromoterIds);
   const { data, error } = await q;
@@ -331,20 +340,27 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
     isActive: r.is_active as boolean,
     supervisorId: (r.supervisor_id as string | null) ?? null,
   }));
-
 });
 
-
 export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({
-    month: z.number().int().min(1).max(12),
-    year: z.number().int().min(2020).max(2100),
-  }).parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        month: z.number().int().min(1).max(12),
+        year: z.number().int().min(2020).max(2100),
+      })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
     const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    if (scope.allowedIndustryIds?.length === 0 || scope.allowedStoreIds?.length === 0 || scope.allowedUfs?.length === 0) return [];
+    if (
+      scope.allowedIndustryIds?.length === 0 ||
+      scope.allowedStoreIds?.length === 0 ||
+      scope.allowedUfs?.length === 0
+    )
+      return [];
     let q = supabaseAdmin
       .from("mk9_planned_routes")
       .select(
@@ -378,15 +394,24 @@ export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
   });
 
 export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({
-    month: z.number().int().min(1).max(12),
-    year: z.number().int().min(2020).max(2100),
-  }).parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        month: z.number().int().min(1).max(12),
+        year: z.number().int().min(2020).max(2100),
+      })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
     const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    if (scope.allowedIndustryIds?.length === 0 || scope.allowedStoreIds?.length === 0 || scope.allowedUfs?.length === 0) return [];
+    if (
+      scope.allowedIndustryIds?.length === 0 ||
+      scope.allowedStoreIds?.length === 0 ||
+      scope.allowedUfs?.length === 0
+    )
+      return [];
     const first = new Date(Date.UTC(data.year, data.month - 1, 1)).toISOString().slice(0, 10);
     const last = new Date(Date.UTC(data.year, data.month, 0)).toISOString().slice(0, 10);
     let q = supabaseAdmin
@@ -422,40 +447,55 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
   });
 
 export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({
-    month: z.number().int().min(1).max(12),
-    year: z.number().int().min(2020).max(2100),
-  }).parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        month: z.number().int().min(1).max(12),
+        year: z.number().int().min(2020).max(2100),
+      })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
     const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { resolveWindow } = await import("@/lib/mk9-reports/period.server");
-    const empty = { contratadas: 0, executadas: 0, validas: 0, extras: 0, pendencias: 0, coverage: 0 };
-    if (scope.allowedIndustryIds?.length === 0 || scope.allowedStoreIds?.length === 0 || scope.allowedUfs?.length === 0) return empty;
+    const empty = {
+      contratadas: 0,
+      executadas: 0,
+      validas: 0,
+      extras: 0,
+      pendencias: 0,
+      coverage: 0,
+    };
+    if (
+      scope.allowedIndustryIds?.length === 0 ||
+      scope.allowedStoreIds?.length === 0 ||
+      scope.allowedUfs?.length === 0
+    )
+      return empty;
 
     // Fase 1B.3: contratadas vêm da frequência VERSIONADA, com a mesma
     // matemática proporcional do Dashboard/Auditoria/Relatório.
     // A antiga fórmula `weekly × 4` foi eliminada.
     const { contractedVisitsForFrequencySegments } = await import("@/lib/mk9-frequency/segments");
-    const { loadFrequencyVersionsForPeriod, segmentsForWindow } = await import(
-      "@/lib/mk9-frequency/versions.server"
-    );
+    const { loadFrequencyVersionsForPeriod, segmentsForWindow } =
+      await import("@/lib/mk9-frequency/versions.server");
 
     let indQuery = supabaseAdmin.from("mk9_industries").select("id").limit(20000);
     if (scope.allowedIndustryIds) indQuery = indQuery.in("id", scope.allowedIndustryIds);
 
-    const [
-      { data: industryRows, error: indError },
-      { data: configs, error: configError },
-    ] = await Promise.all([
-      indQuery,
-      supabaseAdmin
-        .from("mk9_industry_period_config")
-        .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping")
-        .eq("active", true)
-        .limit(20000),
-    ]);
+    const [{ data: industryRows, error: indError }, { data: configs, error: configError }] =
+      await Promise.all([
+        indQuery,
+        supabaseAdmin
+          .from("mk9_industry_period_config")
+          .select(
+            "industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping",
+          )
+          .eq("active", true)
+          .limit(20000),
+      ]);
     if (indError) throw new Error(indError.message);
     if (configError) throw new Error(configError.message);
 
@@ -481,7 +521,10 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
       (a, w) => (w.startDate < a ? w.startDate : a),
       `${data.year}-12-31`,
     );
-    const globalEnd = Array.from(windows.values()).reduce((a, w) => (w.endDate > a ? w.endDate : a), `${data.year}-01-01`);
+    const globalEnd = Array.from(windows.values()).reduce(
+      (a, w) => (w.endDate > a ? w.endDate : a),
+      `${data.year}-01-01`,
+    );
 
     const freqVersions = await loadFrequencyVersionsForPeriod(supabaseAdmin, {
       industryIds,
@@ -521,7 +564,11 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
     for (const result of actualResults) {
       if (result.error) throw new Error(result.error.message);
       // Extras fora do escopo não podem vazar para os totais.
-      actuals.push(...(result.data ?? []).filter((a: any) => scopedStoreIds.has(`${a.industry_id}|${a.store_id}`)));
+      actuals.push(
+        ...(result.data ?? []).filter((a: any) =>
+          scopedStoreIds.has(`${a.industry_id}|${a.store_id}`),
+        ),
+      );
     }
 
     for (const a of actuals) {
@@ -530,7 +577,6 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
       cur.executadas += 1;
       perStore.set(key, cur);
     }
-
 
     let contratadas = 0;
     let executadas = 0;
@@ -544,7 +590,7 @@ export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
     // Pendentes e cobertura globais usam contratadas - realizadas.
     const pendencias = Math.max(0, contratadas - executadas);
     const validas = Math.min(contratadas, executadas);
-    const coverage = contratadas > 0 ? Math.min(100, Math.round((executadas / contratadas) * 100)) : 0;
+    const coverage =
+      contratadas > 0 ? Math.min(100, Math.round((executadas / contratadas) * 100)) : 0;
     return { contratadas, executadas, validas, extras, pendencias, coverage };
   });
-

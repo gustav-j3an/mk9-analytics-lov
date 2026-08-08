@@ -124,11 +124,7 @@ function readCell(row: Record<string, unknown>, candidates: string[]): unknown {
   return key ? row[key] : null;
 }
 
-function parseIndustriesSheet(
-  rows: Record<string, unknown>[],
-  sheet: string,
-  out: ParsedWorkbook,
-) {
+function parseIndustriesSheet(rows: Record<string, unknown>[], sheet: string, out: ParsedWorkbook) {
   rows.forEach((row, i) => {
     const raw = readCell(row, ["industria", "indústria"]);
     const name = raw ? String(raw).trim() : "";
@@ -142,17 +138,17 @@ function parseIndustriesSheet(
   });
 }
 
-function parseFrequencySheet(
-  rows: Record<string, unknown>[],
-  sheet: string,
-  out: ParsedWorkbook,
-) {
+function parseFrequencySheet(rows: Record<string, unknown>[], sheet: string, out: ParsedWorkbook) {
   rows.forEach((row, i) => {
     const raw = readCell(row, ["industria", "indústria"]);
     const name = raw ? String(raw).trim() : "";
     if (!name) return;
-    const contracted = parseNumber(readCell(row, ["freq mensal contratada", "freq. mensal contratada", "contratada"]));
-    const estimated = parseNumber(readCell(row, ["freq mensal realizada", "freq. mensal realizada", "realizada"]));
+    const contracted = parseNumber(
+      readCell(row, ["freq mensal contratada", "freq. mensal contratada", "contratada"]),
+    );
+    const estimated = parseNumber(
+      readCell(row, ["freq mensal realizada", "freq. mensal realizada", "realizada"]),
+    );
     const weeks = parseNumber(readCell(row, ["semanas por mes", "semanas por mês", "semanas"]));
     // upsert por nome normalizado
     const norm = normalizeName(name);
@@ -175,11 +171,7 @@ function parseFrequencySheet(
   });
 }
 
-function parseStoresSheet(
-  rows: Record<string, unknown>[],
-  sheet: string,
-  out: ParsedWorkbook,
-) {
+function parseStoresSheet(rows: Record<string, unknown>[], sheet: string, out: ParsedWorkbook) {
   rows.forEach((row, i) => {
     const nameRaw = readCell(row, ["loja"]);
     const name = nameRaw ? String(nameRaw).trim() : "";
@@ -197,11 +189,7 @@ function parseStoresSheet(
   });
 }
 
-function parsePromotersSheet(
-  rows: Record<string, unknown>[],
-  sheet: string,
-  out: ParsedWorkbook,
-) {
+function parsePromotersSheet(rows: Record<string, unknown>[], sheet: string, out: ParsedWorkbook) {
   rows.forEach((row, i) => {
     const nameRaw = readCell(row, ["nome", "promotor"]);
     const name = nameRaw ? String(nameRaw).trim() : "";
@@ -225,11 +213,7 @@ function parsePromotersSheet(
   });
 }
 
-function parseRouteSheet(
-  rows: Record<string, unknown>[],
-  sheet: string,
-  out: ParsedWorkbook,
-) {
+function parseRouteSheet(rows: Record<string, unknown>[], sheet: string, out: ParsedWorkbook) {
   // Descobrir dinamicamente quais colunas do row são dias da semana.
   if (!rows.length) return;
   const sampleKeys = Object.keys(rows[0] as Record<string, unknown>);

@@ -52,18 +52,36 @@ export type Mk9QualityEventType =
 export type Mk9DetectorMode = "REALTIME" | "PERSISTED";
 
 export const MK9_QUALITY_CATEGORIES: Mk9QualityCategory[] = [
-  "CADASTRO", "FREQUENCIA", "ROTEIRO", "VISITA", "IMPORTACAO", "INTEGRIDADE", "SEGURANCA",
+  "CADASTRO",
+  "FREQUENCIA",
+  "ROTEIRO",
+  "VISITA",
+  "IMPORTACAO",
+  "INTEGRIDADE",
+  "SEGURANCA",
 ];
 export const MK9_QUALITY_SEVERITIES: Mk9QualitySeverity[] = [
-  "INFO", "AVISO", "ATENCAO", "CRITICO", "BLOQUEANTE",
+  "INFO",
+  "AVISO",
+  "ATENCAO",
+  "CRITICO",
+  "BLOQUEANTE",
 ];
 export const MK9_QUALITY_STATUSES: Mk9QualityStatus[] = [
-  "OPEN", "ACKNOWLEDGED", "IN_PROGRESS", "RESOLVED", "RESOLVED_AUTO", "IGNORED", "REOPENED",
+  "OPEN",
+  "ACKNOWLEDGED",
+  "IN_PROGRESS",
+  "RESOLVED",
+  "RESOLVED_AUTO",
+  "IGNORED",
+  "REOPENED",
 ];
 
 /** Categorias consideradas TÉCNICAS — nunca expostas ao papel CLIENTE. */
 export const MK9_TECHNICAL_CATEGORIES: Mk9QualityCategory[] = [
-  "IMPORTACAO", "INTEGRIDADE", "SEGURANCA",
+  "IMPORTACAO",
+  "INTEGRIDADE",
+  "SEGURANCA",
 ];
 
 /** Evidência é sempre JSON puro — garante serialização segura pela rede. */
@@ -250,5 +268,3 @@ export interface Mk9QualityAssignableUser {
   name: string;
   role: string;
 }
-
-

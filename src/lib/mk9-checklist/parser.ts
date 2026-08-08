@@ -2,7 +2,13 @@
 // Detecta cabeçalho, colunas de DATAS COMPLETAS (dd/mm/yyyy, serial Excel, Date) e marcações (✅, ✓, x, sim, 1...).
 // Reconhece a coluna final REALIZADO para conciliar totais.
 import * as XLSX from "xlsx";
-import { isDayMarked, normalizeStoreName, normalizeUF, parseNumber, normalizeText } from "@/lib/mk9/normalization";
+import {
+  isDayMarked,
+  normalizeStoreName,
+  normalizeUF,
+  parseNumber,
+  normalizeText,
+} from "@/lib/mk9/normalization";
 import type { ChecklistMark } from "./types";
 
 export interface ParsedChecklist {
@@ -49,7 +55,9 @@ function headerMatch(cell: unknown, keywords: string[]): boolean {
   return keywords.some((k) => t === k || t.includes(k));
 }
 
-function pad2(n: number) { return n < 10 ? `0${n}` : String(n); }
+function pad2(n: number) {
+  return n < 10 ? `0${n}` : String(n);
+}
 
 function excelSerialToDate(serial: number): Date | null {
   // Excel epoch (com bug 1900). XLSX.SSF.parse_date_code lida com isso.
@@ -89,13 +97,23 @@ function detectDateColumn(cell: unknown): string | null {
   return null;
 }
 
-export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, options: ParseChecklistOptions = {}): ParsedChecklist {
+export function parseChecklistWorkbook(
+  buffer: ArrayBuffer,
+  filename: string,
+  options: ParseChecklistOptions = {},
+): ParsedChecklist {
   const debug = (step: string, message: string, data?: Record<string, unknown>) => {
     options.onDebug?.({ step, message, data });
   };
-  debug("parser-open-workbook", "Abrindo workbook do checklist", { filename, byteLength: buffer.byteLength });
+  debug("parser-open-workbook", "Abrindo workbook do checklist", {
+    filename,
+    byteLength: buffer.byteLength,
+  });
   const wb = XLSX.read(buffer, { type: "array", cellDates: true });
-  debug("parser-workbook-opened", "Workbook aberto", { sheets: wb.SheetNames, sheetCount: wb.SheetNames.length });
+  debug("parser-workbook-opened", "Workbook aberto", {
+    sheets: wb.SheetNames,
+    sheetCount: wb.SheetNames.length,
+  });
 
   const out: ParsedChecklist = {
     filename,
@@ -119,7 +137,12 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
     debug("sheet-found", "Sheet encontrada", { sheet: sheetName });
     const sheet = wb.Sheets[sheetName];
     if (!sheet) continue;
-    const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1, defval: null, blankrows: false, raw: true });
+    const rows = XLSX.utils.sheet_to_json<any[]>(sheet, {
+      header: 1,
+      defval: null,
+      blankrows: false,
+      raw: true,
+    });
     debug("rows-read", "Quantidade de linhas lidas", { sheet: sheetName, rows: rows.length });
     if (!rows.length) continue;
 
@@ -130,7 +153,8 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
     let weeklyCol = -1;
     let monthlyCol = -1;
     let realizadoCol = -1;
-    const dateCols: Array<{ col: number; iso: string; recovered?: boolean; original?: string }> = [];
+    const dateCols: Array<{ col: number; iso: string; recovered?: boolean; original?: string }> =
+      [];
 
     for (let r = 0; r < Math.min(rows.length, 40); r++) {
       const row = rows[r] ?? [];
@@ -143,11 +167,57 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
 
       for (let c = 0; c < row.length; c++) {
         const cell = row[c];
-        if (localStoreCol < 0 && headerMatch(cell, ["loja", "cliente", "pdv"])) { localStoreCol = c; continue; }
-        if (localUfCol < 0 && headerMatch(cell, ["uf", "estado"])) { localUfCol = c; continue; }
-        if (localWeeklyCol < 0 && headerMatch(cell, ["visita semanal", "visitas semanais", "freq semanal", "frequencia semanal", "frequência semanal"])) { localWeeklyCol = c; continue; }
-        if (localMonthlyCol < 0 && headerMatch(cell, ["visita mensal", "visitas mensais", "freq mensal", "frequencia mensal", "frequência mensal", "frequencia contratada", "frequência contratada", "contratada", "meta mensal"])) { localMonthlyCol = c; continue; }
-        if (localRealizadoCol < 0 && headerMatch(cell, ["realizado", "realizadas", "total realizado", "executado", "executadas"])) { localRealizadoCol = c; continue; }
+        if (localStoreCol < 0 && headerMatch(cell, ["loja", "cliente", "pdv"])) {
+          localStoreCol = c;
+          continue;
+        }
+        if (localUfCol < 0 && headerMatch(cell, ["uf", "estado"])) {
+          localUfCol = c;
+          continue;
+        }
+        if (
+          localWeeklyCol < 0 &&
+          headerMatch(cell, [
+            "visita semanal",
+            "visitas semanais",
+            "freq semanal",
+            "frequencia semanal",
+            "frequência semanal",
+          ])
+        ) {
+          localWeeklyCol = c;
+          continue;
+        }
+        if (
+          localMonthlyCol < 0 &&
+          headerMatch(cell, [
+            "visita mensal",
+            "visitas mensais",
+            "freq mensal",
+            "frequencia mensal",
+            "frequência mensal",
+            "frequencia contratada",
+            "frequência contratada",
+            "contratada",
+            "meta mensal",
+          ])
+        ) {
+          localMonthlyCol = c;
+          continue;
+        }
+        if (
+          localRealizadoCol < 0 &&
+          headerMatch(cell, [
+            "realizado",
+            "realizadas",
+            "total realizado",
+            "executado",
+            "executadas",
+          ])
+        ) {
+          localRealizadoCol = c;
+          continue;
+        }
         const iso = detectDateColumn(cell);
         if (iso) localDateCols.push({ col: c, iso });
       }
@@ -188,10 +258,18 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
           if (!(day >= 1 && day <= 31)) continue;
           let ref: { col: number; iso: string } | null = null;
           for (let i = filtered.length - 1; i >= 0; i--) {
-            if (filtered[i].col < c) { ref = filtered[i]; break; }
+            if (filtered[i].col < c) {
+              ref = filtered[i];
+              break;
+            }
           }
           if (!ref) {
-            for (const d of filtered) { if (d.col > c) { ref = d; break; } }
+            for (const d of filtered) {
+              if (d.col > c) {
+                ref = d;
+                break;
+              }
+            }
           }
           if (!ref) continue;
           const [yy, mm] = ref.iso.split("-");
@@ -220,9 +298,11 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
       }
     }
 
-
     if (headerRow < 0) {
-      debug("header-not-found", "Cabeçalho não identificado na sheet", { sheet: sheetName, checkedRows: Math.min(rows.length, 40) });
+      debug("header-not-found", "Cabeçalho não identificado na sheet", {
+        sheet: sheetName,
+        checkedRows: Math.min(rows.length, 40),
+      });
       out.warnings.push(`Aba "${sheetName}" ignorada: cabeçalho não encontrado.`);
       continue;
     }
@@ -241,17 +321,25 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
           if (!t) continue;
           if (t.includes("total") && (t.includes("realiz") || t.includes("visitas"))) {
             const numHere = parseNumber(row[cc]);
-            if (numHere !== null && numHere > 0 && Number.isFinite(numHere)) { out.declaredTotal = numHere; break; }
+            if (numHere !== null && numHere > 0 && Number.isFinite(numHere)) {
+              out.declaredTotal = numHere;
+              break;
+            }
             const right = parseNumber(row[cc + 1]);
-            if (right !== null && Number.isFinite(right)) { out.declaredTotal = right; break; }
+            if (right !== null && Number.isFinite(right)) {
+              out.declaredTotal = right;
+              break;
+            }
             const below = parseNumber((rows[rr + 1] ?? [])[cc]);
-            if (below !== null && Number.isFinite(below)) { out.declaredTotal = below; break; }
+            if (below !== null && Number.isFinite(below)) {
+              out.declaredTotal = below;
+              break;
+            }
           }
         }
         if (out.declaredTotal !== null) break;
       }
     }
-
 
     // 2) Percorre linhas de dados
     let sheetRealizadoSum = 0;
@@ -263,13 +351,16 @@ export function parseChecklistWorkbook(buffer: ArrayBuffer, filename: string, op
       const storeName = String(rawName).trim();
       const storeNormalized = normalizeStoreName(storeName);
       if (!storeNormalized) continue;
-      
+
       // AJUSTE FINAL: Validar que BANDEIRA (implícito), LOJA e UF estão preenchidos.
       // Linhas de anotação/observação geralmente não têm UF nem BANDEIRA.
       const hasUf = ufCol >= 0 && row[ufCol] !== null && String(row[ufCol]).trim() !== "";
       // Se não tem UF, desconfiamos que seja uma linha de nota solta no meio da planilha.
       if (!hasUf && ufCol >= 0) {
-        debug("parser-row-skipped", "Linha ignorada: UF ausente (provável anotação)", { storeName, excelRow: r + 1 });
+        debug("parser-row-skipped", "Linha ignorada: UF ausente (provável anotação)", {
+          storeName,
+          excelRow: r + 1,
+        });
         continue;
       }
 

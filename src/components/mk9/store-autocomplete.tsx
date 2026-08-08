@@ -20,7 +20,7 @@ export interface StoreOption {
 }
 
 interface Props {
-  value: string;                         // store_id
+  value: string; // store_id
   onChange: (store: StoreOption) => void;
   initialLabel?: string | null;
   disabled?: boolean;
@@ -52,21 +52,31 @@ export function Mk9StoreAutocomplete({
 
   // Modo edição: carrega apenas a loja atual para exibir label.
   useEffect(() => {
-    if (!value) { setSelected(null); return; }
+    if (!value) {
+      setSelected(null);
+      return;
+    }
     if (selected?.id === value) return;
     let cancel = false;
     (async () => {
       const cached = qc.getQueryData<StoreOption | null>(["mk9-store", value]);
-      if (cached) { if (!cancel) setSelected(cached); return; }
+      if (cached) {
+        if (!cancel) setSelected(cached);
+        return;
+      }
       try {
         const row = await getFn({ data: { id: value } });
         if (!cancel && row) {
           qc.setQueryData(["mk9-store", value], row);
           setSelected(row);
         }
-      } catch { /* silencioso */ }
+      } catch {
+        /* silencioso */
+      }
     })();
-    return () => { cancel = true; };
+    return () => {
+      cancel = true;
+    };
   }, [value, selected?.id, getFn, qc]);
 
   const searchQ = useQuery({
@@ -95,7 +105,10 @@ export function Mk9StoreAutocomplete({
       onOpenChange={(o) => {
         setOpen(o);
         if (o) setTimeout(() => inputRef.current?.focus(), 30);
-        else { setInput(""); setDebounced(""); }
+        else {
+          setInput("");
+          setDebounced("");
+        }
       }}
     >
       <PopoverTrigger asChild>
@@ -104,10 +117,7 @@ export function Mk9StoreAutocomplete({
           variant="outline"
           role="combobox"
           disabled={disabled}
-          className={cn(
-            "w-full justify-between font-normal",
-            !label && "text-muted-foreground",
-          )}
+          className={cn("w-full justify-between font-normal", !label && "text-muted-foreground")}
         >
           <span className="flex items-center gap-2 truncate">
             <StoreIcon className="h-4 w-4 opacity-60 shrink-0" />
@@ -141,13 +151,12 @@ export function Mk9StoreAutocomplete({
               <X className="h-3.5 w-3.5" />
             </button>
           )}
-          {searchQ.isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin opacity-60 shrink-0" />}
+          {searchQ.isFetching && (
+            <Loader2 className="h-3.5 w-3.5 animate-spin opacity-60 shrink-0" />
+          )}
         </div>
 
-        <div
-          className="overflow-y-auto overscroll-contain p-1"
-          style={{ maxHeight: 320 }}
-        >
+        <div className="overflow-y-auto overscroll-contain p-1" style={{ maxHeight: 320 }}>
           {showHint && (
             <p className="px-3 py-6 text-xs text-muted-foreground text-center">
               Digite pelo menos 2 caracteres para pesquisar.
@@ -179,18 +188,10 @@ export function Mk9StoreAutocomplete({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 space-y-0.5">
-                    <p className="text-sm font-medium leading-tight truncate">
-                      {s.name}
-                    </p>
-                    {cityUf && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {cityUf}
-                      </p>
-                    )}
+                    <p className="text-sm font-medium leading-tight truncate">{s.name}</p>
+                    {cityUf && <p className="text-xs text-muted-foreground truncate">{cityUf}</p>}
                     {s.chain && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        Rede {s.chain}
-                      </p>
+                      <p className="text-xs text-muted-foreground truncate">Rede {s.chain}</p>
                     )}
                   </div>
                   {isActive && <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />}

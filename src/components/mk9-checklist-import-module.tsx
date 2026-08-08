@@ -34,17 +34,24 @@ import { cn } from "@/lib/utils";
 import { checklistBatchPreview } from "@/lib/mk9-checklist-batch.functions";
 import { checklistBatchCommit } from "@/lib/mk9-checklist-batch-commit.functions";
 import type { ChecklistBatchFile } from "@/lib/mk9-checklist/batch-types";
-import { RevertChecklistDialog, CorrectCompetenceDialog, CompetenceConflictDialog } from "./mk9-checklist/revert-dialogs";
-
-
-
+import {
+  RevertChecklistDialog,
+  CorrectCompetenceDialog,
+  CompetenceConflictDialog,
+} from "./mk9-checklist/revert-dialogs";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,13 +87,25 @@ import {
 import { detectMk9FileKind } from "@/lib/mk9/detect-file-kind";
 import type { ChecklistPreview } from "@/lib/mk9-checklist/types";
 
-
 const MONTHS = [
-  "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-  "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
 
-const STATUS_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+const STATUS_LABEL: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" }
+> = {
   pending: { label: "Pendente", variant: "secondary" },
   previewing: { label: "Prévia gerada", variant: "secondary" },
   committing: { label: "Processando", variant: "secondary" },
@@ -95,7 +114,10 @@ const STATUS_LABEL: Record<string, { label: string; variant: "default" | "second
   cancelled: { label: "Cancelada", variant: "secondary" },
 };
 
-const VALIDATION_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+const VALIDATION_LABEL: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" }
+> = {
   CONSISTENT: { label: "Auditoria OK", variant: "default" },
   COMPLETED_WITH_ALERTS: { label: "Concluído com alertas", variant: "secondary" },
   INCONSISTENT: { label: "INCONSISTENTE", variant: "destructive" },
@@ -103,8 +125,18 @@ const VALIDATION_LABEL: Record<string, { label: string; variant: "default" | "se
 };
 
 const MONTHS_PT = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
 
 function shortDate(value: string) {
@@ -124,8 +156,14 @@ type RichError = {
   line?: number;
   validation?: { field: string; expected?: string; received?: unknown; issues: any[] };
   database?: {
-    code?: string; message?: string; details?: string; hint?: string;
-    constraint?: string; table?: string; column?: string; value?: unknown;
+    code?: string;
+    message?: string;
+    details?: string;
+    hint?: string;
+    constraint?: string;
+    table?: string;
+    column?: string;
+    value?: unknown;
   };
   parser?: { sheet?: string; row?: number; column?: string | number; value?: unknown };
   extra?: Record<string, unknown>;
@@ -191,7 +229,7 @@ async function requestChecklistPreview(input: {
 
 export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: () => void } = {}) {
   const [viewMode, setViewMode] = useState<"individual" | "batch">("batch");
-  
+
   // Estados para importação individual
   const now = new Date();
   const [file, setFile] = useState<File | null>(null);
@@ -200,13 +238,17 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const [industryId, setIndustryId] = useState<string>("");
   const [preview, setPreview] = useState<ChecklistPreview | null>(null);
   const [importId, setImportId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "found" | "linked_by_similarity" | "new_store" | "invalid_date">("all");
+  const [filter, setFilter] = useState<
+    "all" | "found" | "linked_by_similarity" | "new_store" | "invalid_date"
+  >("all");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [ackNewStores, setAckNewStores] = useState(false);
   const [lastError, setLastError] = useState<RichError | null>(null);
   const [rejected, setRejected] = useState<{ reason: string; sheets: string[] } | null>(null);
   const [highlightAck, setHighlightAck] = useState(false);
-  const [phase, setPhase] = useState<"idle" | "confirming" | "stores" | "visits" | "reconcile" | "done" | "failed">("idle");
+  const [phase, setPhase] = useState<
+    "idle" | "confirming" | "stores" | "visits" | "reconcile" | "done" | "failed"
+  >("idle");
   const [gate, setGate] = useState<{ industryId: string; industryName: string } | null>(null);
   const [newIndustryName, setNewIndustryName] = useState("");
   const [candidates, setCandidates] = useState<Array<{ id: string; name: string }> | null>(null);
@@ -214,12 +256,10 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   const [correctDialogOpen, setCorrectDialogOpen] = useState<{ id: string } | null>(null);
   const [conflictError, setConflictError] = useState<RichError | null>(null);
 
-
   const phaseTimersRef = useRef<number[]>([]);
   const ackRef = useRef<HTMLLabelElement | null>(null);
   const { roles } = useMk9Session();
   const isAdmin = canManageChecklistIndustries(roles);
-
 
   const commitFn = useServerFn(checklistCommit);
   const listFn = useServerFn(checklistList);
@@ -236,8 +276,10 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
   };
   useEffect(() => () => clearPhaseTimers(), []);
 
-
-  const industriesQ = useQuery({ queryKey: ["mk9-checklist-industries"], queryFn: () => industriesFn() });
+  const industriesQ = useQuery({
+    queryKey: ["mk9-checklist-industries"],
+    queryFn: () => industriesFn(),
+  });
   const historyQ = useQuery({ queryKey: ["mk9-checklist-imports"], queryFn: () => listFn() });
 
   const previewMut = useMutation({
@@ -267,7 +309,10 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
       const rich = parseServerError(e);
 
       // Conflito de competência ou necessidade de revisão: exibe diálogo de correção rápida
-      if (rich.extra?.errorCode === "COMPETENCE_CONFLICT" || rich.extra?.errorCode === "NEEDS_REVIEW") {
+      if (
+        rich.extra?.errorCode === "COMPETENCE_CONFLICT" ||
+        rich.extra?.errorCode === "NEEDS_REVIEW"
+      ) {
         setConflictError(rich);
         return;
       }
@@ -275,7 +320,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
       // Indústria não habilitada: ADMIN pode habilitar e continuar sem reenviar o arquivo.
       if ((rich as any).code === INDUSTRY_CHECKLIST_DISABLED) {
         const name =
-          (industriesQ.data ?? []).find((i) => i.id === industryId)?.name ?? "Indústria selecionada";
+          (industriesQ.data ?? []).find((i) => i.id === industryId)?.name ??
+          "Indústria selecionada";
         if (isAdmin) {
           setGate({ industryId: (rich as any).industryId ?? industryId, industryName: name });
           return;
@@ -348,7 +394,9 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
       const items = preview.items
         .filter(
           (i) =>
-            (i.status === "found" || i.status === "linked_by_similarity" || i.status === "new_store") &&
+            (i.status === "found" ||
+              i.status === "linked_by_similarity" ||
+              i.status === "new_store") &&
             i.scheduledDate,
         )
         .map((i) => ({
@@ -406,7 +454,6 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     },
   });
 
-
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteFn({ data: { importId: id } }),
     onSuccess: () => {
@@ -452,7 +499,10 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
 
   const periodLabel = useMemo(() => {
     if (!items.length) return null;
-    const dates = items.map((i) => i.scheduledDate).filter(Boolean).sort();
+    const dates = items
+      .map((i) => i.scheduledDate)
+      .filter(Boolean)
+      .sort();
     if (!dates.length) return null;
     return `${shortDate(dates[0])} a ${shortDate(dates[dates.length - 1])}`;
   }, [items]);
@@ -463,32 +513,35 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
     window.setTimeout(() => setHighlightAck(false), 1600);
   };
 
-
   return (
     <div className="space-y-6">
-      <Mk9PageHeader 
-        title="Importar Checklist" 
+      <Mk9PageHeader
+        title="Importar Checklist"
         subtitle="Sincronização de roteiros e auditoria de campo"
         icon={FileUp}
       />
 
       <div className="flex items-center gap-2 glass-command p-1.5 rounded-xl border border-white/5 w-fit">
-        <Button 
+        <Button
           variant="ghost"
           onClick={() => setViewMode("individual")}
           className={cn(
             "h-8 px-4 text-[10px] font-black uppercase tracking-widest transition-all",
-            viewMode === "individual" ? "bg-command-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.2)]" : "text-slate-500 hover:text-white"
+            viewMode === "individual"
+              ? "bg-command-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+              : "text-slate-500 hover:text-white",
           )}
         >
           Individual
         </Button>
-        <Button 
+        <Button
           variant="ghost"
           onClick={() => setViewMode("batch")}
           className={cn(
             "h-8 px-4 text-[10px] font-black uppercase tracking-widest transition-all",
-            viewMode === "batch" ? "bg-command-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.2)]" : "text-slate-500 hover:text-white"
+            viewMode === "batch"
+              ? "bg-command-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+              : "text-slate-500 hover:text-white",
           )}
         >
           Em Lote
@@ -496,8 +549,8 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
       </div>
 
       {viewMode === "individual" ? (
-        <IndividualImport 
-          onSwitchToBase={onSwitchToBase} 
+        <IndividualImport
+          onSwitchToBase={onSwitchToBase}
           now={now}
           industriesQ={industriesQ}
           historyQ={historyQ}
@@ -508,23 +561,40 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
           discardMut={discardMut}
           enableAndContinueMut={enableAndContinueMut}
           createIndustryMut={createIndustryMut}
-          file={file} setFile={setFile}
-          month={month} setMonth={setMonth}
-          year={year} setYear={setYear}
-          industryId={industryId} setIndustryId={setIndustryId}
-          preview={preview} setPreview={setPreview}
-          importId={importId} setImportId={setImportId}
-          filter={filter} setFilter={setFilter}
-          confirmOpen={confirmOpen} setConfirmOpen={setConfirmOpen}
-          ackNewStores={ackNewStores} setAckNewStores={setAckNewStores}
-          conflictError={conflictError} setConflictError={setConflictError}
-          lastError={lastError} setLastError={setLastError}
-          rejected={rejected} setRejected={setRejected}
-          highlightAck={highlightAck} setHighlightAck={setHighlightAck}
-          phase={phase} setPhase={setPhase}
-          gate={gate} setGate={setGate}
-          newIndustryName={newIndustryName} setNewIndustryName={setNewIndustryName}
-          candidates={candidates} setCandidates={setCandidates}
+          file={file}
+          setFile={setFile}
+          month={month}
+          setMonth={setMonth}
+          year={year}
+          setYear={setYear}
+          industryId={industryId}
+          setIndustryId={setIndustryId}
+          preview={preview}
+          setPreview={setPreview}
+          importId={importId}
+          setImportId={setImportId}
+          filter={filter}
+          setFilter={setFilter}
+          confirmOpen={confirmOpen}
+          setConfirmOpen={setConfirmOpen}
+          ackNewStores={ackNewStores}
+          setAckNewStores={setAckNewStores}
+          conflictError={conflictError}
+          setConflictError={setConflictError}
+          lastError={lastError}
+          setLastError={setLastError}
+          rejected={rejected}
+          setRejected={setRejected}
+          highlightAck={highlightAck}
+          setHighlightAck={setHighlightAck}
+          phase={phase}
+          setPhase={setPhase}
+          gate={gate}
+          setGate={setGate}
+          newIndustryName={newIndustryName}
+          setNewIndustryName={setNewIndustryName}
+          candidates={candidates}
+          setCandidates={setCandidates}
           ackRef={ackRef}
           flashAck={flashAck}
           validItems={validItems}
@@ -532,10 +602,11 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
           canConfirm={canConfirm}
           periodLabel={periodLabel}
           filtered={filtered}
-          revertDialogOpen={revertDialogOpen} setRevertDialogOpen={setRevertDialogOpen}
-          correctDialogOpen={correctDialogOpen} setCorrectDialogOpen={setCorrectDialogOpen}
+          revertDialogOpen={revertDialogOpen}
+          setRevertDialogOpen={setRevertDialogOpen}
+          correctDialogOpen={correctDialogOpen}
+          setCorrectDialogOpen={setCorrectDialogOpen}
         />
-
       ) : (
         <Mk9ChecklistBatchModule industries={industriesQ.data ?? []} />
       )}
@@ -557,54 +628,62 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
   const previewMut = useServerFn(checklistBatchPreview);
   const commitBatchFn = useServerFn(checklistBatchCommit);
 
-
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const newFiles: ChecklistBatchFile[] = acceptedFiles.map(f => ({
-      id: Math.random().toString(36).substring(7),
-      filename: f.name,
-      status: "PENDING",
-      operationMonth: month,
-      operationYear: year,
-      warnings: [],
-      rawFile: f,
-    } as any));
-    setFiles(prev => [...prev, ...newFiles]);
-  }, [month, year]);
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      const newFiles: ChecklistBatchFile[] = acceptedFiles.map(
+        (f) =>
+          ({
+            id: Math.random().toString(36).substring(7),
+            filename: f.name,
+            status: "PENDING",
+            operationMonth: month,
+            operationYear: year,
+            warnings: [],
+            rawFile: f,
+          }) as any,
+      );
+      setFiles((prev) => [...prev, ...newFiles]);
+    },
+    [month, year],
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-      'application/vnd.ms-excel': ['.xls']
-    }
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+      "application/vnd.ms-excel": [".xls"],
+    },
   });
 
   const removeFile = (id: string) => {
-    setFiles(prev => prev.filter(f => f.id !== id));
+    setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
   const startAnalysis = async () => {
     if (files.length === 0) return;
     setAnalyzing(true);
-    
+
     console.log("[BATCH ANALYZE START]", { count: files.length });
 
     // Atualiza todos para QUEUED
-    setFiles(prev => prev.map(f => 
-      f.status === "PENDING" ? { ...f, status: "QUEUED" } : f
-    ) as any);
+    setFiles(
+      (prev) => prev.map((f) => (f.status === "PENDING" ? { ...f, status: "QUEUED" } : f)) as any,
+    );
 
     // Processa com concorrência limitada (máx 3)
     const BATCH_SIZE = 3;
-    const pending = [...files.filter(f => f.status === "PENDING" || f.status === "QUEUED")];
-    
+    const pending = [...files.filter((f) => f.status === "PENDING" || f.status === "QUEUED")];
+
     const processFile = async (f: any) => {
       const targetId = f.id;
-      
+
       const updateFileStatus = (status: string, extra = {}) => {
-        setFiles(current => current.map(file => 
-          file.id === targetId ? { ...file, status, ...extra } : file
-        ) as any);
+        setFiles(
+          (current) =>
+            current.map((file) =>
+              file.id === targetId ? { ...file, status, ...extra } : file,
+            ) as any,
+        );
       };
 
       try {
@@ -613,14 +692,14 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
 
         // Detecção de indústria pelo nome do arquivo no cliente (otimização)
         const filenameLower = f.filename.toLowerCase();
-        const matchedIndustry = (industries || []).find((i: any) => 
-          filenameLower.includes(i.name.toLowerCase())
+        const matchedIndustry = (industries || []).find((i: any) =>
+          filenameLower.includes(i.name.toLowerCase()),
         );
 
         if (!matchedIndustry) {
           console.log(`[BATCH FILE NEEDS_REVIEW] ${f.filename} - Indústria não identificada`);
           updateFileStatus("NEEDS_REVIEW", {
-            message: "Indústria não identificada pelo nome do arquivo. Selecione manualmente."
+            message: "Indústria não identificada pelo nome do arquivo. Selecione manualmente.",
           });
           return;
         }
@@ -634,7 +713,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
         if (batchId) formData.append("batchId", batchId);
 
         console.log(`[BATCH FILE REQUEST START] ${f.filename} -> /api/checklists/preview`);
-        
+
         const { mk9AuthHeaders } = await import("@/lib/mk9-auth/fetch-headers");
         const response = await fetch("/api/checklists/preview", {
           method: "POST",
@@ -643,10 +722,10 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
         });
 
         console.log(`[BATCH FILE RESPONSE] ${f.filename} -> ${response.status}`);
-        
+
         const contentType = response.headers.get("content-type");
         let result: any;
-        
+
         if (contentType?.includes("application/json")) {
           result = await response.json();
         } else {
@@ -658,13 +737,16 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
         if (!response.ok) {
           const richError = result.error || {
             message: result.message || `Erro ${response.status}`,
-            code: response.status
+            code: response.status,
           };
-          
+
           if (response.status === 401) throw new Error("Sessão expirada. Faça login novamente.");
-          if (response.status === 403) throw new Error("Usuário sem permissão para importar checklists.");
-          
-          throw new Error(`Falha na análise (${richError.code || response.status}): ${richError.message}`);
+          if (response.status === 403)
+            throw new Error("Usuário sem permissão para importar checklists.");
+
+          throw new Error(
+            `Falha na análise (${richError.code || response.status}): ${richError.message}`,
+          );
         }
 
         console.log(`[BATCH FILE PREVIEW SUCCESS] ${f.filename}`);
@@ -673,15 +755,14 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
           industryId: matchedIndustry.id,
           industryName: matchedIndustry.name,
           preview: result.preview,
-          message: result.message
+          message: result.message,
         });
-
       } catch (e: any) {
         console.error(`[BATCH FILE ERROR] ${f.filename}`, e);
         const rich = parseServerError(e);
-        updateFileStatus("ERROR", { 
+        updateFileStatus("ERROR", {
           error: rich.message || "Falha técnica ao processar arquivo.",
-          errorCode: (rich.extra?.errorCode as string) || (rich as any).code
+          errorCode: (rich.extra?.errorCode as string) || (rich as any).code,
         });
       }
     };
@@ -689,7 +770,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
     // Executa em pequenos blocos para não sobrecarregar
     for (let i = 0; i < pending.length; i += BATCH_SIZE) {
       const chunk = pending.slice(i, i + BATCH_SIZE);
-      await Promise.allSettled(chunk.map(f => processFile(f)));
+      await Promise.allSettled(chunk.map((f) => processFile(f)));
     }
 
     console.log("[BATCH ANALYZE END]");
@@ -704,21 +785,23 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
       const res = await commitBatchFn({
         data: {
           batchId: batchId || "00000000-0000-0000-0000-000000000000",
-          importIds: readyToImport.map(f => f.id),
-        }
+          importIds: readyToImport.map((f) => f.id),
+        },
       });
 
-      setFiles(prev => prev.map(f => {
-        const found = res.results.find((r: any) => r.importId === f.id);
-        if (found) {
-          return {
-            ...f,
-            status: found.status === "SUCCESS" ? "IMPORTED" : "FAILED",
-            error: found.error,
-          } as any;
-        }
-        return f;
-      }));
+      setFiles((prev) =>
+        prev.map((f) => {
+          const found = res.results.find((r: any) => r.importId === f.id);
+          if (found) {
+            return {
+              ...f,
+              status: found.status === "SUCCESS" ? "IMPORTED" : "FAILED",
+              error: found.error,
+            } as any;
+          }
+          return f;
+        }),
+      );
 
       toast.success("Processamento de lote finalizado");
       qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
@@ -729,8 +812,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
     }
   };
 
-
-  const readyToImport = files.filter(f => f.status === "READY");
+  const readyToImport = files.filter((f) => f.status === "READY");
 
   return (
     <div className="space-y-4">
@@ -739,96 +821,141 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
           <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
             <Files className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-black text-white uppercase tracking-widest">Importação em Lote (Máx. 30)</h3>
+          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+            Importação em Lote (Máx. 30)
+          </h3>
         </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-muted-foreground">Mês de competência</label>
-              <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {MONTHS_PT.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground">Ano</label>
-              <Input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} min={2024} max={2100} />
-            </div>
-          </div>
-
-          <div
-            {...getRootProps()}
-            className={cn(
-              "border-2 border-dashed rounded-xl p-10 text-center transition-colors cursor-pointer",
-              isDragActive ? "border-primary bg-primary/5" : "border-border hover:bg-muted/30"
-            )}
-          >
-            <input {...getInputProps()} />
-            <Upload className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
-            <p className="text-sm font-medium">
-              Arraste os checklists aqui ou clique para selecionar
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Suporta múltiplos arquivos .xlsx ou .xls
-            </p>
-          </div>
-
-          {files.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold">Arquivos no lote ({files.length})</h4>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => setFiles([])} disabled={analyzing}>
-                    Limpar tudo
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    onClick={startAnalysis} 
-                    disabled={analyzing || files.every(f => f.status !== "PENDING" && f.status !== "ERROR")}
-                  >
-                    {analyzing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Analisando {files.filter(f => ["UPLOADING", "ANALYZING", "READY", "ERROR", "NEEDS_REVIEW"].includes(f.status)).length} de {files.length}
-                      </>
-                    ) : (
-                      <>
-                        <FileSearch className="h-4 w-4 mr-2" />
-                        Analisar arquivos
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid gap-2 max-h-[400px] overflow-y-auto pr-2">
-                {files.map((file) => (
-                  <BatchFileRow key={file.id} file={file} onRemove={() => removeFile(file.id)} setFiles={setFiles} />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm text-muted-foreground">Mês de competência</label>
+            <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MONTHS_PT.map((m, i) => (
+                  <SelectItem key={i} value={String(i + 1)}>
+                    {m}
+                  </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-sm text-muted-foreground">Ano</label>
+            <Input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              min={2024}
+              max={2100}
+            />
+          </div>
+        </div>
+
+        <div
+          {...getRootProps()}
+          className={cn(
+            "border-2 border-dashed rounded-xl p-10 text-center transition-colors cursor-pointer",
+            isDragActive ? "border-primary bg-primary/5" : "border-border hover:bg-muted/30",
+          )}
+        >
+          <input {...getInputProps()} />
+          <Upload className="mx-auto h-10 w-10 text-muted-foreground mb-4" />
+          <p className="text-sm font-medium">
+            Arraste os checklists aqui ou clique para selecionar
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Suporta múltiplos arquivos .xlsx ou .xls
+          </p>
+        </div>
+
+        {files.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold">Arquivos no lote ({files.length})</h4>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setFiles([])} disabled={analyzing}>
+                  Limpar tudo
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={startAnalysis}
+                  disabled={
+                    analyzing || files.every((f) => f.status !== "PENDING" && f.status !== "ERROR")
+                  }
+                >
+                  {analyzing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Analisando{" "}
+                      {
+                        files.filter((f) =>
+                          ["UPLOADING", "ANALYZING", "READY", "ERROR", "NEEDS_REVIEW"].includes(
+                            f.status,
+                          ),
+                        ).length
+                      }{" "}
+                      de {files.length}
+                    </>
+                  ) : (
+                    <>
+                      <FileSearch className="h-4 w-4 mr-2" />
+                      Analisar arquivos
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
-          )}
 
-          {readyToImport.length > 0 && (
-            <div className="pt-4 border-t flex justify-end">
-              <Button size="lg" onClick={runBatchImport} disabled={committing} className="bg-emerald-600 hover:bg-emerald-700">
-                {committing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-                Importar {readyToImport.length} arquivos prontos
-              </Button>
+            <div className="grid gap-2 max-h-[400px] overflow-y-auto pr-2">
+              {files.map((file) => (
+                <BatchFileRow
+                  key={file.id}
+                  file={file}
+                  onRemove={() => removeFile(file.id)}
+                  setFiles={setFiles}
+                />
+              ))}
             </div>
-          )}
+          </div>
+        )}
+
+        {readyToImport.length > 0 && (
+          <div className="pt-4 border-t flex justify-end">
+            <Button
+              size="lg"
+              onClick={runBatchImport}
+              disabled={committing}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              {committing ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+              )}
+              Importar {readyToImport.length} arquivos prontos
+            </Button>
+          </div>
+        )}
       </Mk9Panel>
     </div>
   );
 }
 
-
-function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () => void; setFiles: any }) {
+function BatchFileRow({
+  file,
+  onRemove,
+  setFiles,
+}: {
+  file: any;
+  onRemove: () => void;
+  setFiles: any;
+}) {
   const [expanded, setOpen] = useState(false);
-  
-  const statusConfig: Record<string, { icon: any, color: string, label: string }> = {
+
+  const statusConfig: Record<string, { icon: any; color: string; label: string }> = {
     PENDING: { icon: Clock, color: "text-muted-foreground", label: "Aguardando análise" },
     QUEUED: { icon: Clock, color: "text-blue-400 animate-pulse", label: "Na fila" },
     UPLOADING: { icon: Upload, color: "text-blue-500 animate-bounce", label: "Enviando..." },
@@ -836,11 +963,20 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
     READY: { icon: CheckCircle2, color: "text-emerald-500", label: "Pronto" },
     NEEDS_REVIEW: { icon: AlertCircle, color: "text-amber-500", label: "Revisão necessária" },
     ERROR: { icon: XCircle, color: "text-destructive", label: "Erro" },
-    COMPETENCE_CONFLICT: { icon: AlertTriangle, color: "text-amber-500", label: "Conflito de competência" },
+    COMPETENCE_CONFLICT: {
+      icon: AlertTriangle,
+      color: "text-amber-500",
+      label: "Conflito de competência",
+    },
     IMPORTED: { icon: Check, color: "text-emerald-500", label: "Importado" },
   };
 
-  const cfg = statusConfig[file.status === "ERROR" && file.errorCode === "COMPETENCE_CONFLICT" ? "COMPETENCE_CONFLICT" : file.status] || statusConfig.PENDING;
+  const cfg =
+    statusConfig[
+      file.status === "ERROR" && file.errorCode === "COMPETENCE_CONFLICT"
+        ? "COMPETENCE_CONFLICT"
+        : file.status
+    ] || statusConfig.PENDING;
   const Icon = cfg.icon;
 
   return (
@@ -848,11 +984,15 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
       <div className="p-3 flex items-center gap-3">
         <Icon className={cn("h-5 w-5 shrink-0", cfg.color)} />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium truncate" title={file.filename}>{file.filename}</p>
+          <p className="text-sm font-medium truncate" title={file.filename}>
+            {file.filename}
+          </p>
           <div className="flex items-center gap-2 mt-0.5">
             <span className={cn("text-[10px] font-bold uppercase", cfg.color)}>{cfg.label}</span>
             {file.industryName && (
-              <span className="text-[10px] text-muted-foreground underline">Indústria: {file.industryName}</span>
+              <span className="text-[10px] text-muted-foreground underline">
+                Indústria: {file.industryName}
+              </span>
             )}
           </div>
         </div>
@@ -860,12 +1000,14 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
           {file.status === "ERROR" && (
             <div className="flex gap-1">
               {file.errorCode === "COMPETENCE_CONFLICT" && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="h-8 px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
                   onClick={() => {
-                    toast.info("Ajuste a competência do lote para coincidir com o arquivo e re-analise.");
+                    toast.info(
+                      "Ajuste a competência do lote para coincidir com o arquivo e re-analise.",
+                    );
                   }}
                   title="Ajuste a competência e re-analise"
                 >
@@ -873,11 +1015,13 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
                   Corrigir
                 </Button>
               )}
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => {
-                  setFiles((prev: any) => prev.map((f: any) => f.id === file.id ? { ...f, status: "PENDING" } : f));
+                  setFiles((prev: any) =>
+                    prev.map((f: any) => (f.id === file.id ? { ...f, status: "PENDING" } : f)),
+                  );
                 }}
                 title="Tentar novamente"
               >
@@ -886,11 +1030,25 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
             </div>
           )}
           {(file.preview || file.error) && (
-            <Button variant="ghost" size="sm" onClick={() => setOpen(!expanded)} title={file.error ? "Ver erro" : "Ver prévia"}>
-              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setOpen(!expanded)}
+              title={file.error ? "Ver erro" : "Ver prévia"}
+            >
+              {expanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={onRemove} disabled={file.status === "ANALYZING" || file.status === "UPLOADING"}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRemove}
+            disabled={file.status === "ANALYZING" || file.status === "UPLOADING"}
+          >
             <X className="h-4 w-4 text-muted-foreground" />
           </Button>
         </div>
@@ -900,7 +1058,9 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
           {file.preview && (
             <div className="grid grid-cols-3 gap-2 text-[10px]">
               <div className="bg-background p-1.5 rounded border">
-                <p className="text-muted-foreground uppercase font-bold tracking-tighter">Visitas</p>
+                <p className="text-muted-foreground uppercase font-bold tracking-tighter">
+                  Visitas
+                </p>
                 <p className="text-lg font-semibold">{file.preview.counters.totalMarks}</p>
               </div>
               <div className="bg-background p-1.5 rounded border">
@@ -908,21 +1068,30 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
                 <p className="text-lg font-semibold">{file.preview.counters.totalStores}</p>
               </div>
               <div className="bg-background p-1.5 rounded border">
-                <p className="text-muted-foreground uppercase font-bold tracking-tighter">Divergências</p>
-                <p className="text-lg font-semibold text-amber-600">{file.preview.counters.storesNotFound + (file.preview.counters.duplicateStoreNames || 0)}</p>
+                <p className="text-muted-foreground uppercase font-bold tracking-tighter">
+                  Divergências
+                </p>
+                <p className="text-lg font-semibold text-amber-600">
+                  {file.preview.counters.storesNotFound +
+                    (file.preview.counters.duplicateStoreNames || 0)}
+                </p>
               </div>
             </div>
           )}
           {file.error && (
             <div className="mt-2 space-y-1">
-              <p className="text-[10px] font-bold text-destructive uppercase tracking-wider">Detalhes do erro:</p>
+              <p className="text-[10px] font-bold text-destructive uppercase tracking-wider">
+                Detalhes do erro:
+              </p>
               <div className="text-[11px] text-destructive font-mono bg-destructive/5 p-2 rounded border border-destructive/20 whitespace-pre-wrap">
                 {file.error}
               </div>
             </div>
           )}
           {file.status === "NEEDS_REVIEW" && (
-            <p className="text-xs text-amber-600 mt-2 italic">{file.message || "Verifique se o nome do arquivo contém o nome da indústria."}</p>
+            <p className="text-xs text-amber-600 mt-2 italic">
+              {file.message || "Verifique se o nome do arquivo contém o nome da indústria."}
+            </p>
           )}
         </div>
       )}
@@ -930,19 +1099,64 @@ function BatchFileRow({ file, onRemove, setFiles }: { file: any; onRemove: () =>
   );
 }
 
-
-function IndividualImport({ 
-  onSwitchToBase, now, industriesQ, historyQ, isAdmin, previewMut, commitMut, deleteMut, discardMut,
-  enableAndContinueMut, createIndustryMut, file, setFile, month, setMonth, year, setYear,
-  industryId, setIndustryId, preview, setPreview, importId, setImportId, filter, setFilter,
-  confirmOpen, setConfirmOpen, ackNewStores, setAckNewStores, lastError, setLastError,
-  rejected, setRejected, highlightAck, setHighlightAck, phase, setPhase, gate, setGate,
-  newIndustryName, setNewIndustryName, candidates, setCandidates, ackRef, flashAck,
-  validItems, newStoresCount, canConfirm, periodLabel, filtered,
-  revertDialogOpen, setRevertDialogOpen, correctDialogOpen, setCorrectDialogOpen,
-  conflictError, setConflictError
+function IndividualImport({
+  onSwitchToBase,
+  now,
+  industriesQ,
+  historyQ,
+  isAdmin,
+  previewMut,
+  commitMut,
+  deleteMut,
+  discardMut,
+  enableAndContinueMut,
+  createIndustryMut,
+  file,
+  setFile,
+  month,
+  setMonth,
+  year,
+  setYear,
+  industryId,
+  setIndustryId,
+  preview,
+  setPreview,
+  importId,
+  setImportId,
+  filter,
+  setFilter,
+  confirmOpen,
+  setConfirmOpen,
+  ackNewStores,
+  setAckNewStores,
+  lastError,
+  setLastError,
+  rejected,
+  setRejected,
+  highlightAck,
+  setHighlightAck,
+  phase,
+  setPhase,
+  gate,
+  setGate,
+  newIndustryName,
+  setNewIndustryName,
+  candidates,
+  setCandidates,
+  ackRef,
+  flashAck,
+  validItems,
+  newStoresCount,
+  canConfirm,
+  periodLabel,
+  filtered,
+  revertDialogOpen,
+  setRevertDialogOpen,
+  correctDialogOpen,
+  setCorrectDialogOpen,
+  conflictError,
+  setConflictError,
 }: any) {
-
   return (
     <div className="space-y-6">
       <Mk9Panel className="relative">
@@ -950,157 +1164,209 @@ function IndividualImport({
           <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
             <ClipboardCheck className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-black text-white uppercase tracking-widest">Configuração da Importação</h3>
+          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+            Configuração da Importação
+          </h3>
         </div>
 
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground">Arquivo .xlsx (checklist mensal da indústria)</label>
-              <div className="flex gap-2">
-                <Input
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={async (e: any) => {
-                    const f = e.target.files?.[0] ?? null;
-                    setPreview(null);
-                    setImportId(null);
-                    setLastError(null);
-                    setRejected(null);
-                    setAckNewStores(false);
-                    if (!f) { setFile(null); return; }
-                    const det = await detectMk9FileKind(f);
-                    if (det.kind === "base") {
-                      setFile(null);
-                      setRejected({ reason: det.reason, sheets: det.sheets });
-                      e.target.value = "";
-                      return;
-                    }
-                    setFile(f);
-                  }}
-                />
-                {preview?.previousImport && (
-                  <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-[10px] animate-in fade-in slide-in-from-top-1 whitespace-nowrap">
-                    <AlertTriangle className="h-3 w-3" />
-                    <span>Substituirá importação vigente de {new Date(preview.previousImport.startedAt).toLocaleDateString()}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground">Mês</label>
-              <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {MONTHS_PT.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground">Ano</label>
-              <Input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} min={2024} max={2100} />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="md:col-span-2">
+            <label className="text-sm text-muted-foreground">
+              Arquivo .xlsx (checklist mensal da indústria)
+            </label>
+            <div className="flex gap-2">
+              <Input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={async (e: any) => {
+                  const f = e.target.files?.[0] ?? null;
+                  setPreview(null);
+                  setImportId(null);
+                  setLastError(null);
+                  setRejected(null);
+                  setAckNewStores(false);
+                  if (!f) {
+                    setFile(null);
+                    return;
+                  }
+                  const det = await detectMk9FileKind(f);
+                  if (det.kind === "base") {
+                    setFile(null);
+                    setRejected({ reason: det.reason, sheets: det.sheets });
+                    e.target.value = "";
+                    return;
+                  }
+                  setFile(f);
+                }}
+              />
+              {preview?.previousImport && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-[10px] animate-in fade-in slide-in-from-top-1 whitespace-nowrap">
+                  <AlertTriangle className="h-3 w-3" />
+                  <span>
+                    Substituirá importação vigente de{" "}
+                    {new Date(preview.previousImport.startedAt).toLocaleDateString()}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           <div>
-            <label className="text-sm text-muted-foreground">Indústria</label>
-            <Select value={industryId} onValueChange={setIndustryId}>
+            <label className="text-sm text-muted-foreground">Mês</label>
+            <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
               <SelectTrigger>
-                <SelectValue placeholder={industriesQ.isLoading ? "Carregando…" : "Selecione a indústria"} />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(industriesQ.data ?? []).map((i: any) => (
-
-                  <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
+                {MONTHS_PT.map((m, i) => (
+                  <SelectItem key={i} value={String(i + 1)}>
+                    {m}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          {isAdmin && (
-            <div className="rounded-lg border border-dashed border-border/60 p-3 space-y-2">
-              <p className="text-xs text-muted-foreground">
-                A indústria do arquivo não está cadastrada? Cadastre-a aqui — ela nasce habilitada
-                para checklist, com registro de quem cadastrou.
-              </p>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Input
-                  placeholder="Nome da indústria"
-                  value={newIndustryName}
-                  onChange={(e) => {
-                    setNewIndustryName(e.target.value);
-                    setCandidates(null);
-                  }}
-                />
-                <Button
-                  variant="outline"
-                  disabled={newIndustryName.trim().length < 2 || createIndustryMut.isPending}
-                  onClick={() => createIndustryMut.mutate(!!candidates)}
-                >
-                  {createIndustryMut.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : null}
-                  {candidates ? "Cadastrar mesmo assim" : "Cadastrar indústria"}
-                </Button>
-              </div>
-              {candidates && (
-                <div className="space-y-1 text-xs">
-                  <p className="text-amber-500">Indústrias semelhantes já cadastradas:</p>
-                  {candidates.map((c: any) => (
-
-                    <button
-                      key={c.id}
-                      type="button"
-                      className="block w-full rounded border border-border/60 px-2 py-1 text-left hover:bg-muted/40"
-                      onClick={() => {
-                        setIndustryId(c.id);
-                        setCandidates(null);
-                        setNewIndustryName("");
-                      }}
-                    >
-                      Vincular a “{c.name}”
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          <div className="pt-6 border-t border-white/5 flex justify-end gap-2">
-            {preview && (
-              <Button variant="outline" className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest px-6" onClick={() => discardMut.mutate()}>
-                Descartar
+          <div>
+            <label className="text-sm text-muted-foreground">Ano</label>
+            <Input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              min={2024}
+              max={2100}
+            />
+          </div>
+        </div>
+        <div>
+          <label className="text-sm text-muted-foreground">Indústria</label>
+          <Select value={industryId} onValueChange={setIndustryId}>
+            <SelectTrigger>
+              <SelectValue
+                placeholder={industriesQ.isLoading ? "Carregando…" : "Selecione a indústria"}
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {(industriesQ.data ?? []).map((i: any) => (
+                <SelectItem key={i.id} value={i.id}>
+                  {i.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {isAdmin && (
+          <div className="rounded-lg border border-dashed border-border/60 p-3 space-y-2">
+            <p className="text-xs text-muted-foreground">
+              A indústria do arquivo não está cadastrada? Cadastre-a aqui — ela nasce habilitada
+              para checklist, com registro de quem cadastrou.
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                placeholder="Nome da indústria"
+                value={newIndustryName}
+                onChange={(e) => {
+                  setNewIndustryName(e.target.value);
+                  setCandidates(null);
+                }}
+              />
+              <Button
+                variant="outline"
+                disabled={newIndustryName.trim().length < 2 || createIndustryMut.isPending}
+                onClick={() => createIndustryMut.mutate(!!candidates)}
+              >
+                {createIndustryMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {candidates ? "Cadastrar mesmo assim" : "Cadastrar indústria"}
               </Button>
+            </div>
+            {candidates && (
+              <div className="space-y-1 text-xs">
+                <p className="text-amber-500">Indústrias semelhantes já cadastradas:</p>
+                {candidates.map((c: any) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className="block w-full rounded border border-border/60 px-2 py-1 text-left hover:bg-muted/40"
+                    onClick={() => {
+                      setIndustryId(c.id);
+                      setCandidates(null);
+                      setNewIndustryName("");
+                    }}
+                  >
+                    Vincular a “{c.name}”
+                  </button>
+                ))}
+              </div>
             )}
-            <Button onClick={() => previewMut.mutate()} disabled={!file || !industryId || previewMut.isPending} className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] text-[10px] font-black uppercase tracking-widest px-8">
-              {previewMut.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Play className="h-4 w-4 mr-2" />}
-              {preview ? "Recarregar" : "Analisar"}
+          </div>
+        )}
+        <div className="pt-6 border-t border-white/5 flex justify-end gap-2">
+          {preview && (
+            <Button
+              variant="outline"
+              className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest px-6"
+              onClick={() => discardMut.mutate()}
+            >
+              Descartar
             </Button>
+          )}
+          <Button
+            onClick={() => previewMut.mutate()}
+            disabled={!file || !industryId || previewMut.isPending}
+            className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] text-[10px] font-black uppercase tracking-widest px-8"
+          >
+            {previewMut.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Play className="h-4 w-4 mr-2" />
+            )}
+            {preview ? "Recarregar" : "Analisar"}
+          </Button>
+        </div>
+      </Mk9Panel>
+
+      {preview && (
+        <Mk9Panel className="relative">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+              <Activity className="h-5 w-5" />
+            </div>
+            <h3 className="text-sm font-black text-white uppercase tracking-widest">
+              Resumo Analítico
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <Mk9MetricCard label="Total Visitas" value={preview.counters.totalMarks} color="blue" />
+            <Mk9MetricCard
+              label="Lojas Identificadas"
+              value={preview.counters.storesFound}
+              color="emerald"
+            />
+            <Mk9MetricCard label="Lojas Novas" value={preview.counters.storesNew} color="amber" />
+            <Mk9MetricCard
+              label="Divergentes"
+              value={preview.counters.storesNotFound}
+              color="rose"
+            />
+            <Mk9MetricCard
+              label="Duplicadas"
+              value={preview.counters.duplicateStoreNames || 0}
+              color="orange"
+            />
+            <Mk9MetricCard
+              label="Datas Inválidas"
+              value={preview.counters.visitsWithInvalidDate || 0}
+              color="rose"
+            />
           </div>
         </Mk9Panel>
-
-        {preview && (
-          <Mk9Panel className="relative">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
-                <Activity className="h-5 w-5" />
-              </div>
-              <h3 className="text-sm font-black text-white uppercase tracking-widest">Resumo Analítico</h3>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              <Mk9MetricCard label="Total Visitas" value={preview.counters.totalMarks} color="blue" />
-              <Mk9MetricCard label="Lojas Identificadas" value={preview.counters.storesFound} color="emerald" />
-              <Mk9MetricCard label="Lojas Novas" value={preview.counters.storesNew} color="amber" />
-              <Mk9MetricCard label="Divergentes" value={preview.counters.storesNotFound} color="rose" />
-              <Mk9MetricCard label="Duplicadas" value={preview.counters.duplicateStoreNames || 0} color="orange" />
-              <Mk9MetricCard label="Datas Inválidas" value={preview.counters.visitsWithInvalidDate || 0} color="rose" />
-            </div>
-          </Mk9Panel>
-        )}
-
+      )}
 
       <AlertDialog open={!!gate} onOpenChange={(o) => !o && setGate(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Esta indústria ainda não está habilitada para checklist.</AlertDialogTitle>
+            <AlertDialogTitle>
+              Esta indústria ainda não está habilitada para checklist.
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {gate?.industryName}. Ao habilitar, ela passa a aparecer no fluxo de checklist e a
               prévia continua com o arquivo já enviado — sem novo upload. {MISSING_PERIOD_WARNING}
@@ -1124,32 +1390,37 @@ function IndividualImport({
       {rejected && (
         <Mk9Panel className="border-destructive/40 relative">
           <div className="flex items-start gap-3">
-
-              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-              <div className="space-y-1 flex-1 min-w-0">
-                <p className="font-medium text-destructive">
-                  Este arquivo parece ser a Base MK9 (roteiro/consulta). Importe-o em Importações › Base MK9.
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+            <div className="space-y-1 flex-1 min-w-0">
+              <p className="font-medium text-destructive">
+                Este arquivo parece ser a Base MK9 (roteiro/consulta). Importe-o em Importações ›
+                Base MK9.
+              </p>
+              <p className="text-xs text-muted-foreground">{rejected.reason}</p>
+              {rejected.sheets.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Abas encontradas: {rejected.sheets.join(", ")}
                 </p>
-                <p className="text-xs text-muted-foreground">{rejected.reason}</p>
-                {rejected.sheets.length > 0 && (
-                  <p className="text-xs text-muted-foreground">Abas encontradas: {rejected.sheets.join(", ")}</p>
-                )}
-              </div>
+              )}
             </div>
-            {onSwitchToBase && (
-              <div>
-                <Button size="sm" onClick={() => { setRejected(null); onSwitchToBase(); }}>
-                  Ir para Base MK9
-                </Button>
-              </div>
-            )}
+          </div>
+          {onSwitchToBase && (
+            <div>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setRejected(null);
+                  onSwitchToBase();
+                }}
+              >
+                Ir para Base MK9
+              </Button>
+            </div>
+          )}
         </Mk9Panel>
       )}
 
-
       {lastError && <ErrorPanel err={lastError} onDismiss={() => setLastError(null)} />}
-
-
 
       {preview && (
         <Mk9Panel className="relative">
@@ -1159,7 +1430,9 @@ function IndividualImport({
                 <FileCheck className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-white uppercase tracking-widest">Prévia da Importação</h3>
+                <h3 className="text-sm font-black text-white uppercase tracking-widest">
+                  Prévia da Importação
+                </h3>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
                   {preview.filename} · {preview.industryName}
                 </p>
@@ -1170,125 +1443,152 @@ function IndividualImport({
             </div>
           </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-              <MiniStat label="Total de lojas" value={preview.counters.totalStores} />
-              <MiniStat label="Total de visitas" value={preview.counters.totalMarks} />
-              <MiniStat label="Visita mensal" value={preview.counters.totalContractedFrequency ?? 0} tone="blue" />
-              <MiniStat label="Lojas encontradas" value={preview.counters.storesFound} tone="green" />
-              <MiniStat label="Vinculadas por similaridade" value={preview.counters.storesLinkedBySimilarity} tone="blue" />
-              <MiniStat label="Novas lojas" value={preview.counters.storesNew} tone="amber" />
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+            <MiniStat label="Total de lojas" value={preview.counters.totalStores} />
+            <MiniStat label="Total de visitas" value={preview.counters.totalMarks} />
+            <MiniStat
+              label="Visita mensal"
+              value={preview.counters.totalContractedFrequency ?? 0}
+              tone="blue"
+            />
+            <MiniStat label="Lojas encontradas" value={preview.counters.storesFound} tone="green" />
+            <MiniStat
+              label="Vinculadas por similaridade"
+              value={preview.counters.storesLinkedBySimilarity}
+              tone="blue"
+            />
+            <MiniStat label="Novas lojas" value={preview.counters.storesNew} tone="amber" />
+          </div>
 
+          <div className="rounded-lg border bg-card/60 p-3">
+            <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+              <AlertTriangle className="h-4 w-4 text-[color:var(--color-kpi-amber)]" />
+              Relatório de divergência da importação
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-5">
+              <AuditStat label="Lojas criadas" value={preview.counters.storesNew} />
+              <AuditStat
+                label="Lojas vinculadas"
+                value={
+                  (preview.counters.storesFound ?? 0) +
+                  (preview.counters.storesLinkedBySimilarity ?? 0)
+                }
+              />
+              <AuditStat label="Não encontradas" value={preview.counters.storesNotFound ?? 0} />
+              <AuditStat
+                label="Freq. não importadas"
+                value={preview.counters.frequenciesNotImported ?? 0}
+              />
+              <AuditStat label="Duplicidades" value={preview.counters.duplicateStoreNames ?? 0} />
+            </div>
+          </div>
+
+          {(preview.storeFrequencies?.length ?? 0) > 0 && (
             <div className="rounded-lg border bg-card/60 p-3">
-              <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-                <AlertTriangle className="h-4 w-4 text-[color:var(--color-kpi-amber)]" />
-                Relatório de divergência da importação
+              <div className="mb-2 flex items-center justify-between gap-2 text-sm font-medium">
+                <span>Frequências identificadas</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  Quinzenais (0,5x/semana · 2x/mês): {preview.counters.biweeklyFrequencies ?? 0}
+                </span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-5">
-                <AuditStat label="Lojas criadas" value={preview.counters.storesNew} />
-                <AuditStat label="Lojas vinculadas" value={(preview.counters.storesFound ?? 0) + (preview.counters.storesLinkedBySimilarity ?? 0)} />
-                <AuditStat label="Não encontradas" value={preview.counters.storesNotFound ?? 0} />
-                <AuditStat label="Freq. não importadas" value={preview.counters.frequenciesNotImported ?? 0} />
-                <AuditStat label="Duplicidades" value={preview.counters.duplicateStoreNames ?? 0} />
-              </div>
-            </div>
-
-
-
-            {(preview.storeFrequencies?.length ?? 0) > 0 && (
-              <div className="rounded-lg border bg-card/60 p-3">
-                <div className="mb-2 flex items-center justify-between gap-2 text-sm font-medium">
-                  <span>Frequências identificadas</span>
-                  <span className="text-xs font-normal text-muted-foreground">
-                    Quinzenais (0,5x/semana · 2x/mês): {preview.counters.biweeklyFrequencies ?? 0}
-                  </span>
+              {(preview.counters.inconsistentFrequencies ?? 0) > 0 && (
+                <div className="mb-2 flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-2 text-xs text-amber-800 dark:text-amber-300">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Frequência semanal e mensal divergentes em{" "}
+                  {preview.counters.inconsistentFrequencies} loja(s). Revise o cadastro — nada é
+                  corrigido automaticamente.
                 </div>
-                {(preview.counters.inconsistentFrequencies ?? 0) > 0 && (
-                  <div className="mb-2 flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-2 text-xs text-amber-800 dark:text-amber-300">
-                    <AlertTriangle className="h-3.5 w-3.5" />
-                    Frequência semanal e mensal divergentes em {preview.counters.inconsistentFrequencies} loja(s).
-                    Revise o cadastro — nada é corrigido automaticamente.
-                  </div>
-                )}
-                <div className="max-h-48 space-y-1 overflow-auto text-xs">
-                  {preview.storeFrequencies.slice(0, 60).map((f: any, i: number) => (
-
-                    <div key={`${f.storeNormalized}-${i}`} className="flex items-center justify-between gap-3 rounded px-1 py-0.5">
-                      <span className="truncate">{f.storeName}{f.uf ? ` · ${f.uf}` : ""}</span>
-                      <span className={f.frequencyInconsistent ? "shrink-0 text-amber-700 dark:text-amber-300" : "shrink-0 text-muted-foreground"}>
-                        {f.frequencyLabel ?? "Frequência não informada"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {preview.counters.storesNew > 0 && (
-              <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-300">
-                Esta importação poderá cadastrar automaticamente {preview.counters.storesNew} nova(s) loja(s) na Base MK9.
-                Os dados ausentes serão marcados como “Não informado” e poderão ser completados depois em Cadastros › Lojas.
-              </div>
-            )}
-
-            <div className="space-y-3 border-t pt-4">
-              {newStoresCount > 0 && (
-                <label
-                  ref={ackRef}
-                  className={`flex items-start gap-3 rounded-md border p-3 text-sm cursor-pointer transition-all ${
-                    highlightAck
-                      ? "border-amber-500 bg-amber-500/15 ring-2 ring-amber-500/60 animate-pulse"
-                      : "border-amber-500/40 bg-amber-500/5"
-                  } text-amber-800 dark:text-amber-300`}
-                >
-                  <Checkbox
-                    className="mt-0.5 border-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:text-white"
-                    checked={ackNewStores}
-                    onCheckedChange={(checked) => setAckNewStores(checked === true)}
-                  />
-                  <span>
-                    Estou ciente de que <strong>{newStoresCount}</strong> novas lojas serão cadastradas
-                    automaticamente na Base MK9.
-                  </span>
-                </label>
               )}
-              <div className="flex items-center gap-3">
-                <div
-                  onClick={() => {
-                    if (!canConfirm && newStoresCount > 0 && !ackNewStores) flashAck();
-                  }}
-                >
-                  <Button
-                    size="lg"
-                    onClick={() => setConfirmOpen(true)}
-                    disabled={!canConfirm}
+              <div className="max-h-48 space-y-1 overflow-auto text-xs">
+                {preview.storeFrequencies.slice(0, 60).map((f: any, i: number) => (
+                  <div
+                    key={`${f.storeNormalized}-${i}`}
+                    className="flex items-center justify-between gap-3 rounded px-1 py-0.5"
                   >
-                    {commitMut.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <CheckCircle2 className="h-4 w-4" />
-                    )}
-                    Confirmar importação
-                  </Button>
-                </div>
-                {!canConfirm && newStoresCount > 0 && !ackNewStores && (
-                  <p className="text-xs text-amber-700 dark:text-amber-400">
-                    Marque a confirmação sobre as novas lojas para habilitar a importação.
-                  </p>
-                )}
-                {validItems === 0 && (
-                  <p className="text-xs text-destructive">Nenhuma visita válida para importar.</p>
-                )}
+                    <span className="truncate">
+                      {f.storeName}
+                      {f.uf ? ` · ${f.uf}` : ""}
+                    </span>
+                    <span
+                      className={
+                        f.frequencyInconsistent
+                          ? "shrink-0 text-amber-700 dark:text-amber-300"
+                          : "shrink-0 text-muted-foreground"
+                      }
+                    >
+                      {f.frequencyLabel ?? "Frequência não informada"}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
+          )}
 
-            <div className="flex flex-wrap gap-2">
-              {(["all", "found", "linked_by_similarity", "new_store", "invalid_date"] as const).map((f) => (
+          {preview.counters.storesNew > 0 && (
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-300">
+              Esta importação poderá cadastrar automaticamente {preview.counters.storesNew} nova(s)
+              loja(s) na Base MK9. Os dados ausentes serão marcados como “Não informado” e poderão
+              ser completados depois em Cadastros › Lojas.
+            </div>
+          )}
+
+          <div className="space-y-3 border-t pt-4">
+            {newStoresCount > 0 && (
+              <label
+                ref={ackRef}
+                className={`flex items-start gap-3 rounded-md border p-3 text-sm cursor-pointer transition-all ${
+                  highlightAck
+                    ? "border-amber-500 bg-amber-500/15 ring-2 ring-amber-500/60 animate-pulse"
+                    : "border-amber-500/40 bg-amber-500/5"
+                } text-amber-800 dark:text-amber-300`}
+              >
+                <Checkbox
+                  className="mt-0.5 border-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:text-white"
+                  checked={ackNewStores}
+                  onCheckedChange={(checked) => setAckNewStores(checked === true)}
+                />
+                <span>
+                  Estou ciente de que <strong>{newStoresCount}</strong> novas lojas serão
+                  cadastradas automaticamente na Base MK9.
+                </span>
+              </label>
+            )}
+            <div className="flex items-center gap-3">
+              <div
+                onClick={() => {
+                  if (!canConfirm && newStoresCount > 0 && !ackNewStores) flashAck();
+                }}
+              >
+                <Button size="lg" onClick={() => setConfirmOpen(true)} disabled={!canConfirm}>
+                  {commitMut.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4" />
+                  )}
+                  Confirmar importação
+                </Button>
+              </div>
+              {!canConfirm && newStoresCount > 0 && !ackNewStores && (
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  Marque a confirmação sobre as novas lojas para habilitar a importação.
+                </p>
+              )}
+              {validItems === 0 && (
+                <p className="text-xs text-destructive">Nenhuma visita válida para importar.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {(["all", "found", "linked_by_similarity", "new_store", "invalid_date"] as const).map(
+              (f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
                   className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-                    filter === f ? "bg-primary text-primary-foreground border-primary" : "bg-transparent hover:bg-accent"
+                    filter === f
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-transparent hover:bg-accent"
                   }`}
                 >
                   {f === "all" && "Todos"}
@@ -1297,166 +1597,213 @@ function IndividualImport({
                   {f === "new_store" && "Nova loja"}
                   {f === "invalid_date" && "Data inválida"}
                 </button>
-              ))}
-              <Badge variant="secondary">{filtered.length} linhas</Badge>
-            </div>
+              ),
+            )}
+            <Badge variant="secondary">{filtered.length} linhas</Badge>
+          </div>
 
-            <div className="max-h-96 overflow-auto border rounded-lg">
-              <table className="w-full text-xs">
-                <thead className="bg-muted/40 sticky top-0">
-                  <tr>
-                    <th className="text-left p-2">Loja</th>
-                    <th className="text-left p-2">UF</th>
-                    <th className="text-left p-2">Data</th>
-                    <th className="text-left p-2">Status</th>
-                    <th className="text-left p-2">Resultado</th>
+          <div className="max-h-96 overflow-auto border rounded-lg">
+            <table className="w-full text-xs">
+              <thead className="bg-muted/40 sticky top-0">
+                <tr>
+                  <th className="text-left p-2">Loja</th>
+                  <th className="text-left p-2">UF</th>
+                  <th className="text-left p-2">Data</th>
+                  <th className="text-left p-2">Status</th>
+                  <th className="text-left p-2">Resultado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.slice(0, 500).map((it: any, i: number) => (
+                  <tr key={i} className="border-t">
+                    <td className="p-2 max-w-[280px] truncate" title={it.storeName}>
+                      {it.storeName}
+                    </td>
+                    <td className="p-2">{it.uf ?? "—"}</td>
+                    <td className="p-2 whitespace-nowrap">{shortDate(it.scheduledDate)}</td>
+                    <td className="p-2">
+                      {it.status === "found" && <Badge variant="default">Encontrada</Badge>}
+                      {it.status === "linked_by_similarity" && (
+                        <Badge variant="secondary">Similaridade</Badge>
+                      )}
+                      {it.status === "new_store" && (
+                        <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/40">
+                          NOVA LOJA
+                        </Badge>
+                      )}
+                      {it.status === "store_not_found" && (
+                        <Badge variant="destructive">Loja não encontrada</Badge>
+                      )}
+                      {it.status === "invalid_date" && (
+                        <Badge variant="secondary">Data inválida</Badge>
+                      )}
+                    </td>
+                    <td className="p-2 text-muted-foreground">
+                      {it.status === "found" && "Vincular à loja existente"}
+                      {it.status === "linked_by_similarity" &&
+                        `Vinculada por correspondência aproximada${it.matchedStoreName ? ` → ${it.matchedStoreName}` : ""}${it.similarityScore ? ` (${Math.round(it.similarityScore * 100)}%)` : ""}`}
+                      {it.status === "new_store" && "Criar nova loja automaticamente"}
+                      {(it.status === "store_not_found" || it.status === "invalid_date") &&
+                        (it.message ?? "—")}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                   {filtered.slice(0, 500).map((it: any, i: number) => (
-
-                    <tr key={i} className="border-t">
-                      <td className="p-2 max-w-[280px] truncate" title={it.storeName}>{it.storeName}</td>
-                      <td className="p-2">{it.uf ?? "—"}</td>
-                      <td className="p-2 whitespace-nowrap">{shortDate(it.scheduledDate)}</td>
-                      <td className="p-2">
-                        {it.status === "found" && <Badge variant="default">Encontrada</Badge>}
-                        {it.status === "linked_by_similarity" && <Badge variant="secondary">Similaridade</Badge>}
-                        {it.status === "new_store" && (
-                          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/40">
-                            NOVA LOJA
-                          </Badge>
-                        )}
-                        {it.status === "store_not_found" && <Badge variant="destructive">Loja não encontrada</Badge>}
-                        {it.status === "invalid_date" && <Badge variant="secondary">Data inválida</Badge>}
-                      </td>
-                      <td className="p-2 text-muted-foreground">
-                        {it.status === "found" && "Vincular à loja existente"}
-                        {it.status === "linked_by_similarity" &&
-                          `Vinculada por correspondência aproximada${it.matchedStoreName ? ` → ${it.matchedStoreName}` : ""}${it.similarityScore ? ` (${Math.round(it.similarityScore * 100)}%)` : ""}`}
-                        {it.status === "new_store" && "Criar nova loja automaticamente"}
-                        {(it.status === "store_not_found" || it.status === "invalid_date") && (it.message ?? "—")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {filtered.length > 500 && (
-                <div className="p-2 text-xs text-muted-foreground">Mostrando 500 de {filtered.length}</div>
-              )}
-            </div>
-
-            {preview.warnings.length > 0 && (
-              <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400">
-                <div className="flex items-center gap-2 font-medium"><AlertTriangle className="h-4 w-4" /> Avisos</div>
-                <ul className="mt-1 list-disc list-inside space-y-0.5">
-                  {preview.warnings.map((w: string, i: number) => <li key={i}>{w}</li>)}
-
-                </ul>
+                ))}
+              </tbody>
+            </table>
+            {filtered.length > 500 && (
+              <div className="p-2 text-xs text-muted-foreground">
+                Mostrando 500 de {filtered.length}
               </div>
             )}
-          </Mk9Panel>
-        )}
-
-
-        <Mk9Panel className="relative">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
-              <Clock className="h-5 w-5" />
-            </div>
-            <h3 className="text-sm font-black text-white uppercase tracking-widest">Histórico de Checklists</h3>
           </div>
-          {historyQ.isLoading ? (
-            <p className="text-sm text-muted-foreground">Carregando…</p>
-          ) : (historyQ.data ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum checklist importado.</p>
-          ) : (
-            <div className="space-y-2">
-              {(historyQ.data ?? []).map((imp: any) => {
-                const st = STATUS_LABEL[imp.status] ?? { label: imp.status, variant: "secondary" as const };
-                const vs = imp.validationStatus ? VALIDATION_LABEL[imp.validationStatus] : null;
-                const c: any = imp.counters ?? {};
-                return (
-                  <div key={imp.id} className="text-sm rounded-lg border border-white/5 bg-white/5 p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-white truncate">{imp.filename}</p>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                          {imp.industryName} · {MONTHS[imp.operationMonth - 1]} {imp.operationYear}
-                          {c.persisted != null && ` · ${c.persisted} novas / ${c.skipped ?? 0} já existentes`}
-                          {imp.errorMessage && ` · ${imp.errorMessage}`}
-                          {imp.isOperationalCurrent && (
-                            <Badge variant="outline" className="ml-2 bg-emerald-500/10 text-emerald-400 border-emerald-500/20 py-0 h-4 text-[10px]">
-                              Vigente
-                            </Badge>
-                          )}
-                          {imp.supersededAt && (
-                            <Badge variant="outline" className="ml-2 bg-amber-500/10 text-amber-400 border-amber-500/20 py-0 h-4 text-[10px]">
-                              Substituída
-                            </Badge>
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Badge variant={st.variant}>{st.label}</Badge>
-                        {vs && <Badge variant={vs.variant}>{vs.label}</Badge>}
-                        {imp.status === "done" && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-slate-400 hover:text-white"
-                              title="Corrigir competência"
-                              onClick={() => setCorrectDialogOpen({ id: imp.id })}
-                            >
-                              <Calendar className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-slate-400 hover:text-red-400"
-                              title="Desfazer importação"
-                              onClick={() => setRevertDialogOpen({ id: imp.id })}
-                            >
-                              <RotateCcw className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                        <Button size="sm" variant="ghost" onClick={() => deleteMut.mutate(imp.id)} disabled={deleteMut.isPending}>
-                          <Trash2 className="h-4 w-4 text-red-400" />
-                        </Button>
-                      </div>
-                    </div>
-                    <ValidationPanel importId={imp.id} initial={imp.validationDetails ?? null} onReloaded={() => historyQ.refetch()} />
-                  </div>
-                );
-              })}
+
+          {preview.warnings.length > 0 && (
+            <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400">
+              <div className="flex items-center gap-2 font-medium">
+                <AlertTriangle className="h-4 w-4" /> Avisos
+              </div>
+              <ul className="mt-1 list-disc list-inside space-y-0.5">
+                {preview.warnings.map((w: string, i: number) => (
+                  <li key={i}>{w}</li>
+                ))}
+              </ul>
             </div>
           )}
         </Mk9Panel>
+      )}
 
+      <Mk9Panel className="relative">
+        <div className="flex items-center gap-2 mb-6">
+          <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
+            <Clock className="h-5 w-5" />
+          </div>
+          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+            Histórico de Checklists
+          </h3>
+        </div>
+        {historyQ.isLoading ? (
+          <p className="text-sm text-muted-foreground">Carregando…</p>
+        ) : (historyQ.data ?? []).length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhum checklist importado.</p>
+        ) : (
+          <div className="space-y-2">
+            {(historyQ.data ?? []).map((imp: any) => {
+              const st = STATUS_LABEL[imp.status] ?? {
+                label: imp.status,
+                variant: "secondary" as const,
+              };
+              const vs = imp.validationStatus ? VALIDATION_LABEL[imp.validationStatus] : null;
+              const c: any = imp.counters ?? {};
+              return (
+                <div
+                  key={imp.id}
+                  className="text-sm rounded-lg border border-white/5 bg-white/5 p-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-white truncate">{imp.filename}</p>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+                        {imp.industryName} · {MONTHS[imp.operationMonth - 1]} {imp.operationYear}
+                        {c.persisted != null &&
+                          ` · ${c.persisted} novas / ${c.skipped ?? 0} já existentes`}
+                        {imp.errorMessage && ` · ${imp.errorMessage}`}
+                        {imp.isOperationalCurrent && (
+                          <Badge
+                            variant="outline"
+                            className="ml-2 bg-emerald-500/10 text-emerald-400 border-emerald-500/20 py-0 h-4 text-[10px]"
+                          >
+                            Vigente
+                          </Badge>
+                        )}
+                        {imp.supersededAt && (
+                          <Badge
+                            variant="outline"
+                            className="ml-2 bg-amber-500/10 text-amber-400 border-amber-500/20 py-0 h-4 text-[10px]"
+                          >
+                            Substituída
+                          </Badge>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant={st.variant}>{st.label}</Badge>
+                      {vs && <Badge variant={vs.variant}>{vs.label}</Badge>}
+                      {imp.status === "done" && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-400 hover:text-white"
+                            title="Corrigir competência"
+                            onClick={() => setCorrectDialogOpen({ id: imp.id })}
+                          >
+                            <Calendar className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-400 hover:text-red-400"
+                            title="Desfazer importação"
+                            onClick={() => setRevertDialogOpen({ id: imp.id })}
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => deleteMut.mutate(imp.id)}
+                        disabled={deleteMut.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-400" />
+                      </Button>
+                    </div>
+                  </div>
+                  <ValidationPanel
+                    importId={imp.id}
+                    initial={imp.validationDetails ?? null}
+                    onReloaded={() => historyQ.refetch()}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Mk9Panel>
 
-
-
-      <AlertDialog open={confirmOpen} onOpenChange={(o) => !commitMut.isPending && setConfirmOpen(o)}>
+      <AlertDialog
+        open={confirmOpen}
+        onOpenChange={(o) => !commitMut.isPending && setConfirmOpen(o)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar importação do checklist</AlertDialogTitle>
             <AlertDialogDescription>
-              As visitas realizadas serão persistidas com origem CHECKLIST. Reimportar o mesmo período não gera duplicatas.
+              As visitas realizadas serão persistidas com origem CHECKLIST. Reimportar o mesmo
+              período não gera duplicatas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           {preview && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <ConfirmRow label="Indústria" value={preview.industryName} />
-                <ConfirmRow label="Competência" value={`${MONTHS[preview.operationMonth - 1]}/${preview.operationYear}`} />
+                <ConfirmRow
+                  label="Competência"
+                  value={`${MONTHS[preview.operationMonth - 1]}/${preview.operationYear}`}
+                />
                 {periodLabel && <ConfirmRow label="Período detectado" value={periodLabel} />}
                 <ConfirmRow label="Visitas a persistir" value={validItems} />
                 <ConfirmRow label="Lojas do Excel" value={preview.counters.totalStores} />
-                <ConfirmRow label="Visita mensal total" value={preview.counters.totalContractedFrequency ?? 0} />
+                <ConfirmRow
+                  label="Visita mensal total"
+                  value={preview.counters.totalContractedFrequency ?? 0}
+                />
                 <ConfirmRow label="Lojas existentes" value={preview.counters.storesFound} />
-                <ConfirmRow label="Vínculos por similaridade" value={preview.counters.storesLinkedBySimilarity} />
+                <ConfirmRow
+                  label="Vínculos por similaridade"
+                  value={preview.counters.storesLinkedBySimilarity}
+                />
                 <ConfirmRow label="Novas lojas a cadastrar" value={preview.counters.storesNew} />
               </div>
 
@@ -1465,12 +1812,30 @@ function IndividualImport({
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Progresso
                   </p>
-                  <PhaseRow active={phase === "confirming"} done={["stores","visits","reconcile","done"].includes(phase)} label="Confirmando importação…" />
-                  <PhaseRow active={phase === "stores"} done={["visits","reconcile","done"].includes(phase)} label="Criando lojas…" />
-                  <PhaseRow active={phase === "visits"} done={["reconcile","done"].includes(phase)} label="Persistindo visitas…" />
-                  <PhaseRow active={phase === "reconcile"} done={phase === "done"} label="Executando conciliação…" />
+                  <PhaseRow
+                    active={phase === "confirming"}
+                    done={["stores", "visits", "reconcile", "done"].includes(phase)}
+                    label="Confirmando importação…"
+                  />
+                  <PhaseRow
+                    active={phase === "stores"}
+                    done={["visits", "reconcile", "done"].includes(phase)}
+                    label="Criando lojas…"
+                  />
+                  <PhaseRow
+                    active={phase === "visits"}
+                    done={["reconcile", "done"].includes(phase)}
+                    label="Persistindo visitas…"
+                  />
+                  <PhaseRow
+                    active={phase === "reconcile"}
+                    done={phase === "done"}
+                    label="Executando conciliação…"
+                  />
                   {phase === "done" && (
-                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Concluído.</p>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                      Concluído.
+                    </p>
                   )}
                 </div>
               )}
@@ -1519,16 +1884,21 @@ function PhaseRow({ active, done, label }: { active: boolean; done: boolean; lab
       ) : (
         <div className="h-4 w-4 rounded-full border border-white/10 bg-white/5" />
       )}
-      <span className={cn(
-        "text-[10px] tracking-widest uppercase",
-        done ? "text-slate-500 line-through" : active ? "font-black text-white" : "text-slate-400 font-bold"
-      )}>
+      <span
+        className={cn(
+          "text-[10px] tracking-widest uppercase",
+          done
+            ? "text-slate-500 line-through"
+            : active
+              ? "font-black text-white"
+              : "text-slate-400 font-bold",
+        )}
+      >
         {label}
       </span>
     </div>
   );
 }
-
 
 function ValidationPanel({
   importId,
@@ -1580,20 +1950,35 @@ function ValidationPanel({
           )}
           {!hasData && !refreshMut.isPending && (
             <p className="text-xs text-muted-foreground">
-              Nenhuma auditoria registrada para essa importação. Clique em "Reprocessar auditoria" para gerar.
+              Nenhuma auditoria registrada para essa importação. Clique em "Reprocessar auditoria"
+              para gerar.
             </p>
           )}
           {hasData && (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                <MiniStat label="Declarado (planilha)" value={data.declaredTotal ?? data.declaredSum ?? 0} tone="blue" />
+                <MiniStat
+                  label="Declarado (planilha)"
+                  value={data.declaredTotal ?? data.declaredSum ?? 0}
+                  tone="blue"
+                />
                 <MiniStat label="Identificado (Excel)" value={data.parsedTotal ?? 0} tone="blue" />
-                <MiniStat label="Persistido (banco)" value={data.persistedTotal ?? 0} tone={data.status === "INCONSISTENT" ? "red" : "green"} />
-                <MiniStat label="Lojas divergentes" value={divergent.length} tone={divergent.length ? "amber" : "green"} />
+                <MiniStat
+                  label="Persistido (banco)"
+                  value={data.persistedTotal ?? 0}
+                  tone={data.status === "INCONSISTENT" ? "red" : "green"}
+                />
+                <MiniStat
+                  label="Lojas divergentes"
+                  value={divergent.length}
+                  tone={divergent.length ? "amber" : "green"}
+                />
               </div>
               {Array.isArray(data.summaryLines) && data.summaryLines.length > 0 && (
                 <ul className="text-xs list-disc pl-5 space-y-0.5 text-muted-foreground">
-                  {data.summaryLines.map((l: string, i: number) => (<li key={i}>{l}</li>))}
+                  {data.summaryLines.map((l: string, i: number) => (
+                    <li key={i}>{l}</li>
+                  ))}
                 </ul>
               )}
               {divergent.length > 0 && (
@@ -1625,8 +2010,15 @@ function ValidationPanel({
                 </div>
               )}
               <div className="flex justify-end">
-                <Button size="sm" variant="outline" onClick={() => reprocessMut.mutate()} disabled={reprocessMut.isPending}>
-                  {reprocessMut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => reprocessMut.mutate()}
+                  disabled={reprocessMut.isPending}
+                >
+                  {reprocessMut.isPending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                  ) : null}
                   Reprocessar auditoria
                 </Button>
               </div>
@@ -1638,14 +2030,25 @@ function ValidationPanel({
   );
 }
 
-
-
-function MiniStat({ label, value, tone }: { label: string; value: number; tone?: "green" | "red" | "blue" | "amber" }) {
+function MiniStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone?: "green" | "red" | "blue" | "amber";
+}) {
   const toneClass =
-    tone === "green" ? "text-[color:var(--color-kpi-green)]" :
-    tone === "red" ? "text-destructive" :
-    tone === "blue" ? "text-primary" :
-    tone === "amber" ? "text-[color:var(--color-kpi-amber)]" : "";
+    tone === "green"
+      ? "text-[color:var(--color-kpi-green)]"
+      : tone === "red"
+        ? "text-destructive"
+        : tone === "blue"
+          ? "text-primary"
+          : tone === "amber"
+            ? "text-[color:var(--color-kpi-amber)]"
+            : "";
   return (
     <div className="rounded-lg border p-3">
       <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
@@ -1722,7 +2125,9 @@ function ErrorPanel({ err, onDismiss }: { err: RichError; onDismiss: () => void 
 
         {err.validation && (
           <div className="rounded-md border p-3 space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Validação</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Validação
+            </p>
             <Row k="Campo" v={err.validation.field} />
             <Row k="Esperado" v={err.validation.expected} />
             <Row k="Recebido" v={err.validation.received} />
@@ -1732,7 +2137,9 @@ function ErrorPanel({ err, onDismiss }: { err: RichError; onDismiss: () => void 
 
         {err.database && (
           <div className="rounded-md border p-3 space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Banco de dados</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Banco de dados
+            </p>
             <Row k="Código PG" v={err.database.code} />
             <Row k="Tabela" v={err.database.table} />
             <Row k="Coluna" v={err.database.column} />
@@ -1745,7 +2152,9 @@ function ErrorPanel({ err, onDismiss }: { err: RichError; onDismiss: () => void 
 
         {err.parser && (
           <div className="rounded-md border p-3 space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Parser</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Parser
+            </p>
             <Row k="Aba" v={err.parser.sheet} />
             <Row k="Linha" v={err.parser.row} />
             <Row k="Coluna" v={err.parser.column} />
@@ -1755,19 +2164,27 @@ function ErrorPanel({ err, onDismiss }: { err: RichError; onDismiss: () => void 
 
         {err.extra && Object.keys(err.extra).length > 0 && (
           <div className="rounded-md border p-3 space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Contexto</p>
-            {Object.entries(err.extra).map(([k, v]) => <Row key={k} k={k} v={v} />)}
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Contexto
+            </p>
+            {Object.entries(err.extra).map(([k, v]) => (
+              <Row key={k} k={k} v={v} />
+            ))}
           </div>
         )}
 
         {diagnostics.length > 0 && (
           <div className="rounded-md border p-3 space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Trilha de execução</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Trilha de execução
+            </p>
             <div className="max-h-72 overflow-auto space-y-2">
               {diagnostics.map((event, i) => (
                 <div key={`${event.at}-${i}`} className="rounded-md bg-muted/30 p-2 text-xs">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={event.level === "error" ? "destructive" : "secondary"}>{event.level}</Badge>
+                    <Badge variant={event.level === "error" ? "destructive" : "secondary"}>
+                      {event.level}
+                    </Badge>
                     <span className="font-mono font-medium">{event.step}</span>
                     <span className="text-muted-foreground">{event.message}</span>
                   </div>
@@ -1799,11 +2216,14 @@ function ErrorPanel({ err, onDismiss }: { err: RichError; onDismiss: () => void 
         )}
 
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={copy}>Copiar detalhes técnicos</Button>
-          <Button size="sm" variant="ghost" onClick={onDismiss}>Fechar</Button>
+          <Button size="sm" variant="outline" onClick={copy}>
+            Copiar detalhes técnicos
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onDismiss}>
+            Fechar
+          </Button>
         </div>
       </div>
     </Mk9Panel>
   );
 }
-

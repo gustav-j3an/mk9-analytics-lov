@@ -82,7 +82,9 @@ describe("1B.3 — cálculo de contratadas por segmentos de vigência", () => {
   it("H) frequência semanal usa dias/7 — nunca weekly × 4", () => {
     // 31 dias / 7 = 4,4286 semanas × 1 = 4,43 → 4  (weekly*4 daria 4, mas
     // com 2x/sem: 8,857 → 9, enquanto weekly*4 daria 8)
-    expect(contracted({ ...JUL, segments: [seg("2026-01-01", null, null, 1)] }).contratadas).toBe(4);
+    expect(contracted({ ...JUL, segments: [seg("2026-01-01", null, null, 1)] }).contratadas).toBe(
+      4,
+    );
     const duas = contracted({ ...JUL, segments: [seg("2026-01-01", null, null, 2)] });
     expect(duas.contratadas).toBe(9);
     expect(duas.contratadas).not.toBe(2 * 4);
@@ -128,13 +130,19 @@ describe("1B.3 — cálculo de contratadas por segmentos de vigência", () => {
       ...JUL,
       segments: [seg("2026-06-01", "2026-07-15", null, 1), seg("2026-07-16", null, null, 2)],
     });
-    const label = describeFrequencySegments(r, { start: JUL.operationPeriodStart, end: JUL.operationPeriodEnd });
+    const label = describeFrequencySegments(r, {
+      start: JUL.operationPeriodStart,
+      end: JUL.operationPeriodEnd,
+    });
     expect(label).toBe("1x/sem até 15/07 · 2x/sem desde 16/07");
 
     const unico = contracted({ ...JUL, segments: [seg("2026-01-01", null, 4)] });
-    expect(describeFrequencySegments(unico, { start: JUL.operationPeriodStart, end: JUL.operationPeriodEnd })).toBe(
-      "4x/mês",
-    );
+    expect(
+      describeFrequencySegments(unico, {
+        start: JUL.operationPeriodStart,
+        end: JUL.operationPeriodEnd,
+      }),
+    ).toBe("4x/mês");
   });
 
   it("total por indústria é a soma dos valores JÁ arredondados por loja", () => {

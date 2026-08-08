@@ -53,7 +53,6 @@ function authFailure(fromHttpRoute: boolean, statusCode: 401 | 403, message: str
   });
 }
 
-
 /**
  * Fase 0.3 — dev-bypass FAIL-CLOSED.
  *
@@ -71,7 +70,8 @@ export function isLocalRequest(request?: Request | null): boolean {
   const host = request?.headers.get("host") ?? "";
   if (!host) return false;
   // Qualquer indício de proxy remoto derruba o bypass.
-  const forwarded = request?.headers.get("x-forwarded-host") ?? request?.headers.get("x-forwarded-for");
+  const forwarded =
+    request?.headers.get("x-forwarded-host") ?? request?.headers.get("x-forwarded-for");
   if (forwarded) return false;
   const hostname = host.replace(/:\d+$/, "").toLowerCase();
   return LOCAL_HOSTS.has(hostname);
@@ -162,11 +162,12 @@ export async function requireMk9Role(
     throw fail(403, "Não foi possível validar suas permissões.");
   }
 
-  const roles = normalizeMk9Roles((roleRows ?? []).map(r => r.role));
+  const roles = normalizeMk9Roles((roleRows ?? []).map((r) => r.role));
   const ok = roles.some((r) => required.includes(r));
 
   if (!ok) {
-    throw fail(403, 
+    throw fail(
+      403,
       `Usuário sem permissão para executar esta ação. Papel exigido: ${required.join(" ou ")}.`,
     );
   }
@@ -185,10 +186,13 @@ export async function logAudit(
   metadata: Record<string, unknown> = {},
 ): Promise<void> {
   try {
-    const { supabaseAdmin, hasSupabaseAdminConfig } = await import("@/integrations/supabase/client.server");
-    
+    const { supabaseAdmin, hasSupabaseAdminConfig } =
+      await import("@/integrations/supabase/client.server");
+
     if (!hasSupabaseAdminConfig()) {
-      console.warn(`[MK9-AUDIT] privileged audit unavailable (SERVICE_ROLE_KEY missing) - action: ${action}`);
+      console.warn(
+        `[MK9-AUDIT] privileged audit unavailable (SERVICE_ROLE_KEY missing) - action: ${action}`,
+      );
       return;
     }
 

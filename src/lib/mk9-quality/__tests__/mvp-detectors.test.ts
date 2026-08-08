@@ -21,8 +21,16 @@ import { evidenceForClient, sanitizeEvidence } from "../evidence";
 import { MK9_QUALITY_DETECTORS } from "../detectors";
 import type { DetectedIssue } from "../types";
 
-const store = (id: string, name: string, chain: string | null = "KING", uf: string | null = "DF") => ({
-  id, name, chain, uf,
+const store = (
+  id: string,
+  name: string,
+  chain: string | null = "KING",
+  uf: string | null = "DF",
+) => ({
+  id,
+  name,
+  chain,
+  uf,
 });
 
 describe("duplicidade de loja — sem falso positivo", () => {
@@ -44,7 +52,10 @@ describe("duplicidade de loja — sem falso positivo", () => {
   });
 
   it("C. numeração de filial diferente NUNCA é duplicata", () => {
-    const pairs = findProbableStoreDuplicates([store("a", "SUPER LOJA 1"), store("b", "SUPER LOJA 2")]);
+    const pairs = findProbableStoreDuplicates([
+      store("a", "SUPER LOJA 1"),
+      store("b", "SUPER LOJA 2"),
+    ]);
     expect(pairs).toHaveLength(0);
   });
 
@@ -93,7 +104,14 @@ describe("duplicidade de loja — sem falso positivo", () => {
 });
 
 describe("par indústria × loja — sintomas consolidados", () => {
-  const base = { industryId: "i", storeId: "s", hasFrequency: true, contractedVisits: 4, routeCount: 1, executedVisits: 4 };
+  const base = {
+    industryId: "i",
+    storeId: "s",
+    hasFrequency: true,
+    contractedVisits: 4,
+    routeCount: 1,
+    executedVisits: 4,
+  };
 
   it("J. par saudável não gera ocorrência", () => {
     expect(evaluateOperationPair(base)).toBeNull();
@@ -101,7 +119,13 @@ describe("par indústria × loja — sintomas consolidados", () => {
 
   it("K. par totalmente vazio não é problema (loja não pertence à indústria)", () => {
     expect(
-      evaluateOperationPair({ ...base, hasFrequency: false, contractedVisits: 0, routeCount: 0, executedVisits: 0 }),
+      evaluateOperationPair({
+        ...base,
+        hasFrequency: false,
+        contractedVisits: 0,
+        routeCount: 0,
+        executedVisits: 0,
+      }),
     ).toBeNull();
   });
 
@@ -128,7 +152,6 @@ describe("par indústria × loja — sintomas consolidados", () => {
     expect(semRespaldo?.severity).toBe("BLOQUEANTE");
   });
 
-
   it("N. roteiro sem frequência contratada é CRÍTICO", () => {
     const out = evaluateOperationPair({ ...base, hasFrequency: false, contractedVisits: 0 });
     expect(out?.severity).toBe("CRITICO");
@@ -136,7 +159,13 @@ describe("par indústria × loja — sintomas consolidados", () => {
   });
 
   it("O. três sintomas viram UMA ocorrência, não três", () => {
-    const out = evaluateOperationPair({ ...base, hasFrequency: false, contractedVisits: 0, routeCount: 0, executedVisits: 2 });
+    const out = evaluateOperationPair({
+      ...base,
+      hasFrequency: false,
+      contractedVisits: 0,
+      routeCount: 0,
+      executedVisits: 2,
+    });
     expect(out).not.toBeNull();
     expect(out!.symptoms.length).toBeGreaterThan(1);
   });
@@ -151,26 +180,72 @@ describe("saúde das importações", () => {
   const now = new Date("2026-07-30T12:00:00Z");
 
   it("Q. importação concluída e validada não gera nada", () => {
-    expect(evaluateImportHealth({ status: "done", startedAt: "2026-07-30T10:00:00Z", finishedAt: "2026-07-30T10:05:00Z" }, now)).toBeNull();
-    expect(needsChecklistValidation({ status: "done", validationStatus: "OK", validatedAt: "2026-07-30T11:00:00Z", finishedAt: null })).toBe(false);
+    expect(
+      evaluateImportHealth(
+        { status: "done", startedAt: "2026-07-30T10:00:00Z", finishedAt: "2026-07-30T10:05:00Z" },
+        now,
+      ),
+    ).toBeNull();
+    expect(
+      needsChecklistValidation({
+        status: "done",
+        validationStatus: "OK",
+        validatedAt: "2026-07-30T11:00:00Z",
+        finishedAt: null,
+      }),
+    ).toBe(false);
   });
 
   it("R. importação recém iniciada ainda não é 'travada'", () => {
-    expect(evaluateImportHealth({ status: "committing", startedAt: "2026-07-30T11:30:00Z", finishedAt: null }, now)).toBeNull();
+    expect(
+      evaluateImportHealth(
+        { status: "committing", startedAt: "2026-07-30T11:30:00Z", finishedAt: null },
+        now,
+      ),
+    ).toBeNull();
   });
 
   it("S. importação parada há horas é travada; há mais de um dia é crítica", () => {
-    expect(evaluateImportHealth({ status: "pending", startedAt: "2026-07-30T06:00:00Z", finishedAt: null }, now)?.severity).toBe("ATENCAO");
-    expect(evaluateImportHealth({ status: "pending", startedAt: "2026-07-28T06:00:00Z", finishedAt: null }, now)?.severity).toBe("CRITICO");
+    expect(
+      evaluateImportHealth(
+        { status: "pending", startedAt: "2026-07-30T06:00:00Z", finishedAt: null },
+        now,
+      )?.severity,
+    ).toBe("ATENCAO");
+    expect(
+      evaluateImportHealth(
+        { status: "pending", startedAt: "2026-07-28T06:00:00Z", finishedAt: null },
+        now,
+      )?.severity,
+    ).toBe("CRITICO");
   });
 
   it("T. importação com falha é crítica", () => {
-    expect(evaluateImportHealth({ status: "failed", startedAt: "2026-07-30T10:00:00Z", finishedAt: null }, now)?.symptom).toBe("FAILED");
+    expect(
+      evaluateImportHealth(
+        { status: "failed", startedAt: "2026-07-30T10:00:00Z", finishedAt: null },
+        now,
+      )?.symptom,
+    ).toBe("FAILED");
   });
 
   it("U. checklist concluído sem validação é sinalizado", () => {
-    expect(needsChecklistValidation({ status: "done", validationStatus: null, validatedAt: null, finishedAt: null })).toBe(true);
-    expect(needsChecklistValidation({ status: "failed", validationStatus: null, validatedAt: null, finishedAt: null })).toBe(false);
+    expect(
+      needsChecklistValidation({
+        status: "done",
+        validationStatus: null,
+        validatedAt: null,
+        finishedAt: null,
+      }),
+    ).toBe(true);
+    expect(
+      needsChecklistValidation({
+        status: "failed",
+        validationStatus: null,
+        validatedAt: null,
+        finishedAt: null,
+      }),
+    ).toBe(false);
   });
 
   it("V. divergência só existe quando os dois lados informam o número", () => {
@@ -203,25 +278,36 @@ describe("volume, competência e navegação", () => {
   });
 
   it("X. excedente de volume vira UMA ocorrência-resumo", () => {
-    const out = capDetections(Array.from({ length: 10 }, (_, i) => issue(i)), (hidden, total) => ({
-      ...issue(999),
-      issueType: "X_SUMMARY",
-      evidence: { hidden, count: total },
-    }), 4);
+    const out = capDetections(
+      Array.from({ length: 10 }, (_, i) => issue(i)),
+      (hidden, total) => ({
+        ...issue(999),
+        issueType: "X_SUMMARY",
+        evidence: { hidden, count: total },
+      }),
+      4,
+    );
     expect(out).toHaveLength(5);
     expect(out[4].issueType).toBe("X_SUMMARY");
     expect(out[4].evidence).toMatchObject({ hidden: 6, count: 10 });
   });
 
   it("Y. competência ausente cai no mês corrente e a janela é o mês fechado", () => {
-    expect(resolveCompetence(null, new Date("2026-07-15T00:00:00Z"))).toEqual({ year: 2026, month: 7 });
+    expect(resolveCompetence(null, new Date("2026-07-15T00:00:00Z"))).toEqual({
+      year: 2026,
+      month: 7,
+    });
     expect(calendarWindow(2026, 2)).toEqual({ startDate: "2026-02-01", endDate: "2026-02-28" });
     expect(addDays("2026-07-30", 2)).toBe("2026-08-01");
   });
 
   it("Z. destino de navegação descarta campos vazios", () => {
-    expect(navigationTarget({ module: "stores", storeId: "s1", industryId: null, month: 7 })).toEqual({
-      module: "stores", storeId: "s1", month: 7,
+    expect(
+      navigationTarget({ module: "stores", storeId: "s1", industryId: null, month: 7 }),
+    ).toEqual({
+      module: "stores",
+      storeId: "s1",
+      month: 7,
     });
   });
 

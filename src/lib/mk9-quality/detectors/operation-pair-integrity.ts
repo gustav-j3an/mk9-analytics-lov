@@ -11,12 +11,21 @@
  * `contractedVisitsForFrequencySegments` — nunca `weekly × 4`.
  */
 import { contractedVisitsForFrequencySegments } from "@/lib/mk9-frequency/segments";
-import { freqKey, loadFrequencyVersionsForPeriod, segmentsForWindow } from "@/lib/mk9-frequency/versions.server";
+import {
+  freqKey,
+  loadFrequencyVersionsForPeriod,
+  segmentsForWindow,
+} from "@/lib/mk9-frequency/versions.server";
 import { evaluateOperationPair } from "../rules/operation-pair";
 import { resolveCompetence } from "../rules/competence";
 import { capDetections } from "../rules/cap";
 import { navigationTarget } from "../navigation";
-import { loadPeriodWindows, loadScopedIndustries, loadScopedStores, unionWindow } from "./context.server";
+import {
+  loadPeriodWindows,
+  loadScopedIndustries,
+  loadScopedStores,
+  unionWindow,
+} from "./context.server";
 import type { DetectedIssue, Mk9DataQualityDetector, Mk9QualityDetectorContext } from "../types";
 
 export const ISSUE_TYPE = "OPERATION_PAIR_INTEGRITY";
@@ -73,7 +82,10 @@ export const operationPairIntegrityDetector: Mk9DataQualityDetector = {
     ]);
     if (routesRes.error || visitsRes.error) throw new Error("MK9_DQ_DETECTOR_FAILED");
 
-    interface PairFacts { routes: Array<{ from: string; until: string | null }>; visits: string[] }
+    interface PairFacts {
+      routes: Array<{ from: string; until: string | null }>;
+      visits: string[];
+    }
     const pairs = new Map<string, PairFacts>();
     const ensure = (industryId: string, storeId: string): PairFacts | null => {
       if (!industryId || !storeId || !storeAllowed(storeId)) return null;
@@ -174,7 +186,13 @@ export const operationPairIntegrityDetector: Mk9DataQualityDetector = {
     }
 
     // Prioriza os mais graves quando o volume estoura o limite.
-    const weight: Record<string, number> = { BLOQUEANTE: 5, CRITICO: 4, ATENCAO: 3, AVISO: 2, INFO: 1 };
+    const weight: Record<string, number> = {
+      BLOQUEANTE: 5,
+      CRITICO: 4,
+      ATENCAO: 3,
+      AVISO: 2,
+      INFO: 1,
+    };
     issues.sort((a, b) => (weight[b.severity] ?? 0) - (weight[a.severity] ?? 0));
 
     return capDetections(issues, (hidden, total) => ({

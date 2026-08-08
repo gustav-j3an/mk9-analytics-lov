@@ -32,14 +32,14 @@ const commitSchema = z.object({
   forceReason: z.string().min(10).max(500).optional(),
 });
 
-
 async function validate<T>(step: string, fn: () => T): Promise<T> {
   const { withRichErrors } = await import("./mk9-checklist/errors.server");
   return withRichErrors({ step: "validate-input", function: step }, async () => fn());
 }
 
 function b64ToArrayBuffer(base64: string): ArrayBuffer {
-  const bin = typeof atob === "function" ? atob(base64) : Buffer.from(base64, "base64").toString("binary");
+  const bin =
+    typeof atob === "function" ? atob(base64) : Buffer.from(base64, "base64").toString("binary");
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return bytes.buffer;
@@ -52,7 +52,8 @@ export const checklistPreview = createServerFn({ method: "POST" })
     await requireMk9Role(["ADMIN"]);
 
     // Somente indústrias classificadas como "exige checklist" entram no fluxo.
-    const { assertIndustryRequiresChecklist } = await import("./mk9-checklist/industry-gate.server");
+    const { assertIndustryRequiresChecklist } =
+      await import("./mk9-checklist/industry-gate.server");
     await assertIndustryRequiresChecklist(data.industryId);
 
     const { createChecklistDiagnostics } = await import("./mk9-checklist/diagnostics");
@@ -78,7 +79,8 @@ export const checklistCommit = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
-    const { assertIndustryRequiresChecklist } = await import("./mk9-checklist/industry-gate.server");
+    const { assertIndustryRequiresChecklist } =
+      await import("./mk9-checklist/industry-gate.server");
     await assertIndustryRequiresChecklist(data.industryId);
     const { withRichErrors, buildRichError } = await import("./mk9-checklist/errors.server");
 
@@ -95,11 +97,15 @@ export const checklistCommit = createServerFn({ method: "POST" })
 
     // Marca committing logo no início para que o histórico saia de "previewing".
     await updateImportStatus(data.importId, { status: "committing" }).catch(() => undefined);
-    
+
     try {
       // REGRA DE SUBSTITUIÇÃO: Executar em transação
       const snapshot = await withRichErrors(
-        { step: "load-preview-snapshot", function: "checklistCommit", extra: { importId: data.importId } },
+        {
+          step: "load-preview-snapshot",
+          function: "checklistCommit",
+          extra: { importId: data.importId },
+        },
         () => loadPreviewSnapshot(data.importId),
       );
 
@@ -117,9 +123,9 @@ export const checklistCommit = createServerFn({ method: "POST" })
       const newHash = snapshot?.fileHash;
       if (previous && previous.file_hash === newHash) {
         // Duplicado inalterado: Mantemos a anterior e cancelamos esta.
-        await updateImportStatus(data.importId, { 
-          status: "cancelled", 
-          errorMessage: "Arquivo duplicado inalterado. A versão anterior continua vigente." 
+        await updateImportStatus(data.importId, {
+          status: "cancelled",
+          errorMessage: "Arquivo duplicado inalterado. A versão anterior continua vigente.",
         });
         return {
           importId: data.importId,
@@ -134,7 +140,7 @@ export const checklistCommit = createServerFn({ method: "POST" })
           frequencyDiff: null,
           reconciliationError: null,
           validation: null,
-          validationError: "DUPLICATE_UNCHANGED"
+          validationError: "DUPLICATE_UNCHANGED",
         };
       }
 
@@ -149,21 +155,35 @@ export const checklistCommit = createServerFn({ method: "POST" })
 
       const allCandidates = freqs
         .filter((f) => !storeIdByKey.has(`${f.storeNormalized}|${f.uf ?? ""}`))
-        .map((f) => ({ storeName: f.storeName, storeNormalized: f.storeNormalized, uf: f.uf ?? null }));
+        .map((f) => ({
+          storeName: f.storeName,
+          storeNormalized: f.storeNormalized,
+          uf: f.uf ?? null,
+        }));
       const fallbackCandidates = data.items
         .filter((i) => !storeIdByKey.has(`${i.storeNormalized}|${i.uf ?? ""}`))
-        .map((i) => ({ storeName: i.storeName, storeNormalized: i.storeNormalized, uf: i.uf ?? null }));
-      const candidatesByKey = new Map<string, { storeName: string; storeNormalized: string; uf: string | null }>();
+        .map((i) => ({
+          storeName: i.storeName,
+          storeNormalized: i.storeNormalized,
+          uf: i.uf ?? null,
+        }));
+      const candidatesByKey = new Map<
+        string,
+        { storeName: string; storeNormalized: string; uf: string | null }
+      >();
       for (const c of [...allCandidates, ...fallbackCandidates]) {
         candidatesByKey.set(`${c.storeNormalized}|${c.uf ?? ""}`, c);
       }
 
       const createdMap = await withRichErrors(
-        { step: "ensure-checklist-stores", function: "checklistCommit", extra: { candidates: candidatesByKey.size } },
+        {
+          step: "ensure-checklist-stores",
+          function: "checklistCommit",
+          extra: { candidates: candidatesByKey.size },
+        },
         () => ensureChecklistStores(data.importId, Array.from(candidatesByKey.values())),
       );
       for (const [key, v] of createdMap) storeIdByKey.set(key, v.storeId);
-
 
       let storesCreated = 0;
       let storesReused = 0;
@@ -226,17 +246,25 @@ export const checklistCommit = createServerFn({ method: "POST" })
             weeklyFrequency: f.weeklyFrequency,
             monthlyFrequency: f.monthlyFrequency,
           }))
-          .filter((r): r is {
-            storeId: string;
-            storeKey: string;
-            matchKind: "EXACT" | "SIMILARITY";
-            weeklyFrequency: number | null;
-            monthlyFrequency: number | null;
-          } => !!r.storeId);
+          .filter(
+            (
+              r,
+            ): r is {
+              storeId: string;
+              storeKey: string;
+              matchKind: "EXACT" | "SIMILARITY";
+              weeklyFrequency: number | null;
+              monthlyFrequency: number | null;
+            } => !!r.storeId,
+          );
         frequenciesNotImported = freqs.length - rows.length;
 
         const { upserted, report, applied } = await withRichErrors(
-          { step: "upsert-industry-store-frequencies", function: "checklistCommit", extra: { rows: rows.length, frequenciesNotImported } },
+          {
+            step: "upsert-industry-store-frequencies",
+            function: "checklistCommit",
+            extra: { rows: rows.length, frequenciesNotImported },
+          },
           () =>
             upsertIndustryStoreFrequencies(data.industryId, data.importId, rows, {
               operationMonth: data.operationMonth,
@@ -258,29 +286,39 @@ export const checklistCommit = createServerFn({ method: "POST" })
           skipped: applied.skipped,
           forced: applied.forced,
         };
-        await logAudit(ctx, "mk9.frequency.version.apply", "mk9_industry_store_frequency_versions", data.importId, {
-          industryId: data.industryId,
-          competencyStart: report.competencyStart,
-          ...frequencyDiff,
-          forceReason: data.forceReason ?? null,
-        });
+        await logAudit(
+          ctx,
+          "mk9.frequency.version.apply",
+          "mk9_industry_store_frequency_versions",
+          data.importId,
+          {
+            industryId: data.industryId,
+            competencyStart: report.competencyStart,
+            ...frequencyDiff,
+            forceReason: data.forceReason ?? null,
+          },
+        );
 
         // 4.1) Persiste o Snapshot Imutável de TODAS as lojas do arquivo (mesmo sem visitas)
-        const snapshotRows = freqs.map((f) => ({
-          storeId: storeIdByKey.get(`${f.storeNormalized}|${f.uf ?? ""}`)!,
-          storeName: f.storeName,
-          uf: f.uf ?? null,
-          weeklyFrequency: f.weeklyFrequency,
-          monthlyFrequency: f.monthlyFrequency,
-        })).filter(r => !!r.storeId);
+        const snapshotRows = freqs
+          .map((f) => ({
+            storeId: storeIdByKey.get(`${f.storeNormalized}|${f.uf ?? ""}`)!,
+            storeName: f.storeName,
+            uf: f.uf ?? null,
+            weeklyFrequency: f.weeklyFrequency,
+            monthlyFrequency: f.monthlyFrequency,
+          }))
+          .filter((r) => !!r.storeId);
 
         await withRichErrors(
-          { step: "persist-import-snapshot", function: "checklistCommit", extra: { importId: data.importId, count: snapshotRows.length } },
-          () => persistImportSnapshot(data.importId, data.industryId, snapshotRows)
+          {
+            step: "persist-import-snapshot",
+            function: "checklistCommit",
+            extra: { importId: data.importId, count: snapshotRows.length },
+          },
+          () => persistImportSnapshot(data.importId, data.industryId, snapshotRows),
         );
       }
-
-
 
       const counters = {
         persisted,
@@ -299,7 +337,10 @@ export const checklistCommit = createServerFn({ method: "POST" })
       let validation: import("./mk9-checklist/types").ChecklistValidationReport | null = null;
       let validationError: string | null = null;
       try {
-        const [{ queryPersistedVisitsByImport, writeValidationReport }, { buildValidationFromSnapshot }] = await Promise.all([
+        const [
+          { queryPersistedVisitsByImport, writeValidationReport },
+          { buildValidationFromSnapshot },
+        ] = await Promise.all([
           import("./mk9-checklist/persistence.server"),
           import("./mk9-checklist/validation"),
         ]);
@@ -313,8 +354,11 @@ export const checklistCommit = createServerFn({ method: "POST" })
       }
 
       const finalStatus: "done" | "failed" | "INCONSISTENT" | "COMPLETED_WITH_ALERTS" =
-        validation && validation.status === "INCONSISTENT" ? "INCONSISTENT" : 
-        (validation && validation.status === "COMPLETED_WITH_ALERTS" ? "COMPLETED_WITH_ALERTS" : "done");
+        validation && validation.status === "INCONSISTENT"
+          ? "INCONSISTENT"
+          : validation && validation.status === "COMPLETED_WITH_ALERTS"
+            ? "COMPLETED_WITH_ALERTS"
+            : "done";
 
       // SUBSTITUIÇÃO: Marcar como vigente e atualizar anterior
       // REGRA: Somente importações com status 'done', 'INCONSISTENT' ou 'COMPLETED_WITH_ALERTS' podem ser operacionais.
@@ -328,10 +372,10 @@ export const checklistCommit = createServerFn({ method: "POST" })
             .update({
               is_operational_current: false,
               superseded_at: new Date().toISOString(),
-              superseded_by: data.importId
+              superseded_by: data.importId,
             } as any)
             .eq("id", previous.id);
-          
+
           // Remove visitas da importação anterior para não somar no operacional
           await supabaseAdmin
             .from("mk9_actual_visits")
@@ -342,9 +386,9 @@ export const checklistCommit = createServerFn({ method: "POST" })
         // Marca a atual como vigente
         await supabaseAdmin
           .from("mk9_checklist_imports")
-          .update({ 
+          .update({
             is_operational_current: true,
-            replaces_import_id: previous?.id ?? null
+            replaces_import_id: previous?.id ?? null,
           } as any)
           .eq("id", data.importId);
       }
@@ -355,8 +399,6 @@ export const checklistCommit = createServerFn({ method: "POST" })
         finishedAt: new Date(),
         durationMs: Date.now() - startedAt,
       });
-
-
 
       let reconciliationError: string | null = null;
       try {
@@ -395,8 +437,6 @@ export const checklistCommit = createServerFn({ method: "POST" })
         validation,
         validationError,
       };
-
-
     } catch (e: any) {
       let msg: string;
       try {
@@ -419,14 +459,16 @@ export const checklistCommit = createServerFn({ method: "POST" })
   });
 
 export const checklistList = createServerFn({ method: "GET" }).handler(async () => {
-    const { requireMk9AdminRead } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9AdminRead();
+  const { requireMk9AdminRead } = await import("@/lib/mk9-auth/read-guards.server");
+  await requireMk9AdminRead();
   const { listChecklistImports } = await import("./mk9-checklist/persistence.server");
   return listChecklistImports(30);
 });
 
 export const checklistDelete = createServerFn({ method: "POST" })
-  .validator(async (data: unknown) => validate("checklistDelete", () => z.object({ importId: z.string().uuid() }).parse(data)))
+  .validator(async (data: unknown) =>
+    validate("checklistDelete", () => z.object({ importId: z.string().uuid() }).parse(data)),
+  )
   .handler(async ({ data }) => {
     const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
@@ -438,7 +480,9 @@ export const checklistDelete = createServerFn({ method: "POST" })
 
 // Marca a prévia como descartada sem apagar o registro do histórico.
 export const checklistCancel = createServerFn({ method: "POST" })
-  .validator(async (data: unknown) => validate("checklistCancel", () => z.object({ importId: z.string().uuid() }).parse(data)))
+  .validator(async (data: unknown) =>
+    validate("checklistCancel", () => z.object({ importId: z.string().uuid() }).parse(data)),
+  )
   .handler(async ({ data }) => {
     const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
@@ -455,35 +499,43 @@ export const checklistCancel = createServerFn({ method: "POST" })
 // Recomputa a validação em 3 níveis a partir dos dados persistidos, sem re-parsear o Excel.
 // Útil quando a auditoria foi salva com uma versão antiga do motor.
 export const checklistReprocessValidation = createServerFn({ method: "POST" })
-  .validator(async (data: unknown) => validate("checklistReprocessValidation", () => z.object({ importId: z.string().uuid() }).parse(data)))
+  .validator(async (data: unknown) =>
+    validate("checklistReprocessValidation", () =>
+      z.object({ importId: z.string().uuid() }).parse(data),
+    ),
+  )
   .handler(async ({ data }) => {
     const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
-    const { loadPreviewSnapshot, queryPersistedVisitsByImport, writeValidationReport } = await import(
-      "./mk9-checklist/persistence.server"
-    );
+    const { loadPreviewSnapshot, queryPersistedVisitsByImport, writeValidationReport } =
+      await import("./mk9-checklist/persistence.server");
     const { buildValidationFromSnapshot } = await import("./mk9-checklist/validation");
     const snapshot = await loadPreviewSnapshot(data.importId);
     if (!snapshot) throw new Error("Snapshot da prévia não encontrado para essa importação.");
     const persistedByStore = await queryPersistedVisitsByImport(data.importId);
     const validation = buildValidationFromSnapshot(snapshot, persistedByStore);
     await writeValidationReport(data.importId, validation);
-    await logAudit(ctx, "mk9.checklist.reprocess_validation", "mk9_checklist_imports", data.importId, {
-      status: validation.status,
-      persistedTotal: validation.persistedTotal,
-      parsedTotal: validation.parsedTotal,
-    });
+    await logAudit(
+      ctx,
+      "mk9.checklist.reprocess_validation",
+      "mk9_checklist_imports",
+      data.importId,
+      {
+        status: validation.status,
+        persistedTotal: validation.persistedTotal,
+        parsedTotal: validation.parsedTotal,
+      },
+    );
     return { validation };
   });
 
 export const checklistGetValidation = createServerFn({ method: "GET" })
-  .inputValidator(async (data: unknown) => validate("checklistGetValidation", () => z.object({ importId: z.string().uuid() }).parse(data)))
+  .inputValidator(async (data: unknown) =>
+    validate("checklistGetValidation", () => z.object({ importId: z.string().uuid() }).parse(data)),
+  )
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("./mk9-auth/require-role.server");
     await requireMk9Role(["ADMIN", "SUPERVISOR", "AUDITOR"]);
     const { loadValidationReport } = await import("./mk9-checklist/persistence.server");
     return { validation: await loadValidationReport(data.importId) };
   });
-
-
-

@@ -20,7 +20,9 @@ export interface ChecklistIndustryFlag {
   requiresChecklist: boolean;
 }
 
-export function isChecklistIndustryAllowed(industry: ChecklistIndustryFlag | null | undefined): boolean {
+export function isChecklistIndustryAllowed(
+  industry: ChecklistIndustryFlag | null | undefined,
+): boolean {
   return !!industry && industry.requiresChecklist === true;
 }
 
@@ -44,7 +46,11 @@ export function filterChecklistIndustries<T extends ChecklistIndustryFlag>(list:
  * na competência analisada (regra temporal: nada de cobrança retroativa).
  */
 export function countIndustriesMissingChecklist(
-  ctxs: Array<{ requiresChecklist: boolean; checklistImports: number; checklistEnabledAt?: string | null }>,
+  ctxs: Array<{
+    requiresChecklist: boolean;
+    checklistImports: number;
+    checklistEnabledAt?: string | null;
+  }>,
   competence?: { month: number; year: number },
 ): number {
   return ctxs.filter((c) => {

@@ -47,7 +47,13 @@ export async function buildDashboardOverview(
     core = await loadOperationCore(supabase, filters);
   } catch (err: any) {
     console.error("[DASHBOARD_CORE_FAILED]", err);
-    return emptyOverview(todayIso(), filters.year, filters.month, `${filters.year}-01-01`, `${filters.year}-12-31`);
+    return emptyOverview(
+      todayIso(),
+      filters.year,
+      filters.month,
+      `${filters.year}-01-01`,
+      `${filters.year}-12-31`,
+    );
   }
 
   const { year, month } = filters;
@@ -55,7 +61,6 @@ export async function buildDashboardOverview(
   if (core.empty) {
     return emptyOverview(core.today, year, month, core.globalStart, core.globalEnd);
   }
-
 
   const { today, storeRows, industryRows, ctxs, routeByKey } = core;
 
@@ -71,14 +76,20 @@ export async function buildDashboardOverview(
   const expectedToDate = industryRows.reduce((a, i) => a + i.expectedToDate, 0);
   const extras = storeRows.reduce((a, s) => a + Math.max(0, s.realizadas - s.contratadas), 0);
   const pendentes = Math.max(0, contractedTotal - realizedToDate);
-  const lojasAtendidas = new Set(storeRows.filter((s) => s.realizadas > 0).map((s) => s.storeId)).size;
-  const lojasContratadas = new Set(storeRows.filter((s) => s.contratadas > 0).map((s) => s.storeId)).size;
+  const lojasAtendidas = new Set(storeRows.filter((s) => s.realizadas > 0).map((s) => s.storeId))
+    .size;
+  const lojasContratadas = new Set(storeRows.filter((s) => s.contratadas > 0).map((s) => s.storeId))
+    .size;
   const lojasSemVisita = storeRows.filter((s) => s.contratadas > 0 && s.realizadas === 0).length;
   const visitasSemPromotor = storeRows
     .filter((s) => s.promoterResolution !== "MATCHED_ROUTE")
     .reduce((a, s) => a + s.realizadas, 0);
   const industriasEmRisco = industryRows.filter(
-    (i) => i.status === "CRITICA" || i.status === "ATENCAO" || i.status === "SEM_CHECKLIST" || i.status === "SEM_FREQUENCIA",
+    (i) =>
+      i.status === "CRITICA" ||
+      i.status === "ATENCAO" ||
+      i.status === "SEM_CHECKLIST" ||
+      i.status === "SEM_FREQUENCIA",
   ).length;
 
   const kpis = {
@@ -86,7 +97,8 @@ export async function buildDashboardOverview(
     expectedToDate,
     realizedToDate,
     deviation: realizedToDate - expectedToDate,
-    pacePercentage: expectedToDate > 0 ? pct(realizedToDate, expectedToDate) : realizedToDate > 0 ? 100 : 0,
+    pacePercentage:
+      expectedToDate > 0 ? pct(realizedToDate, expectedToDate) : realizedToDate > 0 ? 100 : 0,
     realizadas: realizedToDate,
     pendentes,
     extras,
@@ -124,9 +136,21 @@ export async function buildDashboardOverview(
   const alerts = buildAlerts(industryRows, storeRows, promoters);
 
   const storeExecutionDistribution = [
-    { key: "INTEGRAL" as StoreExecStatus, label: "Integral", value: storeRows.filter((s) => s.status === "INTEGRAL").length },
-    { key: "PARCIAL" as StoreExecStatus, label: "Parcial", value: storeRows.filter((s) => s.status === "PARCIAL").length },
-    { key: "NAO_ATENDIDA" as StoreExecStatus, label: "Não atendida", value: storeRows.filter((s) => s.status === "NAO_ATENDIDA").length },
+    {
+      key: "INTEGRAL" as StoreExecStatus,
+      label: "Integral",
+      value: storeRows.filter((s) => s.status === "INTEGRAL").length,
+    },
+    {
+      key: "PARCIAL" as StoreExecStatus,
+      label: "Parcial",
+      value: storeRows.filter((s) => s.status === "PARCIAL").length,
+    },
+    {
+      key: "NAO_ATENDIDA" as StoreExecStatus,
+      label: "Não atendida",
+      value: storeRows.filter((s) => s.status === "NAO_ATENDIDA").length,
+    },
   ];
   const industryStatusDistribution = INDUSTRY_STATUS_ORDER.map((key) => ({
     key,
@@ -156,7 +180,7 @@ export async function buildDashboardOverview(
   };
 }
 
-/** 
+/**
  * DIAGNÓSTICO DE INTEGRIDADE: Varre o core operacional em busca de dados inconsistentes
  * que podem causar erros de renderização ou cálculos errados.
  */
@@ -171,10 +195,10 @@ export async function checkDashboardIntegrity(supabase: any, filters: DashboardF
     .is("industry_id", null)
     .limit(10);
   if (orphanVisits?.length) {
-    issues.push({ 
-      kind: "ORPHAN_VISITS", 
+    issues.push({
+      kind: "ORPHAN_VISITS",
       detail: `${orphanVisits.length} visitas sem indústria vinculada.`,
-      severity: "ERROR" 
+      severity: "ERROR",
     });
   }
 
@@ -185,10 +209,10 @@ export async function checkDashboardIntegrity(supabase: any, filters: DashboardF
     .is("uf", null)
     .limit(10);
   if (invalidStores?.length) {
-    issues.push({ 
-      kind: "INVALID_STORES", 
+    issues.push({
+      kind: "INVALID_STORES",
       detail: `${invalidStores.length} lojas sem UF cadastrada (ex: ${invalidStores[0].name}).`,
-      severity: "WARN" 
+      severity: "WARN",
     });
   }
 
@@ -199,10 +223,10 @@ export async function checkDashboardIntegrity(supabase: any, filters: DashboardF
     .or("name.is.null,name.eq.''")
     .limit(10);
   if (invalidPromoters?.length) {
-    issues.push({ 
-      kind: "INVALID_PROMOTERS", 
+    issues.push({
+      kind: "INVALID_PROMOTERS",
       detail: `${invalidPromoters.length} promotores com nome em branco ou nulo.`,
-      severity: "ERROR" 
+      severity: "ERROR",
     });
   }
 
@@ -212,7 +236,7 @@ export async function checkDashboardIntegrity(supabase: any, filters: DashboardF
       issues.push({
         kind: "HIGH_FREQUENCY",
         detail: `Loja ${row.storeName} com ${row.contratadas} visitas contratadas (verificar versão).`,
-        severity: "WARN"
+        severity: "WARN",
       });
     }
   }
@@ -220,10 +244,9 @@ export async function checkDashboardIntegrity(supabase: any, filters: DashboardF
   return {
     ok: issues.length === 0,
     issues,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
 }
-
 
 // ---------------------------------------------------------------------------
 
@@ -250,7 +273,7 @@ function buildPromoters(
       ? s.promoterResolution === "AMBIGUOUS_ROUTE"
         ? "Roteiro ambíguo"
         : "Sem roteiro vigente"
-      : s.promoterName ?? "—";
+      : (s.promoterName ?? "—");
     const acc = map.get(key) ?? {
       name,
       stores: new Set<string>(),
@@ -280,7 +303,8 @@ function buildPromoters(
 
   return Array.from(map.entries())
     .map(([id, a]) => {
-      const coberturaPct = a.expected > 0 ? Math.min(100, pct(a.realized, a.expected)) : a.realized > 0 ? 100 : 0;
+      const coberturaPct =
+        a.expected > 0 ? Math.min(100, pct(a.realized, a.expected)) : a.realized > 0 ? 100 : 0;
       const status: DashboardPromoterRow["status"] = a.unresolved
         ? "NAO_RESOLVIDO"
         : coberturaPct >= 100
@@ -301,10 +325,18 @@ function buildPromoters(
         status,
       };
     })
-    .sort((a, b) => a.coberturaPct - b.coberturaPct || a.promoterName.localeCompare(b.promoterName, "pt-BR"));
+    .sort(
+      (a, b) =>
+        a.coberturaPct - b.coberturaPct || a.promoterName.localeCompare(b.promoterName, "pt-BR"),
+    );
 }
 
-const SEVERITY_RANK: Record<DashboardAlert["severity"], number> = { CRITICA: 0, ALTA: 1, MEDIA: 2, BAIXA: 3 };
+const SEVERITY_RANK: Record<DashboardAlert["severity"], number> = {
+  CRITICA: 0,
+  ALTA: 1,
+  MEDIA: 2,
+  BAIXA: 3,
+};
 
 function buildAlerts(
   industries: OperationIndustryRow[],
@@ -321,7 +353,10 @@ function buildAlerts(
         severity: "CRITICA",
         title: `${i.industryName} está crítica`,
         description: `${i.realizadas} de ${i.expectedToDate} visitas esperadas até hoje (${i.pacePercentage}% do ritmo).`,
-        industryId: i.industryId, storeId: null, promoterId: null, uf: null,
+        industryId: i.industryId,
+        storeId: null,
+        promoterId: null,
+        uf: null,
       });
     } else if (i.status === "SEM_CHECKLIST") {
       alerts.push({
@@ -330,7 +365,10 @@ function buildAlerts(
         severity: "ALTA",
         title: `${i.industryName} sem checklist importado`,
         description: `${i.contratadas} visitas contratadas no período e nenhuma execução registrada.`,
-        industryId: i.industryId, storeId: null, promoterId: null, uf: null,
+        industryId: i.industryId,
+        storeId: null,
+        promoterId: null,
+        uf: null,
       });
     } else if (i.status === "SEM_FREQUENCIA") {
       alerts.push({
@@ -339,7 +377,10 @@ function buildAlerts(
         severity: "ALTA",
         title: `${i.industryName} sem frequência cadastrada`,
         description: "Há execução ou roteiro, mas nenhuma frequência contratada configurada.",
-        industryId: i.industryId, storeId: null, promoterId: null, uf: null,
+        industryId: i.industryId,
+        storeId: null,
+        promoterId: null,
+        uf: null,
       });
     } else if (i.status === "ATENCAO") {
       alerts.push({
@@ -348,7 +389,10 @@ function buildAlerts(
         severity: "MEDIA",
         title: `${i.industryName} abaixo da meta proporcional`,
         description: `Desvio de ${i.deviation} visitas em relação ao esperado até hoje.`,
-        industryId: i.industryId, storeId: null, promoterId: null, uf: null,
+        industryId: i.industryId,
+        storeId: null,
+        promoterId: null,
+        uf: null,
       });
     }
   }
@@ -361,13 +405,18 @@ function buildAlerts(
       severity: "ALTA",
       title: `${s.storeName} sem nenhuma visita`,
       description: `${s.industryName} · ${s.contratadas} contratadas · ${s.uf ?? "—"}`,
-      industryId: s.industryId, storeId: s.storeId, promoterId: s.promoterId, uf: s.uf,
+      industryId: s.industryId,
+      storeId: s.storeId,
+      promoterId: s.promoterId,
+      uf: s.uf,
     });
   }
 
   const abaixo = stores
-    .filter((s) => s.realizadas > 0 && s.expectedToDate > 0 && s.realizadas / s.expectedToDate < 0.5)
-    .sort((a, b) => (b.expectedToDate - b.realizadas) - (a.expectedToDate - a.realizadas));
+    .filter(
+      (s) => s.realizadas > 0 && s.expectedToDate > 0 && s.realizadas / s.expectedToDate < 0.5,
+    )
+    .sort((a, b) => b.expectedToDate - b.realizadas - (a.expectedToDate - a.realizadas));
   for (const s of abaixo.slice(0, 8)) {
     alerts.push({
       id: `store-low-${s.industryId}-${s.storeId}`,
@@ -375,11 +424,16 @@ function buildAlerts(
       severity: "MEDIA",
       title: `${s.storeName} muito abaixo da frequência`,
       description: `${s.realizadas} de ${s.expectedToDate} esperadas até hoje (${s.industryName}).`,
-      industryId: s.industryId, storeId: s.storeId, promoterId: s.promoterId, uf: s.uf,
+      industryId: s.industryId,
+      storeId: s.storeId,
+      promoterId: s.promoterId,
+      uf: s.uf,
     });
   }
 
-  const unassigned = stores.filter((s) => s.promoterResolution === "UNASSIGNED_ROUTE" && s.realizadas > 0);
+  const unassigned = stores.filter(
+    (s) => s.promoterResolution === "UNASSIGNED_ROUTE" && s.realizadas > 0,
+  );
   if (unassigned.length) {
     const total = unassigned.reduce((a, s) => a + s.realizadas, 0);
     alerts.push({
@@ -388,10 +442,15 @@ function buildAlerts(
       severity: "MEDIA",
       title: `${total} visitas sem roteiro vigente`,
       description: `${unassigned.length} lojas executadas sem promotor resolvido. Contam para indústria e loja.`,
-      industryId: null, storeId: null, promoterId: null, uf: null,
+      industryId: null,
+      storeId: null,
+      promoterId: null,
+      uf: null,
     });
   }
-  const ambiguous = stores.filter((s) => s.promoterResolution === "AMBIGUOUS_ROUTE" && s.realizadas > 0);
+  const ambiguous = stores.filter(
+    (s) => s.promoterResolution === "AMBIGUOUS_ROUTE" && s.realizadas > 0,
+  );
   if (ambiguous.length) {
     const total = ambiguous.reduce((a, s) => a + s.realizadas, 0);
     alerts.push({
@@ -400,18 +459,26 @@ function buildAlerts(
       severity: "MEDIA",
       title: `${total} visitas com roteiro ambíguo`,
       description: `${ambiguous.length} lojas com mais de um promotor vigente no período.`,
-      industryId: null, storeId: null, promoterId: null, uf: null,
+      industryId: null,
+      storeId: null,
+      promoterId: null,
+      uf: null,
     });
   }
 
-  for (const p of promoters.filter((x) => x.status === "CRITICA" && x.expectedToDate >= 5).slice(0, 5)) {
+  for (const p of promoters
+    .filter((x) => x.status === "CRITICA" && x.expectedToDate >= 5)
+    .slice(0, 5)) {
     alerts.push({
       id: `promoter-crit-${p.promoterId}`,
       kind: "PROMOTOR_CRITICO",
       severity: "ALTA",
       title: `${p.promoterName} com cobertura crítica`,
       description: `${p.realizadas} de ${p.expectedToDate} esperadas · ${p.storesWithoutVisit} lojas sem visita.`,
-      industryId: null, storeId: null, promoterId: p.promoterId, uf: null,
+      industryId: null,
+      storeId: null,
+      promoterId: p.promoterId,
+      uf: null,
     });
   }
 
@@ -419,7 +486,11 @@ function buildAlerts(
 }
 
 function emptyOverview(
-  today: string, year: number, month: number, start: string, end: string,
+  today: string,
+  year: number,
+  month: number,
+  start: string,
+  end: string,
 ): DashboardOverview {
   return {
     generatedAt: new Date().toISOString(),
@@ -430,10 +501,21 @@ function emptyOverview(
     usesHistoricalFrequency: false,
     checklistImports: 0,
     kpis: {
-      contractedTotal: 0, expectedToDate: 0, realizedToDate: 0, deviation: 0, pacePercentage: 0,
-      realizadas: 0, pendentes: 0, extras: 0, coberturaPct: 0,
-      lojasContratadas: 0, lojasAtendidas: 0, lojasSemVisita: 0,
-      industriasTotal: 0, industriasEmRisco: 0, visitasSemPromotor: 0,
+      contractedTotal: 0,
+      expectedToDate: 0,
+      realizedToDate: 0,
+      deviation: 0,
+      pacePercentage: 0,
+      realizadas: 0,
+      pendentes: 0,
+      extras: 0,
+      coberturaPct: 0,
+      lojasContratadas: 0,
+      lojasAtendidas: 0,
+      lojasSemVisita: 0,
+      industriasTotal: 0,
+      industriasEmRisco: 0,
+      visitasSemPromotor: 0,
     },
     industries: [],
     criticalStores: [],

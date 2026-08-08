@@ -44,7 +44,7 @@ describe("parser de frequência — 0,5 em todos os formatos", () => {
     });
   }
 
-  it("G) parser \"0,5\" → 0.5", () => {
+  it('G) parser "0,5" → 0.5', () => {
     expect(parseNumber("0,5")).toBe(0.5);
   });
 
@@ -109,7 +109,11 @@ describe("regra canônica semanal × mensal", () => {
   });
 
   it("outros pares inconsistentes conhecidos", () => {
-    for (const [w, m] of [[0.5, 6], [1, 8], [2, 4]] as const) {
+    for (const [w, m] of [
+      [0.5, 6],
+      [1, 8],
+      [2, 4],
+    ] as const) {
       expect(isWeeklyMonthlyConsistent(w, m)).toBe(false);
     }
   });

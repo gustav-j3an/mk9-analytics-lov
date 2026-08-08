@@ -4,10 +4,7 @@
 // (`src/lib/mk9-operations/types.ts`). Aqui apenas re-exportamos com os nomes
 // históricos — a interface existente não muda.
 
-export {
-  INDUSTRY_STATUS_LABEL,
-  INDUSTRY_STATUS_ORDER,
-} from "@/lib/mk9-operations/types";
+export { INDUSTRY_STATUS_LABEL, INDUSTRY_STATUS_ORDER } from "@/lib/mk9-operations/types";
 
 export type {
   IndustryStatusKey,

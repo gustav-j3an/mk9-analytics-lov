@@ -1,10 +1,6 @@
 // Camada de resolução: dado o IR do parser + snapshot do banco,
 // resolve nomes -> IDs. Puro. Sem I/O.
-import type {
-  IndustryRecord,
-  PromoterRecord,
-  StoreRecord,
-} from "./types";
+import type { IndustryRecord, PromoterRecord, StoreRecord } from "./types";
 import { normalizeName, normalizePhone } from "./normalization";
 
 export interface ResolutionResult<T> {
@@ -66,7 +62,8 @@ export function resolvePromoter(
       const contactN = normalizePhone(contact);
       if (contactN) {
         const disambig = byName.filter((p) => p.contactNormalized === contactN);
-        if (disambig.length === 1) return { match: disambig[0], ambiguous: false, candidates: disambig };
+        if (disambig.length === 1)
+          return { match: disambig[0], ambiguous: false, candidates: disambig };
       }
       return { match: null, ambiguous: true, candidates: byName };
     }
@@ -74,7 +71,8 @@ export function resolvePromoter(
   const contactN = normalizePhone(contact);
   if (contactN) {
     const byContact = db.filter((p) => p.contactNormalized === contactN);
-    if (byContact.length === 1) return { match: byContact[0], ambiguous: false, candidates: byContact };
+    if (byContact.length === 1)
+      return { match: byContact[0], ambiguous: false, candidates: byContact };
   }
   return { match: null, ambiguous: false, candidates: [] };
 }

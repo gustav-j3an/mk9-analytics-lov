@@ -3,15 +3,22 @@ import { z } from "zod";
 import { normalizeName } from "./mk9/normalization";
 import { logAudit, requireMk9Role } from "@/lib/mk9-auth/require-role.server";
 
-const promoterSchema = z.object({
-  name: z.string().min(2).max(120),
-  employeeNumber: z.string().max(20).transform(v => v?.trim() || null).nullable().optional(),
-  externalId: z.string().max(120).nullable().optional(),
-  city: z.string().max(120).nullable().optional(),
-  uf: z.string().length(2).nullable().optional(),
-  contact: z.string().max(120).nullable().optional(),
-  notes: z.string().max(1000).nullable().optional(),
-}).strict();
+const promoterSchema = z
+  .object({
+    name: z.string().min(2).max(120),
+    employeeNumber: z
+      .string()
+      .max(20)
+      .transform((v) => v?.trim() || null)
+      .nullable()
+      .optional(),
+    externalId: z.string().max(120).nullable().optional(),
+    city: z.string().max(120).nullable().optional(),
+    uf: z.string().length(2).nullable().optional(),
+    contact: z.string().max(120).nullable().optional(),
+    notes: z.string().max(1000).nullable().optional(),
+  })
+  .strict();
 
 export const mk9CreatePromoter = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => promoterSchema.parse(data))
@@ -27,7 +34,7 @@ export const mk9CreatePromoter = createServerFn({ method: "POST" })
         .select("id")
         .eq("employee_number", data.employeeNumber)
         .maybeSingle();
-      
+
       if (existing) {
         throw new Error("Já existe um promotor cadastrado com esta matrícula.");
       }
@@ -50,18 +57,22 @@ export const mk9CreatePromoter = createServerFn({ method: "POST" })
       .single();
 
     if (error) throw new Error(error.message);
-    
+
     await logAudit(ctx, "PROMOTER_CREATED", "mk9_promoters", row?.id ?? null, { data });
 
     return row;
   });
 
 export const mk9UpdatePromoter = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({
-    id: z.string().uuid(),
-    data: promoterSchema,
-    expectedUpdatedAt: z.string().optional(),
-  }).parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        data: promoterSchema,
+        expectedUpdatedAt: z.string().optional(),
+      })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -74,7 +85,7 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
         .eq("employee_number", data.data.employeeNumber)
         .neq("id", data.id)
         .maybeSingle();
-      
+
       if (existing) {
         throw new Error("Já existe um promotor cadastrado com esta matrícula.");
       }
@@ -117,34 +128,51 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
       throw new Error("Nenhum registro foi atualizado (PROMOTER_NOT_FOUND).");
     }
 
-    await logAudit(ctx, "PROMOTER_UPDATED", "mk9_promoters", data.id, { 
+    await logAudit(ctx, "PROMOTER_UPDATED", "mk9_promoters", data.id, {
       data: data.data,
       previous_employee_number: old?.employee_number,
-      new_employee_number: data.data.employeeNumber
+      new_employee_number: data.data.employeeNumber,
     });
 
     return row;
   });
 
 export const mk9DeletePromoter = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({
-    id: z.string().uuid(),
-  }).parse(data))
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+      })
+      .parse(data),
+  )
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // 1. Verificar vínculos que impedem delete físico (histórico operacional)
     const [visits, actualVisits, routes] = await Promise.all([
-      supabaseAdmin.from("mk9_planned_visits").select("id", { count: "exact", head: true }).eq("promoter_id" as any, data.id),
-      supabaseAdmin.from("mk9_actual_visits").select("id", { count: "exact", head: true }).eq("store_id" as any, "FORCE_EMPTY_UNTIL_SCHEMA_FIX"), // actual_visits doesn't have promoter_id yet, but we check store_id to satisfy TS if needed or just skip
-      supabaseAdmin.from("mk9_planned_routes").select("id", { count: "exact", head: true }).eq("promoter_id" as any, data.id),
+      supabaseAdmin
+        .from("mk9_planned_visits")
+        .select("id", { count: "exact", head: true })
+        .eq("promoter_id" as any, data.id),
+      supabaseAdmin
+        .from("mk9_actual_visits")
+        .select("id", { count: "exact", head: true })
+        .eq("store_id" as any, "FORCE_EMPTY_UNTIL_SCHEMA_FIX"), // actual_visits doesn't have promoter_id yet, but we check store_id to satisfy TS if needed or just skip
+      supabaseAdmin
+        .from("mk9_planned_routes")
+        .select("id", { count: "exact", head: true })
+        .eq("promoter_id" as any, data.id),
     ]);
 
     const totalVinculos = (visits.count ?? 0) + (actualVisits.count ?? 0) + (routes.count ?? 0);
-    
+
     // Busca dados para auditoria antes de sumir
-    const { data: promoter } = await supabaseAdmin.from("mk9_promoters").select("name, employee_number").eq("id", data.id).single();
+    const { data: promoter } = await supabaseAdmin
+      .from("mk9_promoters")
+      .select("name, employee_number")
+      .eq("id", data.id)
+      .single();
 
     if (totalVinculos > 0) {
       // ESTRATÉGIA: Arquivamento definitivo (soft delete real)
@@ -161,27 +189,24 @@ export const mk9DeletePromoter = createServerFn({ method: "POST" })
         .eq("id", data.id);
 
       if (error) throw new Error(error.message);
-      
-      await logAudit(ctx, "PROMOTER_DELETED_SOFT", "mk9_promoters", data.id, { 
-        name: promoter?.name, 
+
+      await logAudit(ctx, "PROMOTER_DELETED_SOFT", "mk9_promoters", data.id, {
+        name: promoter?.name,
         employeeNumber: promoter?.employee_number,
-        hasHistory: true 
+        hasHistory: true,
       });
 
       return { success: true, mode: "SOFT" };
     } else {
       // DELETE FÍSICO
-      const { error } = await supabaseAdmin
-        .from("mk9_promoters")
-        .delete()
-        .eq("id", data.id);
+      const { error } = await supabaseAdmin.from("mk9_promoters").delete().eq("id", data.id);
 
       if (error) throw new Error(error.message);
 
-      await logAudit(ctx, "PROMOTER_DELETED_HARD", "mk9_promoters", data.id, { 
-        name: promoter?.name, 
+      await logAudit(ctx, "PROMOTER_DELETED_HARD", "mk9_promoters", data.id, {
+        name: promoter?.name,
         employeeNumber: promoter?.employee_number,
-        hasHistory: false 
+        hasHistory: false,
       });
 
       return { success: true, mode: "HARD" };
@@ -196,9 +221,18 @@ export const mk9PromoterDeleteImpact = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const [routes, visits, actualVisits] = await Promise.all([
-      supabaseAdmin.from("mk9_planned_routes").select("id", { count: "exact", head: true }).eq("promoter_id" as any, data.id),
-      supabaseAdmin.from("mk9_planned_visits").select("id", { count: "exact", head: true }).eq("promoter_id" as any, data.id),
-      supabaseAdmin.from("mk9_actual_visits").select("id", { count: "exact", head: true }).eq("store_id" as any, "FORCE_EMPTY"),
+      supabaseAdmin
+        .from("mk9_planned_routes")
+        .select("id", { count: "exact", head: true })
+        .eq("promoter_id" as any, data.id),
+      supabaseAdmin
+        .from("mk9_planned_visits")
+        .select("id", { count: "exact", head: true })
+        .eq("promoter_id" as any, data.id),
+      supabaseAdmin
+        .from("mk9_actual_visits")
+        .select("id", { count: "exact", head: true })
+        .eq("store_id" as any, "FORCE_EMPTY"),
     ]);
 
     return {

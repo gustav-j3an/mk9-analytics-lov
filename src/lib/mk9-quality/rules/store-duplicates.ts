@@ -16,7 +16,12 @@
  * Sem I/O: recebe a lista de lojas já carregada e devolve pares candidatos.
  */
 import { diceCoefficient } from "@/lib/mk9-checklist/similarity";
-import { normalizeStoreName, normalizeText, storeCompactKey, storeTokenSetKey } from "@/lib/mk9/normalization";
+import {
+  normalizeStoreName,
+  normalizeText,
+  storeCompactKey,
+  storeTokenSetKey,
+} from "@/lib/mk9/normalization";
 
 export interface DuplicateCandidateStore {
   id: string;
@@ -25,7 +30,11 @@ export interface DuplicateCandidateStore {
   uf: string | null;
 }
 
-export type DuplicateRule = "EXACT_NORMALIZED" | "SAME_TOKENS" | "COMPACT_MATCH" | "HIGH_SIMILARITY";
+export type DuplicateRule =
+  | "EXACT_NORMALIZED"
+  | "SAME_TOKENS"
+  | "COMPACT_MATCH"
+  | "HIGH_SIMILARITY";
 
 export interface StoreDuplicatePair {
   /** ids ordenados: o par A↔B é sempre o mesmo problema que B↔A */
@@ -46,15 +55,34 @@ export const DUPLICATE_THRESHOLD = 0.92;
 
 /** Marcadores de filial: se aparecem em apenas um dos nomes, não é duplicata. */
 const BRANCH_MARKERS = new Set([
-  "norte", "sul", "leste", "oeste", "centro", "central",
-  "i", "ii", "iii", "iv", "v", "vi",
-  "a", "b", "c",
-  "shopping", "express", "atacado", "varejo", "matriz", "filial",
+  "norte",
+  "sul",
+  "leste",
+  "oeste",
+  "centro",
+  "central",
+  "i",
+  "ii",
+  "iii",
+  "iv",
+  "v",
+  "vi",
+  "a",
+  "b",
+  "c",
+  "shopping",
+  "express",
+  "atacado",
+  "varejo",
+  "matriz",
+  "filial",
 ]);
 
 function digitsOf(normalized: string): string {
   const found = normalized.match(/\d+/g) ?? [];
-  return Array.from(new Set(found.map((d) => String(Number(d))))).sort().join(",");
+  return Array.from(new Set(found.map((d) => String(Number(d)))))
+    .sort()
+    .join(",");
 }
 
 function branchMarkersOf(normalized: string): string {
@@ -129,7 +157,6 @@ export function findProbableStoreDuplicates(
         // Defesa 4: marcador de filial presente em apenas um dos nomes.
         if (a.markers !== b.markers) continue;
 
-
         let rule: DuplicateRule | null = null;
         let score = 0;
 
@@ -152,8 +179,7 @@ export function findProbableStoreDuplicates(
 
         if (!rule) continue;
 
-        const [first, second] =
-          a.store.id < b.store.id ? [a.store, b.store] : [b.store, a.store];
+        const [first, second] = a.store.id < b.store.id ? [a.store, b.store] : [b.store, a.store];
         pairs.push({
           aId: first.id,
           bId: second.id,

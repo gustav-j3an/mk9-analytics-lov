@@ -16,7 +16,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,7 +43,10 @@ import {
 import { detectMk9FileKind } from "@/lib/mk9/detect-file-kind";
 import type { ImportPreview, SyncMode } from "@/lib/mk9/types";
 
-const STATUS_LABEL: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+const STATUS_LABEL: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" }
+> = {
   pending: { label: "Pendente", variant: "secondary" },
   previewing: { label: "Prévia gerada", variant: "secondary" },
   confirmed: { label: "Confirmada", variant: "secondary" },
@@ -77,8 +86,18 @@ const ENTITY_LABEL: Record<string, string> = {
 };
 
 const MONTHS = [
-  "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-  "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
 const SYNC_MODES: Array<{ id: SyncMode; label: string }> = [
   { id: "full", label: "Atualizar base e roteiro completo" },
@@ -113,7 +132,9 @@ function invalidateMk9(qc: ReturnType<typeof useQueryClient>) {
   }
 }
 
-export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists?: () => void } = {}) {
+export function Mk9ImportModule({
+  onSwitchToChecklists,
+}: { onSwitchToChecklists?: () => void } = {}) {
   const now = new Date();
   const [file, setFile] = useState<File | null>(null);
   const [month, setMonth] = useState<number>(now.getMonth() + 1);
@@ -138,7 +159,10 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
 
   const deleteMut = useMutation({
     mutationFn: (importId: string) => deleteFn({ data: { importId } }),
-    onSuccess: () => { toast.success("Histórico removido"); invalidateMk9(qc); },
+    onSuccess: () => {
+      toast.success("Histórico removido");
+      invalidateMk9(qc);
+    },
     onError: (e: any) => toast.error(e?.message ?? "Falha ao remover"),
   });
 
@@ -146,7 +170,9 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
     mutationFn: async () => {
       if (!file) throw new Error("Selecione a planilha");
       const base64 = await fileToBase64(file);
-      return previewFn({ data: { filename: file.name, base64, operationMonth: month, operationYear: year, syncMode } });
+      return previewFn({
+        data: { filename: file.name, base64, operationMonth: month, operationYear: year, syncMode },
+      });
     },
     onSuccess: (res) => {
       setPreview(res.preview);
@@ -161,7 +187,17 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
     mutationFn: async () => {
       if (!file || !importId) throw new Error("Gere a prévia antes");
       const base64 = await fileToBase64(file);
-      return commitFn({ data: { importId, filename: file.name, base64, operationMonth: month, operationYear: year, syncMode, resolveConflicts } });
+      return commitFn({
+        data: {
+          importId,
+          filename: file.name,
+          base64,
+          operationMonth: month,
+          operationYear: year,
+          syncMode,
+          resolveConflicts,
+        },
+      });
     },
     onSuccess: (res: any) => {
       const c = res?.counters ?? {};
@@ -169,13 +205,18 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
         description: `Indústrias +${c.industriesCreated ?? 0}/~${c.industriesUpdated ?? 0} · Lojas +${c.storesCreated ?? 0}/~${c.storesUpdated ?? 0} · Promotores +${c.promotersCreated ?? 0}/~${c.promotersUpdated ?? 0} · Rotas +${c.routesCreated ?? 0} · Visitas +${c.visitsCreated ?? 0} (${c.visitsPreserved ?? 0} preservadas)`,
         duration: 8000,
       });
-      setPreview(null); setImportId(null); setFile(null);
+      setPreview(null);
+      setImportId(null);
+      setFile(null);
       setConfirmOpen(false);
       invalidateMk9(qc);
     },
     onError: (e: any) => {
       const msg = e?.message ?? "Falha ao confirmar";
-      toast.error(msg, { description: msg.length > 80 ? msg.slice(0, 200) : undefined, duration: 8000 });
+      toast.error(msg, {
+        description: msg.length > 80 ? msg.slice(0, 200) : undefined,
+        duration: 8000,
+      });
       setConfirmOpen(false);
       qc.invalidateQueries({ queryKey: ["mk9-imports"] });
     },
@@ -189,12 +230,17 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
     <div className="space-y-6">
       <Card className="glass-panel">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Upload className="h-5 w-5" />Importar planilha MK9</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="h-5 w-5" />
+            Importar planilha MK9
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
-              <label className="text-sm text-muted-foreground">Arquivo .xlsx (Base MK9 — roteiro/consulta)</label>
+              <label className="text-sm text-muted-foreground">
+                Arquivo .xlsx (Base MK9 — roteiro/consulta)
+              </label>
               <Input
                 type="file"
                 accept=".xlsx"
@@ -203,7 +249,10 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
                   setPreview(null);
                   setImportId(null);
                   setRejected(null);
-                  if (!f) { setFile(null); return; }
+                  if (!f) {
+                    setFile(null);
+                    return;
+                  }
                   const det = await detectMk9FileKind(f);
                   if (det.kind === "checklist") {
                     setFile(null);
@@ -221,44 +270,80 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
             <div>
               <label className="text-sm text-muted-foreground">Mês</label>
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {MONTHS.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+                  {MONTHS.map((m, i) => (
+                    <SelectItem key={i} value={String(i + 1)}>
+                      {m}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <label className="text-sm text-muted-foreground">Ano</label>
-              <Input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} min={2024} max={2100} />
+              <Input
+                type="number"
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+                min={2024}
+                max={2100}
+              />
             </div>
           </div>
           <div>
             <label className="text-sm text-muted-foreground">Modo de sincronização</label>
             <Select value={syncMode} onValueChange={(v) => setSyncMode(v as SyncMode)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {SYNC_MODES.map((m) => <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>)}
+                {SYNC_MODES.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="flex gap-2">
             <Button onClick={() => previewMut.mutate()} disabled={!file || previewMut.isPending}>
-              {previewMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+              {previewMut.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="h-4 w-4" />
+              )}
               Gerar prévia
             </Button>
-            {preview && (() => {
-              const conflicts = (preview.routeDiff?.manualConflicts ?? 0) + (preview.routeDiff?.futureConflicts ?? 0);
-              const blocked = conflicts > 0 && !resolveConflicts;
-              return (
-                <Button variant="default" onClick={() => setConfirmOpen(true)} disabled={commitMut.isPending || blocked}
-                  title={blocked ? `Existem ${conflicts} conflitos manuais/futuros. Marque "Resolver conflitos usando planilha" para prosseguir.` : undefined}>
-                  {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                  Atualizar base MK9
-                </Button>
-              );
-            })()}
+            {preview &&
+              (() => {
+                const conflicts =
+                  (preview.routeDiff?.manualConflicts ?? 0) +
+                  (preview.routeDiff?.futureConflicts ?? 0);
+                const blocked = conflicts > 0 && !resolveConflicts;
+                return (
+                  <Button
+                    variant="default"
+                    onClick={() => setConfirmOpen(true)}
+                    disabled={commitMut.isPending || blocked}
+                    title={
+                      blocked
+                        ? `Existem ${conflicts} conflitos manuais/futuros. Marque "Resolver conflitos usando planilha" para prosseguir.`
+                        : undefined
+                    }
+                  >
+                    {commitMut.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4" />
+                    )}
+                    Atualizar base MK9
+                  </Button>
+                );
+              })()}
           </div>
-
         </CardContent>
       </Card>
 
@@ -269,17 +354,26 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
               <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
               <div className="space-y-1 flex-1 min-w-0">
                 <p className="font-medium text-destructive">
-                  Este arquivo parece ser um checklist mensal. Importe-o em Importações › Checklists.
+                  Este arquivo parece ser um checklist mensal. Importe-o em Importações ›
+                  Checklists.
                 </p>
                 <p className="text-xs text-muted-foreground">{rejected.reason}</p>
                 {rejected.sheets.length > 0 && (
-                  <p className="text-xs text-muted-foreground">Abas encontradas: {rejected.sheets.join(", ")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Abas encontradas: {rejected.sheets.join(", ")}
+                  </p>
                 )}
               </div>
             </div>
             {onSwitchToChecklists && (
               <div>
-                <Button size="sm" onClick={() => { setRejected(null); onSwitchToChecklists(); }}>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setRejected(null);
+                    onSwitchToChecklists();
+                  }}
+                >
                   Ir para Checklists
                 </Button>
               </div>
@@ -290,31 +384,48 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
 
       {preview && c && (
         <Card className="glass-panel">
-          <CardHeader><CardTitle>Prévia — {preview.filename}</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Prévia — {preview.filename}</CardTitle>
+          </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <SummaryCard label="Indústrias" rows={[
-                { k: "Novas", v: c.industriesCreated ?? 0, tone: "green" },
-                { k: "Atualizadas", v: c.industriesUpdated ?? 0, tone: "blue" },
-              ]} />
-              <SummaryCard label="Lojas" rows={[
-                { k: "Novas", v: c.storesCreated ?? 0, tone: "green" },
-                { k: "Atualizadas", v: c.storesUpdated ?? 0, tone: "blue" },
-              ]} />
-              <SummaryCard label="Promotores" rows={[
-                { k: "Novos", v: c.promotersCreated ?? 0, tone: "green" },
-                { k: "Atualizados", v: c.promotersUpdated ?? 0, tone: "blue" },
-              ]} />
-              <SummaryCard label="Rotas" rows={[
-                { k: "Novas", v: c.routesCreated ?? 0, tone: "green" },
-                { k: "Atualizadas", v: c.routesUpdated ?? 0, tone: "blue" },
-                { k: "Mantidas", v: c.routesKept ?? 0, tone: "muted" },
-                { k: "Removidas", v: c.routesRemoved ?? 0, tone: "red" },
-              ]} />
-              <SummaryCard label="Visitas" rows={[
-                { k: "Novas", v: c.visitsCreated ?? 0, tone: "green" },
-                { k: "Preservadas", v: c.visitsPreserved ?? 0, tone: "violet" },
-              ]} />
+              <SummaryCard
+                label="Indústrias"
+                rows={[
+                  { k: "Novas", v: c.industriesCreated ?? 0, tone: "green" },
+                  { k: "Atualizadas", v: c.industriesUpdated ?? 0, tone: "blue" },
+                ]}
+              />
+              <SummaryCard
+                label="Lojas"
+                rows={[
+                  { k: "Novas", v: c.storesCreated ?? 0, tone: "green" },
+                  { k: "Atualizadas", v: c.storesUpdated ?? 0, tone: "blue" },
+                ]}
+              />
+              <SummaryCard
+                label="Promotores"
+                rows={[
+                  { k: "Novos", v: c.promotersCreated ?? 0, tone: "green" },
+                  { k: "Atualizados", v: c.promotersUpdated ?? 0, tone: "blue" },
+                ]}
+              />
+              <SummaryCard
+                label="Rotas"
+                rows={[
+                  { k: "Novas", v: c.routesCreated ?? 0, tone: "green" },
+                  { k: "Atualizadas", v: c.routesUpdated ?? 0, tone: "blue" },
+                  { k: "Mantidas", v: c.routesKept ?? 0, tone: "muted" },
+                  { k: "Removidas", v: c.routesRemoved ?? 0, tone: "red" },
+                ]}
+              />
+              <SummaryCard
+                label="Visitas"
+                rows={[
+                  { k: "Novas", v: c.visitsCreated ?? 0, tone: "green" },
+                  { k: "Preservadas", v: c.visitsPreserved ?? 0, tone: "violet" },
+                ]}
+              />
             </div>
 
             {preview.routeDiff && (
@@ -328,10 +439,24 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
             )}
 
             <div className="flex flex-wrap gap-2">
-
-              {(["all","create","update","keep","remove","duplicate","ambiguous","invalid","preserved"] as const).map((f) => (
-                <button key={f} onClick={() => setFilter(f)}
-                  className={`text-xs px-3 py-1 rounded-full border transition-colors ${filter===f?"bg-primary text-primary-foreground border-primary":"bg-transparent hover:bg-accent"}`}>
+              {(
+                [
+                  "all",
+                  "create",
+                  "update",
+                  "keep",
+                  "remove",
+                  "duplicate",
+                  "ambiguous",
+                  "invalid",
+                  "preserved",
+                ] as const
+              ).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`text-xs px-3 py-1 rounded-full border transition-colors ${filter === f ? "bg-primary text-primary-foreground border-primary" : "bg-transparent hover:bg-accent"}`}
+                >
                   {ACTION_LABEL[f] ?? f}
                 </button>
               ))}
@@ -356,24 +481,40 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
                       <td className="p-2 whitespace-nowrap">{it.sheet}</td>
                       <td className="p-2">{it.excelRow ?? "-"}</td>
                       <td className="p-2">{ENTITY_LABEL[it.entityType] ?? it.entityType}</td>
-                      <td className="p-2 max-w-[220px] truncate" title={String(it.payload?.name ?? recordLabel(it.payload))}>
+                      <td
+                        className="p-2 max-w-[220px] truncate"
+                        title={String(it.payload?.name ?? recordLabel(it.payload))}
+                      >
                         {recordLabel(it.payload)}
                       </td>
-                      <td className="p-2"><ActionBadge action={it.action} /></td>
-                      <td className="p-2 max-w-md truncate" title={JSON.stringify(it.payload)}>{summarize(it.payload)}</td>
+                      <td className="p-2">
+                        <ActionBadge action={it.action} />
+                      </td>
+                      <td className="p-2 max-w-md truncate" title={JSON.stringify(it.payload)}>
+                        {summarize(it.payload)}
+                      </td>
                       <td className="p-2 text-amber-600">{(it.warnings ?? []).join(", ")}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {filtered.length > 500 && <div className="p-2 text-xs text-muted-foreground">Mostrando 500 de {filtered.length}</div>}
+              {filtered.length > 500 && (
+                <div className="p-2 text-xs text-muted-foreground">
+                  Mostrando 500 de {filtered.length}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       )}
 
       <Card className="glass-panel">
-        <CardHeader><CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5" />Histórico de importações</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Histórico de importações
+          </CardTitle>
+        </CardHeader>
         <CardContent>
           {historyQ.isLoading ? (
             <p className="text-sm text-muted-foreground">Carregando…</p>
@@ -382,7 +523,10 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
           ) : (
             <div className="space-y-2">
               {(historyQ.data ?? []).map((imp) => {
-                const st = STATUS_LABEL[imp.status] ?? { label: imp.status, variant: "secondary" as const };
+                const st = STATUS_LABEL[imp.status] ?? {
+                  label: imp.status,
+                  variant: "secondary" as const,
+                };
                 const isOpen = !!expanded[imp.id];
                 const hasError = !!imp.errorMessage;
                 return (
@@ -391,19 +535,34 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
                       <div className="min-w-0 flex-1">
                         <p className="font-medium truncate">{imp.filename}</p>
                         <p className="text-xs text-muted-foreground">
-                          {MONTHS[imp.operationMonth - 1]} {imp.operationYear} · {SYNC_MODE_LABEL[imp.syncMode] ?? imp.syncMode} · {imp.sheetsAnalyzed.length} abas
+                          {MONTHS[imp.operationMonth - 1]} {imp.operationYear} ·{" "}
+                          {SYNC_MODE_LABEL[imp.syncMode] ?? imp.syncMode} ·{" "}
+                          {imp.sheetsAnalyzed.length} abas
                           {imp.durationMs != null && ` · ${imp.durationMs}ms`}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <Badge variant={st.variant}>{st.label}</Badge>
                         {hasError && (
-                          <Button size="sm" variant="ghost" onClick={() => setExpanded((s) => ({ ...s, [imp.id]: !s[imp.id] }))}>
-                            {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setExpanded((s) => ({ ...s, [imp.id]: !s[imp.id] }))}
+                          >
+                            {isOpen ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
                             Ver erro
                           </Button>
                         )}
-                        <Button size="sm" variant="ghost" onClick={() => deleteMut.mutate(imp.id)} disabled={deleteMut.isPending}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => deleteMut.mutate(imp.id)}
+                          disabled={deleteMut.isPending}
+                        >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
@@ -414,10 +573,13 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
                           <div className="flex items-center gap-2 text-destructive font-medium">
                             <AlertTriangle className="h-4 w-4" /> Erro na importação
                           </div>
-                          <p className="text-xs whitespace-pre-wrap break-words text-destructive/90 font-mono">{imp.errorMessage}</p>
+                          <p className="text-xs whitespace-pre-wrap break-words text-destructive/90 font-mono">
+                            {imp.errorMessage}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             Iniciada em {new Date(imp.startedAt).toLocaleString("pt-BR")}
-                            {imp.finishedAt && ` · Falhou em ${new Date(imp.finishedAt).toLocaleString("pt-BR")}`}
+                            {imp.finishedAt &&
+                              ` · Falhou em ${new Date(imp.finishedAt).toLocaleString("pt-BR")}`}
                           </p>
                         </div>
                       </div>
@@ -430,13 +592,16 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
         </CardContent>
       </Card>
 
-      <AlertDialog open={confirmOpen} onOpenChange={(o) => !commitMut.isPending && setConfirmOpen(o)}>
+      <AlertDialog
+        open={confirmOpen}
+        onOpenChange={(o) => !commitMut.isPending && setConfirmOpen(o)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar atualização da base MK9</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta operação vai atualizar cadastros, roteiros e visitas planejadas no banco de dados.
-              Visitas já realizadas serão preservadas.
+              Esta operação vai atualizar cadastros, roteiros e visitas planejadas no banco de
+              dados. Visitas já realizadas serão preservadas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           {c && (
@@ -457,7 +622,10 @@ export function Mk9ImportModule({ onSwitchToChecklists }: { onSwitchToChecklists
             <AlertDialogCancel disabled={commitMut.isPending}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               disabled={commitMut.isPending}
-              onClick={(e) => { e.preventDefault(); commitMut.mutate(); }}
+              onClick={(e) => {
+                e.preventDefault();
+                commitMut.mutate();
+              }}
             >
               {commitMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Confirmar atualização
@@ -486,10 +654,18 @@ const TONE_CLASS: Record<string, string> = {
   violet: "text-violet-600",
 };
 
-function SummaryCard({ label, rows }: { label: string; rows: Array<{ k: string; v: number; tone: string }> }) {
+function SummaryCard({
+  label,
+  rows,
+}: {
+  label: string;
+  rows: Array<{ k: string; v: number; tone: string }>;
+}) {
   return (
     <div className="p-3 rounded-lg border bg-card/50 space-y-1.5">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
       {rows.map((r) => (
         <div key={r.k} className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">{r.k}</span>
@@ -512,7 +688,11 @@ function ActionBadge({ action }: { action: string }) {
     preserved: "bg-purple-500/15 text-purple-600",
     conflict: "bg-pink-500/15 text-pink-600",
   };
-  return <span className={`px-2 py-0.5 rounded-full text-xs ${map[action] ?? ""}`}>{ACTION_LABEL[action] ?? action}</span>;
+  return (
+    <span className={`px-2 py-0.5 rounded-full text-xs ${map[action] ?? ""}`}>
+      {ACTION_LABEL[action] ?? action}
+    </span>
+  );
 }
 
 function recordLabel(payload: any): string {
@@ -532,7 +712,10 @@ const ROUTE_KIND_LABEL: Record<string, { label: string; className: string }> = {
   CHANGED_WEEKDAY: { label: "Dia alterado", className: "bg-indigo-500/15 text-indigo-600" },
   REMOVED_FROM_IMPORT: { label: "Removida da planilha", className: "bg-red-500/15 text-red-600" },
   MANUAL_CONFLICT: { label: "Conflito manual", className: "bg-orange-500/15 text-orange-700" },
-  FUTURE_VERSION_CONFLICT: { label: "Conflito com versão futura", className: "bg-pink-500/15 text-pink-600" },
+  FUTURE_VERSION_CONFLICT: {
+    label: "Conflito com versão futura",
+    className: "bg-pink-500/15 text-pink-600",
+  },
 };
 
 function RouteDiffPanel({
@@ -554,7 +737,9 @@ function RouteDiffPanel({
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-semibold">Roteiro — impacto da reimportação</p>
-          <p className="text-xs text-muted-foreground">Vigência a partir de {diff.competencyStart} · {diff.totalIncoming} rotas lidas</p>
+          <p className="text-xs text-muted-foreground">
+            Vigência a partir de {diff.competencyStart} · {diff.totalIncoming} rotas lidas
+          </p>
         </div>
         <button className="text-xs underline text-muted-foreground" onClick={onToggle}>
           {expanded ? "Ocultar detalhes" : "Ver detalhes"}
@@ -566,8 +751,16 @@ function RouteDiffPanel({
         <RouteDiffStat label="Promotor alterado" value={diff.changedPromoter} tone="blue" />
         <RouteDiffStat label="Dia alterado" value={diff.changedWeekday} tone="blue" />
         <RouteDiffStat label="Removidas" value={diff.removed} tone="red" />
-        <RouteDiffStat label="Conflitos manuais" value={diff.manualConflicts} tone={diff.manualConflicts > 0 ? "red" : "muted"} />
-        <RouteDiffStat label="Conflitos futuros" value={diff.futureConflicts} tone={diff.futureConflicts > 0 ? "red" : "muted"} />
+        <RouteDiffStat
+          label="Conflitos manuais"
+          value={diff.manualConflicts}
+          tone={diff.manualConflicts > 0 ? "red" : "muted"}
+        />
+        <RouteDiffStat
+          label="Conflitos futuros"
+          value={diff.futureConflicts}
+          tone={diff.futureConflicts > 0 ? "red" : "muted"}
+        />
       </div>
       {conflicts > 0 && (
         <div className="rounded-lg border border-orange-500/40 bg-orange-500/10 p-3 text-xs space-y-2">
@@ -584,7 +777,10 @@ function RouteDiffPanel({
               checked={resolveConflicts}
               onChange={(e) => onToggleResolve(e.target.checked)}
             />
-            <span>Resolver conflitos usando a planilha (fecha versões conflitantes e cria novas versões IMPORT)</span>
+            <span>
+              Resolver conflitos usando a planilha (fecha versões conflitantes e cria novas versões
+              IMPORT)
+            </span>
           </label>
         </div>
       )}
@@ -607,9 +803,14 @@ function RouteDiffPanel({
                 return (
                   <tr key={idx} className="border-t">
                     <td className="px-2 py-1.5">
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${k.className}`}>{k.label}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs ${k.className}`}>
+                        {k.label}
+                      </span>
                     </td>
-                    <td className="px-2 py-1.5">{it.storeName ?? "—"}{it.storeUf ? ` (${it.storeUf})` : ""}</td>
+                    <td className="px-2 py-1.5">
+                      {it.storeName ?? "—"}
+                      {it.storeUf ? ` (${it.storeUf})` : ""}
+                    </td>
                     <td className="px-2 py-1.5">{it.industryName ?? "—"}</td>
                     <td className="px-2 py-1.5">{WEEKDAY_LABEL[it.weekday] ?? it.weekday}</td>
                     <td className="px-2 py-1.5 text-muted-foreground">
@@ -637,12 +838,12 @@ function RouteDiffStat({ label, value, tone }: { label: string; value: number; t
   );
 }
 
-
 function summarize(payload: any): string {
   if (!payload) return "";
   const parts: string[] = [];
-  for (const k of ["chain","city","uf","weekday","date","status","contracted","estimated"]) {
-    if (payload[k] !== undefined && payload[k] !== null && payload[k] !== "") parts.push(`${k}: ${payload[k]}`);
+  for (const k of ["chain", "city", "uf", "weekday", "date", "status", "contracted", "estimated"]) {
+    if (payload[k] !== undefined && payload[k] !== null && payload[k] !== "")
+      parts.push(`${k}: ${payload[k]}`);
   }
   return parts.join(" · ");
 }

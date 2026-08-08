@@ -33,8 +33,13 @@ function symptomList(v: Mk9JsonValue | undefined): string {
 
 /** Chaves que nunca são exibidas nem na seção técnica. */
 const NEVER_SHOW = new Set([
-  "navigationTarget", "fingerprint", "contextHash", "filename", "fileName",
-  "source", "errorCode",
+  "navigationTarget",
+  "fingerprint",
+  "contextHash",
+  "filename",
+  "fileName",
+  "source",
+  "errorCode",
 ]);
 
 /**
@@ -53,7 +58,10 @@ const RENDERERS: Record<string, (e: Mk9Evidence) => EvidenceRow[]> = {
       value: typeof e.similarity === "number" ? `${Math.round(e.similarity * 100)}%` : "—",
       emphasis: true,
     },
-    { label: "Motivo da suspeita", value: TEXT(e.reason ?? "Nomes equivalentes na mesma UF e rede") },
+    {
+      label: "Motivo da suspeita",
+      value: TEXT(e.reason ?? "Nomes equivalentes na mesma UF e rede"),
+    },
   ],
 
   FREQUENCY_WEEKLY_MONTHLY_INCONSISTENCY: (e) => [
@@ -93,7 +101,10 @@ const RENDERERS: Record<string, (e: Mk9Evidence) => EvidenceRow[]> = {
     { label: "Quantidade", value: NUM(e.count) },
     { label: "Competência", value: TEXT(e.competence) },
     { label: "Parada há", value: TEXT(e.stalledForMinutes ? `${e.stalledForMinutes} min` : null) },
-    { label: "Decisão necessária", value: TEXT(e.decision ?? "Reprocessar ou descartar a importação") },
+    {
+      label: "Decisão necessária",
+      value: TEXT(e.decision ?? "Reprocessar ou descartar a importação"),
+    },
   ],
 
   INDUSTRY_WITHOUT_PERIOD_CONFIG: (e) => [
@@ -214,7 +225,13 @@ export function technicalRows(issue: Mk9QualityIssueView): EvidenceRow[] {
 // ---------------------------------------------------------------------------
 
 const ALLOWED_MODULES: Mk9QualityModule[] = [
-  "stores", "routes", "frequency", "audit", "imports", "checklists", "industries",
+  "stores",
+  "routes",
+  "frequency",
+  "audit",
+  "imports",
+  "checklists",
+  "industries",
 ];
 
 /** Módulo padrão por categoria, quando a evidência não traz destino confiável. */

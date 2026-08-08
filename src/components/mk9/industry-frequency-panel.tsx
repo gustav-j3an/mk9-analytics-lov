@@ -22,7 +22,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
 import { IndustryContractSummary } from "@/components/mk9/industry-contract-summary";
@@ -108,7 +114,9 @@ function FrequencyPanel({ industryId, isAdmin }: { industryId: string; isAdmin: 
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
   const [closing, setClosing] = useState<any | null>(null);
-  const [history, setHistory] = useState<{ storeId: string; storeName: string | null } | null>(null);
+  const [history, setHistory] = useState<{ storeId: string; storeName: string | null } | null>(
+    null,
+  );
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search.trim()), 300);
@@ -154,16 +162,22 @@ function FrequencyPanel({ industryId, isAdmin }: { industryId: string; isAdmin: 
           className="w-[240px]"
         />
         <Select value={uf} onValueChange={setUf}>
-          <SelectTrigger className="w-[120px]"><SelectValue placeholder="UF" /></SelectTrigger>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="UF" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas UFs</SelectItem>
             {ufOptions.map((u: any) => (
-              <SelectItem key={u} value={u}>{u}</SelectItem>
+              <SelectItem key={u} value={u}>
+                {u}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={status} onValueChange={(v) => setStatus(v as any)}>
-          <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos status</SelectItem>
             <SelectItem value="current">Vigentes</SelectItem>
@@ -172,7 +186,9 @@ function FrequencyPanel({ industryId, isAdmin }: { industryId: string; isAdmin: 
           </SelectContent>
         </Select>
         <Select value={source} onValueChange={(v) => setSource(v as any)}>
-          <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas origens</SelectItem>
             <SelectItem value="IMPORT">Importação</SelectItem>
@@ -204,10 +220,18 @@ function FrequencyPanel({ industryId, isAdmin }: { industryId: string; isAdmin: 
           </thead>
           <tbody>
             {q.isLoading && (
-              <tr><td colSpan={11} className="p-4 text-center text-muted-foreground">Carregando…</td></tr>
+              <tr>
+                <td colSpan={11} className="p-4 text-center text-muted-foreground">
+                  Carregando…
+                </td>
+              </tr>
             )}
             {!q.isLoading && items.length === 0 && (
-              <tr><td colSpan={11} className="p-4 text-center text-muted-foreground">Nenhuma frequência encontrada.</td></tr>
+              <tr>
+                <td colSpan={11} className="p-4 text-center text-muted-foreground">
+                  Nenhuma frequência encontrada.
+                </td>
+              </tr>
             )}
             {items.map((r: any) => {
               const st = frequencyVersionStatus(r, today);
@@ -225,20 +249,30 @@ function FrequencyPanel({ industryId, isAdmin }: { industryId: string; isAdmin: 
                       {FREQUENCY_STATUS_LABEL[st]}
                     </Badge>
                   </td>
-                  <td className="p-2 text-xs text-muted-foreground">{SOURCE_LABEL[r.sourceType] ?? r.sourceType}</td>
+                  <td className="p-2 text-xs text-muted-foreground">
+                    {SOURCE_LABEL[r.sourceType] ?? r.sourceType}
+                  </td>
                   <td className="p-2 text-xs text-muted-foreground">
                     {new Date(r.updatedAt).toLocaleString("pt-BR")}
                     {r.updatedBy && <span className="block">por {r.updatedBy.slice(0, 8)}…</span>}
                   </td>
                   <td className="p-2">
                     <div className="flex flex-wrap gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => setHistory({ storeId: r.storeId, storeName: r.storeName })}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setHistory({ storeId: r.storeId, storeName: r.storeName })}
+                      >
                         Histórico
                       </Button>
                       {isAdmin && st !== "ended" && (
                         <>
-                          <Button size="sm" variant="outline" onClick={() => setEditing(r)}>Editar</Button>
-                          <Button size="sm" variant="ghost" onClick={() => setClosing(r)}>Encerrar</Button>
+                          <Button size="sm" variant="outline" onClick={() => setEditing(r)}>
+                            Editar
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setClosing(r)}>
+                            Encerrar
+                          </Button>
                         </>
                       )}
                     </div>
@@ -253,7 +287,12 @@ function FrequencyPanel({ industryId, isAdmin }: { industryId: string; isAdmin: 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>{total} vigência(s)</span>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
             Anterior
           </Button>
           <span>Página {page}</span>
@@ -328,7 +367,9 @@ function FrequencyFormDialog({
     if (!open) return;
     setStoreId(mode === "edit" ? (row?.storeId ?? "") : "");
     setWeekly(mode === "edit" && row?.weeklyFrequency != null ? String(row.weeklyFrequency) : "");
-    setMonthly(mode === "edit" && row?.monthlyFrequency != null ? String(row.monthlyFrequency) : "");
+    setMonthly(
+      mode === "edit" && row?.monthlyFrequency != null ? String(row.monthlyFrequency) : "",
+    );
     setEffectiveDate(todayIso());
     setReason("");
     setConfirmInconsistent(false);
@@ -364,7 +405,10 @@ function FrequencyFormDialog({
       });
     },
     onSuccess: (res: any) => {
-      if (res?.status === "needs_confirmation" || res?.status === "needs_retroactive_confirmation") {
+      if (
+        res?.status === "needs_confirmation" ||
+        res?.status === "needs_retroactive_confirmation"
+      ) {
         setServerWarning(res.warning ?? "Confirmação necessária.");
         return;
       }
@@ -409,21 +453,44 @@ function FrequencyFormDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="freq-weekly">Frequência semanal</Label>
-              <Input id="freq-weekly" value={weekly} onChange={(e) => setWeekly(e.target.value)} placeholder="0,5" />
+              <Input
+                id="freq-weekly"
+                value={weekly}
+                onChange={(e) => setWeekly(e.target.value)}
+                placeholder="0,5"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="freq-monthly">Frequência mensal</Label>
-              <Input id="freq-monthly" value={monthly} onChange={(e) => setMonthly(e.target.value)} placeholder="2" />
+              <Input
+                id="freq-monthly"
+                value={monthly}
+                onChange={(e) => setMonthly(e.target.value)}
+                placeholder="2"
+              />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">{describeFrequency(weeklyNum, monthlyNum)}</p>
+          <p className="text-xs text-muted-foreground">
+            {describeFrequency(weeklyNum, monthlyNum)}
+          </p>
           <div className="space-y-1.5">
             <Label htmlFor="freq-date">Data de início *</Label>
-            <Input id="freq-date" type="date" value={effectiveDate} onChange={(e) => setEffectiveDate(e.target.value)} />
+            <Input
+              id="freq-date"
+              type="date"
+              value={effectiveDate}
+              onChange={(e) => setEffectiveDate(e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="freq-reason">Justificativa / observação</Label>
-            <Textarea id="freq-reason" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} rows={2} />
+            <Textarea
+              id="freq-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              maxLength={500}
+              rows={2}
+            />
           </div>
 
           {combination.warning && (
@@ -458,8 +525,12 @@ function FrequencyFormDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button disabled={!canSave} onClick={() => mut.mutate()}>Salvar</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button disabled={!canSave} onClick={() => mut.mutate()}>
+            Salvar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -516,18 +587,31 @@ function FrequencyCloseDialog({ row, onClose }: { row: any | null; onClose: () =
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="close-date">Data de encerramento *</Label>
-            <Input id="close-date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <Input
+              id="close-date"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="close-reason">Justificativa *</Label>
-            <Textarea id="close-reason" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} rows={2} />
+            <Textarea
+              id="close-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              maxLength={500}
+              rows={2}
+            />
           </div>
           <p className="text-xs text-muted-foreground">
             A versão é preservada com data final — nada é excluído.
           </p>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button
             variant="destructive"
             disabled={reason.trim().length < 3 || mut.isPending}
@@ -572,7 +656,9 @@ function FrequencyHistoryDialog({
           {(q.data ?? []).map((v: any) => (
             <div key={v.id} className="rounded-md border p-3 text-sm">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium">{describeFrequency(v.weeklyFrequency, v.monthlyFrequency)}</span>
+                <span className="font-medium">
+                  {describeFrequency(v.weeklyFrequency, v.monthlyFrequency)}
+                </span>
                 <Badge variant="outline">{SOURCE_LABEL[v.sourceType] ?? v.sourceType}</Badge>
                 {v.archivedAt && <Badge variant="outline">Substituída</Badge>}
               </div>
@@ -580,7 +666,9 @@ function FrequencyHistoryDialog({
                 Vigência: {v.validFrom} → {v.validUntil ?? "em aberto"}
               </p>
               {v.sourceImportId && (
-                <p className="text-xs text-muted-foreground">Importação: {v.sourceImportId.slice(0, 8)}…</p>
+                <p className="text-xs text-muted-foreground">
+                  Importação: {v.sourceImportId.slice(0, 8)}…
+                </p>
               )}
               {v.notes && <p className="mt-1 text-xs">Justificativa: {v.notes}</p>}
               <p className="text-xs text-muted-foreground">

@@ -44,7 +44,7 @@ export function AnalyticsMetricCard({
       className={cn(
         "glass-command p-5 rounded-2xl group transition-all duration-300 relative overflow-hidden",
         onClick && "cursor-pointer hover:border-white/20 active:scale-[0.98]",
-        className
+        className,
       )}
     >
       <div className="flex items-start justify-between relative z-10">
@@ -53,9 +53,7 @@ export function AnalyticsMetricCard({
             {label}
           </p>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-3xl font-black text-white tracking-tighter italic">
-              {value}
-            </h3>
+            <h3 className="text-3xl font-black text-white tracking-tighter italic">{value}</h3>
           </div>
           {hint && (
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-1">
@@ -72,52 +70,59 @@ export function AnalyticsMetricCard({
 
       {comparison && (
         <div className="mt-4 flex items-center gap-2 relative z-10">
-          <div className={cn(
-            "flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-black",
-            comparison.trend === "up" ? "text-emerald-400 bg-emerald-500/10" : 
-            comparison.trend === "down" ? "text-rose-400 bg-rose-500/10" : 
-            "text-slate-400 bg-white/5"
-          )}>
+          <div
+            className={cn(
+              "flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-black",
+              comparison.trend === "up"
+                ? "text-emerald-400 bg-emerald-500/10"
+                : comparison.trend === "down"
+                  ? "text-rose-400 bg-rose-500/10"
+                  : "text-slate-400 bg-white/5",
+            )}
+          >
             {comparison.trend === "up" && <ArrowUpRight className="h-3 w-3" />}
             {comparison.trend === "down" && <ArrowDownRight className="h-3 w-3" />}
             {comparison.trend === "neutral" && <Minus className="h-3 w-3" />}
-            {comparison.value}{typeof comparison.value === 'number' && '%'}
+            {comparison.value}
+            {typeof comparison.value === "number" && "%"}
             {comparison.percentChange !== undefined && (
               <span className="ml-1 opacity-70">
-                ({comparison.percentChange > 0 ? '+' : ''}{comparison.percentChange.toFixed(1)}%)
+                ({comparison.percentChange > 0 ? "+" : ""}
+                {comparison.percentChange.toFixed(1)}%)
               </span>
             )}
-
           </div>
           <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
             {comparison.label}
           </span>
         </div>
       )}
-      
-      <div className={cn(
-        "absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 opacity-5 blur-3xl rounded-full",
-        color === "purple" && "bg-purple-500",
-        color === "blue" && "bg-blue-500",
-        color === "emerald" && "bg-emerald-500",
-        color === "amber" && "bg-amber-500",
-        color === "rose" && "bg-rose-500",
-        color === "cyan" && "bg-cyan-500",
-      )} />
+
+      <div
+        className={cn(
+          "absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 opacity-5 blur-3xl rounded-full",
+          color === "purple" && "bg-purple-500",
+          color === "blue" && "bg-blue-500",
+          color === "emerald" && "bg-emerald-500",
+          color === "amber" && "bg-amber-500",
+          color === "rose" && "bg-rose-500",
+          color === "cyan" && "bg-cyan-500",
+        )}
+      />
     </div>
   );
 }
 
-export function AnalyticsChartCard({ 
-  title, 
-  subtitle, 
-  children, 
+export function AnalyticsChartCard({
+  title,
+  subtitle,
+  children,
   className,
-  height = 300
-}: { 
-  title: string; 
-  subtitle?: string; 
-  children: React.ReactNode; 
+  height = 300,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
   className?: string;
   height?: number;
 }) {
@@ -125,7 +130,11 @@ export function AnalyticsChartCard({
     <div className={cn("glass-command p-6 rounded-2xl flex flex-col h-full", className)}>
       <div className="mb-6">
         <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">{title}</h3>
-        {subtitle && <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">{subtitle}</p>}
+        {subtitle && (
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+            {subtitle}
+          </p>
+        )}
       </div>
       <div style={{ height }} className="w-full mt-auto">
         {children}
@@ -134,13 +143,13 @@ export function AnalyticsChartCard({
   );
 }
 
-export function AnalyticsTable({ 
-  headers, 
-  rows, 
-  className 
-}: { 
-  headers: string[]; 
-  rows: React.ReactNode[][]; 
+export function AnalyticsTable({
+  headers,
+  rows,
+  className,
+}: {
+  headers: string[];
+  rows: React.ReactNode[][];
   className?: string;
 }) {
   return (
@@ -149,10 +158,13 @@ export function AnalyticsTable({
         <thead>
           <tr>
             {headers.map((h, i) => (
-              <th key={i} className={cn(
-                "px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest",
-                i > 0 && "text-right"
-              )}>
+              <th
+                key={i}
+                className={cn(
+                  "px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest",
+                  i > 0 && "text-right",
+                )}
+              >
                 {h}
               </th>
             ))}
@@ -162,12 +174,15 @@ export function AnalyticsTable({
           {rows.map((row, i) => (
             <tr key={i} className="group">
               {row.map((cell, j) => (
-                <td key={j} className={cn(
-                  "px-4 py-3 text-xs bg-white/[0.02] border-y border-white/5 transition-colors group-hover:bg-white/[0.04]",
-                  j === 0 && "rounded-l-xl border-l text-left",
-                  j > 0 && "text-right",
-                  j === row.length - 1 && "rounded-r-xl border-r"
-                )}>
+                <td
+                  key={j}
+                  className={cn(
+                    "px-4 py-3 text-xs bg-white/[0.02] border-y border-white/5 transition-colors group-hover:bg-white/[0.04]",
+                    j === 0 && "rounded-l-xl border-l text-left",
+                    j > 0 && "text-right",
+                    j === row.length - 1 && "rounded-r-xl border-r",
+                  )}
+                >
                   {cell}
                 </td>
               ))}

@@ -110,7 +110,6 @@ export function dedupIncoming(rows: IncomingFrequency[]): IncomingFrequency[] {
 
   // A tabela de versões exige ao menos um valor não nulo.
   return out.filter((r) => r.weeklyFrequency != null || r.monthlyFrequency != null);
-
 }
 
 export async function buildFrequencyDiff(

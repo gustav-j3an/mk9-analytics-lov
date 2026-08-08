@@ -20,8 +20,6 @@ import {
 } from "@/lib/mk9-frequency/segments";
 import { loadFrequencyVersionsForPeriod } from "@/lib/mk9-frequency/versions.server";
 
-
-
 export type StoreStatus =
   | "ATENDIDA_INTEGRAL"
   | "ATENDIDA_PARCIAL"
@@ -57,17 +55,17 @@ export interface StoreLine {
   storeName: string;
   chain: string | null;
   uf: string | null;
-  expected: number;          // alias legado de contratadas
-  actual: number;            // alias legado de executadas
-  validForCoverage: number;  // alias legado de validas
-  extra: number;             // alias legado de extras
-  pending: number;           // alias legado de pendencias
-  coveragePct: number;       // alias legado, limitado a 100
+  expected: number; // alias legado de contratadas
+  actual: number; // alias legado de executadas
+  validForCoverage: number; // alias legado de validas
+  extra: number; // alias legado de extras
+  pending: number; // alias legado de pendencias
+  coveragePct: number; // alias legado, limitado a 100
   actualDates: string[];
-  status: StoreStatus;                 // status legado (execução + roteiro combinados)
-  executionStatus: ExecutionStatus;    // Integral / Parcial / Não atendida
-  routeStatus: RouteStatus;            // Dentro / Fora
-  contractedSource: ContractedSource;  // origem da métrica contratada
+  status: StoreStatus; // status legado (execução + roteiro combinados)
+  executionStatus: ExecutionStatus; // Integral / Parcial / Não atendida
+  routeStatus: RouteStatus; // Dentro / Fora
+  contractedSource: ContractedSource; // origem da métrica contratada
   weeklyFrequency: number | null;
   monthlyFrequency: number | null;
   /** houve troca de frequência dentro do período operacional */
@@ -107,7 +105,12 @@ export interface IndustryReportInput {
 export interface IndustryReport {
   industry: { id: string; name: string };
   window: { startDate: string; endDate: string; totalDays: number; weeks: number | string[] };
-  filters: { uf: string | null; storeId: string | null; sourceImportId: string | null; promoterId?: string | null };
+  filters: {
+    uf: string | null;
+    storeId: string | null;
+    sourceImportId: string | null;
+    promoterId?: string | null;
+  };
   totals: {
     totalStores: number;
     promoterName?: string | null;
@@ -147,8 +150,6 @@ function weeksInWindow(window: PeriodWindow): number {
 // Contratadas por loja vêm de contractedVisitsForFrequencySegments
 // (@/lib/mk9-frequency/segments) — motor único, com um só arredondamento.
 
-
-
 export async function buildIndustryReport(
   supabase: any,
   input: IndustryReportInput,
@@ -158,12 +159,12 @@ export async function buildIndustryReport(
   const weeks = weeksInWindow(window);
   const access = input.access ?? null;
   if (access) {
-    const { assertIndustryAllowed, assertStoreAllowed, Mk9ScopeError } = await import(
-      "@/lib/mk9-auth/access-scope.server"
-    );
+    const { assertIndustryAllowed, assertStoreAllowed, Mk9ScopeError } =
+      await import("@/lib/mk9-auth/access-scope.server");
     assertIndustryAllowed(access, industryId);
     if (storeId) assertStoreAllowed(access, storeId, null);
-    if (uf && access.allowedUfs && !access.allowedUfs.includes(uf.toUpperCase())) throw new Mk9ScopeError();
+    if (uf && access.allowedUfs && !access.allowedUfs.includes(uf.toUpperCase()))
+      throw new Mk9ScopeError();
   }
   const inAccess = (store: any, sid: string | null) => {
     if (!access) return true;
@@ -213,31 +214,31 @@ export async function buildIndustryReport(
         .from("mk9_checklist_imports")
         .select("preview")
         .eq("id", currentImport.id)
-        .maybeSingle()
+        .maybeSingle(),
     ]);
 
     snapshotStores = physicalSnapshot;
 
     if (!snapshotStores.length && importData.data?.preview) {
       const preview = importData.data.preview as any;
-      snapshotStores = preview.snapshotStores || (preview.storeFrequencies || []).map((f: any) => ({
-        store_id: f.storeId,
-        source_store_name: f.storeName,
-        uf: f.uf,
-        weekly_frequency: f.weeklyFrequency,
-        monthly_frequency: f.monthlyFrequency
-      })).filter((s: any) => !!s.store_id);
+      snapshotStores =
+        preview.snapshotStores ||
+        (preview.storeFrequencies || [])
+          .map((f: any) => ({
+            store_id: f.storeId,
+            source_store_name: f.storeName,
+            uf: f.uf,
+            weekly_frequency: f.weeklyFrequency,
+            monthly_frequency: f.monthlyFrequency,
+          }))
+          .filter((s: any) => !!s.store_id);
     }
   }
 
-
-
-
-
   // 3) Carregamento em Paralelo: Roteiros, Visitas e Reconciliações
-  const { listOperationalActualVisits } = await import("@/lib/mk9-operations/operational-visits.server");
+  const { listOperationalActualVisits } =
+    await import("@/lib/mk9-operations/operational-visits.server");
   const [plannedRes, actuals, recsRes] = await Promise.all([
-
     supabase
       .from("mk9_planned_visits")
       .select("id, scheduled_date, store_id, store:mk9_stores(id,name,chain,uf)")
@@ -251,7 +252,7 @@ export async function buildIndustryReport(
       startDate: window.startDate,
       endDate: window.endDate,
       storeId: storeId ?? null,
-      sourceImportId: sourceImportId ?? null
+      sourceImportId: sourceImportId ?? null,
     }),
     supabase
       .from("mk9_visit_reconciliations")
@@ -259,7 +260,7 @@ export async function buildIndustryReport(
       .eq("industry_id", industryId)
       .eq("operation_year", input.year)
       .eq("operation_month", input.month)
-      .limit(20000)
+      .limit(20000),
   ]);
 
   if (plannedRes.error) throw new Error(plannedRes.error.message);
@@ -267,7 +268,6 @@ export async function buildIndustryReport(
 
   const planned = plannedRes.data;
   const recs = recsRes.data;
-
 
   // -------- Agregação por loja --------
   type Bucket = {
@@ -284,7 +284,7 @@ export async function buildIndustryReport(
     actualDates: Set<string>;
   };
   const map = new Map<string, Bucket>();
-  
+
   // Função auxiliar para inicializar bucket garantindo os dados da loja
   const touch = (
     id: string,
@@ -327,16 +327,17 @@ export async function buildIndustryReport(
     const b = touch(sid, { name: s.source_store_name, uf: s.uf });
     b.weekly = s.weekly_frequency;
     b.monthly = s.monthly_frequency;
-    
-    // Convertemos para o formato de segmentos para reuso do motor de cálculo
-    b.segments = [{
-      validFrom: window.startDate,
-      validUntil: window.endDate,
-      weeklyFrequency: s.weekly_frequency,
-      monthlyFrequency: s.monthly_frequency
-    }];
-  }
 
+    // Convertemos para o formato de segmentos para reuso do motor de cálculo
+    b.segments = [
+      {
+        validFrom: window.startDate,
+        validUntil: window.endDate,
+        weeklyFrequency: s.weekly_frequency,
+        monthlyFrequency: s.monthly_frequency,
+      },
+    ];
+  }
 
   for (const p of planned ?? []) {
     if (!p.store_id) continue;
@@ -350,9 +351,10 @@ export async function buildIndustryReport(
     const b = map.get(a.store_id);
     // Se a visita realizada não tem frequência contratada, ela ainda assim aparece
     // como visita extra (ACIMA_FREQUENCIA) no relatório.
-    const effectiveBucket = b || (inAccess(a.store, a.store_id) ? touch(a.store_id, a.store) : null);
+    const effectiveBucket =
+      b || (inAccess(a.store, a.store_id) ? touch(a.store_id, a.store) : null);
     if (!effectiveBucket) continue;
-    
+
     effectiveBucket.actual += 1;
     if (a.scheduled_date) effectiveBucket.actualDates.add(a.scheduled_date as string);
   }
@@ -380,8 +382,6 @@ export async function buildIndustryReport(
     const source: ContractedSource = contracted.source;
     const m = computeVisitMetrics({ contratadas, executadas: b.actual });
 
-
-
     // status_execucao (independe de roteiro)
     const executionStatus: ExecutionStatus =
       contratadas === 0 && b.actual === 0
@@ -393,8 +393,7 @@ export async function buildIndustryReport(
             : "PARCIAL";
 
     // status_roteiro (fonte separada)
-    const routeStatus: RouteStatus =
-      b.plannedCount > 0 ? "DENTRO_ROTEIRO" : "FORA_ROTEIRO";
+    const routeStatus: RouteStatus = b.plannedCount > 0 ? "DENTRO_ROTEIRO" : "FORA_ROTEIRO";
 
     // status legado: somente execução/contrato. Roteiro fica em routeStatus.
     let legacy: StoreStatus;
@@ -433,7 +432,9 @@ export async function buildIndustryReport(
   });
   stores.sort((a, z) => a.storeName.localeCompare(z.storeName, "pt-BR"));
   const storeIdsInReport = new Set(stores.map((s) => s.storeId));
-  const recRows = (recs ?? []).filter((r: any) => !r.store_id || storeIdsInReport.has(r.store_id as string));
+  const recRows = (recs ?? []).filter(
+    (r: any) => !r.store_id || storeIdsInReport.has(r.store_id as string),
+  );
 
   // Totais canônicos via camada de métricas (para 'validas' e 'extras' agregados)
   const totalsMetrics = aggregateVisitMetrics(
@@ -461,7 +462,8 @@ export async function buildIndustryReport(
     const status = r.status as string;
     if (!plannedVisitId || !actualVisitId) continue;
     if (!plannedIdsInReport.has(plannedVisitId)) continue;
-    if (status === "IGNORED" || status === "NOT_COMPLETED" || status === "DUPLICATE_ACTUAL") continue;
+    if (status === "IGNORED" || status === "NOT_COMPLETED" || status === "DUPLICATE_ACTUAL")
+      continue;
     reconciledPlannedIds.add(plannedVisitId);
   }
   const operationalCoveragePct =
@@ -470,7 +472,10 @@ export async function buildIndustryReport(
       : 0;
 
   // UFs
-  const ufBuckets = new Map<string, UfLine & { pairs: Array<{ contratadas: number; executadas: number }> }>();
+  const ufBuckets = new Map<
+    string,
+    UfLine & { pairs: Array<{ contratadas: number; executadas: number }> }
+  >();
   for (const s of stores) {
     const key = s.uf ?? "—";
     const cur = ufBuckets.get(key) ?? {
@@ -482,7 +487,14 @@ export async function buildIndustryReport(
       extra: 0,
       pending: 0,
       coveragePct: 0,
-      metrics: { contratadas: 0, executadas: 0, validas: 0, extras: 0, pendencias: 0, coberturaPct: 0 },
+      metrics: {
+        contratadas: 0,
+        executadas: 0,
+        validas: 0,
+        extras: 0,
+        pendencias: 0,
+        coberturaPct: 0,
+      },
       pairs: [],
     };
     cur.stores += 1;
@@ -527,11 +539,20 @@ export async function buildIndustryReport(
       totalDays: window.totalDays,
       weeks,
     },
-    filters: { uf: uf ?? null, storeId: storeId ?? null, sourceImportId: sourceImportId ?? null, promoterId: promoterId ?? null },
+    filters: {
+      uf: uf ?? null,
+      storeId: storeId ?? null,
+      sourceImportId: sourceImportId ?? null,
+      promoterId: promoterId ?? null,
+    },
     totals: {
       totalStores: stores.length,
-      promoterName: input.promoterId ? core.storeRows.find(s => s.promoterId === input.promoterId)?.promoterName : null,
-      promoterEmployeeNumber: input.promoterId ? core.storeRows.find(s => s.promoterId === input.promoterId)?.promoterEmployeeNumber : null,
+      promoterName: input.promoterId
+        ? core.storeRows.find((s) => s.promoterId === input.promoterId)?.promoterName
+        : null,
+      promoterEmployeeNumber: input.promoterId
+        ? core.storeRows.find((s) => s.promoterId === input.promoterId)?.promoterEmployeeNumber
+        : null,
 
       contracted: totalsMetrics.contratadas,
       planned: totalsMetrics.contratadas,
@@ -547,21 +568,23 @@ export async function buildIndustryReport(
       metrics: totalsMetrics,
       execution: execCounts,
       route: routeCounts,
-      promoterStats: promoterId ? {
-        totalVisits: Math.round(stores.reduce((sum, s) => sum + s.expected, 0)),
-        uniqueStores: stores.length,
-        uniqueIndustries: 1, // Dentro do IndustryReport é sempre 1
-        byWeekday: [0, 1, 2, 3, 4, 5, 6].map(wd => {
-          let visits = 0;
-          for (const s of stores) {
-            const routeInfo = core.routeByKey.get(`${industryId}|${s.storeId}`);
-            if (routeInfo?.weekdays.has(wd)) {
-              visits += s.expected / routeInfo.weekdays.size;
-            }
+      promoterStats: promoterId
+        ? {
+            totalVisits: Math.round(stores.reduce((sum, s) => sum + s.expected, 0)),
+            uniqueStores: stores.length,
+            uniqueIndustries: 1, // Dentro do IndustryReport é sempre 1
+            byWeekday: [0, 1, 2, 3, 4, 5, 6].map((wd) => {
+              let visits = 0;
+              for (const s of stores) {
+                const routeInfo = core.routeByKey.get(`${industryId}|${s.storeId}`);
+                if (routeInfo?.weekdays.has(wd)) {
+                  visits += s.expected / routeInfo.weekdays.size;
+                }
+              }
+              return Math.round(visits);
+            }),
           }
-          return Math.round(visits);
-        })
-      } : undefined
+        : undefined,
     },
     stores,
     ufs,
@@ -569,4 +592,3 @@ export async function buildIndustryReport(
     generatedAt: new Date().toISOString(),
   };
 }
-

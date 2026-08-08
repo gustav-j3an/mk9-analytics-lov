@@ -19,7 +19,12 @@ const JUL = { operationPeriodStart: "2026-07-01", operationPeriodEnd: "2026-07-3
 const KING = { operationPeriodStart: "2026-06-23", operationPeriodEnd: "2026-07-22" };
 const AGO = { operationPeriodStart: "2026-08-01", operationPeriodEnd: "2026-08-31" };
 
-const seg = (from: string, until: string | null, monthly: number | null, weekly: number | null = null) => ({
+const seg = (
+  from: string,
+  until: string | null,
+  monthly: number | null,
+  weekly: number | null = null,
+) => ({
   validFrom: from,
   validUntil: until,
   monthlyFrequency: monthly,
@@ -49,8 +54,12 @@ describe("1B.4 — matriz de frequências semanais (proporcional a dias/7)", () 
   ];
   for (const [weekly, jul, king] of casos) {
     it(`semanal ${weekly}x → ${jul} em julho e ${king} na janela KING`, () => {
-      expect(contracted({ ...JUL, segments: [seg("2020-01-01", null, null, weekly)] }).contratadas).toBe(jul);
-      expect(contracted({ ...KING, segments: [seg("2020-01-01", null, null, weekly)] }).contratadas).toBe(king);
+      expect(
+        contracted({ ...JUL, segments: [seg("2020-01-01", null, null, weekly)] }).contratadas,
+      ).toBe(jul);
+      expect(
+        contracted({ ...KING, segments: [seg("2020-01-01", null, null, weekly)] }).contratadas,
+      ).toBe(king);
     });
     it(`semanal ${weekly}x nunca usa weekly × 4`, () => {
       const r = contracted({ ...JUL, segments: [seg("2020-01-01", null, null, weekly)] });
@@ -73,9 +82,12 @@ describe("1B.4 — ciclo completo de troca de frequência", () => {
 
   it("rótulo descreve as duas vigências com as datas de corte", () => {
     const r = contracted({ ...AGO, segments });
-    expect(describeFrequencySegments(r, { start: AGO.operationPeriodStart, end: AGO.operationPeriodEnd })).toBe(
-      "1x/sem até 15/08 · 2x/sem desde 16/08",
-    );
+    expect(
+      describeFrequencySegments(r, {
+        start: AGO.operationPeriodStart,
+        end: AGO.operationPeriodEnd,
+      }),
+    ).toBe("1x/sem até 15/08 · 2x/sem desde 16/08");
   });
 
   it("mês anterior à troca continua com a frequência antiga", () => {
@@ -119,7 +131,9 @@ describe("1B.4 — paridade de agregação entre módulos", () => {
       contracted({ ...JUL, segments: [seg("2020-01-01", null, null, 2)] }).contratadas,
       contracted({ ...JUL, segments: [seg("2026-07-11", null, 4)] }).contratadas,
     ];
-    const agg = aggregateVisitMetrics(lojas.map((c, i) => ({ contratadas: c, executadas: [4, 5, 0][i] })));
+    const agg = aggregateVisitMetrics(
+      lojas.map((c, i) => ({ contratadas: c, executadas: [4, 5, 0][i] })),
+    );
     expect(agg.contratadas).toBe(16);
     expect(agg.executadas).toBe(9);
     expect(agg.validas).toBe(9); // 4 + 5 + 0

@@ -22,17 +22,21 @@ export async function executeGranularCleanup(params: {
   // 1. Snapshot ANTES
   const { loadPeriodConfig, resolveWindow } = await import("@/lib/mk9-reports/period.server");
   const { buildIndustryReport } = await import("@/lib/mk9-reports/industry-report.server");
-  
+
   const cfg = await loadPeriodConfig(supabaseAdmin, industryId);
   const window = resolveWindow(cfg, year, month);
-  const beforeReport = await buildIndustryReport(supabaseAdmin, { industryId, year, month }, window);
+  const beforeReport = await buildIndustryReport(
+    supabaseAdmin,
+    { industryId, year, month },
+    window,
+  );
 
   // 2. Execução Transacional (Deleção de Visitas)
   let visitsRemoved = 0;
   if (selectedSources.visitIds.length > 0) {
     const { count } = await supabaseAdmin
       .from("mk9_actual_visits")
-      .delete({ count: 'exact' })
+      .delete({ count: "exact" })
       .in("id", selectedSources.visitIds);
     visitsRemoved = count || 0;
   }
@@ -51,11 +55,11 @@ export async function executeGranularCleanup(params: {
   if (selectedSources.importIds.length > 0) {
     await supabaseAdmin
       .from("mk9_checklist_imports")
-      .update({ 
-        status: "reverted", 
+      .update({
+        status: "reverted",
         revert_reason: `Limpeza Administrativa: ${reason}`,
         reverted_at: new Date().toISOString(),
-        reverted_by: actorId
+        reverted_by: actorId,
       } as any)
       .in("id", selectedSources.importIds);
   }
@@ -72,22 +76,28 @@ export async function executeGranularCleanup(params: {
   const afterReport = await buildIndustryReport(supabaseAdmin, { industryId, year, month }, window);
 
   // 7. Auditoria
-  await logAudit({ userId: actorId, roles: ["ADMIN"], email: null, devBypass: false }, "mk9.admin.cleanup.granular", "multiple", industryId, {
+  await logAudit(
+    { userId: actorId, roles: ["ADMIN"], email: null, devBypass: false },
+    "mk9.admin.cleanup.granular",
+    "multiple",
     industryId,
-    month,
-    year,
-    reason,
-    removed: {
-      visits: visitsRemoved,
-      frequencies: freqsArchived,
-      imports: selectedSources.importIds.length,
-      projections: selectedSources.projectionIds.length
+    {
+      industryId,
+      month,
+      year,
+      reason,
+      removed: {
+        visits: visitsRemoved,
+        frequencies: freqsArchived,
+        imports: selectedSources.importIds.length,
+        projections: selectedSources.projectionIds.length,
+      },
+      report: {
+        before: beforeReport.totals,
+        after: afterReport.totals,
+      },
     },
-    report: {
-      before: beforeReport.totals,
-      after: afterReport.totals
-    }
-  });
+  );
 
   return {
     success: true,
@@ -95,7 +105,7 @@ export async function executeGranularCleanup(params: {
     after: afterReport.totals,
     removed: {
       visits: visitsRemoved,
-      frequencies: freqsArchived
-    }
+      frequencies: freqsArchived,
+    },
   };
 }

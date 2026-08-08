@@ -53,7 +53,11 @@ const SYMPTOM_LABEL: Record<OperationPairSymptom, string> = {
 export const VISITS_WITHOUT_ROUTE_CRITICAL_VOLUME = 4;
 
 const SEVERITY_WEIGHT: Record<Mk9QualitySeverity, number> = {
-  INFO: 1, AVISO: 2, ATENCAO: 3, CRITICO: 4, BLOQUEANTE: 5,
+  INFO: 1,
+  AVISO: 2,
+  ATENCAO: 3,
+  CRITICO: 4,
+  BLOQUEANTE: 5,
 };
 
 function worst(a: Mk9QualitySeverity, b: Mk9QualitySeverity): Mk9QualitySeverity {
@@ -114,10 +118,10 @@ export function evaluateOperationPair(facts: OperationPairFacts): OperationPairE
     );
   }
 
-
   const description =
     `Par indústria × loja com inconsistência operacional: ` +
-    symptoms.map((s) => SYMPTOM_LABEL[s]).join("; ") + ".";
+    symptoms.map((s) => SYMPTOM_LABEL[s]).join("; ") +
+    ".";
 
   const suggestedAction = symptoms.includes("NO_FREQUENCY")
     ? "Cadastrar a vigência de frequência da loja nesta indústria ou remover a loja do roteiro."

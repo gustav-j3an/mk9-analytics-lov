@@ -8,7 +8,11 @@ const formSchema = z.object({
   operationYear: z.coerce.number().int().min(2020).max(2100),
 });
 
-async function parseStructuredError(error: unknown, step: string, diagnostics: ReturnType<typeof createChecklistDiagnostics>) {
+async function parseStructuredError(
+  error: unknown,
+  step: string,
+  diagnostics: ReturnType<typeof createChecklistDiagnostics>,
+) {
   if (error instanceof Error) {
     try {
       const parsed = JSON.parse(error.message);
@@ -42,7 +46,13 @@ export const Route = createFileRoute("/api/checklists/preview")({
           } catch (authError) {
             const status = (authError as any)?.statusCode === 403 ? 403 : 401;
             return Response.json(
-              { error: { __mk9Error: true, step: "authorize", message: authError instanceof Error ? authError.message : "Não autorizado." } },
+              {
+                error: {
+                  __mk9Error: true,
+                  step: "authorize",
+                  message: authError instanceof Error ? authError.message : "Não autorizado.",
+                },
+              },
               { status },
             );
           }
@@ -55,7 +65,9 @@ export const Route = createFileRoute("/api/checklists/preview")({
           });
 
           if (!contentType.toLowerCase().includes("multipart/form-data")) {
-            throw new Error(`Content-Type inválido: ${contentType || "(vazio)"}. Esperado multipart/form-data.`);
+            throw new Error(
+              `Content-Type inválido: ${contentType || "(vazio)"}. Esperado multipart/form-data.`,
+            );
           }
 
           diagnostics.info("read-form-data", "Lendo multipart/form-data", {});
@@ -68,13 +80,13 @@ export const Route = createFileRoute("/api/checklists/preview")({
           });
 
           // Trava servidora: indústria precisa estar classificada como "exige checklist".
-          const { assertIndustryRequiresChecklist } = await import("@/lib/mk9-checklist/industry-gate.server");
+          const { assertIndustryRequiresChecklist } =
+            await import("@/lib/mk9-checklist/industry-gate.server");
           try {
             await assertIndustryRequiresChecklist(fields.industryId);
           } catch (gateError) {
-            const { INDUSTRY_CHECKLIST_DISABLED, INDUSTRY_CHECKLIST_DISABLED_MESSAGE } = await import(
-              "@/lib/mk9-checklist/industry-gate"
-            );
+            const { INDUSTRY_CHECKLIST_DISABLED, INDUSTRY_CHECKLIST_DISABLED_MESSAGE } =
+              await import("@/lib/mk9-checklist/industry-gate");
             return Response.json(
               {
                 error: {
@@ -104,9 +116,14 @@ export const Route = createFileRoute("/api/checklists/preview")({
 
           if (fileSize <= 0) throw new Error("Arquivo chegou vazio ao backend.");
 
-          diagnostics.info("read-file-buffer", "Convertendo arquivo para ArrayBuffer", { filename, fileSize });
+          diagnostics.info("read-file-buffer", "Convertendo arquivo para ArrayBuffer", {
+            filename,
+            fileSize,
+          });
           const buffer = await filePart.arrayBuffer();
-          diagnostics.info("file-buffer-ready", "Arquivo disponível para o parser", { byteLength: buffer.byteLength });
+          diagnostics.info("file-buffer-ready", "Arquivo disponível para o parser", {
+            byteLength: buffer.byteLength,
+          });
 
           const { runChecklistPreview } = await import("@/lib/mk9-checklist/preview.server");
           const result = await runChecklistPreview(
@@ -130,7 +147,10 @@ export const Route = createFileRoute("/api/checklists/preview")({
             name: error instanceof Error ? error.name : typeof error,
           });
           const payload = await parseStructuredError(error, step, diagnostics);
-          return Response.json({ error: payload, diagnostics: diagnostics.events }, { status: 500 });
+          return Response.json(
+            { error: payload, diagnostics: diagnostics.events },
+            { status: 500 },
+          );
         }
       },
     },

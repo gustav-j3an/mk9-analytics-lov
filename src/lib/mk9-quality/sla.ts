@@ -14,7 +14,10 @@ export type Mk9QualityPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 
 export const MK9_PRIORITIES: Mk9QualityPriority[] = ["LOW", "NORMAL", "HIGH", "URGENT"];
 
-export const PRIORITY_META: Record<Mk9QualityPriority, { label: string; weight: number; className: string }> = {
+export const PRIORITY_META: Record<
+  Mk9QualityPriority,
+  { label: string; weight: number; className: string }
+> = {
   URGENT: {
     label: "Urgente",
     weight: 4,
@@ -220,7 +223,9 @@ export function slaAverages(samples: SlaSample[]): {
 } {
   return {
     hoursToAcknowledge: averageHours(
-      samples.filter((s) => s.acknowledgedAt).map((s) => [s.firstDetectedAt, s.acknowledgedAt as string]),
+      samples
+        .filter((s) => s.acknowledgedAt)
+        .map((s) => [s.firstDetectedAt, s.acknowledgedAt as string]),
     ),
     hoursToResolve: averageHours(
       samples.filter((s) => s.resolvedAt).map((s) => [s.firstDetectedAt, s.resolvedAt as string]),

@@ -22,7 +22,9 @@ export const mk9DashboardOverviewFn = createServerFn({ method: "POST" })
     // Filtro de supervisor só é aceito de quem pode ver todos os supervisores.
     const supervisorUserId = scope.canViewAll
       ? (data.supervisorUserId ?? null)
-      : scope.allowedSupervisorIds && data.supervisorUserId && scope.allowedSupervisorIds.includes(data.supervisorUserId)
+      : scope.allowedSupervisorIds &&
+          data.supervisorUserId &&
+          scope.allowedSupervisorIds.includes(data.supervisorUserId)
         ? data.supervisorUserId
         : null;
     return buildDashboardOverview(supabaseAdmin, {
@@ -53,7 +55,6 @@ export const mk9DashboardCheckIntegrityFn = createServerFn({ method: "POST" })
     return checkDashboardIntegrity(supabaseAdmin, data);
   });
 
-
 /** Lista de supervisores (perfis com papel SUPERVISOR) para o filtro global. */
 export const mk9DashboardSupervisorsFn = createServerFn({ method: "GET" }).handler(async () => {
   const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
@@ -65,7 +66,8 @@ export const mk9DashboardSupervisorsFn = createServerFn({ method: "GET" }).handl
   }
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   let rq = supabaseAdmin.from("mk9_user_roles").select("user_id").eq("role", "SUPERVISOR");
-  if (!scope.canViewAll && scope.allowedSupervisorIds) rq = rq.in("user_id", scope.allowedSupervisorIds);
+  if (!scope.canViewAll && scope.allowedSupervisorIds)
+    rq = rq.in("user_id", scope.allowedSupervisorIds);
   const { data: roles, error } = await rq;
   if (error) throw new Error(error.message);
   const ids = Array.from(new Set((roles ?? []).map((r: any) => r.user_id as string)));
@@ -83,4 +85,3 @@ export const mk9DashboardSupervisorsFn = createServerFn({ method: "GET" }).handl
     }))
     .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 });
-

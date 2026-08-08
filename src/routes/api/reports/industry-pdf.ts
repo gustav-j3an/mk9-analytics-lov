@@ -13,7 +13,13 @@ const payloadSchema = z.object({
 
 function errorResponse(
   status: number,
-  payload: { stage: string; message: string; stack?: string; industryId?: string | null; period?: unknown },
+  payload: {
+    stage: string;
+    message: string;
+    stack?: string;
+    industryId?: string | null;
+    period?: unknown;
+  },
 ) {
   return new Response(JSON.stringify(payload), {
     status,
@@ -49,12 +55,13 @@ export const Route = createFileRoute("/api/reports/industry-pdf")({
           industryId = body.industryId;
           period = { month: body.month, year: body.year };
 
-
           stage = "load-server-modules";
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { loadPeriodConfig, resolveWindow } = await import("@/lib/mk9-reports/period.server");
+          const { loadPeriodConfig, resolveWindow } =
+            await import("@/lib/mk9-reports/period.server");
           const { buildIndustryReport } = await import("@/lib/mk9-reports/industry-report.server");
-          const { renderIndustryReportPdf, industryPdfFileName } = await import("@/lib/reports/industry-pdf.server");
+          const { renderIndustryReportPdf, industryPdfFileName } =
+            await import("@/lib/reports/industry-pdf.server");
 
           stage = "resolve-period";
           const { assertIndustryAllowed } = await import("@/lib/mk9-auth/access-scope.server");
@@ -64,15 +71,27 @@ export const Route = createFileRoute("/api/reports/industry-pdf")({
 
           stage = "build-report-data";
           const sourceImportId = body.checklistImportId ?? body.sourceImportId ?? null;
-          const report = await buildIndustryReport(supabaseAdmin, {
-            industryId: body.industryId, year: body.year, month: body.month,
-            uf: body.uf ?? null, storeId: body.storeId ?? null, sourceImportId, access,
-          }, window);
+          const report = await buildIndustryReport(
+            supabaseAdmin,
+            {
+              industryId: body.industryId,
+              year: body.year,
+              month: body.month,
+              uf: body.uf ?? null,
+              storeId: body.storeId ?? null,
+              sourceImportId,
+              access,
+            },
+            window,
+          );
 
           stage = "render-pdf";
           const bytes = await renderIndustryReportPdf(report, body.year, body.month);
           const filename = industryPdfFileName(report, body.year, body.month);
-          const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+          const ab = bytes.buffer.slice(
+            bytes.byteOffset,
+            bytes.byteOffset + bytes.byteLength,
+          ) as ArrayBuffer;
           return new Response(ab, {
             status: 200,
             headers: {

@@ -87,7 +87,6 @@ export interface ImportItem {
   warnings?: string[];
 }
 
-
 export interface PreviewCounters {
   industriesCreated: number;
   industriesUpdated: number;
@@ -173,4 +172,3 @@ export interface RouteDiffReport {
   futureConflicts: number;
   items: RouteDiffItem[];
 }
-

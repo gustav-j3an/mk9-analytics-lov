@@ -34,7 +34,13 @@ interface QualitySnapshot {
   blocking: number;
   unassigned: number;
   openByIndustry: Map<string, number>;
-  recent?: Array<{ id: string; at: string; kind: "OCORRENCIA_DETECTADA"; description: string; industryId: string | null }>;
+  recent?: Array<{
+    id: string;
+    at: string;
+    kind: "OCORRENCIA_DETECTADA";
+    description: string;
+    industryId: string | null;
+  }>;
   topItems: Array<{
     id: string;
     title: string;
@@ -64,7 +70,9 @@ async function loadQuality(
 
   let q = supabase
     .from("mk9_data_quality_issues")
-    .select("id, title, severity, status, due_at, industry_id, store_id, assigned_to_user_id, first_detected_at, competence_month, competence_year")
+    .select(
+      "id, title, severity, status, due_at, industry_id, store_id, assigned_to_user_id, first_detected_at, competence_month, competence_year",
+    )
     .in("status", OPEN_STATUSES)
     .is("archived_at", null)
     .in("industry_id", industryIds)
@@ -95,13 +103,18 @@ async function loadQuality(
         industryId: row.industry_id ?? null,
         storeId: row.store_id ?? null,
         dueAt,
-        overdueDays: overdue && dueAt ? Math.max(0, Math.round((Date.parse(today) - Date.parse(dueAt)) / 86400000)) : 0,
+        overdueDays:
+          overdue && dueAt
+            ? Math.max(0, Math.round((Date.parse(today) - Date.parse(dueAt)) / 86400000))
+            : 0,
       });
     }
   }
   snap.recent = (data ?? [])
     .filter((r: any) => r.first_detected_at)
-    .sort((a: any, b: any) => String(b.first_detected_at).localeCompare(String(a.first_detected_at)))
+    .sort((a: any, b: any) =>
+      String(b.first_detected_at).localeCompare(String(a.first_detected_at)),
+    )
     .slice(0, 8)
     .map((r: any) => ({
       id: `issue-${r.id}`,
@@ -114,7 +127,8 @@ async function loadQuality(
 }
 
 async function loadRecentImports(supabase: any, industryIds: string[]) {
-  if (!industryIds.length) return [] as Array<{ id: string; at: string; status: string; industryId: string | null }>;
+  if (!industryIds.length)
+    return [] as Array<{ id: string; at: string; status: string; industryId: string | null }>;
   const { data, error } = await supabase
     .from("mk9_checklist_imports")
     .select("id, industry_id, status, created_at")
@@ -130,7 +144,11 @@ async function loadRecentImports(supabase: any, industryIds: string[]) {
   }));
 }
 
-async function countFailedImports(supabase: any, filters: OperationFilters, industryIds: string[]): Promise<number> {
+async function countFailedImports(
+  supabase: any,
+  filters: OperationFilters,
+  industryIds: string[],
+): Promise<number> {
   if (!industryIds.length) return 0;
   const { count, error } = await supabase
     .from("mk9_checklist_imports")
@@ -161,7 +179,8 @@ export async function buildCockpitOverview(
   const contratadas = storeRows.reduce((a, s) => a + s.contratadas, 0);
   const realizadas = storeRows.reduce((a, s) => a + s.realizadas, 0);
   const expectedToDate = industryRows.reduce((a, i) => a + i.expectedToDate, 0);
-  const pacePercentage = expectedToDate > 0 ? pct(realizadas, expectedToDate) : realizadas > 0 ? 100 : 0;
+  const pacePercentage =
+    expectedToDate > 0 ? pct(realizadas, expectedToDate) : realizadas > 0 ? 100 : 0;
   const lojasSemVisita = storeRows.filter((s) => s.contratadas > 0 && s.realizadas === 0).length;
   const industriasEmRisco = industryRows.filter(
     (i) => i.status === "CRITICA" || i.status === "SEM_CHECKLIST" || i.status === "SEM_FREQUENCIA",
@@ -181,7 +200,8 @@ export async function buildCockpitOverview(
   let realizedLastTwoWeeks = 0;
   for (const s of storeRows) {
     const bucket = core.ctxById.get(s.industryId)?.buckets.get(s.storeId);
-    for (const d of bucket?.visits ?? []) if (d >= recentStart && d <= today) realizedLastTwoWeeks += 1;
+    for (const d of bucket?.visits ?? [])
+      if (d >= recentStart && d <= today) realizedLastTwoWeeks += 1;
   }
   const totalDays = ctxs.length ? Math.max(...ctxs.map((c) => c.win.totalDays)) : 30;
   const elapsed = ctxs.length ? Math.max(...ctxs.map((c) => elapsedDays(c.win, today))) : 0;
@@ -233,7 +253,9 @@ export async function buildCockpitOverview(
     });
   }
 
-  for (const i of industryRows.filter((x) => x.status === "CRITICA" || x.status === "SEM_CHECKLIST")) {
+  for (const i of industryRows.filter(
+    (x) => x.status === "CRITICA" || x.status === "SEM_CHECKLIST",
+  )) {
     const impact = Math.max(0, i.expectedToDate - i.realizadas);
     candidates.push({
       id: `industry-${i.industryId}`,
@@ -340,7 +362,10 @@ export async function buildCockpitOverview(
       imports: core.checklistImportsTotal,
       failedImports,
       // Só indústrias classificadas como "exige checklist" podem gerar alerta de ausência.
-      industriesWithoutChecklist: countIndustriesMissingChecklist(core.ctxs, { month: filters.month, year: filters.year }),
+      industriesWithoutChecklist: countIndustriesMissingChecklist(core.ctxs, {
+        month: filters.month,
+        year: filters.year,
+      }),
       lastImportAt: recentImports[0]?.at ?? null,
     },
     quality: {
@@ -356,6 +381,10 @@ export async function buildCockpitOverview(
         "Indicador indisponível. Cadastre os escopos dos supervisores para acompanhar a equipe.",
     },
     timeline,
-    perf: { totalMs: Math.round(Date.now() - startedAt), coreMs: core.coreMs, queryCount: core.queryCount + 2 },
+    perf: {
+      totalMs: Math.round(Date.now() - startedAt),
+      coreMs: core.coreMs,
+      queryCount: core.queryCount + 2,
+    },
   };
 }

@@ -15,22 +15,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  mk9CreateStore, 
+import {
+  mk9CreateStore,
   mk9UpdateStore,
   mk9ArchiveStore,
   mk9ReactivateStore,
-  mk9StoreArchiveImpact
+  mk9StoreArchiveImpact,
 } from "@/lib/mk9-stores.functions";
 
-export function StoreDialog({ 
-  open, 
-  onClose, 
-  store = null 
-}: { 
-  open: boolean; 
-  onClose: () => void; 
-  store?: any 
+export function StoreDialog({
+  open,
+  onClose,
+  store = null,
+}: {
+  open: boolean;
+  onClose: () => void;
+  store?: any;
 }) {
   const queryClient = useQueryClient();
   const createFn = useServerFn(mk9CreateStore);
@@ -47,7 +47,7 @@ export function StoreDialog({
       setChain(store.chain || "");
       // Notas contém "Cidade: X" se veio do cadastro simplificado
       const cityMatch = store.notes?.match(/Cidade: (.*)/);
-      setCity(cityMatch ? cityMatch[1] : (store.city || ""));
+      setCity(cityMatch ? cityMatch[1] : store.city || "");
       setUf(store.uf || "");
     } else {
       setName("");
@@ -86,40 +86,74 @@ export function StoreDialog({
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nome da Loja *</Label>
-            <Input className="bg-black/40 border-white/10 h-10 text-white" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Supermercado Central" />
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              Nome da Loja *
+            </Label>
+            <Input
+              className="bg-black/40 border-white/10 h-10 text-white"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex: Supermercado Central"
+            />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Rede / Bandeira</Label>
-            <Input className="bg-black/40 border-white/10 h-10 text-white" value={chain} onChange={(e) => setChain(e.target.value)} placeholder="Ex: Carrefour, Pão de Açúcar" />
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              Rede / Bandeira
+            </Label>
+            <Input
+              className="bg-black/40 border-white/10 h-10 text-white"
+              value={chain}
+              onChange={(e) => setChain(e.target.value)}
+              placeholder="Ex: Carrefour, Pão de Açúcar"
+            />
           </div>
           <div className="grid grid-cols-4 gap-4">
             <div className="col-span-3 space-y-1.5">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Cidade</Label>
-              <Input className="bg-black/40 border-white/10 h-10 text-white" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ex: São Paulo" />
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                Cidade
+              </Label>
+              <Input
+                className="bg-black/40 border-white/10 h-10 text-white"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Ex: São Paulo"
+              />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">UF</Label>
-              <Input className="bg-black/40 border-white/10 h-10 text-white font-mono" value={uf} onChange={(e) => setUf(e.target.value.toUpperCase())} maxLength={2} placeholder="SP" />
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                UF
+              </Label>
+              <Input
+                className="bg-black/40 border-white/10 h-10 text-white font-mono"
+                value={uf}
+                onChange={(e) => setUf(e.target.value.toUpperCase())}
+                maxLength={2}
+                placeholder="SP"
+              />
             </div>
           </div>
         </div>
         <DialogFooter className="mt-4 border-t border-white/5 pt-4">
-          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>CANCELAR</Button>
-          <Button className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold" onClick={() => mut.mutate()} disabled={!name || mut.isPending}>
+          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>
+            CANCELAR
+          </Button>
+          <Button
+            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold"
+            onClick={() => mut.mutate()}
+            disabled={!name || mut.isPending}
+          >
             {mut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "SALVAR LOJA"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-
   );
 }
 
 export function StoreArchiveDialog({
   open,
   onClose,
-  store
+  store,
 }: {
   open: boolean;
   onClose: () => void;
@@ -162,25 +196,40 @@ export function StoreArchiveDialog({
         {isLoading ? (
           <div className="py-20 flex flex-col items-center justify-center gap-4 text-slate-500">
             <Loader2 className="h-8 w-8 animate-spin text-mk9-accent-primary/20" />
-            <p className="text-[10px] font-bold uppercase tracking-widest">Analisando impacto operacional...</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest">
+              Analisando impacto operacional...
+            </p>
           </div>
         ) : (
           <div className="space-y-6 py-4">
             <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4 space-y-3">
-              <p className="text-xs font-bold text-rose-400 uppercase tracking-tight">Impacto Detectado na Unidade:</p>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-tight">
+                Impacto Detectado na Unidade:
+              </p>
               <ul className="space-y-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                <li className="flex justify-between border-b border-white/5 pb-1"><span>Frequências vigentes:</span> <span className="text-white">{impact?.activeFrequencies || 0}</span></li>
-                <li className="flex justify-between border-b border-white/5 pb-1"><span>Roteiros ativos:</span> <span className="text-white">{impact?.activeRoutes || 0}</span></li>
-                <li className="flex justify-between"><span>Visitas históricas:</span> <span className="text-slate-500">{impact?.visits || 0} (Preservadas)</span></li>
+                <li className="flex justify-between border-b border-white/5 pb-1">
+                  <span>Frequências vigentes:</span>{" "}
+                  <span className="text-white">{impact?.activeFrequencies || 0}</span>
+                </li>
+                <li className="flex justify-between border-b border-white/5 pb-1">
+                  <span>Roteiros ativos:</span>{" "}
+                  <span className="text-white">{impact?.activeRoutes || 0}</span>
+                </li>
+                <li className="flex justify-between">
+                  <span>Visitas históricas:</span>{" "}
+                  <span className="text-slate-500">{impact?.visits || 0} (Preservadas)</span>
+                </li>
               </ul>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Motivo do Arquivamento (Opcional)</Label>
-              <Textarea 
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                Motivo do Arquivamento (Opcional)
+              </Label>
+              <Textarea
                 className="bg-black/40 border-white/10 text-white min-h-[80px]"
-                placeholder="Ex: Loja fechada definitivamente..." 
-                value={reason} 
+                placeholder="Ex: Loja fechada definitivamente..."
+                value={reason}
                 onChange={(e) => setReason(e.target.value)}
               />
             </div>
@@ -188,17 +237,22 @@ export function StoreArchiveDialog({
         )}
 
         <DialogFooter className="mt-4 border-t border-white/5 pt-4">
-          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>CANCELAR</Button>
-          <Button 
+          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>
+            CANCELAR
+          </Button>
+          <Button
             className="bg-rose-500 hover:bg-rose-600 text-white font-bold px-6 shadow-lg shadow-rose-500/20"
-            onClick={() => mut.mutate()} 
+            onClick={() => mut.mutate()}
             disabled={isLoading || mut.isPending}
           >
-            {mut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "CONFIRMAR ARQUIVAMENTO"}
+            {mut.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              "CONFIRMAR ARQUIVAMENTO"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-
   );
 }

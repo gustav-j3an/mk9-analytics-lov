@@ -13,14 +13,16 @@
  *
  * Nunca corrige automaticamente: exige revisão humana.
  */
-import {
-  evaluateFrequencyConsistency,
-  FREQUENCY_TOLERANCE,
-} from "@/lib/mk9-frequency/canonical";
+import { evaluateFrequencyConsistency, FREQUENCY_TOLERANCE } from "@/lib/mk9-frequency/canonical";
 import { resolveCompetence } from "../rules/competence";
 import { capDetections } from "../rules/cap";
 import { navigationTarget } from "../navigation";
-import { loadPeriodWindows, loadScopedIndustries, loadScopedStores, unionWindow } from "./context.server";
+import {
+  loadPeriodWindows,
+  loadScopedIndustries,
+  loadScopedStores,
+  unionWindow,
+} from "./context.server";
 import type { DetectedIssue, Mk9DataQualityDetector, Mk9QualityDetectorContext } from "../types";
 
 export const ISSUE_TYPE = "FREQUENCY_WEEKLY_MONTHLY_INCONSISTENCY";

@@ -11,7 +11,11 @@
 //
 // A projeção mk9_industry_store_frequency NÃO é mais lida aqui.
 
-import { loadPeriodConfig, resolveWindow, type PeriodWindow } from "@/lib/mk9-reports/period.server";
+import {
+  loadPeriodConfig,
+  resolveWindow,
+  type PeriodWindow,
+} from "@/lib/mk9-reports/period.server";
 import { computeVisitMetrics, aggregateVisitMetrics } from "@/lib/mk9-reports/metrics";
 import {
   contractedVisitsForFrequencySegments,
@@ -19,7 +23,6 @@ import {
   type FrequencySegmentInput,
 } from "@/lib/mk9-frequency/segments";
 import { freqKey, loadFrequencyVersionsForPeriod } from "@/lib/mk9-frequency/versions.server";
-
 
 export type ExecStatus = "COMPLETO" | "PARCIAL" | "NAO_REALIZADO";
 export const EXEC_STATUS_LABEL: Record<ExecStatus, string> = {
@@ -51,7 +54,6 @@ export interface AuditStoreLine {
   frequencyChangedInPeriod: boolean;
   /** ex.: "1x/sem até 15/07 · 2x/sem desde 16/07" */
   frequencyLabel: string | null;
-
 }
 
 export interface AuditPromoterLine {
@@ -87,9 +89,6 @@ export interface AuditScope {
   access?: import("@/lib/mk9-auth/access-scope.server").Mk9AccessScope | null;
 }
 
-
-
-
 function pickStatus(contratadas: number, realizadas: number): ExecStatus {
   if (contratadas === 0 && realizadas === 0) return "NAO_REALIZADO";
   const valid = Math.min(contratadas, realizadas);
@@ -123,7 +122,6 @@ async function buildIndustryContext(
   const cfg = await loadPeriodConfig(supabase, industry.id);
   const win = resolveWindow(cfg, year, month);
 
-
   // Frequência VERSIONADA por loja, restrita às vigências que interceptam a
   // janela operacional desta indústria (uma consulta em lote, sem N+1).
   const freqVersions = await loadFrequencyVersionsForPeriod(supabase, {
@@ -133,7 +131,6 @@ async function buildIndustryContext(
     periodEnd: win.endDate,
     accessScope: access ?? null,
   });
-
 
   // Visitas realizadas na janela
   const { data: actuals, error: eA } = await supabase
@@ -179,14 +176,29 @@ async function buildIndustryContext(
   }
 
   type Bucket = {
-    storeId: string; storeName: string; chain: string | null; uf: string | null;
-    weekly: number | null; monthly: number | null; segments: FrequencySegmentInput[]; actual: number;
+    storeId: string;
+    storeName: string;
+    chain: string | null;
+    uf: string | null;
+    weekly: number | null;
+    monthly: number | null;
+    segments: FrequencySegmentInput[];
+    actual: number;
   };
   const map = new Map<string, Bucket>();
   const touch = (id: string, s: any): Bucket => {
     let b = map.get(id);
     if (!b) {
-      b = { storeId: id, storeName: s?.name ?? "—", chain: s?.chain ?? null, uf: s?.uf ?? null, weekly: null, monthly: null, segments: [], actual: 0 };
+      b = {
+        storeId: id,
+        storeName: s?.name ?? "—",
+        chain: s?.chain ?? null,
+        uf: s?.uf ?? null,
+        weekly: null,
+        monthly: null,
+        segments: [],
+        actual: 0,
+      };
       map.set(id, b);
     }
     return b;
@@ -228,7 +240,8 @@ async function buildIndustryContext(
     const m = computeVisitMetrics({ contratadas, executadas: b.actual });
     const realizadas = m.executadas;
     const pendentes = Math.max(0, contratadas - realizadas);
-    const coberturaPct = contratadas > 0 ? Math.min(100, Math.round((realizadas / contratadas) * 100)) : 0;
+    const coberturaPct =
+      contratadas > 0 ? Math.min(100, Math.round((realizadas / contratadas) * 100)) : 0;
     const promo = promoterByStore.get(b.storeId);
     const resolution: PromoterResolution = !promo
       ? "UNASSIGNED_ROUTE"
@@ -253,7 +266,10 @@ async function buildIndustryContext(
       weeklyFrequency: b.weekly,
       monthlyFrequency: b.monthly,
       frequencyChangedInPeriod: contracted.hasMultipleSegments,
-      frequencyLabel: describeFrequencySegments(contracted, { start: win.startDate, end: win.endDate }),
+      frequencyLabel: describeFrequencySegments(contracted, {
+        start: win.startDate,
+        end: win.endDate,
+      }),
     };
   });
 
@@ -276,25 +292,40 @@ async function loadIndustries(
   return (data ?? []) as Array<{ id: string; name: string }>;
 }
 
-export async function auditByStore(supabase: any, scope: AuditScope): Promise<{ stores: AuditStoreLine[]; totals: AuditIndustryLine[] }> {
+export async function auditByStore(
+  supabase: any,
+  scope: AuditScope,
+): Promise<{ stores: AuditStoreLine[]; totals: AuditIndustryLine[] }> {
   const access = scope.access ?? null;
   // Filtro do navegador nunca amplia escopo: UF pedida fora do escopo → vazio.
   if (scope.uf && access?.allowedUfs && !access.allowedUfs.includes(scope.uf.toUpperCase())) {
     return { stores: [], totals: [] };
   }
-  if (scope.promoterId && access?.allowedPromoterIds && !access.allowedPromoterIds.includes(scope.promoterId)) {
+  if (
+    scope.promoterId &&
+    access?.allowedPromoterIds &&
+    !access.allowedPromoterIds.includes(scope.promoterId)
+  ) {
     return { stores: [], totals: [] };
   }
-  const industries = await loadIndustries(supabase, scope.industryId ?? null, access?.allowedIndustryIds ?? null);
+  const industries = await loadIndustries(
+    supabase,
+    scope.industryId ?? null,
+    access?.allowedIndustryIds ?? null,
+  );
   const contexts = await Promise.all(
-    industries.map((ind) => buildIndustryContext(supabase, ind, scope.year, scope.month, scope.uf ?? null, access)),
+    industries.map((ind) =>
+      buildIndustryContext(supabase, ind, scope.year, scope.month, scope.uf ?? null, access),
+    ),
   );
   const all: AuditStoreLine[] = [];
   const totals: AuditIndustryLine[] = [];
   for (const c of contexts) {
     let stores = c.stores;
     if (access?.allowedPromoterIds) {
-      stores = stores.filter((s) => s.promoterId && access.allowedPromoterIds!.includes(s.promoterId));
+      stores = stores.filter(
+        (s) => s.promoterId && access.allowedPromoterIds!.includes(s.promoterId),
+      );
     }
 
     if (scope.promoterId) stores = stores.filter((s) => s.promoterId === scope.promoterId);
@@ -303,14 +334,20 @@ export async function auditByStore(supabase: any, scope: AuditScope): Promise<{ 
     //   • contratadas/realizadas/extras vêm do agregador canônico por loja;
     //   • pendentes e cobertura do TOTAL seguem a regra operacional oficial
     //     (bruto: contratadas − realizadas), idêntica ao relatório e ao PDF.
-    const agg = aggregateVisitMetrics(stores.map((s) => ({ contratadas: s.contratadas, executadas: s.realizadas })));
+    const agg = aggregateVisitMetrics(
+      stores.map((s) => ({ contratadas: s.contratadas, executadas: s.realizadas })),
+    );
     const pendentes = Math.max(0, agg.contratadas - agg.executadas);
     const coberturaPct =
       agg.contratadas > 0 ? Math.min(100, Math.round((agg.executadas / agg.contratadas) * 100)) : 0;
     totals.push({
       industryId: c.industryId,
       industryName: c.industryName,
-      window: { startDate: c.window.startDate, endDate: c.window.endDate, totalDays: c.window.totalDays },
+      window: {
+        startDate: c.window.startDate,
+        endDate: c.window.endDate,
+        totalDays: c.window.totalDays,
+      },
       storesCount: stores.length,
       contratadas: agg.contratadas,
       realizadas: agg.executadas,
@@ -322,9 +359,15 @@ export async function auditByStore(supabase: any, scope: AuditScope): Promise<{ 
   return { stores: all, totals };
 }
 
-export async function auditByPromoter(supabase: any, scope: AuditScope): Promise<AuditPromoterLine[]> {
+export async function auditByPromoter(
+  supabase: any,
+  scope: AuditScope,
+): Promise<AuditPromoterLine[]> {
   const { stores } = await auditByStore(supabase, scope);
-  const map = new Map<string, { name: string; pairs: Array<{ contratadas: number; executadas: number }> }>();
+  const map = new Map<
+    string,
+    { name: string; pairs: Array<{ contratadas: number; executadas: number }> }
+  >();
   for (const s of stores) {
     const key = s.promoterId ?? "__NONE__";
     const cur = map.get(key) ?? { name: s.promoterName ?? "Não atribuído", pairs: [] };
@@ -338,7 +381,9 @@ export async function auditByPromoter(supabase: any, scope: AuditScope): Promise
       const agg = aggregateVisitMetrics(v.pairs);
       const pendentes = Math.max(0, agg.contratadas - agg.executadas);
       const coberturaPct =
-        agg.contratadas > 0 ? Math.min(100, Math.round((agg.executadas / agg.contratadas) * 100)) : 0;
+        agg.contratadas > 0
+          ? Math.min(100, Math.round((agg.executadas / agg.contratadas) * 100))
+          : 0;
       return {
         promoterId: pid === "__NONE__" ? null : pid,
         promoterName: v.name,
@@ -353,7 +398,10 @@ export async function auditByPromoter(supabase: any, scope: AuditScope): Promise
     .sort((a, b) => a.promoterName.localeCompare(b.promoterName, "pt-BR"));
 }
 
-export async function auditByIndustry(supabase: any, scope: AuditScope): Promise<AuditIndustryLine[]> {
+export async function auditByIndustry(
+  supabase: any,
+  scope: AuditScope,
+): Promise<AuditIndustryLine[]> {
   const { totals } = await auditByStore(supabase, scope);
   return totals.sort((a, b) => a.industryName.localeCompare(b.industryName, "pt-BR"));
 }

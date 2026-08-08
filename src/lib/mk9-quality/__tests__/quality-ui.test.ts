@@ -17,7 +17,12 @@ import {
   relativeLabel,
   sortIssues,
 } from "../labels";
-import { evidenceRows, issueSymptoms, resolveIssueNavigation, technicalRows } from "../evidence-view";
+import {
+  evidenceRows,
+  issueSymptoms,
+  resolveIssueNavigation,
+  technicalRows,
+} from "../evidence-view";
 import type { Mk9QualityIssueView } from "../types";
 
 const issue = (over: Partial<Mk9QualityIssueView> = {}): Mk9QualityIssueView =>
@@ -74,7 +79,9 @@ describe("unidades e contagens nunca se misturam", () => {
 
 describe("permissões espelham exatamente o servidor", () => {
   it("5. CLIENTE nunca recebe ação de status", () => {
-    expect(availableTransitions({ role: "CLIENTE", status: "OPEN", persisted: true })).toHaveLength(0);
+    expect(availableTransitions({ role: "CLIENTE", status: "OPEN", persisted: true })).toHaveLength(
+      0,
+    );
   });
 
   it("6. SUPERVISOR não pode ignorar, ADMIN e AUDITOR podem", () => {
@@ -93,7 +100,9 @@ describe("permissões espelham exatamente o servidor", () => {
   });
 
   it("8. sinal calculado agora (sem histórico) não aceita ação", () => {
-    expect(availableTransitions({ role: "ADMIN", status: "OPEN", persisted: false })).toHaveLength(0);
+    expect(availableTransitions({ role: "ADMIN", status: "OPEN", persisted: false })).toHaveLength(
+      0,
+    );
   });
 
   it("9. ocorrência já encerrada não repete a mesma ação", () => {

@@ -20,7 +20,6 @@ import { Mk9StoresModule } from "./mk9-stores-module";
 import { Mk9PromotersModule } from "./mk9-promoters-module";
 import { Mk9HomologationModule } from "./mk9-homologation-module";
 
-
 import {
   AlertTriangle,
   BarChart3,
@@ -47,13 +46,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import {
-  mk9ListIndustries,
-  mk9ListStores,
-  mk9ListPromoters,
-} from "@/lib/mk9-data.functions";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { mk9ListIndustries, mk9ListStores, mk9ListPromoters } from "@/lib/mk9-data.functions";
 
 type ModuleId =
   | "dashboard"
@@ -107,7 +108,7 @@ export function Mk9AnalyticsApp() {
       <aside
         className={cn(
           "bg-[#111122] border-r border-white/5 transition-all duration-300 flex flex-col shrink-0 z-20",
-          collapsed ? "w-20" : "w-64"
+          collapsed ? "w-20" : "w-64",
         )}
       >
         <div className="h-16 flex items-center px-6 border-b border-white/5 bg-command-deep/50">
@@ -116,7 +117,9 @@ export function Mk9AnalyticsApp() {
               <div className="h-8 w-8 rounded-lg bg-command-purple flex items-center justify-center shadow-lg shadow-purple-500/20">
                 <ShieldCheck className="text-white h-5 w-5" />
               </div>
-              <span className="font-black tracking-tighter text-lg text-white">MK9 <span className="text-command-purple">COMMAND</span></span>
+              <span className="font-black tracking-tighter text-lg text-white">
+                MK9 <span className="text-command-purple">COMMAND</span>
+              </span>
             </div>
           )}
           {collapsed && <ShieldCheck className="mx-auto text-command-purple h-6 w-6" />}
@@ -125,7 +128,11 @@ export function Mk9AnalyticsApp() {
         <div className="flex-1 overflow-y-auto py-6">
           <nav className="px-3 space-y-1">
             <div className="pt-2 pb-2">
-              {!collapsed && <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">Visão Geral</p>}
+              {!collapsed && (
+                <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">
+                  Visão Geral
+                </p>
+              )}
             </div>
             <SidebarItem
               icon={BarChart3}
@@ -147,7 +154,11 @@ export function Mk9AnalyticsApp() {
             />
 
             <div className="pt-4 pb-2">
-              {!collapsed && <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">Operação</p>}
+              {!collapsed && (
+                <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">
+                  Operação
+                </p>
+              )}
             </div>
             <SidebarItem
               icon={Settings2}
@@ -169,7 +180,11 @@ export function Mk9AnalyticsApp() {
             />
 
             <div className="pt-4 pb-2">
-              {!collapsed && <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">Análise e Controle</p>}
+              {!collapsed && (
+                <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">
+                  Análise e Controle
+                </p>
+              )}
             </div>
             <SidebarItem
               icon={ClipboardCheck}
@@ -191,7 +206,11 @@ export function Mk9AnalyticsApp() {
             />
 
             <div className="pt-4 pb-2">
-              {!collapsed && <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">Cadastros</p>}
+              {!collapsed && (
+                <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">
+                  Cadastros
+                </p>
+              )}
             </div>
             <SidebarItem
               icon={Factory}
@@ -215,7 +234,11 @@ export function Mk9AnalyticsApp() {
             {isAdmin && (
               <>
                 <div className="pt-4 pb-2">
-                  {!collapsed && <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">Administração</p>}
+                  {!collapsed && (
+                    <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">
+                      Administração
+                    </p>
+                  )}
                 </div>
                 <SidebarItem
                   icon={ShieldAlert}
@@ -231,24 +254,37 @@ export function Mk9AnalyticsApp() {
                 />
               </>
             )}
-
           </nav>
         </div>
 
         <div className="p-4 border-t border-white/5 space-y-2">
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className={cn("w-full flex items-center gap-3 px-4 py-2 text-slate-400 hover:text-white transition-colors hover:bg-white/5 rounded-lg", collapsed && "justify-center px-0")}
+            className={cn(
+              "w-full flex items-center gap-3 px-4 py-2 text-slate-400 hover:text-white transition-colors hover:bg-white/5 rounded-lg",
+              collapsed && "justify-center px-0",
+            )}
           >
-            {collapsed ? <ChevronsRight className="h-5 w-5" /> : <ChevronsLeft className="h-5 w-5" />}
-            {!collapsed && <span className="text-sm font-bold uppercase tracking-tighter">Recolher</span>}
+            {collapsed ? (
+              <ChevronsRight className="h-5 w-5" />
+            ) : (
+              <ChevronsLeft className="h-5 w-5" />
+            )}
+            {!collapsed && (
+              <span className="text-sm font-bold uppercase tracking-tighter">Recolher</span>
+            )}
           </button>
           <button
-            className={cn("w-full flex items-center gap-3 px-4 py-2 text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors rounded-lg", collapsed && "justify-center px-0")}
+            className={cn(
+              "w-full flex items-center gap-3 px-4 py-2 text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors rounded-lg",
+              collapsed && "justify-center px-0",
+            )}
             onClick={() => signOut()}
           >
             <LogOut className="h-5 w-5" />
-            {!collapsed && <span className="text-sm font-bold uppercase tracking-tighter">Sair</span>}
+            {!collapsed && (
+              <span className="text-sm font-bold uppercase tracking-tighter">Sair</span>
+            )}
           </button>
         </div>
       </aside>
@@ -283,8 +319,23 @@ export function Mk9AnalyticsApp() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-command-deep border-white/10 text-white text-xs">
-                  {["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"].map((m, i) => (
-                    <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>
+                  {[
+                    "Janeiro",
+                    "Fevereiro",
+                    "Março",
+                    "Abril",
+                    "Maio",
+                    "Junho",
+                    "Julho",
+                    "Agosto",
+                    "Setembro",
+                    "Outubro",
+                    "Novembro",
+                    "Dezembro",
+                  ].map((m, i) => (
+                    <SelectItem key={i} value={String(i + 1)}>
+                      {m}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -299,9 +350,20 @@ export function Mk9AnalyticsApp() {
             {user && (
               <div className="flex items-center gap-3 pl-4 border-l border-white/10">
                 <div className="flex flex-col items-end">
-                  <span className="text-[10px] font-black text-white truncate max-w-[100px] uppercase tracking-tighter">{user.email?.split("@")[0]}</span>
-                  <Badge variant="outline" className="text-[8px] py-0 px-1 border-command-purple/30 bg-command-purple/10 text-command-purple font-black">
-                    {isAdmin ? "ADMIN" : isSupervisor ? "SUPERVISOR" : isAuditor ? "AUDITOR" : "USER"}
+                  <span className="text-[10px] font-black text-white truncate max-w-[100px] uppercase tracking-tighter">
+                    {user.email?.split("@")[0]}
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className="text-[8px] py-0 px-1 border-command-purple/30 bg-command-purple/10 text-command-purple font-black"
+                  >
+                    {isAdmin
+                      ? "ADMIN"
+                      : isSupervisor
+                        ? "SUPERVISOR"
+                        : isAuditor
+                          ? "AUDITOR"
+                          : "USER"}
                   </Badge>
                 </div>
                 <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-command-purple to-command-blue flex items-center justify-center text-white font-black text-xs shadow-lg shadow-purple-500/20">
@@ -323,16 +385,18 @@ export function Mk9AnalyticsApp() {
             {activeModule === "lojas" && <Mk9StoresModule />}
             {activeModule === "promotores" && <Mk9PromotersModule />}
             {activeModule === "roteiros" && (
-               <Mk9RoutesModule 
-                promoters={promotersQ.data ?? []} 
-                stores={storesQ.data ?? []} 
-                industries={industriesQ.data ?? []} 
-               />
+              <Mk9RoutesModule
+                promoters={promotersQ.data ?? []}
+                stores={storesQ.data ?? []}
+                industries={industriesQ.data ?? []}
+              />
             )}
             {activeModule === "checklists" && (
               <Mk9ChecklistImportModule onSwitchToBase={() => setActiveModule("importacoes")} />
             )}
-            {activeModule === "conciliacao" && <Mk9AuditModule key={auditKey} initialFilters={auditFilters} />}
+            {activeModule === "conciliacao" && (
+              <Mk9AuditModule key={auditKey} initialFilters={auditFilters} />
+            )}
             {activeModule === "qualidade" && (
               <Mk9QualityModule
                 month={month}
@@ -365,9 +429,11 @@ export function Mk9AnalyticsApp() {
             )}
 
             {activeModule === "relatorio_industria" && <Mk9IndustryReportModule />}
-            {activeModule === "cleanup_admin" && <Mk9AdminCleanupModule month={month} year={year} />}
+            {activeModule === "cleanup_admin" && (
+              <Mk9AdminCleanupModule month={month} year={year} />
+            )}
             {activeModule === "homologacao" && <Mk9HomologationModule />}
-            
+
             {activeModule === "usuarios" && <Mk9UsersModule currentUserId={user?.id ?? null} />}
           </div>
         </section>
@@ -376,7 +442,17 @@ export function Mk9AnalyticsApp() {
   );
 }
 
-function SidebarItem({ icon: Icon, label, active, onClick }: { icon: any; label: string; active: boolean; onClick: () => void }) {
+function SidebarItem({
+  icon: Icon,
+  label,
+  active,
+  onClick,
+}: {
+  icon: any;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       onClick={onClick}
@@ -384,10 +460,15 @@ function SidebarItem({ icon: Icon, label, active, onClick }: { icon: any; label:
         "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 relative group",
         active
           ? "bg-command-purple/10 text-white shadow-[0_0_20px_rgba(168,85,247,0.15)] neon-border-purple"
-          : "text-slate-400 hover:bg-white/5 hover:text-white"
+          : "text-slate-400 hover:bg-white/5 hover:text-white",
       )}
     >
-      <Icon className={cn("h-5 w-5 transition-transform duration-300 group-hover:scale-110", active ? "text-command-purple" : "text-slate-500")} />
+      <Icon
+        className={cn(
+          "h-5 w-5 transition-transform duration-300 group-hover:scale-110",
+          active ? "text-command-purple" : "text-slate-500",
+        )}
+      />
       <span className="truncate">{label}</span>
       {active && (
         <div className="ml-auto h-1.5 w-1.5 rounded-full bg-command-purple shadow-[0_0_8px_#A855F7]" />

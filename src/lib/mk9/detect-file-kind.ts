@@ -30,9 +30,7 @@ export async function detectMk9FileKind(file: File): Promise<DetectResult> {
   const sheets = wb.SheetNames ?? [];
   const norm = sheets.map(normalize);
 
-  const hasBaseSheets = norm.some(
-    (n) => n.startsWith("roteiro") || n.startsWith("consulta"),
-  );
+  const hasBaseSheets = norm.some((n) => n.startsWith("roteiro") || n.startsWith("consulta"));
   const filenameHint = /check[\s_-]?list|checklist/i.test(file.name);
 
   if (hasBaseSheets && !filenameHint) {

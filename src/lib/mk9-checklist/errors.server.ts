@@ -42,8 +42,8 @@ function fromZod(err: ZodError): RichErrorPayload["validation"] {
     path: i.path.join("."),
     code: i.code,
     message: i.message,
-    ...(("expected" in i ? { expected: (i as any).expected } : {})),
-    ...(("received" in i ? { received: (i as any).received } : {})),
+    ...("expected" in i ? { expected: (i as any).expected } : {}),
+    ...("received" in i ? { received: (i as any).received } : {}),
   }));
   const first = issues[0];
   return {
@@ -78,7 +78,12 @@ function fromPostgrest(err: any): RichErrorPayload["database"] | undefined {
 
 export function buildRichError(
   err: unknown,
-  ctx: { step: string; function: string; parser?: RichErrorPayload["parser"]; extra?: Record<string, unknown> },
+  ctx: {
+    step: string;
+    function: string;
+    parser?: RichErrorPayload["parser"];
+    extra?: Record<string, unknown>;
+  },
 ): RichErrorPayload {
   const base: RichErrorPayload = {
     __mk9Error: true,
@@ -125,7 +130,12 @@ export function buildRichError(
 
 /** Envolve `fn` e converte qualquer throw em `Error` com mensagem = JSON estruturado. */
 export async function withRichErrors<T>(
-  ctx: { step: string; function: string; parser?: RichErrorPayload["parser"]; extra?: Record<string, unknown> },
+  ctx: {
+    step: string;
+    function: string;
+    parser?: RichErrorPayload["parser"];
+    extra?: Record<string, unknown>;
+  },
   fn: () => Promise<T>,
 ): Promise<T> {
   try {
@@ -133,7 +143,7 @@ export async function withRichErrors<T>(
   } catch (err) {
     const payload = buildRichError(err, ctx);
     // console.error preserva stack no worker log
-    // eslint-disable-next-line no-console
+
     console.error(`[mk9-checklist:${ctx.step}]`, err);
     const wrapped = new Error(JSON.stringify(payload));
     wrapped.name = payload.name ?? "Mk9ChecklistError";

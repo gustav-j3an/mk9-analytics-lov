@@ -57,19 +57,32 @@ export const incompleteStoreExecutionDetector: Mk9DataQualityDetector = {
         .or(`valid_until.is.null,valid_until.gte.${window.startDate}`)
         .limit(100000),
     ]);
-    if (visitRes.error || freqRes.error || routeRes.error) throw new Error("MK9_DQ_DETECTOR_FAILED");
+    if (visitRes.error || freqRes.error || routeRes.error)
+      throw new Error("MK9_DQ_DETECTOR_FAILED");
 
-    interface Usage { visits: number; frequencies: number; routes: number; industryId: string | null }
+    interface Usage {
+      visits: number;
+      frequencies: number;
+      routes: number;
+      industryId: string | null;
+    }
     const usage = new Map<string, Usage>();
-    const bump = (storeId: string, industryId: string | null, field: keyof Omit<Usage, "industryId">) => {
+    const bump = (
+      storeId: string,
+      industryId: string | null,
+      field: keyof Omit<Usage, "industryId">,
+    ) => {
       const current = usage.get(storeId) ?? { visits: 0, frequencies: 0, routes: 0, industryId };
       current[field] += 1;
       current.industryId = current.industryId ?? industryId;
       usage.set(storeId, current);
     };
-    for (const r of (visitRes.data ?? []) as any[]) bump(r.store_id, r.industry_id ?? null, "visits");
-    for (const r of (freqRes.data ?? []) as any[]) bump(r.store_id, r.industry_id ?? null, "frequencies");
-    for (const r of (routeRes.data ?? []) as any[]) bump(r.store_id, r.industry_id ?? null, "routes");
+    for (const r of (visitRes.data ?? []) as any[])
+      bump(r.store_id, r.industry_id ?? null, "visits");
+    for (const r of (freqRes.data ?? []) as any[])
+      bump(r.store_id, r.industry_id ?? null, "frequencies");
+    for (const r of (routeRes.data ?? []) as any[])
+      bump(r.store_id, r.industry_id ?? null, "routes");
 
     const issues: DetectedIssue[] = [];
     for (const store of suspicious) {
@@ -108,10 +121,16 @@ export const incompleteStoreExecutionDetector: Mk9DataQualityDetector = {
           competence: `${year}-${month}`,
           navigationTarget: navigationTarget({ module: "stores", storeId: store.id, month, year }),
         },
-        suggestedAction: "Completar o cadastro da loja (UF e rede) e confirmar que não é duplicata.",
+        suggestedAction:
+          "Completar o cadastro da loja (UF e rede) e confirmar que não é duplicata.",
         source: "detector:incomplete-store-execution",
         fingerprintParts: { store: "incomplete" },
-        contextParts: { missing, visits: used.visits, routes: used.routes, frequencies: used.frequencies },
+        contextParts: {
+          missing,
+          visits: used.visits,
+          routes: used.routes,
+          frequencies: used.frequencies,
+        },
       });
     }
 

@@ -7,15 +7,40 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, CalendarClock, History, Loader2, Pencil, Plus, PowerOff, Route as RouteIcon, Users, FileText, Info, RefreshCw } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarClock,
+  History,
+  Loader2,
+  Pencil,
+  Plus,
+  PowerOff,
+  Route as RouteIcon,
+  Users,
+  FileText,
+  Info,
+  RefreshCw,
+} from "lucide-react";
 import { Mk9PageHeader, Mk9Panel, Mk9MetricCard } from "./mk9/design-system";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   mk9RoutesListVersioned,
@@ -26,9 +51,22 @@ import {
 import { mk9PromoterRouteStats } from "@/lib/mk9-promoter-route.functions";
 import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
 
-const WEEKDAY_PT = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+const WEEKDAY_PT = [
+  "Domingo",
+  "Segunda-feira",
+  "Terça-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sábado",
+];
 
-async function downloadPromoterPdf(promoterId: string, promoterName: string, year: number, month: number) {
+async function downloadPromoterPdf(
+  promoterId: string,
+  promoterName: string,
+  year: number,
+  month: number,
+) {
   try {
     const res = await fetch("/api/reports/promoter-pdf", {
       method: "POST",
@@ -84,11 +122,24 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
 
   const [editing, setEditing] = useState<Route | null>(null);
   const [creating, setCreating] = useState(false);
-  const [historyKey, setHistoryKey] = useState<{ storeId: string; industryId: string; weekday: number; label: string } | null>(null);
+  const [historyKey, setHistoryKey] = useState<{
+    storeId: string;
+    industryId: string;
+    weekday: number;
+    label: string;
+  } | null>(null);
 
   const listFn = useServerFn(mk9RoutesListVersioned);
   const listQ = useQuery({
-    queryKey: ["mk9-routes-versioned", referenceDate, filterPromoter, filterIndustry, filterStore, filterUf, filterWeekday],
+    queryKey: [
+      "mk9-routes-versioned",
+      referenceDate,
+      filterPromoter,
+      filterIndustry,
+      filterStore,
+      filterUf,
+      filterWeekday,
+    ],
     queryFn: () =>
       listFn({
         data: {
@@ -133,12 +184,15 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
 
   return (
     <div className="space-y-6">
-      <Mk9PageHeader 
-        title="Gestão de Roteiros" 
+      <Mk9PageHeader
+        title="Gestão de Roteiros"
         subtitle="Controle de vigência e periodicidade semanal"
         icon={RouteIcon}
         actions={
-          <Button onClick={() => setCreating(true)} className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest px-6">
+          <Button
+            onClick={() => setCreating(true)}
+            className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest px-6"
+          >
             <Plus className="h-4 w-4 mr-2" /> Novo Item
           </Button>
         }
@@ -149,40 +203,102 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
             <CalendarClock className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-black text-white uppercase tracking-widest">Filtros Operacionais</h3>
+          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+            Filtros Operacionais
+          </h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-3 items-end">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Referência</label>
-            <Input type="date" value={referenceDate} onChange={(e) => setReferenceDate(e.target.value)} className="h-9 bg-black/40 border-white/5 text-xs text-white" />
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              Referência
+            </label>
+            <Input
+              type="date"
+              value={referenceDate}
+              onChange={(e) => setReferenceDate(e.target.value)}
+              className="h-9 bg-black/40 border-white/5 text-xs text-white"
+            />
           </div>
           <div className="col-span-2 space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Promotor</label>
-            <Select value={filterPromoter || "all"} onValueChange={(v) => setFilterPromoter(v === "all" ? "" : v)}>
-              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white"><SelectValue placeholder="Todos" /></SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10"><SelectItem value="all">Todos</SelectItem>{promoters.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              Promotor
+            </label>
+            <Select
+              value={filterPromoter || "all"}
+              onValueChange={(v) => setFilterPromoter(v === "all" ? "" : v)}
+            >
+              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10">
+                <SelectItem value="all">Todos</SelectItem>
+                {promoters.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
           <div className="col-span-2 space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Indústria</label>
-            <Select value={filterIndustry || "all"} onValueChange={(v) => setFilterIndustry(v === "all" ? "" : v)}>
-              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white"><SelectValue placeholder="Todas" /></SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10"><SelectItem value="all">Todas</SelectItem>{industries.map((i) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}</SelectContent>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              Indústria
+            </label>
+            <Select
+              value={filterIndustry || "all"}
+              onValueChange={(v) => setFilterIndustry(v === "all" ? "" : v)}
+            >
+              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white">
+                <SelectValue placeholder="Todas" />
+              </SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10">
+                <SelectItem value="all">Todas</SelectItem>
+                {industries.map((i) => (
+                  <SelectItem key={i.id} value={i.id}>
+                    {i.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">UF</label>
-            <Select value={filterUf || "all"} onValueChange={(v) => setFilterUf(v === "all" ? "" : v)}>
-              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white"><SelectValue placeholder="Todas" /></SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10"><SelectItem value="all">Todas</SelectItem>{ufs.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              UF
+            </label>
+            <Select
+              value={filterUf || "all"}
+              onValueChange={(v) => setFilterUf(v === "all" ? "" : v)}
+            >
+              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white">
+                <SelectValue placeholder="Todas" />
+              </SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10">
+                <SelectItem value="all">Todas</SelectItem>
+                {ufs.map((u) => (
+                  <SelectItem key={u} value={u}>
+                    {u}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
           <div className="col-span-4 space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Busca Rápida</label>
-            <Input placeholder="Buscar por promotor, loja ou indústria…" value={nameFilter} onChange={(e) => setNameFilter(e.target.value)} className="h-9 bg-black/40 border-white/5 text-xs text-white" />
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              Busca Rápida
+            </label>
+            <Input
+              placeholder="Buscar por promotor, loja ou indústria…"
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+              className="h-9 bg-black/40 border-white/5 text-xs text-white"
+            />
           </div>
-          <Button variant="outline" className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest" onClick={() => qc.invalidateQueries({ queryKey: ["mk9-routes-versioned"] })}>
+          <Button
+            variant="outline"
+            className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest"
+            onClick={() => qc.invalidateQueries({ queryKey: ["mk9-routes-versioned"] })}
+          >
             <RefreshCw className="h-4 w-4 mr-2" /> Atualizar
           </Button>
         </div>
@@ -192,71 +308,124 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
         <p className="text-sm text-muted-foreground">
           Roteiros vigentes em <strong>{referenceDate}</strong> · {routes.length} itens
         </p>
-        <Button size="sm" onClick={() => setCreating(true)}><Plus className="h-4 w-4" /> Novo item de roteiro</Button>
+        <Button size="sm" onClick={() => setCreating(true)}>
+          <Plus className="h-4 w-4" /> Novo item de roteiro
+        </Button>
       </div>
 
       {listQ.isLoading ? (
-        <div className="flex items-center justify-center py-12"><Loader2 className="h-5 w-5 animate-spin" /></div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
       ) : routes.length === 0 ? (
-        <Card><CardContent className="py-10 text-center text-muted-foreground">Nenhum roteiro vigente para os filtros escolhidos.</CardContent></Card>
+        <Card>
+          <CardContent className="py-10 text-center text-muted-foreground">
+            Nenhum roteiro vigente para os filtros escolhidos.
+          </CardContent>
+        </Card>
       ) : (
         <div className="space-y-4">
-          {filterPromoter && <PromoterRouteCard promoterId={filterPromoter} referenceDate={referenceDate} promoters={promoters} />}
-          {Array.from(grouped.keys()).sort((a, b) => a.localeCompare(b, "pt-BR")).map((promoter) => {
-            const days = grouped.get(promoter)!;
-            return (
-              <Card key={promoter}>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4 text-primary" />{promoter}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {Array.from(days.keys()).sort().map((wd) => {
-                    const stMap = days.get(wd)!;
-                    return (
-                      <div key={wd} className="rounded-lg border bg-muted/20 p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs font-semibold uppercase tracking-wider text-primary">{WEEKDAY_PT[wd]}</p>
-                          {filterPromoter && (
-                            <Badge variant="outline" className="text-[10px] h-5 bg-background font-normal">
-                              {Array.from(stMap.values()).length} visitas
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          {Array.from(stMap.values()).map(({ store, items }) => (
-                            <div key={store.storeId ?? store.storeName} className="flex items-start justify-between gap-3 border-l-2 border-primary/40 pl-3">
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium truncate">
-                                  {store.storeChain ? `${store.storeChain} · ` : ""}{store.storeName}
-                                  {store.storeUf ? <span className="ml-2 text-xs text-muted-foreground">{store.storeUf}</span> : null}
-                                </p>
-                                <div className="flex flex-wrap items-center gap-1 mt-1">
-                                  {items.map((it) => (
-                                    <div key={it.id} className="inline-flex items-center gap-1 rounded-md bg-background border px-1.5 py-0.5 text-xs">
-                                      <span>{it.industryName}</span>
-                                      <Button variant="ghost" size="icon" className="h-5 w-5" title="Editar item" onClick={() => setEditing(it)}>
-                                        <Pencil className="h-3 w-3" />
-                                      </Button>
-                                      <Button variant="ghost" size="icon" className="h-5 w-5" title="Histórico de versões" onClick={() => setHistoryKey({
-                                        storeId: it.storeId!, industryId: it.industryId!, weekday: it.weekday,
-                                        label: `${it.storeName} · ${it.industryName} · ${WEEKDAY_PT[it.weekday]}`,
-                                      })}>
-                                        <History className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
+          {filterPromoter && (
+            <PromoterRouteCard
+              promoterId={filterPromoter}
+              referenceDate={referenceDate}
+              promoters={promoters}
+            />
+          )}
+          {Array.from(grouped.keys())
+            .sort((a, b) => a.localeCompare(b, "pt-BR"))
+            .map((promoter) => {
+              const days = grouped.get(promoter)!;
+              return (
+                <Card key={promoter}>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Users className="h-4 w-4 text-primary" />
+                      {promoter}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {Array.from(days.keys())
+                      .sort()
+                      .map((wd) => {
+                        const stMap = days.get(wd)!;
+                        return (
+                          <div key={wd} className="rounded-lg border bg-muted/20 p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                                {WEEKDAY_PT[wd]}
+                              </p>
+                              {filterPromoter && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] h-5 bg-background font-normal"
+                                >
+                                  {Array.from(stMap.values()).length} visitas
+                                </Badge>
+                              )}
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            );
-          })}
+                            <div className="space-y-2">
+                              {Array.from(stMap.values()).map(({ store, items }) => (
+                                <div
+                                  key={store.storeId ?? store.storeName}
+                                  className="flex items-start justify-between gap-3 border-l-2 border-primary/40 pl-3"
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-medium truncate">
+                                      {store.storeChain ? `${store.storeChain} · ` : ""}
+                                      {store.storeName}
+                                      {store.storeUf ? (
+                                        <span className="ml-2 text-xs text-muted-foreground">
+                                          {store.storeUf}
+                                        </span>
+                                      ) : null}
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-1 mt-1">
+                                      {items.map((it) => (
+                                        <div
+                                          key={it.id}
+                                          className="inline-flex items-center gap-1 rounded-md bg-background border px-1.5 py-0.5 text-xs"
+                                        >
+                                          <span>{it.industryName}</span>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-5 w-5"
+                                            title="Editar item"
+                                            onClick={() => setEditing(it)}
+                                          >
+                                            <Pencil className="h-3 w-3" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-5 w-5"
+                                            title="Histórico de versões"
+                                            onClick={() =>
+                                              setHistoryKey({
+                                                storeId: it.storeId!,
+                                                industryId: it.industryId!,
+                                                weekday: it.weekday,
+                                                label: `${it.storeName} · ${it.industryName} · ${WEEKDAY_PT[it.weekday]}`,
+                                              })
+                                            }
+                                          >
+                                            <History className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </CardContent>
+                </Card>
+              );
+            })}
         </div>
       )}
 
@@ -266,9 +435,13 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           promoters={promoters}
           stores={stores}
           industries={industries}
-          onClose={() => { setEditing(null); setCreating(false); }}
+          onClose={() => {
+            setEditing(null);
+            setCreating(false);
+          }}
           onSaved={() => {
-            setEditing(null); setCreating(false);
+            setEditing(null);
+            setCreating(false);
             qc.invalidateQueries({ queryKey: ["mk9-routes-versioned"] });
           }}
         />
@@ -291,7 +464,12 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
 // Modal de criação/edição
 // ---------------------------------------------------------------------------
 function EditDialog({
-  initial, promoters, stores, industries, onClose, onSaved,
+  initial,
+  promoters,
+  stores,
+  industries,
+  onClose,
+  onSaved,
 }: {
   initial: Route | null;
   promoters: Array<{ id: string; name: string }>;
@@ -313,13 +491,19 @@ function EditDialog({
 
   const save = useMutation({
     mutationFn: async () => {
-      setError(null); setConflict(null);
-      if (!promoterId || !storeId || !industryId) throw new Error("Preencha promotor, loja e indústria.");
+      setError(null);
+      setConflict(null);
+      if (!promoterId || !storeId || !industryId)
+        throw new Error("Preencha promotor, loja e indústria.");
       if (!validFrom) throw new Error("Escolha a data de início da nova vigência.");
       return upsertFn({
         data: {
           id: initial?.id,
-          promoterId, storeId, industryId, weekday, validFrom,
+          promoterId,
+          storeId,
+          industryId,
+          weekday,
+          validFrom,
         },
       });
     },
@@ -327,7 +511,11 @@ function EditDialog({
     onError: (err: any) => {
       const msg = err?.message || "Falha ao salvar.";
       if (msg.startsWith("CONFLITO_VIGENCIA::")) {
-        try { setConflict(JSON.parse(msg.slice("CONFLITO_VIGENCIA::".length))); } catch { setError(msg); }
+        try {
+          setConflict(JSON.parse(msg.slice("CONFLITO_VIGENCIA::".length)));
+        } catch {
+          setError(msg);
+        }
       } else {
         setError(msg);
       }
@@ -344,11 +532,17 @@ function EditDialog({
   });
 
   return (
-    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+    <Dialog
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose();
+      }}
+    >
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <RouteIcon className="h-4 w-4" /> {initial ? "Editar item de roteiro" : "Novo item de roteiro"}
+            <RouteIcon className="h-4 w-4" />{" "}
+            {initial ? "Editar item de roteiro" : "Novo item de roteiro"}
           </DialogTitle>
         </DialogHeader>
 
@@ -356,31 +550,59 @@ function EditDialog({
           <div>
             <label className="text-xs text-muted-foreground">Promotor</label>
             <Select value={promoterId} onValueChange={setPromoterId}>
-              <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
-              <SelectContent>{promoters.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione…" />
+              </SelectTrigger>
+              <SelectContent>
+                {promoters.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
           <div>
             <label className="text-xs text-muted-foreground">Loja</label>
             <Mk9StoreAutocomplete
               value={storeId}
-              initialLabel={initial?.storeName ? `${initial.storeName}${initial.storeUf ? ` · ${initial.storeUf}` : ""}` : null}
+              initialLabel={
+                initial?.storeName
+                  ? `${initial.storeName}${initial.storeUf ? ` · ${initial.storeUf}` : ""}`
+                  : null
+              }
               onChange={(s) => setStoreId(s.id)}
             />
           </div>
           <div>
             <label className="text-xs text-muted-foreground">Indústria</label>
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
-              <SelectContent>{industries.map((i) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}</SelectContent>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione…" />
+              </SelectTrigger>
+              <SelectContent>
+                {industries.map((i) => (
+                  <SelectItem key={i.id} value={i.id}>
+                    {i.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-muted-foreground">Dia da semana</label>
               <Select value={String(weekday)} onValueChange={(v) => setWeekday(Number(v))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{WEEKDAY_PT.map((n, i) => <SelectItem key={i} value={String(i)}>{n}</SelectItem>)}</SelectContent>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {WEEKDAY_PT.map((n, i) => (
+                    <SelectItem key={i} value={String(i)}>
+                      {n}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
             <div>
@@ -392,7 +614,8 @@ function EditDialog({
           </div>
           {initial && (
             <p className="text-xs text-muted-foreground">
-              Versão atual vigente desde <strong>{initial.validFrom}</strong>. A nova vigência precisa ser posterior.
+              Versão atual vigente desde <strong>{initial.validFrom}</strong>. A nova vigência
+              precisa ser posterior.
             </p>
           )}
 
@@ -409,7 +632,12 @@ function EditDialog({
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Conflito de vigência</AlertTitle>
               <AlertDescription className="space-y-1">
-                <p>Esta loja + indústria + dia já está atribuída a <strong>{conflict.conflictPromoterName}</strong> no intervalo <strong>{conflict.conflictFrom}</strong> → <strong>{conflict.conflictUntil}</strong>.</p>
+                <p>
+                  Esta loja + indústria + dia já está atribuída a{" "}
+                  <strong>{conflict.conflictPromoterName}</strong> no intervalo{" "}
+                  <strong>{conflict.conflictFrom}</strong> →{" "}
+                  <strong>{conflict.conflictUntil}</strong>.
+                </p>
                 <p>Encerre ou reagende a rota conflitante antes de salvar.</p>
               </AlertDescription>
             </Alert>
@@ -418,12 +646,19 @@ function EditDialog({
 
         <DialogFooter className="flex items-center justify-between sm:justify-between">
           {initial && (
-            <Button variant="outline" size="sm" onClick={() => deactivate.mutate()} disabled={!validFrom || deactivate.isPending}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => deactivate.mutate()}
+              disabled={!validFrom || deactivate.isPending}
+            >
               <PowerOff className="h-4 w-4" /> Desativar em {validFrom || "…"}
             </Button>
           )}
           <div className="flex gap-2 ml-auto">
-            <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+            <Button variant="ghost" onClick={onClose}>
+              Cancelar
+            </Button>
             <Button onClick={() => save.mutate()} disabled={save.isPending}>
               {save.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               Salvar nova vigência
@@ -439,9 +674,17 @@ function EditDialog({
 // Histórico de versões
 // ---------------------------------------------------------------------------
 function HistoryDialog({
-  storeId, industryId, weekday, label, onClose,
+  storeId,
+  industryId,
+  weekday,
+  label,
+  onClose,
 }: {
-  storeId: string; industryId: string; weekday: number; label: string; onClose: () => void;
+  storeId: string;
+  industryId: string;
+  weekday: number;
+  label: string;
+  onClose: () => void;
 }) {
   const listFn = useServerFn(mk9RoutesListHistory);
   const q = useQuery({
@@ -449,17 +692,29 @@ function HistoryDialog({
     queryFn: () => listFn({ data: { storeId, industryId, weekday } }),
   });
   return (
-    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+    <Dialog
+      open
+      onOpenChange={(o) => {
+        if (!o) onClose();
+      }}
+    >
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><History className="h-4 w-4" /> Histórico · {label}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <History className="h-4 w-4" /> Histórico · {label}
+          </DialogTitle>
         </DialogHeader>
         {q.isLoading ? (
-          <div className="flex items-center justify-center py-8"><Loader2 className="h-5 w-5 animate-spin" /></div>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-5 w-5 animate-spin" />
+          </div>
         ) : (
           <div className="space-y-2">
             {(q.data ?? []).map((v) => (
-              <div key={v.id} className="flex items-center justify-between rounded border p-2 text-sm">
+              <div
+                key={v.id}
+                className="flex items-center justify-between rounded border p-2 text-sm"
+              >
                 <div>
                   <p className="font-medium">{v.promoterName}</p>
                   <p className="text-xs text-muted-foreground">
@@ -467,14 +722,18 @@ function HistoryDialog({
                   </p>
                 </div>
                 <div className="flex gap-1">
-                  {v.isActive
-                    ? <Badge variant="default">Ativa</Badge>
-                    : <Badge variant="outline">Encerrada</Badge>}
+                  {v.isActive ? (
+                    <Badge variant="default">Ativa</Badge>
+                  ) : (
+                    <Badge variant="outline">Encerrada</Badge>
+                  )}
                   {v.archivedAt && <Badge variant="destructive">Arquivada</Badge>}
                 </div>
               </div>
             ))}
-            {(q.data ?? []).length === 0 && <p className="text-sm text-muted-foreground">Nenhuma versão registrada.</p>}
+            {(q.data ?? []).length === 0 && (
+              <p className="text-sm text-muted-foreground">Nenhuma versão registrada.</p>
+            )}
           </div>
         )}
       </DialogContent>
@@ -485,21 +744,38 @@ function HistoryDialog({
 // ---------------------------------------------------------------------------
 // Card de Resumo do Roteiro (Missão: Total de Visitas)
 // ---------------------------------------------------------------------------
-function PromoterRouteCard({ 
-  promoterId, referenceDate, promoters 
-}: { 
-  promoterId: string; referenceDate: string; promoters: any[] 
+function PromoterRouteCard({
+  promoterId,
+  referenceDate,
+  promoters,
+}: {
+  promoterId: string;
+  referenceDate: string;
+  promoters: any[];
 }) {
   const [y, m] = referenceDate.split("-").map(Number);
-  const promoter = promoters.find(p => p.id === promoterId);
-  
+  const promoter = promoters.find((p) => p.id === promoterId);
+
   const statsFn = useServerFn(mk9PromoterRouteStats);
   const q = useQuery({
     queryKey: ["mk9-promoter-route-stats", promoterId, y, m],
     queryFn: () => statsFn({ data: { promoterId, year: y, month: m } }),
   });
 
-  const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  const months = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
 
   return (
     <Card className="bg-primary/5 border-primary/20 shadow-none overflow-hidden relative">
@@ -508,39 +784,53 @@ function PromoterRouteCard({
       </div>
       <CardContent className="pt-6">
         {q.isLoading ? (
-          <div className="flex items-center gap-2 py-4"><Loader2 className="h-4 w-4 animate-spin" /> Carregando resumo...</div>
+          <div className="flex items-center gap-2 py-4">
+            <Loader2 className="h-4 w-4 animate-spin" /> Carregando resumo...
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
             <div className="space-y-1 border-r pr-6 border-primary/10">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Promotor</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Promotor
+              </p>
               <div className="flex items-center gap-2">
                 <p className="text-lg font-bold truncate">{promoter?.name ?? "—"}</p>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 text-primary" 
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-primary"
                   title="Exportar Roteiro PDF"
-                  onClick={() => downloadPromoterPdf(promoterId, promoter?.name ?? "Promotor", y, m)}
+                  onClick={() =>
+                    downloadPromoterPdf(promoterId, promoter?.name ?? "Promotor", y, m)
+                  }
                 >
                   <FileText className="h-4 w-4" />
                 </Button>
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className="bg-background/50">{months[m-1]}/{y}</Badge>
+                <Badge variant="outline" className="bg-background/50">
+                  {months[m - 1]}/{y}
+                </Badge>
               </div>
             </div>
             <div className="space-y-1 border-r pr-6 border-primary/10">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total de Visitas</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Total de Visitas
+              </p>
               <p className="text-2xl font-black text-primary">{q.data?.totalVisits ?? 0}</p>
               <p className="text-[10px] text-muted-foreground">Contratadas no período</p>
             </div>
             <div className="space-y-1 border-r pr-6 border-primary/10">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Lojas Únicas</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Lojas Únicas
+              </p>
               <p className="text-2xl font-black">{q.data?.uniqueStores ?? 0}</p>
               <p className="text-[10px] text-muted-foreground">Pontos de venda</p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Indústrias</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Indústrias
+              </p>
               <p className="text-2xl font-black">{q.data?.uniqueIndustries ?? 0}</p>
               <p className="text-[10px] text-muted-foreground">Marcas atendidas</p>
             </div>

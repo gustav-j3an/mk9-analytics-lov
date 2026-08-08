@@ -30,11 +30,10 @@ export const revertChecklistImport = createServerFn({ method: "POST" })
     const ctx = await requireMk9Role(["ADMIN"]);
 
     const { executeRevert } = await import("./revert.server");
-    return executeRevert(data.importId, { 
-      reason: data.reason, 
-      actorId: ctx.userId ?? undefined 
+    return executeRevert(data.importId, {
+      reason: data.reason,
+      actorId: ctx.userId ?? undefined,
     });
-
   });
 
 export const correctChecklistCompetence = createServerFn({ method: "POST" })
@@ -48,8 +47,6 @@ export const correctChecklistCompetence = createServerFn({ method: "POST" })
       targetMonth: data.targetMonth,
       targetYear: data.targetYear,
       reason: data.reason,
-      actorId: ctx.userId ?? undefined
+      actorId: ctx.userId ?? undefined,
     });
-
   });
-

@@ -34,7 +34,9 @@ export const pendingImportConflictDetector: Mk9DataQualityDetector = {
 
     let checklistQuery = ctx.supabase
       .from("mk9_checklist_imports")
-      .select("id, industry_id, filename, status, started_at, finished_at, operation_month, operation_year")
+      .select(
+        "id, industry_id, filename, status, started_at, finished_at, operation_month, operation_year",
+      )
       .in("status", open)
       .order("started_at", { ascending: false })
       .limit(500);
@@ -65,7 +67,11 @@ export const pendingImportConflictDetector: Mk9DataQualityDetector = {
     const issues: DetectedIssue[] = [];
     for (const { row, kind } of rows) {
       const verdict = evaluateImportHealth(
-        { status: row.status, startedAt: row.started_at ?? null, finishedAt: row.finished_at ?? null },
+        {
+          status: row.status,
+          startedAt: row.started_at ?? null,
+          finishedAt: row.finished_at ?? null,
+        },
         now,
       );
       if (!verdict) continue;

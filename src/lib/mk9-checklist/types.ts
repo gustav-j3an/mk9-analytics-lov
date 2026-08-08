@@ -67,7 +67,11 @@ export interface ChecklistStoreFrequency {
   frequencyInconsistent?: boolean;
 }
 
-export type ChecklistValidationStatus = "CONSISTENT" | "COMPLETED_WITH_ALERTS" | "INCONSISTENT" | "FAILED";
+export type ChecklistValidationStatus =
+  | "CONSISTENT"
+  | "COMPLETED_WITH_ALERTS"
+  | "INCONSISTENT"
+  | "FAILED";
 
 export interface ChecklistStoreValidation {
   storeName: string;

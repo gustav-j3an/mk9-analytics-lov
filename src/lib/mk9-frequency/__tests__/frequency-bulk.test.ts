@@ -47,7 +47,12 @@ const version = (weekly: number | null, monthly: number | null, sourceType = "IM
   updatedAt: "2026-07-01T00:00:00Z",
 });
 
-const seg = (monthly: number | null, weekly: number | null = null, from = "2020-01-01", until: string | null = null) => ({
+const seg = (
+  monthly: number | null,
+  weekly: number | null = null,
+  from = "2020-01-01",
+  until: string | null = null,
+) => ({
   validFrom: from,
   validUntil: until,
   monthlyFrequency: monthly,
@@ -97,7 +102,9 @@ describe("lote — modo somente lojas selecionadas", () => {
   });
 
   it("loja marcada é aplicada", () => {
-    expect(classifyBulkStore(store({ explicitlySelected: true }), input).kind).toBe("NEW_FREQUENCY");
+    expect(classifyBulkStore(store({ explicitlySelected: true }), input).kind).toBe(
+      "NEW_FREQUENCY",
+    );
   });
 });
 
@@ -119,7 +126,10 @@ describe("lote — conflitos nunca são sobrescritos silenciosamente", () => {
   });
 
   it("vigência futura gera FUTURE_VERSION_CONFLICT", () => {
-    const item = classifyBulkStore(store({ current: version(2, 8), hasFutureVersion: true }), input);
+    const item = classifyBulkStore(
+      store({ current: version(2, 8), hasFutureVersion: true }),
+      input,
+    );
     expect(item.kind).toBe("FUTURE_VERSION_CONFLICT");
   });
 
@@ -135,10 +145,26 @@ describe("lote — conflitos nunca são sobrescritos silenciosamente", () => {
 describe("lote — payload enviado à RPC transacional", () => {
   it("só inclui itens graváveis e carrega o expected_updated_at de cada loja", () => {
     const items = [
-      classifyBulkStore(store({ storeId: "a" }), { weeklyFrequency: 1, monthlyFrequency: 4, mode: "REPLACE_FROM_DATE" }),
-      classifyBulkStore(store({ storeId: "b", current: version(1, 4) }), { weeklyFrequency: 1, monthlyFrequency: 4, mode: "REPLACE_FROM_DATE" }),
-      classifyBulkStore(store({ storeId: "c", current: version(2, 8, "MANUAL") }), { weeklyFrequency: 1, monthlyFrequency: 4, mode: "REPLACE_FROM_DATE" }),
-      classifyBulkStore(store({ storeId: "d", current: version(2, 8) }), { weeklyFrequency: 1, monthlyFrequency: 4, mode: "REPLACE_FROM_DATE" }),
+      classifyBulkStore(store({ storeId: "a" }), {
+        weeklyFrequency: 1,
+        monthlyFrequency: 4,
+        mode: "REPLACE_FROM_DATE",
+      }),
+      classifyBulkStore(store({ storeId: "b", current: version(1, 4) }), {
+        weeklyFrequency: 1,
+        monthlyFrequency: 4,
+        mode: "REPLACE_FROM_DATE",
+      }),
+      classifyBulkStore(store({ storeId: "c", current: version(2, 8, "MANUAL") }), {
+        weeklyFrequency: 1,
+        monthlyFrequency: 4,
+        mode: "REPLACE_FROM_DATE",
+      }),
+      classifyBulkStore(store({ storeId: "d", current: version(2, 8) }), {
+        weeklyFrequency: 1,
+        monthlyFrequency: 4,
+        mode: "REPLACE_FROM_DATE",
+      }),
     ];
     const payload = bulkRpcItems(items, "2026-07-01");
     expect(payload.map((p) => p.store_id)).toEqual(["a", "d"]);
@@ -147,11 +173,24 @@ describe("lote — payload enviado à RPC transacional", () => {
     expect(payload.every((p) => p.effective_date === "2026-07-01")).toBe(true);
 
     const counters = countBulkPreview(items);
-    expect(counters).toMatchObject({ selected: 4, new: 1, changed: 1, unchanged: 1, manualConflicts: 1, writable: 2 });
+    expect(counters).toMatchObject({
+      selected: 4,
+      new: 1,
+      changed: 1,
+      unchanged: 1,
+      manualConflicts: 1,
+      writable: 2,
+    });
   });
 
   it("nada gravável = nada enviado (rollback nem chega a ser necessário)", () => {
-    const items = [classifyBulkStore(store({ current: version(1, 4) }), { weeklyFrequency: 1, monthlyFrequency: 4, mode: "REPLACE_FROM_DATE" })];
+    const items = [
+      classifyBulkStore(store({ current: version(1, 4) }), {
+        weeklyFrequency: 1,
+        monthlyFrequency: 4,
+        mode: "REPLACE_FROM_DATE",
+      }),
+    ];
     expect(bulkRpcItems(items, "2026-07-01")).toEqual([]);
   });
 });
@@ -186,7 +225,12 @@ describe("total distribuído — usa exclusivamente o motor oficial", () => {
 
   it("mudança no meio do período soma proporcionalmente", () => {
     const rows = computeStoreDistribution(
-      [{ storeId: "a", segments: [seg(4, null, "2020-01-01", "2026-07-15"), seg(8, null, "2026-07-16")] }],
+      [
+        {
+          storeId: "a",
+          segments: [seg(4, null, "2020-01-01", "2026-07-15"), seg(8, null, "2026-07-16")],
+        },
+      ],
       JUL,
     );
     // 4 × 15/31 + 8 × 16/31 = 1,935 + 4,129 = 6,06 → 6
@@ -321,7 +365,9 @@ describe("validação dos payloads (Zod strict)", () => {
   });
 
   it("recusa lote sem frequência informada", () => {
-    expect(() => bulkPreviewSchema.parse({ ...base, weeklyFrequency: null, monthlyFrequency: null })).toThrow();
+    expect(() =>
+      bulkPreviewSchema.parse({ ...base, weeklyFrequency: null, monthlyFrequency: null }),
+    ).toThrow();
   });
 
   it("recusa campos desconhecidos", () => {
@@ -330,7 +376,9 @@ describe("validação dos payloads (Zod strict)", () => {
 
   it("aplicação exige justificativa", () => {
     expect(() => bulkApplySchema.parse({ ...base, reason: "x" })).toThrow();
-    expect(bulkApplySchema.parse({ ...base, reason: "Ajuste comercial" }).forceManualConflicts).toBe(false);
+    expect(
+      bulkApplySchema.parse({ ...base, reason: "Ajuste comercial" }).forceManualConflicts,
+    ).toBe(false);
   });
 
   it("total contratado recusa valor negativo", () => {

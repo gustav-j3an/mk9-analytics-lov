@@ -23,23 +23,27 @@ export const reportIndustryUnattended = createServerFn({ method: "POST" })
     const window = resolveWindow(cfg, data.year, data.month);
 
     // Reutilizamos o motor oficial de relatório
-    const report = await buildIndustryReport(supabaseAdmin, {
-      industryId: data.industryId,
-      year: data.year,
-      month: data.month,
-      uf: data.uf ?? null,
-      access,
-    }, window);
+    const report = await buildIndustryReport(
+      supabaseAdmin,
+      {
+        industryId: data.industryId,
+        year: data.year,
+        month: data.month,
+        uf: data.uf ?? null,
+        access,
+      },
+      window,
+    );
 
     // Filtramos apenas lojas não atendidas: contratadas > 0 E realizadas == 0
     // Além disso, o motor buildIndustryReport já cuida do escopo e filtros de UF.
-    const unattendedStores = report.stores.filter(s => s.expected > 0 && s.actual === 0);
+    const unattendedStores = report.stores.filter((s) => s.expected > 0 && s.actual === 0);
 
     return {
       industry: report.industry,
       window: report.window,
       totals: {
-        totalContractedStores: report.stores.filter(s => s.expected > 0).length,
+        totalContractedStores: report.stores.filter((s) => s.expected > 0).length,
         unattendedStoresCount: unattendedStores.length,
         unattendedContractedVisits: unattendedStores.reduce((sum, s) => sum + s.expected, 0),
       },

@@ -9,8 +9,18 @@ export function DashboardHeader({ month, year }: { month: number; year: number }
   const isAuditor = roles.includes("AUDITOR");
 
   const MONTHS_PT = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
   ];
 
   return (
@@ -22,7 +32,10 @@ export function DashboardHeader({ month, year }: { month: number; year: number }
         </h1>
         <div className="flex items-center gap-3 mt-1">
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-            COMPETÊNCIA: <span className="text-white">{MONTHS_PT[month - 1]} / {year}</span>
+            COMPETÊNCIA:{" "}
+            <span className="text-white">
+              {MONTHS_PT[month - 1]} / {year}
+            </span>
           </span>
           <div className="h-3 w-[1px] bg-white/10" />
           <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-1">
@@ -35,7 +48,13 @@ export function DashboardHeader({ month, year }: { month: number; year: number }
         <div className="text-right hidden sm:block">
           <p className="text-xs font-bold text-white">{user?.email?.split("@")[0]}</p>
           <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter">
-            {isAdmin ? "Administrator" : isSupervisor ? "Supervisor" : isAuditor ? "Auditor" : "Operator"}
+            {isAdmin
+              ? "Administrator"
+              : isSupervisor
+                ? "Supervisor"
+                : isAuditor
+                  ? "Auditor"
+                  : "Operator"}
           </p>
         </div>
         <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-command-purple to-command-blue p-[1px]">

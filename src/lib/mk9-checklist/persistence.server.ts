@@ -42,7 +42,6 @@ export async function queryPersistedVisitsByImport(importId: string) {
   return byStore;
 }
 
-
 export interface StoreIndexRecord {
   id: string;
   name: string;
@@ -109,7 +108,11 @@ export async function loadStoresIndex() {
     }
   }
   // Só aceita match por compact/tokenSet quando é ÚNICO na UF (evita ambiguidade).
-  function pickUnique(kind: "compact" | "tokenSet", uf: string, key: string): StoreIndexRecord | null {
+  function pickUnique(
+    kind: "compact" | "tokenSet",
+    uf: string,
+    key: string,
+  ): StoreIndexRecord | null {
     if (!key) return null;
     const mapByUf = kind === "compact" ? compactByUf : tokenSetByUf;
     const cntByUf = kind === "compact" ? compactCountByUf : tokenSetCountByUf;
@@ -130,7 +133,10 @@ export async function ensureChecklistStores(
   if (!candidates.length) return result;
 
   // Dedup interno por (normalized, uf); mantém a primeira grafia.
-  const dedup = new Map<string, { storeName: string; storeNormalized: string; uf: string | null }>();
+  const dedup = new Map<
+    string,
+    { storeName: string; storeNormalized: string; uf: string | null }
+  >();
   for (const c of candidates) {
     const key = `${c.storeNormalized}|${c.uf ?? ""}`;
     if (!dedup.has(key)) dedup.set(key, c);
@@ -176,9 +182,10 @@ export async function ensureChecklistStores(
         .from("mk9_stores")
         .select("id")
         .eq("name_normalized", c.storeNormalized);
-      const { data: after, error: afterErr } = c.uf === null
-        ? await query.is("uf", null).maybeSingle()
-        : await query.eq("uf", c.uf).maybeSingle();
+      const { data: after, error: afterErr } =
+        c.uf === null
+          ? await query.is("uf", null).maybeSingle()
+          : await query.eq("uf", c.uf).maybeSingle();
       if (afterErr || !after) throw new Error(insErr.message);
       result.set(key, { storeId: after.id as string, created: false });
       continue;
@@ -217,9 +224,7 @@ export async function cancelPreviousPreviews(input: {
     .eq("operation_month", input.operationMonth)
     .eq("operation_year", input.operationYear)
     .in("status", ["pending", "previewing"]);
-  const { error } = input.exceptImportId
-    ? await q.neq("id", input.exceptImportId)
-    : await q;
+  const { error } = input.exceptImportId ? await q.neq("id", input.exceptImportId) : await q;
   if (error) throw new Error(error.message);
 }
 
@@ -248,7 +253,6 @@ export async function createChecklistImport(input: {
   return { id: data.id as string };
 }
 
-
 export async function savePreviewSnapshot(importId: string, preview: ChecklistPreview) {
   const { error } = await supabaseAdmin
     .from("mk9_checklist_imports")
@@ -260,7 +264,16 @@ export async function savePreviewSnapshot(importId: string, preview: ChecklistPr
 export async function updateImportStatus(
   importId: string,
   patch: {
-    status?: "pending" | "previewing" | "confirmed" | "committing" | "done" | "failed" | "cancelled" | "INCONSISTENT" | "COMPLETED_WITH_ALERTS";
+    status?:
+      | "pending"
+      | "previewing"
+      | "confirmed"
+      | "committing"
+      | "done"
+      | "failed"
+      | "cancelled"
+      | "INCONSISTENT"
+      | "COMPLETED_WITH_ALERTS";
     counters?: Record<string, unknown>;
     errorMessage?: string | null;
     finishedAt?: Date;
@@ -273,7 +286,10 @@ export async function updateImportStatus(
   if (patch.errorMessage !== undefined) update.error_message = patch.errorMessage;
   if (patch.finishedAt) update.finished_at = patch.finishedAt.toISOString();
   if (patch.durationMs !== undefined) update.duration_ms = patch.durationMs;
-  const { error } = await supabaseAdmin.from("mk9_checklist_imports").update(update as any).eq("id", importId);
+  const { error } = await supabaseAdmin
+    .from("mk9_checklist_imports")
+    .update(update as any)
+    .eq("id", importId);
   if (error) throw new Error(error.message);
 }
 
@@ -388,9 +404,8 @@ export async function upsertIndustryStoreFrequencies(
     actorId?: string | null;
   },
 ) {
-  const { buildFrequencyDiff, applyFrequencyDiff } = await import(
-    "@/lib/mk9-frequency/diff.server"
-  );
+  const { buildFrequencyDiff, applyFrequencyDiff } =
+    await import("@/lib/mk9-frequency/diff.server");
   const report = await buildFrequencyDiff(
     industryId,
     rows,
@@ -418,7 +433,7 @@ export async function persistImportSnapshot(
     uf: string | null;
     weeklyFrequency: number | null;
     monthlyFrequency: number | null;
-  }>
+  }>,
 ) {
   if (!rows.length) return;
 
@@ -435,17 +450,18 @@ export async function persistImportSnapshot(
   const CHUNK = 500;
   for (let i = 0; i < payload.length; i += CHUNK) {
     const slice = payload.slice(i, i + CHUNK);
-    const { error } = await (supabaseAdmin
-      .from("mk9_checklist_import_store_snapshots" as any) as any)
-      .upsert(slice as any);
+    const { error } = await (
+      supabaseAdmin.from("mk9_checklist_import_store_snapshots" as any) as any
+    ).upsert(slice as any);
     if (error) throw new Error(error.message);
   }
 }
 
 export async function loadImportSnapshot(importId: string): Promise<any[]> {
   try {
-    const { data, error } = await (supabaseAdmin
-      .from("mk9_checklist_import_store_snapshots" as any) as any)
+    const { data, error } = await (
+      supabaseAdmin.from("mk9_checklist_import_store_snapshots" as any) as any
+    )
       .select("store_id, source_store_name, uf, weekly_frequency, monthly_frequency")
       .eq("import_id" as any, importId);
     if (error) return [];
@@ -454,7 +470,3 @@ export async function loadImportSnapshot(importId: string): Promise<any[]> {
     return [];
   }
 }
-
-
-
-

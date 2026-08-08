@@ -127,7 +127,9 @@ async function computeScope(ctx: Mk9AuthContext): Promise<Mk9AccessScope> {
   if (error) throw new Error("Não foi possível resolver o escopo de acesso.");
 
   const byType = (t: string) =>
-    uniqSorted((rows ?? []).filter((r: any) => r.scope_type === t).map((r: any) => String(r.scope_value)));
+    uniqSorted(
+      (rows ?? []).filter((r: any) => r.scope_type === t).map((r: any) => String(r.scope_value)),
+    );
 
   const industries = byType("INDUSTRY");
   const ufs = byType("UF");
@@ -137,10 +139,18 @@ async function computeScope(ctx: Mk9AuthContext): Promise<Mk9AccessScope> {
 
   if (role === "ADMIN") {
     return finalize({
-      userId: ctx.userId, roles: ctx.roles, role: "ADMIN", canViewAll: true,
-      allowedIndustryIds: null, allowedStoreIds: null, allowedUfs: null,
-      allowedSupervisorIds: null, allowedPromoterIds: null,
-      canViewPersonalData: true, canViewImports: true, canViewImportPayload: true,
+      userId: ctx.userId,
+      roles: ctx.roles,
+      role: "ADMIN",
+      canViewAll: true,
+      allowedIndustryIds: null,
+      allowedStoreIds: null,
+      allowedUfs: null,
+      allowedSupervisorIds: null,
+      allowedPromoterIds: null,
+      canViewPersonalData: true,
+      canViewImports: true,
+      canViewImportPayload: true,
       canGenerateReports: true,
     });
   }
@@ -148,25 +158,36 @@ async function computeScope(ctx: Mk9AuthContext): Promise<Mk9AccessScope> {
   if (role === "CLIENTE") {
     // CLIENTE só enxerga indústrias explicitamente liberadas (sem linhas = nada).
     return finalize({
-      userId: ctx.userId, roles: ctx.roles, role: "CLIENTE", canViewAll: false,
+      userId: ctx.userId,
+      roles: ctx.roles,
+      role: "CLIENTE",
+      canViewAll: false,
       allowedIndustryIds: industries,
       allowedStoreIds: stores.length ? stores : null,
       allowedUfs: ufs.length ? ufs : null,
-      allowedSupervisorIds: [], allowedPromoterIds: promoters.length ? promoters : null,
-      canViewPersonalData: false, canViewImports: false, canViewImportPayload: false,
+      allowedSupervisorIds: [],
+      allowedPromoterIds: promoters.length ? promoters : null,
+      canViewPersonalData: false,
+      canViewImports: false,
+      canViewImportPayload: false,
       canGenerateReports: true,
     });
   }
 
   if (role === "PROMOTOR") {
     return finalize({
-      userId: ctx.userId, roles: ctx.roles, role: "PROMOTOR", canViewAll: false,
+      userId: ctx.userId,
+      roles: ctx.roles,
+      role: "PROMOTOR",
+      canViewAll: false,
       allowedIndustryIds: industries.length ? industries : null,
       allowedStoreIds: stores.length ? stores : null,
       allowedUfs: ufs.length ? ufs : null,
       allowedSupervisorIds: [],
       allowedPromoterIds: promoters,
-      canViewPersonalData: false, canViewImports: false, canViewImportPayload: false,
+      canViewPersonalData: false,
+      canViewImports: false,
+      canViewImportPayload: false,
       canGenerateReports: false,
     });
   }
@@ -175,10 +196,18 @@ async function computeScope(ctx: Mk9AuthContext): Promise<Mk9AccessScope> {
   // (nunca herda o comportamento irrestrito de SUPERVISOR/AUDITOR).
   if (!role) {
     return finalize({
-      userId: ctx.userId, roles: ctx.roles, role: "PROMOTOR", canViewAll: false,
-      allowedIndustryIds: [], allowedStoreIds: [], allowedUfs: [],
-      allowedSupervisorIds: [], allowedPromoterIds: [],
-      canViewPersonalData: false, canViewImports: false, canViewImportPayload: false,
+      userId: ctx.userId,
+      roles: ctx.roles,
+      role: "PROMOTOR",
+      canViewAll: false,
+      allowedIndustryIds: [],
+      allowedStoreIds: [],
+      allowedUfs: [],
+      allowedSupervisorIds: [],
+      allowedPromoterIds: [],
+      canViewPersonalData: false,
+      canViewImports: false,
+      canViewImportPayload: false,
       canGenerateReports: false,
     });
   }
@@ -205,9 +234,17 @@ async function computeScope(ctx: Mk9AuthContext): Promise<Mk9AccessScope> {
 
 function finalize(s: Omit<Mk9AccessScope, "scopeHash">): Mk9AccessScope {
   const raw = JSON.stringify([
-    s.userId, s.role, s.canViewAll, s.allowedIndustryIds, s.allowedStoreIds,
-    s.allowedUfs, s.allowedPromoterIds, s.allowedSupervisorIds,
-    s.canViewPersonalData, s.canViewImports, s.canGenerateReports,
+    s.userId,
+    s.role,
+    s.canViewAll,
+    s.allowedIndustryIds,
+    s.allowedStoreIds,
+    s.allowedUfs,
+    s.allowedPromoterIds,
+    s.allowedSupervisorIds,
+    s.canViewPersonalData,
+    s.canViewImports,
+    s.canGenerateReports,
   ]);
   return { ...s, scopeHash: hash(raw) };
 }
@@ -269,7 +306,11 @@ export function assertIndustryAllowed(scope: Mk9AccessScope, industryId: string)
   }
 }
 
-export function assertStoreAllowed(scope: Mk9AccessScope, storeId: string | null, uf: string | null): void {
+export function assertStoreAllowed(
+  scope: Mk9AccessScope,
+  storeId: string | null,
+  uf: string | null,
+): void {
   if (storeId && scope.allowedStoreIds && !scope.allowedStoreIds.includes(storeId)) {
     throw new Mk9ScopeError("Loja fora do seu escopo de acesso.");
   }
@@ -283,8 +324,14 @@ export function rowInScope(
   scope: Mk9AccessScope,
   row: { industryId?: string | null; storeId?: string | null; uf?: string | null },
 ): boolean {
-  if (scope.allowedIndustryIds && row.industryId && !scope.allowedIndustryIds.includes(row.industryId)) return false;
-  if (scope.allowedStoreIds && row.storeId && !scope.allowedStoreIds.includes(row.storeId)) return false;
+  if (
+    scope.allowedIndustryIds &&
+    row.industryId &&
+    !scope.allowedIndustryIds.includes(row.industryId)
+  )
+    return false;
+  if (scope.allowedStoreIds && row.storeId && !scope.allowedStoreIds.includes(row.storeId))
+    return false;
   if (scope.allowedUfs && row.uf !== undefined) {
     if (!row.uf || !scope.allowedUfs.includes(row.uf)) return false;
   }
@@ -295,9 +342,19 @@ export function rowInScope(
 // DTOs DE PROMOTOR (mínimo necessário por uso)
 // ---------------------------------------------------------------------------
 
-export interface PromoterSummary { id: string; name: string }
-export interface PromoterOperationalView extends PromoterSummary { externalId: string | null; city: string | null }
-export interface PromoterAdminView extends PromoterOperationalView { contact: string | null; notes: string | null; updatedAt: string }
+export interface PromoterSummary {
+  id: string;
+  name: string;
+}
+export interface PromoterOperationalView extends PromoterSummary {
+  externalId: string | null;
+  city: string | null;
+}
+export interface PromoterAdminView extends PromoterOperationalView {
+  contact: string | null;
+  notes: string | null;
+  updatedAt: string;
+}
 
 export function toPromoterView(
   scope: Mk9AccessScope,

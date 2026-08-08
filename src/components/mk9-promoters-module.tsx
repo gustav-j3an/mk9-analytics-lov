@@ -10,7 +10,7 @@ import {
   Trash2,
   ShieldAlert,
   MapPin,
-  IdCard
+  IdCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,17 +21,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { mk9ListPromoters } from "@/lib/mk9-data.functions";
+import { PromoterDialog, PromoterDeleteDialog } from "@/components/mk9/promoter-admin-dialogs";
 import {
-  PromoterDialog,
-  PromoterDeleteDialog,
-} from "@/components/mk9/promoter-admin-dialogs";
-import { 
-  Mk9Panel, 
-  Mk9PageHeader, 
-  Mk9MetricCard, 
-  Mk9LoadingState, 
-  Mk9EmptyState, 
-  Mk9Badge 
+  Mk9Panel,
+  Mk9PageHeader,
+  Mk9MetricCard,
+  Mk9LoadingState,
+  Mk9EmptyState,
+  Mk9Badge,
 } from "@/components/mk9/design-system";
 
 export function Mk9PromotersModule() {
@@ -47,10 +44,11 @@ export function Mk9PromotersModule() {
   const [deletingPromoter, setDeletingPromoter] = useState<any | null>(null);
 
   const filtered = useMemo(() => {
-    return promoters.filter((p: any) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.employeeNumber && p.employeeNumber.includes(search)) ||
-      (p.uf && p.uf.toLowerCase().includes(search.toLowerCase()))
+    return promoters.filter(
+      (p: any) =>
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        (p.employeeNumber && p.employeeNumber.includes(search)) ||
+        (p.uf && p.uf.toLowerCase().includes(search.toLowerCase())),
     );
   }, [promoters, search]);
 
@@ -66,13 +64,13 @@ export function Mk9PromotersModule() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <Mk9PageHeader 
+      <Mk9PageHeader
         title="Gestão de Promotores"
         subtitle="Agentes de campo e execução operacional"
         icon={Users}
         actions={
-          <Button 
-            onClick={() => setShowCreate(true)} 
+          <Button
+            onClick={() => setShowCreate(true)}
             className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-black uppercase tracking-widest px-6 shadow-lg shadow-mk9-accent-primary/20 border-none"
           >
             <Plus className="h-4 w-4 mr-2" /> Novo Promotor
@@ -122,17 +120,27 @@ export function Mk9PromotersModule() {
                   <tr key={p.id} className="group hover:bg-white/[0.02] transition-colors">
                     <td className="px-4 py-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">{p.name}</span>
-                        {p.contact && <span className="text-[10px] text-slate-500 uppercase tracking-tight">{p.contact}</span>}
+                        <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">
+                          {p.name}
+                        </span>
+                        {p.contact && (
+                          <span className="text-[10px] text-slate-500 uppercase tracking-tight">
+                            {p.contact}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-xs font-mono text-slate-300">{p.employeeNumber || "—"}</span>
+                      <span className="text-xs font-mono text-slate-300">
+                        {p.employeeNumber || "—"}
+                      </span>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-1.5">
                         <MapPin className="h-3 w-3 text-slate-500" />
-                        <span className="text-xs font-medium text-slate-300">{p.city} / {p.uf}</span>
+                        <span className="text-xs font-medium text-slate-300">
+                          {p.city} / {p.uf}
+                        </span>
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -145,15 +153,28 @@ export function Mk9PromotersModule() {
                     <td className="px-4 py-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-command-deep border-white/10 text-white">
-                          <DropdownMenuItem onClick={() => setEditingPromoter(p)} className="gap-2 cursor-pointer hover:bg-white/5">
+                        <DropdownMenuContent
+                          align="end"
+                          className="bg-command-deep border-white/10 text-white"
+                        >
+                          <DropdownMenuItem
+                            onClick={() => setEditingPromoter(p)}
+                            className="gap-2 cursor-pointer hover:bg-white/5"
+                          >
                             <Edit2 className="h-3.5 w-3.5" /> Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setDeletingPromoter(p)} className="gap-2 cursor-pointer text-rose-400 hover:bg-rose-400/10 focus:bg-rose-400/10">
+                          <DropdownMenuItem
+                            onClick={() => setDeletingPromoter(p)}
+                            className="gap-2 cursor-pointer text-rose-400 hover:bg-rose-400/10 focus:bg-rose-400/10"
+                          >
                             <Trash2 className="h-3.5 w-3.5" /> Excluir
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -167,18 +188,18 @@ export function Mk9PromotersModule() {
         </div>
       </Mk9Panel>
 
-      <PromoterDialog 
-        open={showCreate || !!editingPromoter} 
+      <PromoterDialog
+        open={showCreate || !!editingPromoter}
         onClose={() => {
           setShowCreate(false);
           setEditingPromoter(null);
-        }} 
+        }}
         promoter={editingPromoter}
       />
-      
-      <PromoterDeleteDialog 
-        open={!!deletingPromoter} 
-        onClose={() => setDeletingPromoter(null)} 
+
+      <PromoterDeleteDialog
+        open={!!deletingPromoter}
+        onClose={() => setDeletingPromoter(null)}
         promoter={deletingPromoter}
       />
     </div>

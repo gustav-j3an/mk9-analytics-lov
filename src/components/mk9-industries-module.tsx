@@ -11,7 +11,7 @@ import {
   Edit2,
   Trash2,
   ShieldCheck,
-  Building
+  Building,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,13 +28,13 @@ import {
   IndustryArchiveDialog,
   IndustryReactivateDialog,
 } from "@/components/mk9/industry-admin-dialogs";
-import { 
-  Mk9Panel, 
-  Mk9PageHeader, 
-  Mk9MetricCard, 
-  Mk9LoadingState, 
-  Mk9EmptyState, 
-  Mk9Badge 
+import {
+  Mk9Panel,
+  Mk9PageHeader,
+  Mk9MetricCard,
+  Mk9LoadingState,
+  Mk9EmptyState,
+  Mk9Badge,
 } from "@/components/mk9/design-system";
 
 export function Mk9IndustriesModule() {
@@ -51,9 +51,9 @@ export function Mk9IndustriesModule() {
   const [reactivatingIndustry, setReactivatingIndustry] = useState<any | null>(null);
 
   const filtered = useMemo(() => {
-    return industries.filter((i: any) =>
-      i.name.toLowerCase().includes(search.toLowerCase()) ||
-      (i.cnpj && i.cnpj.includes(search))
+    return industries.filter(
+      (i: any) =>
+        i.name.toLowerCase().includes(search.toLowerCase()) || (i.cnpj && i.cnpj.includes(search)),
     );
   }, [industries, search]);
 
@@ -69,13 +69,13 @@ export function Mk9IndustriesModule() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <Mk9PageHeader 
+      <Mk9PageHeader
         title="Gestão de Indústrias"
         subtitle="Controle central de clientes e parceiros operacionais"
         icon={Factory}
         actions={
-          <Button 
-            onClick={() => setShowCreate(true)} 
+          <Button
+            onClick={() => setShowCreate(true)}
             className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-black uppercase tracking-widest px-6 shadow-lg shadow-mk9-accent-primary/20 border-none"
           >
             <Plus className="h-4 w-4 mr-2" /> Nova Indústria
@@ -84,9 +84,24 @@ export function Mk9IndustriesModule() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Mk9MetricCard label="Total de Clientes" value={stats.total} icon={Factory} color="purple" />
-        <Mk9MetricCard label="Operação Ativa" value={stats.active} icon={ShieldCheck} color="emerald" />
-        <Mk9MetricCard label="Exigem Checklist" value={stats.withChecklist} icon={Building} color="blue" />
+        <Mk9MetricCard
+          label="Total de Clientes"
+          value={stats.total}
+          icon={Factory}
+          color="purple"
+        />
+        <Mk9MetricCard
+          label="Operação Ativa"
+          value={stats.active}
+          icon={ShieldCheck}
+          color="emerald"
+        />
+        <Mk9MetricCard
+          label="Exigem Checklist"
+          value={stats.withChecklist}
+          icon={Building}
+          color="blue"
+        />
       </div>
 
       <Mk9Panel>
@@ -125,8 +140,14 @@ export function Mk9IndustriesModule() {
                   <tr key={i.id} className="group hover:bg-white/[0.02] transition-colors">
                     <td className="px-4 py-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">{i.name}</span>
-                        {i.displayName && <span className="text-[10px] text-slate-500 uppercase font-medium">{i.displayName}</span>}
+                        <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">
+                          {i.name}
+                        </span>
+                        {i.displayName && (
+                          <span className="text-[10px] text-slate-500 uppercase font-medium">
+                            {i.displayName}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -140,7 +161,8 @@ export function Mk9IndustriesModule() {
                           </Mk9Badge>
                         )}
                         <Mk9Badge className="flex items-center gap-1">
-                          <Clock className="h-2 w-2" /> {i.periodType === 'CUSTOM_CYCLE' ? 'Ciclo' : 'Mensal'}
+                          <Clock className="h-2 w-2" />{" "}
+                          {i.periodType === "CUSTOM_CYCLE" ? "Ciclo" : "Mensal"}
                         </Mk9Badge>
                       </div>
                     </td>
@@ -154,20 +176,36 @@ export function Mk9IndustriesModule() {
                     <td className="px-4 py-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-command-deep border-white/10 text-white">
-                          <DropdownMenuItem onClick={() => setEditingIndustry(i)} className="gap-2 cursor-pointer hover:bg-white/5">
+                        <DropdownMenuContent
+                          align="end"
+                          className="bg-command-deep border-white/10 text-white"
+                        >
+                          <DropdownMenuItem
+                            onClick={() => setEditingIndustry(i)}
+                            className="gap-2 cursor-pointer hover:bg-white/5"
+                          >
                             <Edit2 className="h-3.5 w-3.5" /> Editar
                           </DropdownMenuItem>
                           {i.archivedAt ? (
-                            <DropdownMenuItem onClick={() => setReactivatingIndustry(i)} className="gap-2 cursor-pointer text-emerald-400 hover:bg-emerald-400/10 focus:bg-emerald-400/10">
+                            <DropdownMenuItem
+                              onClick={() => setReactivatingIndustry(i)}
+                              className="gap-2 cursor-pointer text-emerald-400 hover:bg-emerald-400/10 focus:bg-emerald-400/10"
+                            >
                               <ShieldCheck className="h-3.5 w-3.5" /> Reativar
                             </DropdownMenuItem>
                           ) : (
-                            <DropdownMenuItem onClick={() => setArchivingIndustry(i)} className="gap-2 cursor-pointer text-rose-400 hover:bg-rose-400/10 focus:bg-rose-400/10">
+                            <DropdownMenuItem
+                              onClick={() => setArchivingIndustry(i)}
+                              className="gap-2 cursor-pointer text-rose-400 hover:bg-rose-400/10 focus:bg-rose-400/10"
+                            >
                               <Trash2 className="h-3.5 w-3.5" /> Arquivar
                             </DropdownMenuItem>
                           )}
@@ -183,10 +221,7 @@ export function Mk9IndustriesModule() {
       </Mk9Panel>
 
       <IndustryCreateDialog open={showCreate} onClose={() => setShowCreate(false)} />
-      <IndustryEditDialog
-        industry={editingIndustry}
-        onClose={() => setEditingIndustry(null)}
-      />
+      <IndustryEditDialog industry={editingIndustry} onClose={() => setEditingIndustry(null)} />
       <IndustryArchiveDialog
         industry={archivingIndustry}
         onClose={() => setArchivingIndustry(null)}

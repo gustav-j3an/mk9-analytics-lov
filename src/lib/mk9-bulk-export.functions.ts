@@ -57,7 +57,7 @@ async function computeSingleIndustryResult(
     year: number;
     uf?: string | null;
     access: any;
-  }
+  },
 ): Promise<BulkExportPreviewItem> {
   const startTime = Date.now();
   const { industryId, industryName, month, year, uf, access } = params;
@@ -65,16 +65,20 @@ async function computeSingleIndustryResult(
   try {
     const config = await loadPeriodConfig(supabase, industryId);
     const window = resolveWindow(config, year, month);
-    
-    const report = await buildIndustryReport(supabase, {
-      industryId,
-      month,
-      year,
-      uf,
-      access,
-    }, window);
 
-    const unattended = report.stores.filter(s => s.expected > 0 && s.actual === 0);
+    const report = await buildIndustryReport(
+      supabase,
+      {
+        industryId,
+        month,
+        year,
+        uf,
+        access,
+      },
+      window,
+    );
+
+    const unattended = report.stores.filter((s) => s.expected > 0 && s.actual === 0);
     const unattendedCount = unattended.length;
     const contractedSum = unattended.reduce((sum, s) => sum + s.expected, 0);
 
@@ -82,18 +86,21 @@ async function computeSingleIndustryResult(
       industryId,
       industryName,
       periodLabel: `${window.startDate} a ${window.endDate}`,
-      contractedStores: report.stores.filter(s => s.expected > 0).length,
-      attendedStores: report.stores.filter(s => s.actual > 0).length,
+      contractedStores: report.stores.filter((s) => s.expected > 0).length,
+      attendedStores: report.stores.filter((s) => s.actual > 0).length,
       unattendedStores: unattendedCount,
       contractedVisitsUnattended: contractedSum,
       status: unattendedCount > 0 ? "READY" : "EMPTY",
     };
   } catch (err: any) {
     const duration = Date.now() - startTime;
-    const errorCode = err.name === "Mk9ScopeError" ? "FORBIDDEN" : (err.code || "REPORT_ENGINE_FAILED");
+    const errorCode =
+      err.name === "Mk9ScopeError" ? "FORBIDDEN" : err.code || "REPORT_ENGINE_FAILED";
     const httpStatus = err.statusCode || (err.name === "Mk9ScopeError" ? 403 : 500);
-    
-    console.error(`[UNVISITED INDUSTRY FAILED] industryId=${industryId} code=${errorCode} status=${httpStatus} duration=${duration}ms error=${err.message}`);
+
+    console.error(
+      `[UNVISITED INDUSTRY FAILED] industryId=${industryId} code=${errorCode} status=${httpStatus} duration=${duration}ms error=${err.message}`,
+    );
 
     return {
       industryId,
@@ -107,7 +114,7 @@ async function computeSingleIndustryResult(
       errorCode,
       errorMessage: err.message,
       httpStatus,
-      errorStage: "BUILD_REPORT"
+      errorStage: "BUILD_REPORT",
     };
   }
 }
@@ -119,16 +126,16 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
     const { industryIds, month, year, filters } = data;
     const { supabaseAdmin } = await import("../integrations/supabase/client.server");
     const { resolveMk9AccessScope } = await import("./mk9-auth/access-scope.server");
-    
+
     console.log(`[UNVISITED MASS START] user=${context?.userId} industries=${industryIds.length}`);
 
-    const { roles, claims } = (context as any);
+    const { roles, claims } = context as any;
     const authContext = {
       userId: context?.userId ?? null,
-      roles: Array.isArray(roles) ? roles : (claims?.user_roles || []),
-      devBypass: false
+      roles: Array.isArray(roles) ? roles : claims?.user_roles || [],
+      devBypass: false,
     };
-    
+
     const access = await resolveMk9AccessScope(authContext as any);
     console.log(`[UNVISITED SCOPE RESOLVED] hash=${access.scopeHash}`);
 
@@ -146,27 +153,34 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
     // Processamento em fila (concorrência máxima 3)
     const results: BulkExportPreviewItem[] = [];
     const CONCURRENCY = 3;
-    
+
     for (let i = 0; i < (industries || []).length; i += CONCURRENCY) {
       const chunk = (industries || []).slice(i, i + CONCURRENCY);
       const chunkResults = await Promise.all(
-        chunk.map(ind => computeSingleIndustryResult(supabaseAdmin, {
-          industryId: ind.id,
-          industryName: ind.name,
-          month,
-          year,
-          uf: filters?.uf,
-          access
-        }))
+        chunk.map((ind) =>
+          computeSingleIndustryResult(supabaseAdmin, {
+            industryId: ind.id,
+            industryName: ind.name,
+            month,
+            year,
+            uf: filters?.uf,
+            access,
+          }),
+        ),
       );
       results.push(...chunkResults);
     }
 
     const totalUnattended = results.reduce((sum, r) => sum + (r.unattendedStores || 0), 0);
-    const totalContractedVisits = results.reduce((sum, r) => sum + (r.contractedVisitsUnattended || 0), 0);
-    const withPendingCount = results.filter(r => (r.unattendedStores || 0) > 0).length;
+    const totalContractedVisits = results.reduce(
+      (sum, r) => sum + (r.contractedVisitsUnattended || 0),
+      0,
+    );
+    const withPendingCount = results.filter((r) => (r.unattendedStores || 0) > 0).length;
 
-    console.log(`[UNVISITED MASS END] industries=${results.length} totalUnattended=${totalUnattended}`);
+    console.log(
+      `[UNVISITED MASS END] industries=${results.length} totalUnattended=${totalUnattended}`,
+    );
 
     return {
       selectedCount: industryIds.length,
@@ -180,17 +194,21 @@ export const getBulkExportPreview = createServerFn({ method: "POST" })
 
 export const startBulkExport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) => z.object({
-    industryIds: z.array(z.string()),
-    month: z.number(),
-    year: z.number(),
-    format: z.enum(["zip", "pdf"]),
-    filters: z.custom<BulkExportFilters>().optional(),
-    includeEmpty: z.boolean().optional(),
-  }).parse(data))
+  .validator((data: unknown) =>
+    z
+      .object({
+        industryIds: z.array(z.string()),
+        month: z.number(),
+        year: z.number(),
+        format: z.enum(["zip", "pdf"]),
+        filters: z.custom<BulkExportFilters>().optional(),
+        includeEmpty: z.boolean().optional(),
+      })
+      .parse(data),
+  )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("../integrations/supabase/client.server");
-    
+
     // 1. Create export record
     const { data: exportRecord, error: eExp } = await supabaseAdmin
       .from("mk9_bulk_exports")
@@ -210,15 +228,13 @@ export const startBulkExport = createServerFn({ method: "POST" })
     if (eExp) throw new Error(eExp.message);
 
     // 2. Create items
-    const items = data.industryIds.map(id => ({
+    const items = data.industryIds.map((id) => ({
       export_id: exportRecord.id,
       industry_id: id,
       status: "QUEUED",
     }));
 
-    const { error: eItems } = await supabaseAdmin
-      .from("mk9_bulk_export_items")
-      .insert(items);
+    const { error: eItems } = await supabaseAdmin.from("mk9_bulk_export_items").insert(items);
 
     if (eItems) throw new Error(eItems.message);
 
@@ -230,10 +246,11 @@ export const getBulkExportStatus = createServerFn({ method: "GET" })
   .validator((data: unknown) => z.object({ exportId: z.string() }).parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("../integrations/supabase/client.server");
-    
+
     const { data: exportRecord, error: eExp } = await supabaseAdmin
       .from("mk9_bulk_exports")
-      .select(`
+      .select(
+        `
         *,
         items:mk9_bulk_export_items(
           id,
@@ -243,7 +260,8 @@ export const getBulkExportStatus = createServerFn({ method: "GET" })
           unattended_stores_count,
           error_details
         )
-      `)
+      `,
+      )
       .eq("id", data.exportId)
       .single();
 
@@ -258,15 +276,18 @@ export const processBulkExport = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("../integrations/supabase/client.server");
     const { resolveMk9AccessScope } = await import("./mk9-auth/access-scope.server");
-    const { processBulkExportItem, generateBulkZip, generateBulkConsolidatedPdf } = await import("./mk9-bulk-export.server");
-    
+    const { processBulkExportItem, generateBulkZip, generateBulkConsolidatedPdf } =
+      await import("./mk9-bulk-export.server");
+
     // 1. Get export record and items
     const { data: exportRecord, error: eExp } = await supabaseAdmin
       .from("mk9_bulk_exports")
-      .select(`
+      .select(
+        `
         *,
         items:mk9_bulk_export_items(*)
-      `)
+      `,
+      )
       .eq("id", data.exportId)
       .single();
 
@@ -281,11 +302,11 @@ export const processBulkExport = createServerFn({ method: "POST" })
       .update({ status: "GENERATING" })
       .eq("id", data.exportId);
 
-    const { roles, claims } = (context as any);
+    const { roles, claims } = context as any;
     const authContext = {
       userId: context?.userId ?? null,
-      roles: Array.isArray(roles) ? roles : (claims?.user_roles || []),
-      devBypass: false
+      roles: Array.isArray(roles) ? roles : claims?.user_roles || [],
+      devBypass: false,
     };
     const access = await resolveMk9AccessScope(authContext as any);
 
@@ -293,22 +314,24 @@ export const processBulkExport = createServerFn({ method: "POST" })
     const items = exportRecord.items || [];
     const results: Array<{ pdfBuffer: Buffer | null; industryName: string; report: any }> = [];
     const CONCURRENCY = 3;
-    
+
     for (let i = 0; i < items.length; i += CONCURRENCY) {
       const chunk = items.slice(i, i + CONCURRENCY);
       const chunkResults = await Promise.all(
-        chunk.map(item => processBulkExportItem(
-          exportRecord.id,
-          item.id,
-          item.industry_id,
-          exportRecord.competence_month,
-          exportRecord.competence_year,
-          exportRecord.filters,
-          access
-        ))
+        chunk.map((item) =>
+          processBulkExportItem(
+            exportRecord.id,
+            item.id,
+            item.industry_id,
+            exportRecord.competence_month,
+            exportRecord.competence_year,
+            exportRecord.filters,
+            access,
+          ),
+        ),
       );
       results.push(...chunkResults);
-      
+
       // Update progress
       await supabaseAdmin
         .from("mk9_bulk_exports")
@@ -317,9 +340,23 @@ export const processBulkExport = createServerFn({ method: "POST" })
     }
 
     // 5. Aggregate metrics
-    const unattendedTotal = results.reduce((sum, r) => sum + (r.report?.stores.filter((s: any) => s.expected > 0 && s.actual === 0).length || 0), 0);
-    const contractedTotal = results.reduce((sum, r) => sum + (r.report?.stores.filter((s: any) => s.expected > 0 && s.actual === 0).reduce((s2: number, s: any) => s2 + s.expected, 0) || 0), 0);
-    const withPendingCount = results.filter(r => (r.report?.stores.filter((s: any) => s.expected > 0 && s.actual === 0).length || 0) > 0).length;
+    const unattendedTotal = results.reduce(
+      (sum, r) =>
+        sum + (r.report?.stores.filter((s: any) => s.expected > 0 && s.actual === 0).length || 0),
+      0,
+    );
+    const contractedTotal = results.reduce(
+      (sum, r) =>
+        sum +
+        (r.report?.stores
+          .filter((s: any) => s.expected > 0 && s.actual === 0)
+          .reduce((s2: number, s: any) => s2 + s.expected, 0) || 0),
+      0,
+    );
+    const withPendingCount = results.filter(
+      (r) =>
+        (r.report?.stores.filter((s: any) => s.expected > 0 && s.actual === 0).length || 0) > 0,
+    ).length;
 
     // 6. Generate final file
     let finalBuffer: Buffer;
@@ -332,15 +369,16 @@ export const processBulkExport = createServerFn({ method: "POST" })
     // 7. Store in storage (using a temporary buffer table or just letting the client trigger download via a route that does the generation)
     // Actually, to avoid re-generating everything in the download route, I'll store the buffer in a temporary "reports" bucket if available.
     // If not, I'll implement the download route to RE-GENERATE efficiently (it's fast since reports are already built in the process).
-    // Wait, the process function is where we build the reports. 
+    // Wait, the process function is where we build the reports.
     // I'll just save the finalBuffer to Supabase Storage.
-    
-    const fileName = exportRecord.format === "zip" ? `bulk_${exportRecord.id}.zip` : `bulk_${exportRecord.id}.pdf`;
+
+    const fileName =
+      exportRecord.format === "zip" ? `bulk_${exportRecord.id}.zip` : `bulk_${exportRecord.id}.pdf`;
     const { data: uploadData, error: eUpload } = await supabaseAdmin.storage
       .from("reports")
       .upload(fileName, finalBuffer, {
         contentType: exportRecord.format === "zip" ? "application/zip" : "application/pdf",
-        upsert: true
+        upsert: true,
       });
 
     const downloadUrl = eUpload ? null : uploadData.path;
@@ -353,16 +391,15 @@ export const processBulkExport = createServerFn({ method: "POST" })
         total_unattended_stores: unattendedTotal,
         total_contracted_visits: contractedTotal,
         progress_current: items.length,
-        download_url: downloadUrl
+        download_url: downloadUrl,
       })
       .eq("id", data.exportId);
 
-    return { 
+    return {
       status: "COMPLETED",
       unattendedTotal,
       contractedTotal,
       withPendingCount,
-      downloadUrl
+      downloadUrl,
     };
   });
-

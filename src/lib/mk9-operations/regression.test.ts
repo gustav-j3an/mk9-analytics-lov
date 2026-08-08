@@ -1,23 +1,23 @@
-import { describe, it, expect } from 'vitest';
-import { supabaseAdmin } from '@/integrations/supabase/client.server';
-import { listOperationalActualVisits } from './operational-visits.server';
-import { loadOperationCore } from './core.server';
-import { buildIndustryReport } from '@/lib/mk9-reports/industry-report.server';
-import { resolveWindow, loadPeriodConfig } from '@/lib/mk9-reports/period.server';
+import { describe, it, expect } from "vitest";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { listOperationalActualVisits } from "./operational-visits.server";
+import { loadOperationCore } from "./core.server";
+import { buildIndustryReport } from "@/lib/mk9-reports/industry-report.server";
+import { resolveWindow, loadPeriodConfig } from "@/lib/mk9-reports/period.server";
 
 /**
  * TESTES DE REGRESSÃO E CONTRATO — MK9 ANALYTICS
- * 
+ *
  * Este arquivo garante que as visitas realizadas nunca divirjam entre
  * os diferentes módulos do sistema (Dashboard, PDF e Auditoria).
  */
 
-describe('Contrato de Sincronia de Visitas Realizadas', () => {
-  const industryId = '6f36bb9d-e679-4538-9b58-e6adeb6638e2'; // KING
+describe("Contrato de Sincronia de Visitas Realizadas", () => {
+  const industryId = "6f36bb9d-e679-4538-9b58-e6adeb6638e2"; // KING
   const year = 2026;
   const month = 8;
 
-  it('TESTE 1: Paridade total entre Dashboard, PDF e Motor Operacional', async () => {
+  it("TESTE 1: Paridade total entre Dashboard, PDF e Motor Operacional", async () => {
     // 1. Configuração de Janela
     const cfg = await loadPeriodConfig(supabaseAdmin, industryId);
     const window = resolveWindow(cfg, year, month);
@@ -26,27 +26,33 @@ describe('Contrato de Sincronia de Visitas Realizadas', () => {
     const operationalVisits = await listOperationalActualVisits({
       industryId,
       startDate: window.startDate,
-      endDate: window.endDate
+      endDate: window.endDate,
     });
 
     const core = await loadOperationCore(supabaseAdmin, {
       industryId,
       year,
-      month
+      month,
     });
 
-    const report = await buildIndustryReport(supabaseAdmin, {
-      industryId,
-      year,
-      month,
-      access: null
-    }, window);
+    const report = await buildIndustryReport(
+      supabaseAdmin,
+      {
+        industryId,
+        year,
+        month,
+        access: null,
+      },
+      window,
+    );
 
     const dashboardRealized = core.industryRows[0]?.realizadas || 0;
     const pdfRealized = report.totals.actual;
     const operationalCount = operationalVisits.length;
 
-    console.log(`[CONTRATO] Operacional: ${operationalCount} | Dashboard: ${dashboardRealized} | PDF: ${pdfRealized}`);
+    console.log(
+      `[CONTRATO] Operacional: ${operationalCount} | Dashboard: ${dashboardRealized} | PDF: ${pdfRealized}`,
+    );
 
     // Validação de Contrato
     expect(dashboardRealized).toBe(operationalCount);
@@ -54,54 +60,56 @@ describe('Contrato de Sincronia de Visitas Realizadas', () => {
     expect(dashboardRealized).toBe(146); // Valor auditado da KING Ago/2026
   });
 
-  it('TESTE 2 & 3: Regra de Vigência e Reversão', async () => {
+  it("TESTE 2 & 3: Regra de Vigência e Reversão", async () => {
     // Verificar se importações revertidas são ignoradas
     const { data: revertedImports } = await supabaseAdmin
-      .from('mk9_checklist_imports')
-      .select('id')
-      .eq('industry_id', industryId)
-      .not('reverted_at', 'is', null);
+      .from("mk9_checklist_imports")
+      .select("id")
+      .eq("industry_id", industryId)
+      .not("reverted_at", "is", null);
 
     if (revertedImports && revertedImports.length > 0) {
       const operationalNormal = await listOperationalActualVisits({
         industryId,
-        startDate: '2000-01-01',
-        endDate: '2099-12-31'
+        startDate: "2000-01-01",
+        endDate: "2099-12-31",
       });
-      
-      const containsReverted = operationalNormal.some((v: any) => v.source_import_id === revertedImports[0].id);
+
+      const containsReverted = operationalNormal.some(
+        (v: any) => v.source_import_id === revertedImports[0].id,
+      );
       expect(containsReverted).toBe(false);
     }
   });
 
-  it('TESTE 4: Visitas manuais (source_import_id IS NULL)', async () => {
+  it("TESTE 4: Visitas manuais (source_import_id IS NULL)", async () => {
     const { data: manualVisits } = await supabaseAdmin
-      .from('mk9_actual_visits')
-      .select('id')
-      .eq('industry_id', industryId)
-      .is('source_import_id', null)
+      .from("mk9_actual_visits")
+      .select("id")
+      .eq("industry_id", industryId)
+      .is("source_import_id", null)
       .limit(1);
 
     if (manualVisits && manualVisits.length > 0) {
       const operational = await listOperationalActualVisits({
         industryId,
-        startDate: '2000-01-01',
-        endDate: '2099-12-31'
+        startDate: "2000-01-01",
+        endDate: "2099-12-31",
       });
-      
+
       const foundManual = operational.some((v: any) => v.source_import_id === null);
       expect(foundManual).toBe(true);
     }
   });
 
-  it('TESTE 5 & 6: Filtro de Data (Janela Cruzada)', async () => {
-    const startDate = '2026-07-23';
-    const endDate = '2026-08-22';
-    
+  it("TESTE 5 & 6: Filtro de Data (Janela Cruzada)", async () => {
+    const startDate = "2026-07-23";
+    const endDate = "2026-08-22";
+
     const visits = await listOperationalActualVisits({
       industryId,
       startDate,
-      endDate
+      endDate,
     });
 
     // Validar que nenhuma visita está fora do range
@@ -111,23 +119,25 @@ describe('Contrato de Sincronia de Visitas Realizadas', () => {
     });
   });
 
-  it('TESTE 7: Importações com Alerta (INCONSISTENT/ALERTS)', async () => {
+  it("TESTE 7: Importações com Alerta (INCONSISTENT/ALERTS)", async () => {
     const { data: inconsistent } = await supabaseAdmin
-      .from('mk9_checklist_imports')
-      .select('id')
-      .eq('industry_id', industryId)
-      .in('status' as any, ['INCONSISTENT', 'COMPLETED_WITH_ALERTS'])
-      .eq('is_operational_current' as any, true)
+      .from("mk9_checklist_imports")
+      .select("id")
+      .eq("industry_id", industryId)
+      .in("status" as any, ["INCONSISTENT", "COMPLETED_WITH_ALERTS"])
+      .eq("is_operational_current" as any, true)
       .limit(1);
 
     if (inconsistent && inconsistent.length > 0) {
       const visits = await listOperationalActualVisits({
         industryId,
-        startDate: '2000-01-01',
-        endDate: '2099-12-31'
+        startDate: "2000-01-01",
+        endDate: "2099-12-31",
       });
-      
-      const hasVisitsFromInconsistent = visits.some((v: any) => v.source_import_id === inconsistent[0].id);
+
+      const hasVisitsFromInconsistent = visits.some(
+        (v: any) => v.source_import_id === inconsistent[0].id,
+      );
       expect(hasVisitsFromInconsistent).toBe(true);
     }
   });

@@ -47,7 +47,8 @@ export const industryPeriodConfigDetector: Mk9DataQualityDetector = {
         .lte("scheduled_date", window.endDate)
         .limit(100000),
     ]);
-    if (configRes.error || freqRes.error || visitRes.error) throw new Error("MK9_DQ_DETECTOR_FAILED");
+    if (configRes.error || freqRes.error || visitRes.error)
+      throw new Error("MK9_DQ_DETECTOR_FAILED");
 
     const configs = new Map<string, any>();
     for (const row of (configRes.data ?? []) as any[]) configs.set(row.industry_id, row);

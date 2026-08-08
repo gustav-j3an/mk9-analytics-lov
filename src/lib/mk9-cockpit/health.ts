@@ -67,7 +67,10 @@ export function evaluateHealth(facts: HealthFacts): Mk9HealthVerdict {
     return verdict("ATENCAO", `Ritmo em ${facts.pacePercentage}%, abaixo da meta proporcional.`);
   }
   if (facts.overdueIssues > 0) {
-    return verdict("ATENCAO", `${facts.overdueIssues} ocorrência(s) com prazo vencido aguardando tratamento.`);
+    return verdict(
+      "ATENCAO",
+      `${facts.overdueIssues} ocorrência(s) com prazo vencido aguardando tratamento.`,
+    );
   }
   return verdict(
     "SAUDAVEL",

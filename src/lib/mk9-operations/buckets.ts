@@ -43,15 +43,24 @@ export function contractedForStore(
 }
 
 /** Promotor vigente do par (indústria, loja) por votação do roteiro. */
-export function resolvePromoter(routeByKey: Map<string, RouteInfo>, key: string): ResolvedPromoter & { employeeNumber?: string | null } {
+export function resolvePromoter(
+  routeByKey: Map<string, RouteInfo>,
+  key: string,
+): ResolvedPromoter & { employeeNumber?: string | null } {
   const info = routeByKey.get(key) as any;
   if (!info || !info.votes || info.votes.size === 0) {
     return { id: null, name: "Sem promotor", resolution: "UNASSIGNED_ROUTE", employeeNumber: null };
   }
-  let best: { id: string; name: string; employeeNumber: string | null; count: number } | null = null;
+  let best: { id: string; name: string; employeeNumber: string | null; count: number } | null =
+    null;
   for (const [pid, v] of info.votes) {
     if (!best || v.count > (best as any).count) {
-      best = { id: pid, name: v.name || "Promotor sem nome", employeeNumber: (v as any).employeeNumber, count: v.count };
+      best = {
+        id: pid,
+        name: v.name || "Promotor sem nome",
+        employeeNumber: (v as any).employeeNumber,
+        count: v.count,
+      };
     }
   }
   return {
@@ -76,17 +85,24 @@ export function buildStoreRows(input: {
       const key = `${ctx.id}|${b.storeId}`;
       const promo = resolvePromoter(routeByKey, key);
       if (input.promoterFilter && promo.id !== input.promoterFilter) continue;
-      if (input.allowedPromoterIds && (!promo.id || !input.allowedPromoterIds.includes(promo.id))) continue;
+      if (input.allowedPromoterIds && (!promo.id || !input.allowedPromoterIds.includes(promo.id)))
+        continue;
 
       const contracted = contractedForStore(b.segments, ctx.win);
       const contratadas = contracted.contratadas;
       const realizadas = b.visits.length;
       const expectedToDate =
-        today >= ctx.win.endDate ? contratadas : contractedForStore(b.segments, ctx.win, today).contratadas;
+        today >= ctx.win.endDate
+          ? contratadas
+          : contractedForStore(b.segments, ctx.win, today).contratadas;
 
       const lastVisit = b.visits.length ? b.visits.slice().sort()[b.visits.length - 1] : null;
       const status: StoreExecStatus =
-        realizadas === 0 ? "NAO_ATENDIDA" : contratadas > 0 && realizadas >= contratadas ? "INTEGRAL" : "PARCIAL";
+        realizadas === 0
+          ? "NAO_ATENDIDA"
+          : contratadas > 0 && realizadas >= contratadas
+            ? "INTEGRAL"
+            : "PARCIAL";
 
       rows.push({
         storeId: b.storeId,
@@ -187,7 +203,7 @@ export function buildIndustryRows(input: {
         isHistorical: ctx.win.endDate < today,
         lojasContratadas,
         lojasAtendidas,
-        zeradasCount: rows.filter(s => s.realizadas === 0 && s.contratadas > 0).length,
+        zeradasCount: rows.filter((s) => s.realizadas === 0 && s.contratadas > 0).length,
         contratadas,
         expectedToDate,
 
@@ -195,7 +211,8 @@ export function buildIndustryRows(input: {
         pendentes: Math.max(0, contratadas - realizadas),
         coberturaPct: contratadas > 0 ? Math.min(100, pct(realizadas, contratadas)) : 0,
         deviation: realizadas - expectedToDate,
-        pacePercentage: expectedToDate > 0 ? pct(realizadas, expectedToDate) : realizadas > 0 ? 100 : 0,
+        pacePercentage:
+          expectedToDate > 0 ? pct(realizadas, expectedToDate) : realizadas > 0 ? 100 : 0,
         status,
         checklistImports: ctx.checklistImports,
       };
@@ -203,7 +220,10 @@ export function buildIndustryRows(input: {
 }
 
 /** Visitas por dia (apenas lojas que sobreviveram aos filtros). */
-export function visitsByDay(ctxs: IndustryContext[], storeRows: OperationStoreRow[]): Map<string, number> {
+export function visitsByDay(
+  ctxs: IndustryContext[],
+  storeRows: OperationStoreRow[],
+): Map<string, number> {
   const ctxById = new Map(ctxs.map((c) => [c.id, c]));
   const byDay = new Map<string, number>();
   for (const s of storeRows) {
@@ -240,7 +260,8 @@ export function buildDailySeries(input: {
       const win = ctxWindows.get(industryId);
       if (!win) continue;
       if (date < win.startDate) continue;
-      const frac = date >= win.endDate ? 1 : (dayDiff(win.startDate, date) + 1) / Math.max(1, win.totalDays);
+      const frac =
+        date >= win.endDate ? 1 : (dayDiff(win.startDate, date) + 1) / Math.max(1, win.totalDays);
       expectedAcc += contracted * frac;
     }
     const expected = Math.round(expectedAcc);

@@ -1,5 +1,11 @@
 export type ChecklistDebugLevel = "info" | "error";
-type ChecklistDebugValue = string | number | boolean | null | ChecklistDebugValue[] | { [key: string]: ChecklistDebugValue };
+type ChecklistDebugValue =
+  | string
+  | number
+  | boolean
+  | null
+  | ChecklistDebugValue[]
+  | { [key: string]: ChecklistDebugValue };
 
 export interface ChecklistDebugEvent {
   at: string;
@@ -44,7 +50,12 @@ export function createChecklistDiagnostics(scope: string): ChecklistDiagnostics 
   const events: ChecklistDebugEvent[] = [];
   let currentStep = "init";
 
-  const push = (level: ChecklistDebugLevel, step: string, message: string, data?: Record<string, unknown>) => {
+  const push = (
+    level: ChecklistDebugLevel,
+    step: string,
+    message: string,
+    data?: Record<string, unknown>,
+  ) => {
     currentStep = step;
     const event: ChecklistDebugEvent = {
       at: new Date().toISOString(),

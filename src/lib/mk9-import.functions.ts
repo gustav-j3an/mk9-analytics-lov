@@ -17,9 +17,8 @@ const commitSchema = previewSchema.extend({
 });
 
 function b64ToArrayBuffer(base64: string): ArrayBuffer {
-  const bin = typeof atob === "function"
-    ? atob(base64)
-    : Buffer.from(base64, "base64").toString("binary");
+  const bin =
+    typeof atob === "function" ? atob(base64) : Buffer.from(base64, "base64").toString("binary");
   const len = bin.length;
   const bytes = new Uint8Array(len);
   for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
@@ -77,8 +76,8 @@ export const mk9CommitImport = createServerFn({ method: "POST" })
   });
 
 export const mk9ListImports = createServerFn({ method: "GET" }).handler(async () => {
-    const { requireMk9AdminRead } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9AdminRead();
+  const { requireMk9AdminRead } = await import("@/lib/mk9-auth/read-guards.server");
+  await requireMk9AdminRead();
   const { createSupabaseRepository } = await import("./mk9/persistence.server");
   return createSupabaseRepository().listImports(30);
 });
@@ -96,10 +95,9 @@ export const mk9DeleteImport = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-
 export const mk9OverviewCounts = createServerFn({ method: "GET" }).handler(async () => {
-    const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-    await requireMk9Read();
+  const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
+  await requireMk9Read();
   const { createSupabaseRepository } = await import("./mk9/persistence.server");
   const repo = createSupabaseRepository();
   const [industries, stores, promoters] = await Promise.all([
