@@ -195,11 +195,11 @@ export function Mk9AnalyticsDashboard() {
               <span className="text-lg font-black text-white italic">
                 {formatPercentage(executive.coverage.current)}
               </span>
-
               <span className="text-[9px] font-bold text-slate-500">
                 FALTAM {nf(executive.pending.current)}
               </span>
             </div>
+
             <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
               <div
                 className="h-full bg-command-purple rounded-full transition-all duration-1000"
@@ -802,9 +802,8 @@ export function Mk9AnalyticsDashboard() {
               >
                 {formatPercentage(u.coverage)}
               </span>
-
-
               <div className="flex-1 h-1 bg-white/5 rounded-full min-w-[60px] hidden md:block">
+
                 <div
                   className="h-full bg-command-purple rounded-full"
                   style={{ width: `${u.coverage}%` }}
