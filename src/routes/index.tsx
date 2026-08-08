@@ -7,16 +7,14 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute('/')({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | FASE 5 — ACABAMENTO & V1.0",
+    title: "MK9 | FASE 5.2 — ACABAMENTO & V1.0",
     meta: [
-      { name: "description", content: "Fase 5: Acabamento de produto, refinamento visual e preparação para a versão estável v1.0." },
-      { property: "og:title", content: "MK9 | FASE 5" },
+      { name: "description", content: "Fase 5.2: Acabamento dos módulos operacionais e relatórios operacionais premium." },
+      { property: "og:title", content: "MK9 | FASE 5.2" },
       { property: "og:description", content: "Refinamento visual, consistência e estabilização para a versão 1.0." },
-
       { name: "twitter:card", content: "summary_large_image" }
     ],
   }),
-
 });
 
 function LandingPage() {
@@ -51,12 +49,11 @@ function LandingPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 — FASE 5
+                MK9 ANALYTICS — FASE 5.2
               </h1>
               <p className="text-[10px] text-purple-400 font-black tracking-[0.3em] uppercase">
-                ACABAMENTO DE PRODUTO E PREPARAÇÃO V1.0
+                ACABAMENTO DOS MÓDULOS OPERACIONAIS E RELATÓRIOS
               </p>
-
             </div>
           </div>
 
@@ -65,55 +62,48 @@ function LandingPage() {
               <section>
                 <div className="flex items-center gap-2 text-white mb-3">
                   <Info className="w-4 h-4 text-purple-400" />
-                  <span className="font-black uppercase tracking-widest">Contexto Atual</span>
+                  <span className="font-black uppercase tracking-widest text-purple-400">Contexto Confirmado</span>
                 </div>
                 <div className="text-slate-400 space-y-2">
-                  <p>O MK9 Analytics chegou a um estado avançado e estável.</p>
-                  <p className="text-purple-400/80 font-bold mt-2">ESTADO HOMOLOGADO:</p>
-                  <ul className="list-disc list-inside space-y-1 ml-2 text-[11px]">
-                    <li>Fase 2 — Performance e Estabilidade: concluída</li>
-                    <li>Fase 3 — Confiabilidade: concluída</li>
-                    <li>Fase 4 — Inteligência Analítica: concluída</li>
-                    <li>384 testes aprovados</li>
-                    <li>Dashboard == PDF == Auditoria</li>
-                    <li>KING = 146 visitas realizadas em paridade</li>
-                    <li>Command Center / Score de Risco / Projeção ativos</li>
-                  </ul>
-                  <p className="mt-4">A partir de agora: NÃO estamos desenvolvendo novas regras operacionais. Estamos preparando o MK9 Analytics para uma versão estável v1.0.</p>
+                  <p>FASE 5.1 concluída com sucesso. Dashboard, Inteligência e Cockpit homologados.</p>
+                  <p className="text-purple-400/80 font-bold mt-2 italic">STATUS OPERACIONAL:</p>
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px]">
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Dashboard</span><span className="text-emerald-400 font-bold">OK</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Inteligência</span><span className="text-emerald-400 font-bold">OK</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Cockpit</span><span className="text-emerald-400 font-bold">OK</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Responsividade</span><span className="text-emerald-400 font-bold">OK</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Acessibilidade</span><span className="text-emerald-400 font-bold">OK</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Console</span><span className="text-emerald-400 font-bold">LIMPO</span></div>
+                  </div>
+                  <p className="mt-4">O Design System MK9 está consolidado. Agora aplicamos o padrão visual aos módulos operacionais e relatórios PDF.</p>
                 </div>
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="UI/UX" value="REFINING" sub="Polishing" />
-                <StatusCard icon={Cpu} title="STABILITY" value="HOMOLOGATED" sub="v1.0" />
-                <StatusCard icon={Zap} title="PERFORMANCE" value="OPTIMIZED" sub="Edge" />
-                <StatusCard icon={Shield} title="SECURITY" value="HARDENED" sub="RLS" />
-
+                <StatusCard icon={Activity} title="PHASE" value="5.2" sub="ACABAMENTO" />
+                <StatusCard icon={Cpu} title="CORE" value="PROTECTED" sub="BLINDADO" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
-                <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">OBJETIVOS DA FASE 5 — ACABAMENTO</h3>
+                <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">MISSÃO 5.2 — MÓDULOS ALVO</h3>
                 <div className="space-y-4 text-slate-400">
-                  <ProtocolItem id="01" title="VISUAL CONSISTENTE" desc="Auditoria de espaçamento, tipografia, cores e design system unificado em todos os módulos." />
-                  <ProtocolItem id="02" title="HIERARQUIA & DENSIDADE" desc="Padronização de Page Headers, filtros ativos e tabelas analíticas com foco em leitura rápida." />
-                  <ProtocolItem id="03" title="FEEDBACK & ERROS" desc="Melhoria de loading states (skeletons), empty states e feedback de ações com confirmações destrutivas." />
-                  <ProtocolItem id="04" title="RESPONSIVIDADE DESKTOP" desc="Otimização para notebooks 1366x768 e telas 1920x1080 garantindo KPIs sempre visíveis." />
-                  <ProtocolItem id="05" title="SIDEBAR & NAVEGAÇÃO" desc="Nova sidebar agrupada, colapsável e breadcrumbs inteligentes para melhorar o fluxo de uso." />
-                  <ProtocolItem id="06" title="PROTEÇÃO DO CORE" desc="Refinamento estético absoluto SEM alterar regras de negócio, parsers ou cálculos operacionais." />
-                  <ProtocolItem id="07" title="ESTABILIDADE V1.0" desc="Ponto de restauração estável, documentação técnica atualizada e suíte de testes (npm run verify) verde." />
+                  <ProtocolItem id="01" title="INDÚSTRIAS (PDF)" desc="Transformação em relatório analítico premium com MetricCards e tabelas de alta densidade." />
+                  <ProtocolItem id="02" title="CONCILIAÇÃO" desc="Nova Central de Conciliação com foco em divergências, match score e ações rápidas." />
+                  <ProtocolItem id="03" title="QUALIDADE" desc="Painel de integridade de dados categorizado por severidade (Crítico/Atenção/Informativo)." />
+                  <ProtocolItem id="04" title="IMPORTAR CHECKLIST" desc="Nova Central de Importação com feedback visual de fila, drag & drop e preview em 3 blocos." />
+                  <ProtocolItem id="05" title="ROTEIROS" desc="Central de Roteiros com visualização semanal, KPIs do promotor e histórico de vigências." />
+                  <ProtocolItem id="06" title="REGRA ZERO" desc="Cálculos operacionais, parser, snapshots e regra KING intocáveis. Refinamento visual exclusivo." />
                 </div>
               </div>
 
               <div className="bg-purple-900/20 border border-purple-500/20 p-4 rounded-lg">
-                <p className="text-purple-300 font-black uppercase text-[9px] tracking-widest mb-1">MK9 PRODUCT UNIT</p>
+                <p className="text-purple-300 font-black uppercase text-[9px] tracking-widest mb-1 italic">ATENÇÃO: PROTEÇÃO DO CORE</p>
                 <p className="text-[10px] text-purple-200/60 leading-tight">
-                  A Fase 5 é sobre polir, padronizar e estabilizar. O objetivo é entregar um produto profissional, previsível e resistente a erros para uso diário.
+                  Proibido alterar core.server.ts, operational-visits.server.ts ou segments.ts. A paridade KING de 146 visitas realizadas deve ser preservada em todos os relatórios.
                 </p>
-
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Right Column: Login */}

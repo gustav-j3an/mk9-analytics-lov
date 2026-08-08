@@ -136,20 +136,20 @@ export function Mk9QualityModule({ month, year, onNavigate }: { month: number; y
   return (
     <div className="space-y-8 animate-fade-up">
       <Mk9PageHeader 
-        title="Central de Qualidade" 
-        subtitle="Monitoramento de integridade e inconsistências"
+        title="Qualidade dos Dados" 
+        subtitle="Integridade analítica e monitoramento de inconsistências"
         icon={ShieldCheck}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 glass-command p-1.5 rounded-xl border border-white/5">
             <Select value={String(filters.month)} onValueChange={(v) => setFilters(f => ({ ...f, month: Number(v) }))}>
-              <SelectTrigger className="h-9 w-[130px] bg-command-deep border-white/10 text-white"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-8 w-[120px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider"><SelectValue /></SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
-                {MONTHS_PT.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
+                {MONTHS_PT.map((m, i) => <SelectItem key={m} value={String(i + 1)} className="text-[10px] font-bold uppercase">{m}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Button onClick={handleRun} disabled={running} className="h-9 gap-2 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+            <Button onClick={handleRun} disabled={running} className="h-8 gap-2 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest px-4">
               {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-              Executar Varredura
+              Varredura
             </Button>
           </div>
         }
@@ -158,8 +158,8 @@ export function Mk9QualityModule({ month, year, onNavigate }: { month: number; y
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Mk9MetricCard label="Integridade" value={openCount === 0 ? "100%" : "Atenção"} color={openCount === 0 ? "emerald" : "amber"} hint={`${openCount} pendências`} />
         <Mk9MetricCard label="Bloqueantes" value={overview?.bySeverity?.BLOQUEANTE ?? 0} color="rose" hint="Ação imediata" />
-        <Mk9MetricCard label="Críticos" value={overview?.bySeverity?.CRITICO ?? 0} color="rose" hint="Risco operacional" />
-        <Mk9MetricCard label="Analisados" value={st.RESOLVED_MANUAL ?? 0} color="blue" hint="Histórico tratado" />
+        <Mk9MetricCard label="Inconsistências" value={overview?.bySeverity?.CRITICO ?? 0} color="rose" hint="Risco operacional" />
+        <Mk9MetricCard label="Alertas" value={overview?.bySeverity?.ALERTA ?? 0} color="amber" hint="Observação" />
       </div>
 
       <Mk9Panel>

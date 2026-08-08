@@ -21,7 +21,12 @@ import {
   FileSearch,
   Calendar,
   RotateCcw,
+  Activity,
+  Zap,
+  FileUp,
+  Play,
 } from "lucide-react";
+import { Mk9PageHeader, Mk9Panel, Mk9MetricCard } from "./mk9/design-system";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { checklistBatchPreview } from "@/lib/mk9-checklist-batch.functions";
@@ -94,6 +99,11 @@ const VALIDATION_LABEL: Record<string, { label: string; variant: "default" | "se
   INCONSISTENT: { label: "INCONSISTENTE", variant: "destructive" },
   FAILED: { label: "Auditoria falhou", variant: "destructive" },
 };
+
+const MONTHS_PT = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+];
 
 function shortDate(value: string) {
   if (!value) return "—";
@@ -454,20 +464,32 @@ export function Mk9ChecklistImportModule({ onSwitchToBase }: { onSwitchToBase?: 
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-4">
+      <Mk9PageHeader 
+        title="Importar Checklist" 
+        subtitle="Sincronização de roteiros e auditoria de campo"
+        icon={FileUp}
+      />
+
+      <div className="flex items-center gap-2 glass-command p-1.5 rounded-xl border border-white/5 w-fit">
         <Button 
-          variant={viewMode === "individual" ? "default" : "outline"} 
+          variant="ghost"
           onClick={() => setViewMode("individual")}
-          size="sm"
+          className={cn(
+            "h-8 px-4 text-[10px] font-black uppercase tracking-widest transition-all",
+            viewMode === "individual" ? "bg-command-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.2)]" : "text-slate-500 hover:text-white"
+          )}
         >
-          Importação individual
+          Individual
         </Button>
         <Button 
-          variant={viewMode === "batch" ? "default" : "outline"} 
+          variant="ghost"
           onClick={() => setViewMode("batch")}
-          size="sm"
+          className={cn(
+            "h-8 px-4 text-[10px] font-black uppercase tracking-widest transition-all",
+            viewMode === "batch" ? "bg-command-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.2)]" : "text-slate-500 hover:text-white"
+          )}
         >
-          Importar checklists em lote
+          Em Lote
         </Button>
       </div>
 
@@ -710,21 +732,21 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
 
   return (
     <div className="space-y-4">
-      <Card className="glass-panel">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Mk9Panel className="relative">
+        <div className="flex items-center gap-2 mb-6">
+          <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
             <Files className="h-5 w-5" />
-            Importação em lote (máx. 30 arquivos)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </div>
+          <h3 className="text-sm font-black text-white uppercase tracking-widest">Importação em Lote (Máx. 30)</h3>
+        </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-muted-foreground">Mês de competência</label>
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {MONTHS.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+                  {MONTHS_PT.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -795,8 +817,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
               </Button>
             </div>
           )}
-        </CardContent>
-      </Card>
+      </Mk9Panel>
     </div>
   );
 }
@@ -922,16 +943,15 @@ function IndividualImport({
 
   return (
     <div className="space-y-6">
-      <Card className="glass-panel">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Mk9Panel className="relative">
+        <div className="flex items-center gap-2 mb-6">
+          <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
             <ClipboardCheck className="h-5 w-5" />
-            Importar checklist mensal
-          </CardTitle>
-        </CardHeader>
+          </div>
+          <h3 className="text-sm font-black text-white uppercase tracking-widest">Configuração da Importação</h3>
+        </div>
 
 
-        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
               <label className="text-sm text-muted-foreground">Arquivo .xlsx (checklist mensal da indústria)</label>
@@ -970,7 +990,7 @@ function IndividualImport({
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {MONTHS.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+                  {MONTHS_PT.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -1041,33 +1061,39 @@ function IndividualImport({
               )}
             </div>
           )}
-          <div className="flex gap-2">
-            <Button onClick={() => previewMut.mutate()} disabled={!file || !industryId || previewMut.isPending}>
-              {previewMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-              Gerar prévia
-            </Button>
+          <div className="pt-6 border-t border-white/5 flex justify-end gap-2">
             {preview && (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => discardMut.mutate()}
-                  disabled={discardMut.isPending || commitMut.isPending}
-                >
-                  {discardMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
-                  Descartar prévia
-                </Button>
-                {preview.previousImport && (
-                  <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200 gap-1 h-9 px-3">
-                    <RotateCcw className="h-3 w-3" />
-                    Substituindo importação anterior
-                  </Badge>
-                )}
-              </div>
+              <Button variant="outline" className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest px-6" onClick={() => discardMut.mutate()}>
+                Descartar
+              </Button>
             )}
+            <Button onClick={() => previewMut.mutate()} disabled={!file || !industryId || previewMut.isPending} className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] text-[10px] font-black uppercase tracking-widest px-8">
+              {previewMut.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Play className="h-4 w-4 mr-2" />}
+              {preview ? "Recarregar" : "Analisar"}
+            </Button>
           </div>
+        </Mk9Panel>
 
-        </CardContent>
-      </Card>
+        {preview && (
+          <Mk9Panel className="relative">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                <Activity className="h-5 w-5" />
+              </div>
+              <h3 className="text-sm font-black text-white uppercase tracking-widest">Resumo Analítico</h3>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <Mk9MetricCard label="Total Visitas" value={preview.counters.totalMarks} color="blue" />
+              <Mk9MetricCard label="Lojas Identificadas" value={preview.counters.storesFound} color="emerald" />
+              <Mk9MetricCard label="Lojas Novas" value={preview.counters.storesNew} color="amber" />
+              <Mk9MetricCard label="Divergentes" value={preview.counters.storesNotFound} color="rose" />
+              <Mk9MetricCard label="Duplicadas" value={preview.counters.duplicateStoreNames || 0} color="orange" />
+              <Mk9MetricCard label="Datas Inválidas" value={preview.counters.visitsWithInvalidDate || 0} color="rose" />
+            </div>
+          </Mk9Panel>
+        )}
+
 
       <AlertDialog open={!!gate} onOpenChange={(o) => !o && setGate(null)}>
         <AlertDialogContent>
@@ -1094,9 +1120,9 @@ function IndividualImport({
       </AlertDialog>
 
       {rejected && (
-        <Card className="glass-panel border-destructive/40">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-start gap-3">
+        <Mk9Panel className="border-destructive/40 relative">
+          <div className="flex items-start gap-3">
+
               <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
               <div className="space-y-1 flex-1 min-w-0">
                 <p className="font-medium text-destructive">
@@ -1115,8 +1141,8 @@ function IndividualImport({
                 </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </Mk9Panel>
       )}
 
       {lastError && <ErrorPanel err={lastError} onDismiss={() => setLastError(null)} />}
@@ -1124,16 +1150,24 @@ function IndividualImport({
 
 
       {preview && (
-        <Card className="glass-panel">
-          <CardHeader>
-            <CardTitle>
-              Prévia — {preview.filename}
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                {preview.industryName} · {MONTHS[preview.operationMonth - 1]}/{preview.operationYear}
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <Mk9Panel className="relative">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+                <FileCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white uppercase tracking-widest">Prévia da Importação</h3>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+                  {preview.filename} · {preview.industryName}
+                </p>
+              </div>
+            </div>
+            <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              {MONTHS_PT[preview.operationMonth - 1]}/{preview.operationYear}
+            </div>
+          </div>
+
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
               <MiniStat label="Total de lojas" value={preview.counters.totalStores} />
               <MiniStat label="Total de visitas" value={preview.counters.totalMarks} />
@@ -1156,6 +1190,9 @@ function IndividualImport({
                 <AuditStat label="Duplicidades" value={preview.counters.duplicateStoreNames ?? 0} />
               </div>
             </div>
+          </Mk9Panel>
+        )}
+
 
             {(preview.storeFrequencies?.length ?? 0) > 0 && (
               <div className="rounded-lg border bg-card/60 p-3">
@@ -1317,16 +1354,16 @@ function IndividualImport({
                 </ul>
               </div>
             )}
-          </CardContent>
-        </Card>
-      )}
+          </Mk9Panel>
+        )}
 
-
-      <Card className="glass-panel">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5" />Histórico de checklists</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <Mk9Panel className="relative">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
+              <Clock className="h-5 w-5" />
+            </div>
+            <h3 className="text-sm font-black text-white uppercase tracking-widest">Histórico de Checklists</h3>
+          </div>
           {historyQ.isLoading ? (
             <p className="text-sm text-muted-foreground">Carregando…</p>
           ) : (historyQ.data ?? []).length === 0 ? (
@@ -1338,21 +1375,21 @@ function IndividualImport({
                 const vs = imp.validationStatus ? VALIDATION_LABEL[imp.validationStatus] : null;
                 const c: any = imp.counters ?? {};
                 return (
-                  <div key={imp.id} className="text-sm rounded-lg border p-3">
+                  <div key={imp.id} className="text-sm rounded-lg border border-white/5 bg-white/5 p-3">
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium truncate">{imp.filename}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="font-medium text-white truncate">{imp.filename}</p>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
                           {imp.industryName} · {MONTHS[imp.operationMonth - 1]} {imp.operationYear}
                           {c.persisted != null && ` · ${c.persisted} novas / ${c.skipped ?? 0} já existentes`}
                           {imp.errorMessage && ` · ${imp.errorMessage}`}
                           {imp.isOperationalCurrent && (
-                            <Badge variant="outline" className="ml-2 bg-emerald-50 text-emerald-800 border-emerald-200 py-0 h-4 text-[10px]">
+                            <Badge variant="outline" className="ml-2 bg-emerald-500/10 text-emerald-400 border-emerald-500/20 py-0 h-4 text-[10px]">
                               Vigente
                             </Badge>
                           )}
                           {imp.supersededAt && (
-                            <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-800 border-amber-200 py-0 h-4 text-[10px]">
+                            <Badge variant="outline" className="ml-2 bg-amber-500/10 text-amber-400 border-amber-500/20 py-0 h-4 text-[10px]">
                               Substituída
                             </Badge>
                           )}
@@ -1366,7 +1403,7 @@ function IndividualImport({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              className="h-8 w-8 text-slate-400 hover:text-white"
                               title="Corrigir competência"
                               onClick={() => setCorrectDialogOpen({ id: imp.id })}
                             >
@@ -1375,7 +1412,7 @@ function IndividualImport({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              className="h-8 w-8 text-slate-400 hover:text-red-400"
                               title="Desfazer importação"
                               onClick={() => setRevertDialogOpen({ id: imp.id })}
                             >
@@ -1384,7 +1421,7 @@ function IndividualImport({
                           </>
                         )}
                         <Button size="sm" variant="ghost" onClick={() => deleteMut.mutate(imp.id)} disabled={deleteMut.isPending}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <Trash2 className="h-4 w-4 text-red-400" />
                         </Button>
                       </div>
                     </div>
@@ -1394,8 +1431,7 @@ function IndividualImport({
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </Mk9Panel>
 
 
 

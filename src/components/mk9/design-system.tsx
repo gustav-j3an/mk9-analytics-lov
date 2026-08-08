@@ -60,7 +60,7 @@ export interface Mk9MetricCardProps {
   value: string | number;
   hint?: string;
   icon?: LucideIcon;
-  color?: "purple" | "blue" | "emerald" | "amber" | "rose";
+  color?: "purple" | "blue" | "emerald" | "amber" | "rose" | "sky" | "orange";
   onClick?: () => void;
   className?: string;
 }
@@ -80,6 +80,8 @@ export function Mk9MetricCard({
     emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/5",
     amber: "text-amber-400 bg-amber-500/10 border-amber-500/20 shadow-amber-500/5",
     rose: "text-rose-400 bg-rose-500/10 border-rose-500/20 shadow-rose-500/5",
+    sky: "text-sky-400 bg-sky-500/10 border-sky-500/20 shadow-sky-500/5",
+    orange: "text-orange-400 bg-orange-500/10 border-orange-500/20 shadow-orange-500/5",
   };
 
   return (

@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   Loader2, RefreshCw, CheckCircle2, AlertTriangle, XCircle, HelpCircle, Ban, ShieldQuestion,
   Download, ChevronDown, ChevronRight, Search as SearchIcon, Store as StoreIcon, Link2,
-  Undo2, Eye, Filter, FileSpreadsheet,
+  Undo2, Eye, Filter, FileSpreadsheet, SearchIcon as Search, ShieldCheck
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ import {
   reconcileLinkStore, reconcileListImports,
 } from "@/lib/mk9-reconciliation.functions";
 import { STATUS_LABELS_PT, type ReconciliationStatus } from "@/lib/mk9-reconciliation/types";
+import { Mk9PageHeader, Mk9Panel, Mk9MetricCard, Mk9Badge } from "./mk9/design-system";
 
 const MONTHS_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const WEEKDAY_PT = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
@@ -189,126 +190,121 @@ export function Mk9ReconciliationModule() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader className="space-y-1">
-          <CardTitle>Conciliação de visitas</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Compare as visitas planejadas no roteiro com as visitas realizadas nos checklists das indústrias.
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-3 items-end">
-            <FilterField label="Ano">
+      <Mk9PageHeader
+        title="Central de Conciliação"
+        subtitle="Sincronização entre roteiro planejado e checklist realizado"
+        icon={ShieldCheck}
+      />
+
+      <Mk9Panel>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 items-end">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Ano</label>
               <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-                <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
-                <SelectContent>{[2024,2025,2026,2027].map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-command-deep border-white/10">{[2024,2025,2026,2027].map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
               </Select>
-            </FilterField>
-            <FilterField label="Mês">
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Mês</label>
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                <SelectContent>{MONTHS_PT.map((m, i) => <SelectItem key={m} value={String(i+1)}>{m}</SelectItem>)}</SelectContent>
+                <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-command-deep border-white/10">{MONTHS_PT.map((m, i) => <SelectItem key={m} value={String(i+1)}>{m}</SelectItem>)}</SelectContent>
               </Select>
-            </FilterField>
-            <FilterField label="Indústria" className="min-w-[200px] flex-1">
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Indústria</label>
               <Select value={industryId} onValueChange={setIndustryId}>
-                <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white"><SelectValue placeholder="Todas" /></SelectTrigger>
+                <SelectContent className="bg-command-deep border-white/10">
                   <SelectItem value="__ALL__">Todas as indústrias</SelectItem>
                   {(industriesQ.data ?? []).map((i: any) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </FilterField>
-            <FilterField label="Promotor" className="min-w-[180px] flex-1">
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Promotor</label>
               <Select value={promoterId} onValueChange={setPromoterId}>
-                <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white"><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent className="bg-command-deep border-white/10">
                   <SelectItem value="__ALL__">Todos os promotores</SelectItem>
                   {(promotersQ.data ?? []).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </FilterField>
-            <FilterField label="UF">
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">UF</label>
               <Select value={uf} onValueChange={setUf}>
-                <SelectTrigger className="w-24"><SelectValue placeholder="—" /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white"><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectContent className="bg-command-deep border-white/10">
                   <SelectItem value="__ALL__">Todas</SelectItem>
                   {UFS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </FilterField>
-            <FilterField label="Checklist" className="min-w-[200px] flex-1">
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Checklist</label>
               <Select value={importId} onValueChange={setImportId}>
-                <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white"><SelectValue placeholder="Todos" /></SelectTrigger>
+                <SelectContent className="bg-command-deep border-white/10">
                   <SelectItem value="__ALL__">Todos os checklists</SelectItem>
                   {(importsQ.data ?? []).map((i: any) => <SelectItem key={i.id} value={i.id}>{i.filename}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </FilterField>
-            <div className="flex gap-2 ml-auto">
-              <Button onClick={() => runMut.mutate()} disabled={runMut.isPending}>
+            </div>
+            <div className="col-span-3 flex gap-2">
+              <Button onClick={() => runMut.mutate()} disabled={runMut.isPending} className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] flex-1 text-[10px] font-black uppercase tracking-widest">
                 {runMut.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                Executar conciliação
+                Conciliar
               </Button>
-              <Button variant="outline" onClick={() => qc.invalidateQueries({ queryKey: ["mk9-reco"] })}>
-                Atualizar dados
-              </Button>
-              <Button variant="outline" onClick={exportCsv} disabled={rows.length === 0}>
+              <Button variant="outline" onClick={exportCsv} disabled={rows.length === 0} className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest">
                 <Download className="h-4 w-4 mr-2" /> Exportar
               </Button>
             </div>
           </div>
 
           {s && (
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              <SummaryCell label="Contratadas" value={s.metrics.contratadas} tone="text-primary" />
-              <SummaryCell label="Executadas" value={s.metrics.executadas} />
-              <SummaryCell label="Válidas" value={s.metrics.validas} tone="text-emerald-300" />
-              <SummaryCell label="Pendências" value={s.metrics.pendencias} tone="text-rose-300" />
-              <SummaryCell label="Extras" value={s.metrics.extras} tone="text-amber-300" />
-              <SummaryCell label="Cobertura" value={`${s.metrics.coberturaPct}%`} tone="text-primary" />
-              <SummaryCell label="Conciliadas" value={s.matched} tone="text-emerald-300" />
-              <SummaryCell label="Data divergente" value={s.dateDivergence} tone="text-amber-300" />
-              <SummaryCell label="Fora do roteiro" value={s.unplanned} tone="text-sky-300" />
-              <SummaryCell label="Não realizadas" value={s.notCompleted} tone="text-rose-300" />
-              <SummaryCell label="Ambíguas" value={s.ambiguous} tone="text-orange-300" />
-              <SummaryCell label="Loja não encontrada" value={s.storeNotFound} tone="text-fuchsia-300" />
-              <SummaryCell label="Duplicadas" value={s.duplicate} tone="text-yellow-300" />
-              <SummaryCell label="Manuais" value={s.manuallyMatched} tone="text-teal-300" />
-              <SummaryCell label="Ignoradas" value={s.ignored} />
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-white/5">
+              <Mk9MetricCard label="Contratadas" value={s.metrics.contratadas} color="purple" />
+              <Mk9MetricCard label="Executadas" value={s.metrics.executadas} color="blue" />
+              <Mk9MetricCard label="Válidas" value={s.metrics.validas} color="emerald" />
+              <Mk9MetricCard label="Pendências" value={s.metrics.pendencias} color="rose" />
+              <Mk9MetricCard label="Extras" value={s.metrics.extras} color="amber" />
+              <Mk9MetricCard label="Cobertura" value={`${s.metrics.coberturaPct}%`} color={s.metrics.coberturaPct >= 90 ? "emerald" : "amber"} />
+              <Mk9MetricCard label="Conciliadas" value={s.matched} color="emerald" />
+              <Mk9MetricCard label="Data Divergente" value={s.dateDivergence} color="amber" />
+              <Mk9MetricCard label="Fora Roteiro" value={s.unplanned} color="sky" />
+              <Mk9MetricCard label="Não Realizadas" value={s.notCompleted} color="rose" />
+              <Mk9MetricCard label="Ambíguas" value={s.ambiguous} color="orange" />
+              <Mk9MetricCard label="Lojas ?" value={s.storeNotFound} color="purple" />
             </div>
           )}
-        </CardContent>
-      </Card>
+        </Mk9Panel>
 
-      <Card>
-        <CardHeader className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <CardTitle>Registros ({total})</CardTitle>
-            <div className="relative w-[280px] max-w-full">
-              <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar loja, promotor, indústria…"
-                value={rawSearch}
-                onChange={(e) => setRawSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
+      <Mk9Panel>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">Registros de Conciliação ({total})</h3>
+          <div className="relative w-[280px] max-w-full">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <Input
+              placeholder="Buscar loja, promotor, indústria…"
+              value={rawSearch}
+              onChange={(e) => setRawSearch(e.target.value)}
+              className="pl-9 h-9 bg-command-deep border-white/10 text-white text-xs"
+            />
           </div>
-          <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)}>
-            <TabsList className="flex flex-wrap h-auto">
-              <TabsTrigger value="all">Visão geral</TabsTrigger>
-              <TabsTrigger value="matched">Conciliadas</TabsTrigger>
-              <TabsTrigger value="pending">Pendências</TabsTrigger>
-              <TabsTrigger value="unplanned">Fora do roteiro</TabsTrigger>
-              <TabsTrigger value="manual">Revisão manual</TabsTrigger>
-              <TabsTrigger value="not_completed">Não realizadas</TabsTrigger>
-              <TabsTrigger value="store_not_found">Lojas não encontradas</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </CardHeader>
-        <CardContent>
+        </div>
+        
+        <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mb-6">
+          <TabsList className="flex flex-wrap h-auto bg-black/20 border border-white/5 p-1">
+            <TabsTrigger value="all" className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white">Geral</TabsTrigger>
+            <TabsTrigger value="matched" className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white">Conciliadas</TabsTrigger>
+            <TabsTrigger value="pending" className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white">Pendências</TabsTrigger>
+            <TabsTrigger value="unplanned" className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white">Fora Roteiro</TabsTrigger>
+            <TabsTrigger value="manual" className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white">Manual</TabsTrigger>
+            <TabsTrigger value="not_completed" className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white">Não Realizadas</TabsTrigger>
+          </TabsList>
+        </Tabs>
           {listQ.isLoading ? (
             <div className="text-sm text-muted-foreground flex items-center gap-2 py-8 justify-center">
               <Loader2 className="h-4 w-4 animate-spin" /> Carregando…
@@ -318,22 +314,20 @@ export function Mk9ReconciliationModule() {
               Nenhuma conciliação encontrada para os filtros atuais. Importe um checklist ou execute a conciliação.
             </div>
           ) : (
-            <div className="overflow-auto max-h-[640px]">
+            <div className="overflow-auto max-h-[640px] border border-white/5 rounded-xl bg-white/[0.01]">
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="border-b border-white/5 hover:bg-transparent">
                     <TableHead className="w-8"></TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Planejada</TableHead>
-                    <TableHead>Realizada</TableHead>
-                    <TableHead>Δ dias</TableHead>
-                    <TableHead>Promotor</TableHead>
-                    <TableHead>Loja</TableHead>
-                    <TableHead>UF</TableHead>
-                    <TableHead>Indústria</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">Status</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">Planejada</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">Realizada</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4 text-right">Δ Dias</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">Promotor</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">Loja</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">UF</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">Indústria</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -403,8 +397,7 @@ export function Mk9ReconciliationModule() {
               <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Próxima</Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </Mk9Panel>
 
       {reviewTarget && (
         <ReviewDialog
