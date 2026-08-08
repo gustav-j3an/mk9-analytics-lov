@@ -436,7 +436,7 @@ export async function persistImportSnapshot(
   for (let i = 0; i < payload.length; i += CHUNK) {
     const slice = payload.slice(i, i + CHUNK);
     const { error } = await supabaseAdmin
-      .from("mk9_checklist_import_store_snapshots")
+      .from("mk9_checklist_import_store_snapshots" as any)
       .upsert(slice as any, { onConflict: "import_id,store_id" });
     if (error) throw new Error(error.message);
   }
@@ -444,9 +444,9 @@ export async function persistImportSnapshot(
 
 export async function loadImportSnapshot(importId: string) {
   const { data, error } = await supabaseAdmin
-    .from("mk9_checklist_import_store_snapshots")
+    .from("mk9_checklist_import_store_snapshots" as any)
     .select("store_id, source_store_name, uf, weekly_frequency, monthly_frequency")
-    .eq("import_id", importId);
+    .eq("import_id" as any, importId);
   if (error) throw new Error(error.message);
   return data || [];
 }

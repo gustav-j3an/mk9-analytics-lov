@@ -88,6 +88,7 @@ export const checklistCommit = createServerFn({ method: "POST" })
       ensureChecklistStores,
       loadPreviewSnapshot,
       upsertIndustryStoreFrequencies,
+      persistImportSnapshot,
     } = await import("./mk9-checklist/persistence.server");
     const startedAt = Date.now();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
