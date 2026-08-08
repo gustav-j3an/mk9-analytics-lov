@@ -758,15 +758,15 @@ export function Mk9AnalyticsDashboard() {
           </div>
           <Mk9Badge
             variant={
-              projection.riskStatus === "CRITICAL"
+              projection?.riskStatus === "CRITICAL"
                 ? "danger"
-                : projection.riskStatus === "HIGH"
+                : projection?.riskStatus === "HIGH"
                   ? "warning"
                   : "success"
             }
             className="h-10 px-6 text-sm"
           >
-            RISCO {projection.riskStatus}
+            RISCO {projection?.riskStatus || "N/D"}
           </Mk9Badge>
         </div>
       </Mk9Panel>
