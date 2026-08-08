@@ -388,7 +388,45 @@ export function Mk9AnalyticsDashboard() {
         </Mk9Panel>
 
         {/* Industry Performance */}
+        {/* Lojas Reincidentes */}
+        {data.recurrence.length > 0 && (
+          <Mk9Panel className="xl:col-span-2">
+            <div className="flex items-center gap-3 mb-6">
+              <History className="h-5 w-5 text-rose-500" />
+              <div>
+                <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">Lojas Reincidentes</h3>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Falhas consecutivas em múltiplos períodos</p>
+              </div>
+            </div>
+            
+            <AnalyticsTable 
+              headers={["Loja", "Indústria", "Histórico", "Status"]}
+              rows={data.recurrence.slice(0, 10).map(r => [
+                <div key={r.storeId} className="flex flex-col">
+                  <span className="font-bold text-white uppercase tracking-tighter truncate w-40">{r.storeName}</span>
+                  <span className="text-[9px] text-slate-500 font-bold uppercase">{r.uf}</span>
+                </div>,
+                <span key={r.storeId} className="text-[10px] font-bold text-slate-400 uppercase">{r.industryName}</span>,
+                <div key={r.storeId} className="flex gap-2">
+                  {r.history.map((h, i) => (
+                    <div key={i} className="flex flex-col items-center p-1 rounded bg-white/[0.03] border border-white/5 min-w-[45px]">
+                      <span className="text-[7px] font-black text-slate-500">{h.period}</span>
+                      <span className={cn("text-[10px] font-black", h.realized === 0 ? "text-rose-500" : "text-white")}>
+                        {h.realized}
+                      </span>
+                    </div>
+                  ))}
+                </div>,
+                <Mk9Badge variant={r.status === "CRITICAL_RECURRENT" ? "danger" : "warning"} key={r.storeId}>
+                  {r.status === "CRITICAL_RECURRENT" ? "CRÍTICO" : "ESTÁVEL"}
+                </Mk9Badge>
+              ])}
+            />
+          </Mk9Panel>
+        )}
+
         <Mk9Panel className="xl:col-span-1">
+
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">Análise por Indústria</h3>
