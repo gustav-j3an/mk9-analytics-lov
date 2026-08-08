@@ -105,13 +105,11 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
     .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping, active")
     .eq("active", true);
 
-  const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
-  const { scope } = await requireMk9ReadScope();
   const industriesList = await supabase
     .from("mk9_industries")
     .select("id, name, requires_checklist, checklist_enabled_at")
-    .order("name", { ascending: true })
-    .in("id", scope.allowedIndustryIds || []);
+    .order("name", { ascending: true });
+
 
   if (cfgRes.error) throw new Error(cfgRes.error.message);
 
