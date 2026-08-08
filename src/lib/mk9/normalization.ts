@@ -206,3 +206,23 @@ export function parseNumber(value: unknown): number | null {
   if (!Number.isFinite(n)) return null;
   return negative ? -n : n;
 }
+
+/**
+ * Formata um valor numérico como percentual pt-BR (ex: 13.3333 -> "13,33%").
+ * Regras:
+ * - Máximo 2 casas decimais.
+ * - Mínimo 0 casas decimais (não força .00 se for inteiro).
+ * - Fallback "—" para null/NaN/Infinity.
+ */
+export function formatPercentage(value: number | null | undefined): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "—";
+  }
+
+  return new Intl.NumberFormat("pt-BR", {
+    style: "percent",
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+  }).format(value / 100);
+}
+

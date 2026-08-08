@@ -39,12 +39,14 @@ import {
   Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatPercentage } from "@/lib/mk9/normalization";
 import { Mk9Panel, Mk9Badge, Mk9LoadingState, Mk9ErrorState } from "./mk9/design-system";
 
-import { AnalyticsMetricCard, AnalyticsChartCard, AnalyticsTable } from "./mk9/AnalyticsComponents";
 
+import { AnalyticsMetricCard, AnalyticsChartCard, AnalyticsTable } from "./mk9/AnalyticsComponents";
 import {
   Select,
+
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -191,12 +193,13 @@ export function Mk9AnalyticsDashboard() {
           <div className="flex flex-col">
             <div className="flex justify-between items-end mb-1">
               <span className="text-lg font-black text-white italic">
-                {executive.coverage.current}%
+                {formatPercentage(executive.coverage.current)}
               </span>
               <span className="text-[9px] font-bold text-slate-500">
                 FALTAM {nf(executive.pending.current)}
               </span>
             </div>
+
             <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
               <div
                 className="h-full bg-command-purple rounded-full transition-all duration-1000"
@@ -411,7 +414,7 @@ export function Mk9AnalyticsDashboard() {
         />
         <AnalyticsMetricCard
           label="Cobertura Geral"
-          value={`${executive.coverage.current}%`}
+          value={formatPercentage(executive.coverage.current)}
           icon={Activity}
           color="cyan"
           comparison={{
@@ -661,7 +664,7 @@ export function Mk9AnalyticsDashboard() {
                         ind.coverage.delta >= 0 ? "text-emerald-400" : "text-amber-400",
                       )}
                     >
-                      {ind.coverage.current}%
+                      {formatPercentage(ind.coverage.current)}
                     </span>
                   </div>
                   <div className="flex flex-col">
@@ -670,9 +673,10 @@ export function Mk9AnalyticsDashboard() {
                     </span>
                     <span className="text-xs font-bold text-slate-300">
                       {ind.coverage.delta > 0 ? "+" : ""}
-                      {ind.coverage.delta.toFixed(1)}
+                      {formatPercentage(ind.coverage.delta)}
                     </span>
                   </div>
+
                   <div className="flex flex-col">
                     <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">
                       Zeradas
@@ -796,9 +800,11 @@ export function Mk9AnalyticsDashboard() {
                   u.variationVsPrevious >= 0 ? "text-emerald-400" : "text-amber-400",
                 )}
               >
-                {u.coverage}%
+                {formatPercentage(u.coverage)}
               </span>
+
               <div className="flex-1 h-1 bg-white/5 rounded-full min-w-[60px] hidden md:block">
+
                 <div
                   className="h-full bg-command-purple rounded-full"
                   style={{ width: `${u.coverage}%` }}
@@ -813,7 +819,8 @@ export function Mk9AnalyticsDashboard() {
               )}
             >
               {u.variationVsPrevious > 0 ? "+" : ""}
-              {u.variationVsPrevious.toFixed(1)}
+              {formatPercentage(u.variationVsPrevious)}
+
             </span>,
             <Mk9Badge variant={u.zeroVisits > 0 ? "danger" : "default"} key={u.uf}>
               {u.zeroVisits} LOJAS

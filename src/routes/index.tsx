@@ -7,7 +7,7 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | FASE 5.4 — HOMOLOGAÇÃO FINAL",
+    title: "MK9 | HOTFIX VISUAL — LIMITAR PORCENTAGENS",
     meta: [
       {
         name: "description",
@@ -56,10 +56,11 @@ function LandingPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 ANALYTICS — FASE 5.4
+                MK9 ANALYTICS — HOTFIX VISUAL
               </h1>
+
               <p className="text-[10px] text-purple-400 font-black tracking-[0.3em] uppercase">
-                HOMOLOGAÇÃO FINAL + RELEASE V1.0.0
+                LIMITAR PORCENTAGENS A NO MÁXIMO 2 CASAS
               </p>
             </div>
           </div>

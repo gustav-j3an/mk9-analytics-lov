@@ -1,6 +1,8 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { LucideIcon, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
+import { formatPercentage } from "@/lib/mk9/normalization";
+
 
 interface AnalyticsMetricCardProps {
   label: string;
@@ -83,14 +85,17 @@ export function AnalyticsMetricCard({
             {comparison.trend === "up" && <ArrowUpRight className="h-3 w-3" />}
             {comparison.trend === "down" && <ArrowDownRight className="h-3 w-3" />}
             {comparison.trend === "neutral" && <Minus className="h-3 w-3" />}
-            {comparison.value}
+            {typeof comparison.value === "number"
+              ? formatPercentage(comparison.value).replace("%", "")
+              : comparison.value}
             {typeof comparison.value === "number" && "%"}
             {comparison.percentChange !== undefined && (
               <span className="ml-1 opacity-70">
                 ({comparison.percentChange > 0 ? "+" : ""}
-                {comparison.percentChange.toFixed(1)}%)
+                {formatPercentage(comparison.percentChange)})
               </span>
             )}
+
           </div>
           <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
             {comparison.label}
