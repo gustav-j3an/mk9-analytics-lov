@@ -201,21 +201,23 @@ function buildRecurrence(current: OperationCore, previous: OperationCore): Recur
     const curCov = cur.contratadas > 0 ? (cur.realizadas / cur.contratadas) * 100 : 0;
     const prevCov = prev.contratadas > 0 ? (prev.realizadas / prev.contratadas) * 100 : 0;
 
-    // Critério: zerada ou < 50% em ambas
-    if ((cur.realizadas === 0 && prev.realizadas === 0) || (curCov < 50 && prevCov < 50)) {
-      recurrence.push({
-        storeId: cur.storeId,
-        storeName: cur.storeName,
-        industryName: cur.industryName,
-        uf: cur.uf || "—",
-        currentFrequency: cur.monthlyFrequency || 0,
-        currentRealized: cur.realizadas,
-        history: [
-          { period: `${previous.month}/${previous.year}`, realized: prev.realizadas, contracted: prev.contratadas, coverage: prevCov },
-          { period: `${current.month}/${current.year}`, realized: cur.realizadas, contracted: cur.contratadas, coverage: curCov }
-        ],
-        status: curCov < prevCov ? "CRITICAL_RECURRENT" : "STABLE"
-      });
+    // Critério: zerada ou < 50% em ambas (considerando lojas com contrato ativo)
+    if (cur.contratadas > 0 && prev.contratadas > 0) {
+      if ((cur.realizadas === 0 && prev.realizadas === 0) || (curCov < 50 && prevCov < 50)) {
+        recurrence.push({
+          storeId: cur.storeId,
+          storeName: cur.storeName,
+          industryName: cur.industryName,
+          uf: cur.uf || "—",
+          currentFrequency: cur.monthlyFrequency || 0,
+          currentRealized: cur.realizadas,
+          history: [
+            { period: `${previous.month}/${previous.year}`, realized: prev.realizadas, contracted: prev.contratadas, coverage: prevCov },
+            { period: `${current.month}/${current.year}`, realized: cur.realizadas, contracted: cur.contratadas, coverage: curCov }
+          ],
+          status: curCov < prevCov ? "CRITICAL_RECURRENT" : "STABLE"
+        });
+      }
     }
   }
 
