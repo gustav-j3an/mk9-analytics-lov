@@ -65,11 +65,21 @@ function LandingPage() {
               <section>
                 <div className="flex items-center gap-2 text-white mb-3">
                   <Info className="w-4 h-4 text-purple-400" />
-                  <span className="font-black uppercase tracking-widest">Contexto</span>
+                  <span className="font-black uppercase tracking-widest">Contexto Atual</span>
                 </div>
                 <div className="text-slate-400 space-y-2">
-                  <p>O núcleo operacional já está estabilizado e blindado pela Fase 3. Agora, o MK9 deixa de apenas mostrar "o que aconteceu" para responder "está melhorando ou piorando?".</p>
-                  <p>A Fase 4 cria uma camada de Data Science sobre o core, calculando tendências, scores de risco e reincidências sem tocar em uma única linha do motor oficial.</p>
+                  <p>O MK9 Analytics chegou a um estado avançado e estável.</p>
+                  <p className="text-purple-400/80 font-bold mt-2">ESTADO HOMOLOGADO:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-2 text-[11px]">
+                    <li>Fase 2 — Performance e Estabilidade: concluída</li>
+                    <li>Fase 3 — Confiabilidade: concluída</li>
+                    <li>Fase 4 — Inteligência Analítica: concluída</li>
+                    <li>384 testes aprovados</li>
+                    <li>Dashboard == PDF == Auditoria</li>
+                    <li>KING = 146 visitas realizadas em paridade</li>
+                    <li>Command Center / Score de Risco / Projeção ativos</li>
+                  </ul>
+                  <p className="mt-4">A partir de agora: NÃO estamos desenvolvendo novas regras operacionais. Estamos preparando o MK9 Analytics para uma versão estável v1.0.</p>
 
                 </div>
               </section>
