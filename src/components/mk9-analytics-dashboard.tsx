@@ -102,6 +102,62 @@ export function Mk9AnalyticsDashboard() {
         </div>
       )}
 
+      {/* Visão de Risco e Projeção (Executive View) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className={cn(
+          "glass-command p-4 rounded-2xl border flex flex-col justify-between",
+          projection.riskStatus === "CRITICAL" ? "border-rose-500/30 bg-rose-500/5" : "border-white/5 bg-white/[0.02]"
+        )}>
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Status de Risco</span>
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              "h-3 w-3 rounded-full animate-pulse",
+              projection.riskStatus === "CRITICAL" ? "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]" :
+              projection.riskStatus === "HIGH" ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" : "bg-emerald-500"
+            )} />
+            <span className={cn(
+              "text-xl font-black italic uppercase",
+              projection.riskStatus === "CRITICAL" ? "text-rose-500" : "text-white"
+            )}>
+              {projection.riskStatus}
+            </span>
+          </div>
+        </div>
+
+        <div className="glass-command p-4 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col justify-between">
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Projeção Final</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-black text-white italic">{nf(projection.projected)}</span>
+            <span className="text-[10px] font-bold text-slate-500">vs {nf(projection.contracted)}</span>
+          </div>
+        </div>
+
+        <div className="glass-command p-4 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col justify-between">
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Meta Proporcional</span>
+          <div className="flex flex-col">
+            <div className="flex justify-between items-end mb-1">
+              <span className="text-lg font-black text-white italic">{executive.coverage.current}%</span>
+              <span className="text-[9px] font-bold text-slate-500">FALTAM {nf(executive.pending.current)}</span>
+            </div>
+            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-command-purple rounded-full transition-all duration-1000" 
+                style={{ width: `${executive.coverage.current}%` }} 
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-command p-4 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col justify-between">
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Última Atualização</span>
+          <div className="flex items-center gap-2 text-white/70">
+            <Clock className="h-4 w-4 text-command-purple" />
+            <span className="text-xs font-bold uppercase">{new Date(lastUpdate).toLocaleTimeString('pt-BR')}</span>
+          </div>
+        </div>
+      </div>
+
+
       {/* Header & Filters */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
