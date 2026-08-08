@@ -89,7 +89,7 @@ export function Mk9AnalyticsDashboard() {
   if (error) return <Mk9ErrorState message="Erro ao carregar matriz analítica." onRetry={() => refetch()} />;
   if (!data) return <Mk9ErrorState message="Nenhum dado retornado para este período." onRetry={() => refetch()} />;
 
-  const { summary, frequencyDistribution, states, criticalStores, industries, dailyExecution } = data;
+  const { executive, industries, ufs, frequencies, matrix, projection, topPriorities, lastUpdate } = data;
 
   return (
     <div className="space-y-8 animate-fade-in pb-20 selection:bg-purple-500/30">
