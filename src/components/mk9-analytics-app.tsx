@@ -396,10 +396,17 @@ export function Mk9AnalyticsApp() {
               />
             )}
             {activeModule === "checklists" && (
-              <Mk9ChecklistImportModule onSwitchToBase={() => setActiveModule("importacoes")} />
+              <Mk9ChecklistImportModule
+                onSwitchToBase={() => setActiveModule("importacoes")}
+                initialMonth={month}
+                initialYear={year}
+              />
             )}
             {activeModule === "conciliacao" && (
-              <Mk9AuditModule key={auditKey} initialFilters={auditFilters} />
+              <Mk9AuditModule
+                key={auditKey}
+                initialFilters={{ ...auditFilters, month, year }}
+              />
             )}
             {activeModule === "qualidade" && (
               <Mk9QualityModule

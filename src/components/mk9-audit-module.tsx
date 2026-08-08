@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -106,7 +106,9 @@ export interface Mk9AuditInitialFilters {
 
 export function Mk9AuditModule({
   initialFilters,
-}: { initialFilters?: Mk9AuditInitialFilters } = {}) {
+}: {
+  initialFilters?: Mk9AuditInitialFilters;
+} = {}) {
   const now = new Date();
   const [year, setYear] = useState<number>(initialFilters?.year ?? now.getFullYear());
   const [month, setMonth] = useState<number>(initialFilters?.month ?? now.getMonth() + 1);
@@ -115,6 +117,14 @@ export function Mk9AuditModule({
   const [uf, setUf] = useState<string>(initialFilters?.uf ?? "__ALL__");
   const [tab, setTab] = useState<TabKey>("industry");
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (initialFilters?.month) setMonth(initialFilters.month);
+  }, [initialFilters?.month]);
+
+  useEffect(() => {
+    if (initialFilters?.year) setYear(initialFilters.year);
+  }, [initialFilters?.year]);
 
   const industriesFn = useServerFn(mk9ListIndustries);
   const promotersFn = useServerFn(mk9ListPromoters);
