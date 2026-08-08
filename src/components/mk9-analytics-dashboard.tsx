@@ -178,42 +178,72 @@ export function Mk9AnalyticsDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         <AnalyticsMetricCard 
           label="Visitas Contratadas" 
-          value={nf(summary.contratadas)} 
+          value={nf(executive.contracted.current)} 
           icon={Activity} 
           color="blue"
+          comparison={{ 
+            value: executive.contracted.previous, 
+            label: "anterior", 
+            trend: executive.contracted.delta >= 0 ? "up" : "down",
+            percentChange: executive.contracted.percentChange
+          }}
         />
         <AnalyticsMetricCard 
           label="Visitas Realizadas" 
-          value={nf(summary.realizadas)} 
+          value={nf(executive.realized.current)} 
           icon={CheckCircle2} 
           color="emerald"
+          comparison={{ 
+            value: executive.realized.previous, 
+            label: "anterior", 
+            trend: executive.realized.delta >= 0 ? "up" : "down",
+            percentChange: executive.realized.percentChange
+          }}
         />
         <AnalyticsMetricCard 
           label="Visitas Pendentes" 
-          value={nf(summary.pendentes)} 
+          value={nf(executive.pending.current)} 
           icon={Clock} 
           color="amber"
+          comparison={{ 
+            value: executive.pending.previous, 
+            label: "anterior", 
+            trend: executive.pending.delta <= 0 ? "up" : "down",
+            percentChange: executive.pending.percentChange
+          }}
         />
         <AnalyticsMetricCard 
           label="Extras Realizadas" 
-          value={nf(summary.extras)} 
+          value={nf(executive.extras.current)} 
           icon={TrendingUp} 
           color="purple"
         />
         <AnalyticsMetricCard 
           label="Cobertura Geral" 
-          value={`${summary.cobertura}%`} 
+          value={`${executive.coverage.current}%`} 
           icon={Activity} 
           color="cyan"
-          comparison={{ value: 12, label: "vs meta proporcional", trend: summary.cobertura > 90 ? "up" : "down" }}
+          comparison={{ 
+            value: executive.coverage.previous, 
+            label: "anterior", 
+            trend: executive.coverage.delta >= 0 ? "up" : "down",
+            percentChange: executive.coverage.delta
+          }}
         />
         <AnalyticsMetricCard 
           label="Lojas Zero Visitas" 
-          value={nf(summary.lojasSemAtendimento)} 
+          value={nf(executive.zeroVisits.current)} 
           icon={AlertTriangle} 
           color="rose"
+          comparison={{ 
+            value: executive.zeroVisits.previous, 
+            label: "anterior", 
+            trend: executive.zeroVisits.delta <= 0 ? "up" : "down",
+            percentChange: executive.zeroVisits.percentChange
+          }}
         />
       </div>
+
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
