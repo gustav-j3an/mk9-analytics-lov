@@ -7,11 +7,11 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute('/')({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | FASE 4 — INTELIGÊNCIA ANALÍTICA",
+    title: "MK9 | FASE 5 — ACABAMENTO & V1.0",
     meta: [
-      { name: "description", content: "Fase 4: Camada de BI, score de risco, reincidência e comparativos entre competências." },
-      { property: "og:title", content: "MK9 | FASE 4" },
-      { property: "og:description", content: "Implementação da camada de Inteligência Analítica sobre os dados operacionais." },
+      { name: "description", content: "Fase 5: Acabamento de produto, refinamento visual e preparação para a versão estável v1.0." },
+      { property: "og:title", content: "MK9 | FASE 5" },
+      { property: "og:description", content: "Refinamento visual, consistência e estabilização para a versão 1.0." },
 
       { name: "twitter:card", content: "summary_large_image" }
     ],
