@@ -194,8 +194,8 @@ export function Mk9AnalyticsDashboard() {
             <div className="flex justify-between items-end mb-1">
               <span className="text-lg font-black text-white italic">
                 {formatPercentage(executive.coverage.current)}
-
               </span>
+
               <span className="text-[9px] font-bold text-slate-500">
                 FALTAM {nf(executive.pending.current)}
               </span>
@@ -801,8 +801,8 @@ export function Mk9AnalyticsDashboard() {
                 )}
               >
                 {formatPercentage(u.coverage)}
-
               </span>
+
               <div className="flex-1 h-1 bg-white/5 rounded-full min-w-[60px] hidden md:block">
                 <div
                   className="h-full bg-command-purple rounded-full"
