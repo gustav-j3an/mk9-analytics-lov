@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import { Loader2, Zap, BarChart3, Shield, Cpu, Activity, Info } from "lucide-react";
+import { toast } from "sonner";
 import { ClientOnly } from "@/components/client-only";
 
 export const Route = createFileRoute("/")({
