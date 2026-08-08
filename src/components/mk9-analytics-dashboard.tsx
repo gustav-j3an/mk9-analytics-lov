@@ -108,8 +108,8 @@ export function Mk9AnalyticsDashboard() {
   });
 
   const years = useMemo(() => {
-    const y = now.getFullYear();
-    return [y - 1, y, y + 1];
+    const currentYear = new Date().getFullYear();
+    return [currentYear - 1, currentYear, currentYear + 1];
   }, []);
 
   const {
