@@ -256,7 +256,7 @@ export function Mk9AnalyticsDashboard() {
           <div className="flex items-center gap-2 text-white/70">
             <Clock className="h-4 w-4 text-command-purple" />
             <span className="text-xs font-bold uppercase">
-              {new Date(lastUpdate).toLocaleTimeString("pt-BR")}
+              {lastUpdate ? new Date(lastUpdate).toLocaleTimeString("pt-BR") : "—"}
             </span>
           </div>
         </div>
