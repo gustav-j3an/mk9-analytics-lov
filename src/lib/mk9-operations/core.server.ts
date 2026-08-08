@@ -100,14 +100,19 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
 
 
   queryCount += 2;
-  const [cfgRes, industriesList] = await Promise.all([
-    supabase
+  const cfgRes = await supabase
+    .from("mk9_industry_period_config")
+    .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping, active")
+    .eq("active", true);
 
-      .from("mk9_industry_period_config")
-      .select("industry_id, period_type, start_day, end_day, uses_previous_month, week_grouping, active")
-      .eq("active", true),
-    mk9ListIndustries(),
-  ]);
+  const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+  const { scope } = await requireMk9ReadScope();
+  const industriesList = await supabase
+    .from("mk9_industries")
+    .select("id, name, requires_checklist, checklist_enabled_at")
+    .order("name", { ascending: true })
+    .in("id", scope.allowedIndustryIds || []);
+
   if (cfgRes.error) throw new Error(cfgRes.error.message);
 
   let industries = (industriesList ?? []) as any[];
