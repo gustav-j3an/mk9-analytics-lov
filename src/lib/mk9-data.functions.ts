@@ -14,7 +14,7 @@ export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async
   let q = supabaseAdmin
     .from("mk9_industries")
     .select(
-      "id, name, display_name, cnpj, notes, source_type, archived_at, archive_reason, monthly_contracted_frequency, monthly_estimated_frequency, frequency_difference, frequency_status, weeks_count, requires_checklist, checklist_enabled_at, updated_at",
+      "id, name, display_name, notes, source_type, archived_at, archive_reason, monthly_contracted_frequency, monthly_estimated_frequency, frequency_difference, frequency_status, weeks_count, requires_checklist, checklist_enabled_at, updated_at",
     )
     .order("name", { ascending: true });
   if (scope.allowedIndustryIds) q = q.in("id", scope.allowedIndustryIds);
@@ -24,7 +24,7 @@ export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async
     id: r.id as string,
     name: r.name as string,
     displayName: (r.display_name ?? null) as string | null,
-    cnpj: (r.cnpj ?? null) as string | null,
+    cnpj: null, // Campo temporariamente removido da query por ausência na tabela real
 
     notes: (r.notes ?? null) as string | null,
     sourceType: (r.source_type ?? "IMPORT") as string,

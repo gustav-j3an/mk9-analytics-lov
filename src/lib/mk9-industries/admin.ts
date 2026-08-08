@@ -124,7 +124,7 @@ export function matchesStatusFilter(
   filter: IndustryStatusFilter,
 ): boolean {
   if (filter === "all") return true;
-  const archived = Boolean(industry.archivedAt);
+  const archived = !!industry.archivedAt;
   return filter === "archived" ? archived : !archived;
 }
 
