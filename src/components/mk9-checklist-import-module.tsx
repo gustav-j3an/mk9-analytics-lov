@@ -1354,6 +1354,7 @@ function IndividualImport({
                 </ul>
               </div>
             )}
+            </div>
           </Mk9Panel>
         )}
 
