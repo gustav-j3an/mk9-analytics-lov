@@ -153,12 +153,12 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
   // BLINDAGEM: Envolvemos as consultas em um bloco que captura falhas individuais.
   // Se uma consulta de visitas falhar, o dashboard ainda carrega o roteiro.
   queryCount += 5;
-  const { getOperationalVisits } = await import("./operational-visits.server");
+  const { listBulkOperationalActualVisits } = await import("./operational-visits.server");
   
   const safeQuery = async (promise: Promise<any>, fallback: any = { data: [], error: null }) => {
     try {
       const res = await promise;
-      if (res.error) {
+      if (res && res.error) {
         console.error("[CORE_QUERY_ERROR]", res.error);
         return fallback;
       }
@@ -168,8 +168,9 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       return fallback;
     }
   };
-
-  const [freqVersions, actualVisits, routeRes, importRes, storeRes] = await Promise.all([
+  
+  // Otimização: Promise.all centralizado para evitar N+1
+  const [freqVersions, bulkVisits, routeRes, importRes, storeRes] = await Promise.all([
     loadFrequencyVersionsForPeriod(supabase, {
       industryIds,
       storeIds: accessStoreIds,
@@ -180,13 +181,11 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
       console.error("[CORE_FREQ_ERROR]", err);
       return new Map();
     }),
-    safeQuery((async () => {
-      // Usar a função de domínio centralizada (listOperationalActualVisits) para garantir paridade.
-      // Se forem várias, precisamos iterar ou ajustar a listOperationalActualVisits para aceitar array.
-      // Por enquanto, resolvemos para a primeira (ou todas as solicitadas em paralelo).
-      const results = await Promise.all(industryIds.map(id => getOperationalVisits({ industryId: id, startDate: globalStart, endDate: globalEnd })));
-      return { data: results.flat(), error: null };
-    })()),
+    safeQuery(listBulkOperationalActualVisits({ 
+      industryIds, 
+      startDate: globalStart, 
+      endDate: globalEnd 
+    })),
     safeQuery(supabase
       .from("mk9_planned_routes")
       .select("industry_id, store_id, promoter_id, weekday, valid_from, valid_until, promoter:mk9_promoters(id,name,employee_number)")
@@ -212,8 +211,9 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
     })()),
   ]);
   
-  // Normalizar actualVisits se veio do getOperationalVisits
-  const visitRes = Array.isArray(actualVisits.data) ? actualVisits : { data: actualVisits.data || [], error: actualVisits.error };
+  // Normalizar bulkVisits
+  const visitRes = Array.isArray(bulkVisits) ? { data: bulkVisits } : { data: (bulkVisits as any)?.data || [] };
+
   // BLINDAGEM: Não lançamos erro se uma query secundária falhar. O dashboard deve tentar renderizar.
   // if (r.error) throw new Error(r.error.message); // REMOVIDO PARA PROTEÇÃO
 
