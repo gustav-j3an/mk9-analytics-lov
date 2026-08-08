@@ -123,36 +123,51 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
         actions={
           <div className="glass-command p-1.5 rounded-xl flex flex-wrap items-center gap-2 border border-white/5">
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-9 w-[130px] bg-command-deep border-white/10 text-white"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-8 w-[120px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
-                {MONTHS_PT.map((m, i) => <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>)}
+                {MONTHS_PT.map((m, i) => <SelectItem key={m} value={String(i + 1)} className="text-[10px] font-bold uppercase">{m}</SelectItem>)}
               </SelectContent>
             </Select>
+
             <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="h-9 w-[96px] bg-command-deep border-white/10 text-white"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-8 w-[80px] bg-black/40 border-white/5 text-[10px] font-bold text-white">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
-                {[year - 1, year, year + 1].map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                {[year - 1, year, year + 1].map((y) => <SelectItem key={y} value={String(y)} className="text-[10px] font-bold">{y}</SelectItem>)}
               </SelectContent>
             </Select>
             
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-9 w-[160px] bg-command-deep border-white/10 text-white"><SelectValue placeholder="Indústria" /></SelectTrigger>
+              <SelectTrigger className="h-8 w-[160px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase">
+                <SelectValue placeholder="Indústria" />
+              </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
-                <SelectItem value={ALL}>Todas as Indústrias</SelectItem>
-                {industries.map((i: any) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}
+                <SelectItem value={ALL} className="text-[10px] font-bold uppercase">Todas as Indústrias</SelectItem>
+                {industries.map((i: any) => <SelectItem key={i.id} value={i.id} className="text-[10px] font-bold uppercase">{i.name}</SelectItem>)}
               </SelectContent>
             </Select>
 
             <Select value={promoterId} onValueChange={setPromoterId}>
-              <SelectTrigger className="h-9 w-[160px] bg-command-deep border-white/10 text-white"><SelectValue placeholder="Promotor" /></SelectTrigger>
+              <SelectTrigger className="h-8 w-[160px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase">
+                <SelectValue placeholder="Promotor" />
+              </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
-                <SelectItem value={ALL}>Todos os Promotores</SelectItem>
-                {promoters.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                <SelectItem value={ALL} className="text-[10px] font-bold uppercase">Todos os Promotores</SelectItem>
+                {promoters.map((p: any) => <SelectItem key={p.id} value={p.id} className="text-[10px] font-bold uppercase">{p.name}</SelectItem>)}
               </SelectContent>
             </Select>
 
-            <Button size="sm" variant="outline" className="h-9 border-white/10 bg-white/5 text-slate-400 hover:text-white" onClick={() => q.refetch()}>
-              <RefreshCw className={cn("h-3.5 w-3.5 mr-2", q.isFetching && "animate-spin")} /> Sincronizar
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="h-8 w-8 text-slate-500 hover:text-white hover:bg-white/5" 
+              onClick={() => q.refetch()}
+              disabled={q.isFetching}
+            >
+              <RefreshCw className={cn("h-4 w-4", q.isFetching && "animate-spin")} />
             </Button>
           </div>
         }
