@@ -85,10 +85,10 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="ANALYTICS" value="ACTIVE" sub="Intelligence" />
-                <StatusCard icon={Cpu} title="SCORE ENGINE" value="DETERMINISTIC" sub="Risk" />
-                <StatusCard icon={Zap} title="PROJECTION" value="REAL-TIME" sub="Trends" />
-                <StatusCard icon={BarChart3} title="BI UNIT" value="COMMAND" sub="Science" />
+                <StatusCard icon={Activity} title="UI/UX" value="REFINING" sub="Polishing" />
+                <StatusCard icon={Cpu} title="STABILITY" value="HOMOLOGATED" sub="v1.0" />
+                <StatusCard icon={Zap} title="PERFORMANCE" value="OPTIMIZED" sub="Edge" />
+                <StatusCard icon={Shield} title="SECURITY" value="HARDENED" sub="RLS" />
 
               </div>
 
