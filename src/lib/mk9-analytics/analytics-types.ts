@@ -21,6 +21,7 @@ export interface IndustryEvolution {
   trend: TrendStatus;
   risk: RiskScore;
   reason?: string;
+  pendingCount: number;
 }
 
 export interface UfPerformance {
@@ -36,6 +37,7 @@ export interface UfPerformance {
 export interface RecurrenceRecord {
   storeId: string;
   storeName: string;
+  industryName: string;
   uf: string;
   history: {
     period: string;
@@ -44,6 +46,8 @@ export interface RecurrenceRecord {
     coverage: number;
   }[];
   status: "CRITICAL_RECURRENT" | "IMPROVING" | "STABLE";
+  currentFrequency: number;
+  currentRealized: number;
 }
 
 export interface FrequencyExecutionGroup {
@@ -54,6 +58,12 @@ export interface FrequencyExecutionGroup {
   partialCount: number;
   zeroCount: number;
   extras: number;
+}
+
+export interface ExecutionMatrixCell {
+  frequency: string;
+  coverageRange: string;
+  count: number;
 }
 
 export interface AnalyticsDashboardPayload {
@@ -74,10 +84,28 @@ export interface AnalyticsDashboardPayload {
   ufs: UfPerformance[];
   recurrence: RecurrenceRecord[];
   frequencies: FrequencyExecutionGroup[];
-  projection?: {
-    expectedFinalRealized: number;
-    status: "ON_TRACK" | "AT_RISK";
+  matrix: ExecutionMatrixCell[];
+  projection: {
+    realized: number;
+    projected: number;
+    contracted: number;
+    riskStatus: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
     daysRemaining: number;
   };
+  topPriorities: {
+    storeId: string;
+    storeName: string;
+    industryName: string;
+    score: number;
+    reason: string;
+  }[];
+  positives: {
+    bestIndustries: { name: string; coverage: number }[];
+    bestUfs: { name: string; evolution: number }[];
+  };
   lastUpdate: string;
+  perf?: {
+    coreMs: number;
+    queryCount: number;
+  };
 }
