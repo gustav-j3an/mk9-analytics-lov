@@ -181,6 +181,7 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
     const key = `${normalized}|${uf ?? ""}`;
     const cached = resolveCache.get(key);
     if (cached) return cached;
+
     // 1) Match exato por (nome_normalizado, uf)
     const exact = stores.byKey.get(key);
     if (exact) {
@@ -188,26 +189,29 @@ export async function runChecklistPreview(input: ChecklistPreviewInput, diagnost
       resolveCache.set(key, r);
       return r;
     }
+
     // 2) Se existe apenas UMA loja com esse nome normalizado (qualquer UF),
     //    usa ela. Cobre o caso comum de a UF vir divergente/errada do checklist.
+    // MODIFICAÇÃO: Só aplica se não houver duplicatas nominais no cadastro.
     const unique = stores.uniqueByName.get(normalized);
     if (unique) {
       const r: Resolution = { kind: "found", storeId: unique.id, matchedName: unique.name };
       resolveCache.set(key, r);
       return r;
     }
-    // 2.1) Chave compacta (sem espaços): casa "T-63" com "T63" e afins.
+
+    // 2.1) Chave compacta e tokens (ignora ordem e stopwords) — SEMPRE POR UF se houver duplicatas.
     const ufKey = uf ?? "";
-    // 2.1) Chave compacta (sem espaços): casa "T-63" com "T63" e afins.
     const compactMatch = stores.pickUnique("compact", ufKey, storeCompactKey(normalized));
-    // 2.2) Chave por conjunto de tokens (ignora ordem e stopwords).
     const tokenMatch = stores.pickUnique("tokenSet", ufKey, storeTokenSetKey(normalized));
     const fuzzyExact = compactMatch ?? tokenMatch;
+
     if (fuzzyExact) {
       const r: Resolution = { kind: "found", storeId: fuzzyExact.id, matchedName: fuzzyExact.name };
       resolveCache.set(key, r);
       return r;
     }
+
     // 3) Similaridade dentro da mesma UF (fallback: sem UF quando ausente)
     const pool = storesByUf.get(uf ?? "") ?? [];
     let best: { rec: (typeof pool)[number]; score: number } | null = null;
