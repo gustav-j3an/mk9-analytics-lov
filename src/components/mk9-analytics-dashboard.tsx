@@ -96,7 +96,7 @@ export function Mk9AnalyticsDashboard() {
     uf: uf === "__ALL__" ? null : uf,
   };
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["mk9-analytics-data", params],
     queryFn: () => analyticsFn({ data: params }),
     staleTime: 60000,
