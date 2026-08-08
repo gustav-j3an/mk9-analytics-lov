@@ -109,13 +109,14 @@ export const getAnalyticsDashboard = createServerFn({ method: "POST" })
       industries: industryRows.map(i => ({
         id: i.industryId,
         name: i.industryName,
-        lojas: i.lojasCount,
+        lojas: i.lojasContratadas,
         contratadas: i.contratadas,
         realizadas: i.realizadas,
         pendentes: i.pendentes,
         cobertura: i.coberturaPct,
-        zeradas: i.zeradasCount
+        zeradas: storeRows.filter(s => s.industryId === i.industryId && s.realizadas === 0 && s.contratadas > 0).length
       })).sort((a, b) => a.cobertura - b.cobertura),
+
       dailyExecution: buildDailySeries({
         ctxs,
         industryRows,
