@@ -21,7 +21,10 @@ import {
   ExternalLink,
   Zap,
   Database,
-  Cpu
+  Cpu,
+  History,
+  TrendingDown,
+  Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
@@ -30,6 +33,7 @@ import {
   Mk9LoadingState, 
   Mk9ErrorState 
 } from "./mk9/design-system";
+
 import { 
   AnalyticsMetricCard, 
   AnalyticsChartCard, 
