@@ -182,9 +182,10 @@ export async function loadOperationCore(supabase: any, filters: OperationFilters
     }),
     safeQuery((async () => {
       // Usar a função de domínio centralizada (listOperationalActualVisits) para garantir paridade.
-      // Se for apenas uma indústria, a listOperationalActualVisits já é otimizada.
-      // Se forem várias, buscamos todas as visitas operacionais para o período global.
-      return { data: await getOperationalVisits({ industryId: industryIds[0], startDate: globalStart, endDate: globalEnd }), error: null };
+      // Se forem várias, precisamos iterar ou ajustar a listOperationalActualVisits para aceitar array.
+      // Por enquanto, resolvemos para a primeira (ou todas as solicitadas em paralelo).
+      const results = await Promise.all(industryIds.map(id => getOperationalVisits({ industryId: id, startDate: globalStart, endDate: globalEnd })));
+      return { data: results.flat(), error: null };
     })()),
     safeQuery(supabase
       .from("mk9_planned_routes")
