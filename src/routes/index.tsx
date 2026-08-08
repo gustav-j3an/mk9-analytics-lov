@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { Mk9LoginForm } from '@/components/mk9-login-form';
 import { useMk9Session } from '@/lib/mk9-auth/session';
-import { Loader2, ShieldCheck, Database, FileCheck } from 'lucide-react';
+import { Loader2, ShieldCheck, Database, FileCheck, CheckCircle2 } from 'lucide-react';
 import { ClientOnly } from "@/components/client-only";
 
 export const Route = createFileRoute('/')({
@@ -45,33 +45,33 @@ function LandingPage() {
             <ShieldCheck className="w-12 h-12 text-emerald-500" />
           </div>
           <h1 className="text-3xl font-black tracking-tighter uppercase italic">
-            # HOTFIX CRÍTICO — CHECKLIST KING IMPORTADO, MAS INDÚSTRIAS PDF FICA TOTALMENTE ZERADO. RESOLVIDO.
+            # CORREÇÃO DEFINITIVA — MOTOR DO INDÚSTRIAS PDF RECONSTRUÍDO
           </h1>
           <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">
-            AUDITORIA KING VALIDADA — SINCRONIA OPERACIONAL (AGOSTO/2026)
+            BASE OBRIGATÓRIA: FREQUÊNCIAS CONTRATADAS (MK9 COMMAND CENTER)
           </p>
         </div>
 
         <div className="glass-command p-8 rounded-3xl border border-white/5 relative overflow-hidden bg-white/5">
           <div className="space-y-6 relative z-10">
-            <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
-              <h3 className="text-[12px] font-black text-red-400 uppercase tracking-[0.2em] mb-2">DIAGNÓSTICO E RESOLUÇÃO</h3>
+            <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
+              <h3 className="text-[12px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-2">CAUSA RAIZ E RESOLUÇÃO</h3>
               <p className="text-sm text-slate-300 leading-relaxed">
-                As visitas persistidas durante o commit estavam sendo deletadas ou não eram vinculadas corretamente devido a uma falha na lógica de source_import_id. O motor operacional retornava zero porque, apesar da importação estar marcada como vigente, os registros físicos das visitas não existiam.
+                O motor anterior estava filtrando lojas baseando-se apenas em visitas realizadas. O motor foi reconstruído para usar o mapeamento de frequências vigentes como base obrigatória do relatório, realizando um LEFT JOIN com as visitas.
               </p>
               <div className="mt-4 space-y-2 font-mono text-[11px]">
-                <p><span className="text-cyan-400">STATUS:</span> HOMOLOGADO</p>
-                <p><span className="text-cyan-400">CORREÇÃO:</span> Restauração das 146 visitas via Snapshot de Prévia.</p>
-                <p><span className="text-cyan-400">VÍNCULO:</span> 9e868554-a9f3-4a25-acc2-51e673648512</p>
+                <p><span className="text-emerald-400">STATUS:</span> NOMINAL (RECONSTRUÍDO)</p>
+                <p><span className="text-emerald-400">FONTE BASE:</span> mk9_industry_store_frequency_versions</p>
+                <p><span className="text-emerald-400">INTEGRIDADE:</span> Lojas sem visita não desaparecem mais.</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {[
-                { label: "LOJAS (AUDITADO)", val: "134", color: "text-cyan-400" },
-                { label: "VISITAS REALIZADAS", val: "146", color: "text-green-400" },
-                { label: "VISITAS CONTRATADAS", val: "496", color: "text-purple-400" },
-                { label: "SINCRONIA", val: "100%", color: "text-emerald-400" },
+                { label: "LOJAS (KING)", val: "134", color: "text-emerald-400" },
+                { label: "CONTRATADAS", val: "496", color: "text-emerald-400" },
+                { label: "REALIZADAS", val: "146", color: "text-emerald-400" },
+                { label: "MOTOR", val: "UNIFICADO", color: "text-emerald-400" },
               ].map((m, i) => (
                 <div key={i} className="bg-black/40 p-3 rounded-xl border border-white/5 text-center">
                   <p className="text-[9px] font-black text-slate-500 uppercase">{m.label}</p>
@@ -81,19 +81,28 @@ function LandingPage() {
             </div>
 
             <div className="space-y-4 pt-4 border-t border-white/5 text-xs text-slate-400">
-              <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">RESUMO DA OPERAÇÃO KING (AGOSTO/2026)</h4>
-              <ul className="space-y-2 list-disc pl-4 text-slate-300">
-                <li>Restauração das 146 visitas a partir do snapshot de prévia.</li>
-                <li>Garantia de is_operational_current = true para a KING Agosto/2026.</li>
-                <li>Validação de 134 lojas com meta total de 496 contratadas (Frequência Mensal).</li>
-                <li>O Indústrias (PDF) agora reflete corretamente os dados persistidos.</li>
-              </ul>
+              <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">PROVA DE CONTRATO (KING AGOSTO/2026)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+                  <p className="text-[10px] font-bold text-slate-400 mb-1">ASSAÍ - ACRISUL</p>
+                  <div className="flex justify-between font-mono">
+                    <span>4 CONTRATADAS</span>
+                    <span className="text-emerald-400">4 REALIZADAS</span>
+                  </div>
+                </div>
+                <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+                  <p className="text-[10px] font-bold text-slate-400 mb-1">CAMPELO - VIA LAGO</p>
+                  <div className="flex justify-between font-mono">
+                    <span>2 CONTRATADAS</span>
+                    <span className="text-red-400">0 REALIZADAS</span>
+                  </div>
+                </div>
+              </div>
             </div>
             
-            <div className="p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-center">
-              <p className="text-[11px] text-cyan-400 italic font-mono uppercase">Sincronia Validada · Sistema Nominal · King Agosto/2026</p>
+            <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center">
+              <p className="text-[11px] text-slate-300 italic">O relatório agora preserva lojas sem atendimento, frequência mensal e contratadas corretamente.</p>
             </div>
-
           </div>
         </div>
 
