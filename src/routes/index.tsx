@@ -7,11 +7,12 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute('/')({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | FASE 5.2 — ACABAMENTO & V1.0",
+    title: "MK9 | FASE 5.3 — CADASTROS & NAVEGAÇÃO",
     meta: [
-      { name: "description", content: "Fase 5.2: Acabamento dos módulos operacionais e relatórios operacionais premium." },
-      { property: "og:title", content: "MK9 | FASE 5.2" },
-      { property: "og:description", content: "Refinamento visual, consistência e estabilização para a versão 1.0." },
+      { name: "description", content: "Fase 5.3: Acabamento de cadastros, administração e nova estrutura de navegação." },
+      { property: "og:title", content: "MK9 | FASE 5.3" },
+      { property: "og:description", content: "Refinamento visual de Indústrias, Lojas, Promotores, Usuários e Sidebar." },
+
       { name: "twitter:card", content: "summary_large_image" }
     ],
   }),
@@ -49,11 +50,12 @@ function LandingPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 ANALYTICS — FASE 5.2
+                MK9 ANALYTICS — FASE 5.3
               </h1>
               <p className="text-[10px] text-purple-400 font-black tracking-[0.3em] uppercase">
-                ACABAMENTO DOS MÓDULOS OPERACIONAIS E RELATÓRIOS
+                CADASTROS, ADMINISTRAÇÃO E NAVEGAÇÃO
               </p>
+
             </div>
           </div>
 
@@ -65,35 +67,37 @@ function LandingPage() {
                   <span className="font-black uppercase tracking-widest text-purple-400">Contexto Confirmado</span>
                 </div>
                 <div className="text-slate-400 space-y-2">
-                  <p>FASE 5.1 concluída com sucesso. Dashboard, Inteligência e Cockpit homologados.</p>
+                  <p>FASE 5.2 concluída. Conciliação, Importação, Qualidade e Roteiros homologados.</p>
                   <p className="text-purple-400/80 font-bold mt-2 italic">STATUS OPERACIONAL:</p>
                   <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px]">
                     <div className="flex justify-between border-b border-white/5 pb-1"><span>Dashboard</span><span className="text-emerald-400 font-bold">OK</span></div>
                     <div className="flex justify-between border-b border-white/5 pb-1"><span>Inteligência</span><span className="text-emerald-400 font-bold">OK</span></div>
                     <div className="flex justify-between border-b border-white/5 pb-1"><span>Cockpit</span><span className="text-emerald-400 font-bold">OK</span></div>
-                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Responsividade</span><span className="text-emerald-400 font-bold">OK</span></div>
-                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Acessibilidade</span><span className="text-emerald-400 font-bold">OK</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Operacional</span><span className="text-emerald-400 font-bold">OK</span></div>
+                    <div className="flex justify-between border-b border-white/5 pb-1"><span>Relatórios</span><span className="text-emerald-400 font-bold">OK</span></div>
+
                     <div className="flex justify-between border-b border-white/5 pb-1"><span>Console</span><span className="text-emerald-400 font-bold">LIMPO</span></div>
                   </div>
-                  <p className="mt-4">O Design System MK9 está consolidado. Agora aplicamos o padrão visual aos módulos operacionais e relatórios PDF.</p>
+                  <p className="mt-4">O núcleo operacional está blindado. Agora aplicamos o Design System MK9 aos cadastros e reestruturamos a navegação global.</p>
                 </div>
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="PHASE" value="5.2" sub="ACABAMENTO" />
+                <StatusCard icon={Activity} title="PHASE" value="5.3" sub="CADASTROS" />
                 <StatusCard icon={Cpu} title="CORE" value="PROTECTED" sub="BLINDADO" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
-                <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">MISSÃO 5.2 — MÓDULOS ALVO</h3>
+                <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">MISSÃO 5.3 — MÓDULOS ALVO</h3>
                 <div className="space-y-4 text-slate-400">
-                  <ProtocolItem id="01" title="INDÚSTRIAS (PDF)" desc="Transformação em relatório analítico premium com MetricCards e tabelas de alta densidade." />
-                  <ProtocolItem id="02" title="CONCILIAÇÃO" desc="Nova Central de Conciliação com foco em divergências, match score e ações rápidas." />
-                  <ProtocolItem id="03" title="QUALIDADE" desc="Painel de integridade de dados categorizado por severidade (Crítico/Atenção/Informativo)." />
-                  <ProtocolItem id="04" title="IMPORTAR CHECKLIST" desc="Nova Central de Importação com feedback visual de fila, drag & drop e preview em 3 blocos." />
-                  <ProtocolItem id="05" title="ROTEIROS" desc="Central de Roteiros com visualização semanal, KPIs do promotor e histórico de vigências." />
-                  <ProtocolItem id="06" title="REGRA ZERO" desc="Cálculos operacionais, parser, snapshots e regra KING intocáveis. Refinamento visual exclusivo." />
+                  <ProtocolItem id="01" title="INDÚSTRIAS / LOJAS" desc="Padronização de cadastros com Mk9Panel, tabelas de alta densidade e filtros inteligentes." />
+                  <ProtocolItem id="02" title="PROMOTORES / USUÁRIOS" desc="Refinamento da gestão de campo e controle de acesso com o novo Command Center UX." />
+                  <ProtocolItem id="03" title="LIMPEZA MANUAL" desc="Nova interface de manutenção de dados com avisos de impacto e segurança destrutiva." />
+                  <ProtocolItem id="04" title="SIDEBAR / NAVEGAÇÃO" desc="Nova estrutura de menu colapsável organizada por camadas (Visão Geral, Operação, Análise)." />
+                  <ProtocolItem id="05" title="CONFIRMAÇÃO E TOASTS" desc="Unificação de diálogos de exclusão e notificações de sistema em todo o ambiente." />
+                  <ProtocolItem id="06" title="REGRA ZERO" desc="Persistência, RLS, regra KING e motores operacionais blindados. Foco 100% em acabamento e UX." />
                 </div>
+
               </div>
 
               <div className="bg-purple-900/20 border border-purple-500/20 p-4 rounded-lg">
