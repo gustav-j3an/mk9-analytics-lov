@@ -48,15 +48,17 @@ export function AnalyticsMetricCard({
       )}
     >
       <div className="flex items-start justify-between relative z-10">
-        <div className="space-y-1">
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+        <div className="space-y-0.5">
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">
             {label}
           </p>
-          <h3 className="text-2xl font-black text-white tracking-tighter">
-            {value}
-          </h3>
+          <div className="flex items-baseline gap-2">
+            <h3 className="text-3xl font-black text-white tracking-tighter italic">
+              {value}
+            </h3>
+          </div>
           {hint && (
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-1">
               {hint}
             </p>
           )}
@@ -147,7 +149,10 @@ export function AnalyticsTable({
         <thead>
           <tr>
             {headers.map((h, i) => (
-              <th key={i} className="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              <th key={i} className={cn(
+                "px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest",
+                i > 0 && "text-right"
+              )}>
                 {h}
               </th>
             ))}
@@ -158,8 +163,9 @@ export function AnalyticsTable({
             <tr key={i} className="group">
               {row.map((cell, j) => (
                 <td key={j} className={cn(
-                  "px-4 py-3 text-xs bg-white/[0.02] border-y border-white/5 transition-colors group-hover:bg-white/[0.05]",
-                  j === 0 && "rounded-l-xl border-l",
+                  "px-4 py-3 text-xs bg-white/[0.02] border-y border-white/5 transition-colors group-hover:bg-white/[0.04]",
+                  j === 0 && "rounded-l-xl border-l text-left",
+                  j > 0 && "text-right",
                   j === row.length - 1 && "rounded-r-xl border-r"
                 )}>
                   {cell}

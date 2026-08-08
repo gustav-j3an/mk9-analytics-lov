@@ -11,14 +11,14 @@ interface ChartCardProps {
 
 export function ChartCard({ title, subtitle, children, className }: ChartCardProps) {
   return (
-    <Card className={cn("glass-command border-none shadow-xl", className)}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-bold text-white uppercase tracking-wider">{title}</CardTitle>
-        {subtitle && <p className="text-[10px] text-muted-foreground">{subtitle}</p>}
-      </CardHeader>
-      <CardContent className="h-[300px]">
+    <div className={cn("glass-command p-6 rounded-2xl flex flex-col h-full", className)}>
+      <div className="mb-6">
+        <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">{title}</h3>
+        {subtitle && <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">{subtitle}</p>}
+      </div>
+      <div className="h-[300px] w-full">
         {children}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

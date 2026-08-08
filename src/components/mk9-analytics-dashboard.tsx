@@ -109,8 +109,8 @@ export function Mk9AnalyticsDashboard() {
       {/* Visão de Risco e Projeção (Executive View) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className={cn(
-          "glass-command p-4 rounded-2xl border flex flex-col justify-between",
-          projection.riskStatus === "CRITICAL" ? "border-rose-500/30 bg-rose-500/5" : "border-white/5 bg-white/[0.02]"
+          "glass-command p-5 rounded-2xl border flex flex-col justify-between transition-all duration-300",
+          projection.riskStatus === "CRITICAL" ? "border-rose-500/30 bg-rose-500/10 glow-rose shadow-[0_0_20px_rgba(244,63,94,0.1)]" : "border-white/5 bg-white/[0.02]"
         )}>
           <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Status de Risco</span>
           <div className="flex items-center gap-2">
