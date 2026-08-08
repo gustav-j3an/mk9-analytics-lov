@@ -176,7 +176,7 @@ export function AnalyticsTable({
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="whitespace-nowrap md:whitespace-normal">
           {rows.map((row, i) => (
             <tr key={i} className="group">
               {row.map((cell, j) => (

@@ -145,7 +145,7 @@ export function Mk9AnalyticsApp() {
                 <ShieldCheck className="text-white h-5 w-5" />
               </div>
               <span className="font-black tracking-tighter text-lg text-white">
-                MK9 <span className="text-command-purple">COMMAND</span> <span className="text-[8px] opacity-30 ml-1">v1.0.3</span>
+                MK9 <span className="text-command-purple">COMMAND</span> <span className="text-[8px] opacity-30 ml-1">v1.0.4</span>
               </span>
             </div>
           )}
@@ -165,19 +165,28 @@ export function Mk9AnalyticsApp() {
               icon={BarChart3}
               label="Dashboard"
               active={activeModule === "dashboard"}
-              onClick={() => { setActiveModule("dashboard"); if (window.innerWidth < 768) setCollapsed(true); }}
+              onClick={() => {
+                setActiveModule("dashboard");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
             <SidebarItem
               icon={Gauge}
               label="Cockpit"
               active={activeModule === "cockpit"}
-              onClick={() => { setActiveModule("cockpit"); if (window.innerWidth < 768) setCollapsed(true); }}
+              onClick={() => {
+                setActiveModule("cockpit");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
             <SidebarItem
               icon={Layers}
               label="Inteligência"
               active={activeModule === "dashboard"}
-              onClick={() => { setActiveModule("dashboard"); if (window.innerWidth < 768) setCollapsed(true); }}
+              onClick={() => {
+                setActiveModule("dashboard");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
 
             <div className="pt-4 pb-2">
@@ -191,19 +200,28 @@ export function Mk9AnalyticsApp() {
               icon={Settings2}
               label="Gestão Operacional"
               active={activeModule === "importacoes"}
-              onClick={() => { setActiveModule("importacoes"); if (window.innerWidth < 768) setCollapsed(true); }}
+              onClick={() => {
+                setActiveModule("importacoes");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
             <SidebarItem
               icon={Upload}
               label="Importar Checklist"
               active={activeModule === "checklists"}
-              onClick={() => { setActiveModule("checklists"); if (window.innerWidth < 768) setCollapsed(true); }}
+              onClick={() => {
+                setActiveModule("checklists");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
             <SidebarItem
               icon={Route}
               label="Roteiros"
               active={activeModule === "roteiros"}
-              onClick={() => { setActiveModule("roteiros"); if (window.innerWidth < 768) setCollapsed(true); }}
+              onClick={() => {
+                setActiveModule("roteiros");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
 
             <div className="pt-4 pb-2">
@@ -217,19 +235,28 @@ export function Mk9AnalyticsApp() {
               icon={ClipboardCheck}
               label="Conciliação"
               active={activeModule === "conciliacao"}
-              onClick={() => { setActiveModule("conciliacao"); if (window.innerWidth < 768) setCollapsed(true); }}
+              onClick={() => {
+                setActiveModule("conciliacao");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
             <SidebarItem
               icon={PackageCheck}
               label="Qualidade"
               active={activeModule === "qualidade"}
-              onClick={() => { setActiveModule("qualidade"); if (window.innerWidth < 768) setCollapsed(true); }}
+              onClick={() => {
+                setActiveModule("qualidade");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
             <SidebarItem
               icon={FileSpreadsheet}
               label="Indústrias (PDF)"
               active={activeModule === "relatorio_industria"}
-              onClick={() => { setActiveModule("relatorio_industria"); if (window.innerWidth < 768) setCollapsed(true); }}
+              onClick={() => {
+                setActiveModule("relatorio_industria");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
             />
 
             <div className="pt-4 pb-2">
@@ -243,19 +270,28 @@ export function Mk9AnalyticsApp() {
               icon={Factory}
               label="Indústrias"
               active={activeModule === "industrias"}
-              onClick={() => { setActiveModule("industrias"); if (window.innerWidth < 768) setCollapsed(true); }}
+                  onClick={() => {
+                    setActiveModule("industrias");
+                    if (window.innerWidth < 768) setCollapsed(true);
+                  }}
             />
             <SidebarItem
               icon={Store}
               label="Lojas"
               active={activeModule === "lojas"}
-              onClick={() => { setActiveModule("lojas"); if (window.innerWidth < 768) setCollapsed(true); }}
+                  onClick={() => {
+                    setActiveModule("lojas");
+                    if (window.innerWidth < 768) setCollapsed(true);
+                  }}
             />
             <SidebarItem
               icon={Users}
               label="Promotores"
               active={activeModule === "promotores"}
-              onClick={() => { setActiveModule("promotores"); if (window.innerWidth < 768) setCollapsed(true); }}
+                  onClick={() => {
+                    setActiveModule("promotores");
+                    if (window.innerWidth < 768) setCollapsed(true);
+                  }}
             />
 
             {isAdmin && (
@@ -271,13 +307,19 @@ export function Mk9AnalyticsApp() {
                   icon={ShieldAlert}
                   label="Limpeza Manual"
                   active={activeModule === "cleanup_admin"}
-                  onClick={() => { setActiveModule("cleanup_admin"); if (window.innerWidth < 768) setCollapsed(true); }}
+                  onClick={() => {
+                    setActiveModule("cleanup_admin");
+                    if (window.innerWidth < 768) setCollapsed(true);
+                  }}
                 />
                 <SidebarItem
                   icon={Users}
                   label="Usuários"
                   active={activeModule === "usuarios"}
-                  onClick={() => { setActiveModule("usuarios"); if (window.innerWidth < 768) setCollapsed(true); }}
+                  onClick={() => {
+                    setActiveModule("usuarios");
+                    if (window.innerWidth < 768) setCollapsed(true);
+                  }}
                 />
               </>
             )}

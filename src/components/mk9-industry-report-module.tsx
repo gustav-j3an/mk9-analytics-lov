@@ -345,7 +345,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                 onClick={() => downloadPdf("full")}
                 disabled={!!downloading}
                 variant="outline"
-                className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 uppercase text-[10px] font-black tracking-widest"
+                className="h-9 w-full sm:w-auto border-white/10 text-slate-400 hover:text-white hover:bg-white/5 uppercase text-[10px] font-black tracking-widest"
               >
                 {downloading === "full" ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

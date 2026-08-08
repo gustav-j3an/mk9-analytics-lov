@@ -259,7 +259,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
         <div>
           <div className="flex items-center gap-3 mb-1">
             <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" />
-            <h1 className="text-3xl font-black text-white tracking-tighter uppercase italic">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tighter uppercase italic">
               MK9 <span className="text-command-purple">ANALYTICS</span>
             </h1>
           </div>
