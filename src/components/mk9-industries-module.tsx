@@ -1,205 +1,181 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { 
-  Plus, 
-  Search, 
-  Factory, 
-  Edit2, 
+import {
+  Factory,
+  Search,
+  Plus,
+  MoreVertical,
+  CheckCircle,
+  Clock,
+  Edit2,
+  Trash2,
+  ShieldCheck,
+  Building
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { mk9ListIndustries } from "@/lib/mk9-data.functions";
-import { 
-  IndustryCreateDialog, 
-  IndustryEditDialog, 
-  IndustryRow 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { mk9ListIndustries } from "@/lib/mk9-industries.functions";
+import {
+  IndustryCreateDialog,
+  IndustryEditDialog,
 } from "@/components/mk9/industry-admin-dialogs";
-import { matchesStatusFilter, IndustryStatusFilter } from "@/lib/mk9-industries/admin";
 import { 
+  Mk9Panel, 
   Mk9PageHeader, 
   Mk9MetricCard, 
-  Mk9Panel, 
+  Mk9LoadingState, 
+  Mk9EmptyState, 
   Mk9Badge 
-} from "./mk9/design-system";
-
+} from "@/components/mk9/design-system";
 
 export function Mk9IndustriesModule() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<IndustryStatusFilter>("active");
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editingIndustry, setEditingIndustry] = useState<IndustryRow | null>(null);
-
   const listFn = useServerFn(mk9ListIndustries);
-  const { data, isLoading } = useQuery({
-    queryKey: ["mk9-industries"],
+  const { data: industries = [], isLoading } = useQuery({
+    queryKey: ["mk9-industries-admin"],
     queryFn: () => listFn(),
   });
 
-  const filtered = (data ?? []).filter((ind) => {
-    const matchesSearch = 
-      ind.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (ind.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-    
-    return matchesSearch && matchesStatusFilter(ind, statusFilter);
-  });
+  const [search, setSearch] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const [editingIndustry, setEditingIndustry] = useState<any | null>(null);
+
+  const filtered = useMemo(() => {
+    return industries.filter((i: any) =>
+      i.name.toLowerCase().includes(search.toLowerCase()) ||
+      (i.cnpj && i.cnpj.includes(search))
+    );
+  }, [industries, search]);
+
+  const stats = useMemo(() => {
+    return {
+      total: industries.length,
+      active: industries.filter((i: any) => !i.archivedAt).length,
+      withChecklist: industries.filter((i: any) => i.requiresChecklist).length,
+    };
+  }, [industries]);
+
+  if (isLoading) return <Mk9LoadingState message="Carregando indústrias..." />;
 
   return (
-    <div className="space-y-8 animate-fade-up">
+    <div className="space-y-6 animate-in fade-in duration-500">
       <Mk9PageHeader 
-        title="Gestão de Indústrias" 
-        subtitle="Administração de parceiros e configurações de período"
+        title="Gestão de Indústrias"
+        subtitle="Controle central de clientes e parceiros operacionais"
         icon={Factory}
         actions={
-          <Button onClick={() => setCreateOpen(true)} className="gap-2 bg-command-purple hover:bg-command-purple/90 text-white border-none shadow-lg shadow-purple-500/20">
-            <Plus className="h-4 w-4" />
-            Nova Indústria
+          <Button 
+            onClick={() => setShowCreate(true)} 
+            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-black uppercase tracking-widest px-6 shadow-lg shadow-mk9-accent-primary/20 border-none"
+          >
+            <Plus className="h-4 w-4 mr-2" /> Nova Indústria
           </Button>
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Mk9MetricCard label="Total" value={data?.length ?? 0} color="blue" />
-        <Mk9MetricCard label="Ativas" value={data?.filter(i => !i.archivedAt).length ?? 0} color="emerald" />
-        <Mk9MetricCard label="Arquivadas" value={data?.filter(i => !!i.archivedAt).length ?? 0} color="amber" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Mk9MetricCard label="Total de Clientes" value={stats.total} icon={Factory} color="purple" />
+        <Mk9MetricCard label="Operação Ativa" value={stats.active} icon={ShieldCheck} color="emerald" />
+        <Mk9MetricCard label="Exigem Checklist" value={stats.withChecklist} icon={Building} color="blue" />
       </div>
 
       <Mk9Panel>
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
-          <div className="relative w-full md:max-w-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
             <Input
-              placeholder="Buscar por nome..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 bg-command-deep border-white/10 text-white"
+              placeholder="Buscar por nome ou CNPJ..."
+              className="pl-10 bg-white/[0.03] border-white/10 text-white placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
-          </div>
-          <div className="flex items-center gap-2 bg-command-deep p-1 rounded-xl border border-white/5">
-            {(["active", "archived", "all"] as IndustryStatusFilter[]).map((f) => (
-              <button
-                key={f}
-                onClick={() => setStatusFilter(f)}
-                className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                  statusFilter === f 
-                    ? "bg-command-purple text-white shadow-lg shadow-purple-500/20" 
-                    : "text-slate-500 hover:text-slate-300"
-                }`}
-              >
-                {f === "active" ? "Ativas" : f === "archived" ? "Arquivadas" : "Todas"}
-              </button>
-            ))}
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/5 overflow-hidden">
-          <Table>
-            <TableHeader className="bg-white/5">
-              <TableRow className="hover:bg-transparent border-white/5">
-                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Indústria</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">CNPJ</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Status Checklist</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Contrato</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Status Geral</TableHead>
-                <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-500">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i} className="border-white/5">
-                    <TableCell><Skeleton className="h-5 w-40 bg-white/5" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-32 bg-white/5" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-24 bg-white/5" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-32 bg-white/5" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-20 bg-white/5" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto bg-white/5" /></TableCell>
-                  </TableRow>
-                ))
-              ) : filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-slate-500 italic">
-                    Nenhuma indústria encontrada.
-                  </TableCell>
-                </TableRow>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                <th className="px-4 py-4 text-left font-black">Indústria</th>
+                <th className="px-4 py-4 text-left font-black">CNPJ</th>
+                <th className="px-4 py-4 text-left font-black">Configurações</th>
+                <th className="px-4 py-4 text-left font-black">Status</th>
+                <th className="px-4 py-4 text-right font-black">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.02]">
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={5}>
+                    <Mk9EmptyState message="Nenhuma indústria encontrada para esta busca." />
+                  </td>
+                </tr>
               ) : (
-                filtered.map((ind) => (
-                  <TableRow key={ind.id} className="group transition-colors border-white/5 hover:bg-white/[0.02]">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-command-purple/10 flex items-center justify-center border border-command-purple/20">
-                          <Factory className="h-4 w-4 text-command-purple" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-white uppercase tracking-tight">{ind.name}</div>
-                          {ind.displayName && (
-                            <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest">{ind.displayName}</div>
-                          )}
-                        </div>
+                filtered.map((i: any) => (
+                  <tr key={i.id} className="group hover:bg-white/[0.02] transition-colors">
+                    <td className="px-4 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">{i.name}</span>
+                        {i.displayName && <span className="text-[10px] text-slate-500 uppercase font-medium">{i.displayName}</span>}
                       </div>
-                    </TableCell>
-                    <TableCell className="text-slate-400 font-medium font-mono text-xs">
-                      {ind.cnpj || "—"}
-                    </TableCell>
-                    <TableCell>
-                      {ind.requiresChecklist ? (
-                        <Mk9Badge variant="success">Checklist ON</Mk9Badge>
-                      ) : (
-                        <Mk9Badge variant="default">Checklist OFF</Mk9Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-xs font-bold text-slate-300">
-                        {ind.monthlyContractedFrequency ? (
-                          <span>{ind.monthlyContractedFrequency} visitas/mês</span>
-                        ) : (
-                          <span className="text-slate-500">Não definido</span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="text-xs font-mono text-slate-400">{i.cnpj || "—"}</span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex flex-wrap gap-2">
+                        {i.requiresChecklist && (
+                          <Mk9Badge variant="info" className="flex items-center gap-1">
+                            <CheckCircle className="h-2 w-2" /> Checklist
+                          </Mk9Badge>
                         )}
+                        <Mk9Badge className="flex items-center gap-1">
+                          <Clock className="h-2 w-2" /> {i.periodType === 'CUSTOM_CYCLE' ? 'Ciclo' : 'Mensal'}
+                        </Mk9Badge>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      {ind.archivedAt ? (
-                        <Mk9Badge variant="warning">Arquivada</Mk9Badge>
+                    </td>
+                    <td className="px-4 py-4">
+                      {i.archivedAt ? (
+                        <Mk9Badge variant="danger">Arquivada</Mk9Badge>
                       ) : (
-                        <Mk9Badge variant="info">Ativa</Mk9Badge>
+                        <Mk9Badge variant="success">Ativa</Mk9Badge>
                       )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10 text-slate-400 hover:text-white"
-                        onClick={() => setEditingIndustry(ind as IndustryRow)}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-command-deep border-white/10 text-white">
+                          <DropdownMenuItem onClick={() => setEditingIndustry(i)} className="gap-2 cursor-pointer hover:bg-white/5">
+                            <Edit2 className="h-3.5 w-3.5" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="gap-2 cursor-pointer text-rose-400 hover:bg-rose-400/10 focus:bg-rose-400/10">
+                            <Trash2 className="h-3.5 w-3.5" /> Arquivar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
                 ))
               )}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
         </div>
       </Mk9Panel>
 
-
-      <IndustryCreateDialog 
-        open={createOpen} 
-        onClose={() => setCreateOpen(false)} 
-      />
-      
-      <IndustryEditDialog 
-        industry={editingIndustry} 
-        onClose={() => setEditingIndustry(null)} 
+      <IndustryCreateDialog open={showCreate} onClose={() => setShowCreate(false)} />
+      <IndustryEditDialog
+        industry={editingIndustry}
+        onClose={() => setEditingIndustry(null)}
       />
     </div>
   );
