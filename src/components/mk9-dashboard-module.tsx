@@ -2,26 +2,15 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  Activity,
   AlertTriangle,
-  ArrowRight,
-  CalendarClock,
   CheckCircle2,
-  ClipboardCheck,
   Factory,
-  Filter,
-  Gauge,
-  Info,
   RefreshCw,
   Route as RouteIcon,
-  Store as StoreIcon,
-  TrendingDown,
-  TrendingUp,
-  UserX,
   Users,
   ShieldAlert,
   ShieldCheck,
-  Search,
+  Info,
 } from "lucide-react";
 import { DashboardErrorBoundary } from "./mk9/dashboard-error-boundary";
 import { MetricCard } from "./mk9-command-center/MetricCard";
@@ -39,7 +28,6 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -48,24 +36,18 @@ import {
   YAxis,
 } from "recharts";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 import { mk9ListIndustries, mk9ListPromoters } from "@/lib/mk9-data.functions";
-import { mk9DashboardOverviewFn, mk9DashboardSupervisorsFn, mk9DashboardCheckIntegrityFn } from "@/lib/mk9-dashboard.functions";
+import { mk9DashboardOverviewFn, mk9DashboardCheckIntegrityFn } from "@/lib/mk9-dashboard.functions";
 
 import {
-  INDUSTRY_STATUS_LABEL,
-  type DashboardAlert,
-  type DashboardIndustryRow,
   type DashboardOverview,
-  type IndustryStatusKey,
+  type DashboardAlert,
 } from "@/lib/mk9-dashboard/types";
 
 const MONTHS_PT = [
@@ -82,44 +64,9 @@ export interface DashboardDrillDown {
   promoterId?: string | null;
 }
 
-function fmtDate(v?: string | null) {
-  if (!v) return "—";
-  const [y, m, d] = v.split("-");
-  return d && m && y ? `${d}/${m}/${y}` : v;
-}
-function fmtDateTime(iso: string) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    day: "2-digit", month: "2-digit", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
-  }).format(new Date(iso));
-}
 function nf(v: number) {
   return new Intl.NumberFormat("pt-BR").format(v);
 }
-
-const STATUS_STYLES: Record<IndustryStatusKey, string> = {
-  CONCLUIDA: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-  EM_DIA: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
-  ATENCAO: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  CRITICA: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
-  SEM_CHECKLIST: "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30",
-  SEM_FREQUENCIA: "bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/30",
-};
-const STATUS_CHART_COLOR: Record<IndustryStatusKey, string> = {
-  CONCLUIDA: "#34d399",
-  EM_DIA: "#38bdf8",
-  ATENCAO: "#fbbf24",
-  CRITICA: "#fb7185",
-  SEM_CHECKLIST: "#a78bfa",
-  SEM_FREQUENCIA: "#a1a1aa",
-};
-const SEVERITY_STYLES: Record<DashboardAlert["severity"], string> = {
-  CRITICA: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
-  ALTA: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  MEDIA: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
-  BAIXA: "bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/30",
-};
 
 export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: DashboardDrillDown) => void }) {
   const now = new Date();
@@ -127,27 +74,24 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
   const [year, setYear] = useState(now.getFullYear());
   const [industryId, setIndustryId] = useState(ALL);
   const [uf, setUf] = useState(ALL);
-  const [supervisorId, setSupervisorId] = useState(ALL);
   const [promoterId, setPromoterId] = useState(ALL);
 
   const overviewFn = useServerFn(mk9DashboardOverviewFn);
   const industriesFn = useServerFn(mk9ListIndustries);
   const promotersFn = useServerFn(mk9ListPromoters);
-  const supervisorsFn = useServerFn(mk9DashboardSupervisorsFn);
 
   const industriesQ = useQuery({ queryKey: ["mk9-industries"], queryFn: () => industriesFn(), staleTime: 300000 });
   const promotersQ = useQuery({ queryKey: ["mk9-promoters"], queryFn: () => promotersFn(), staleTime: 300000 });
-  const supervisorsQ = useQuery({ queryKey: ["mk9-supervisors"], queryFn: () => supervisorsFn(), staleTime: 300000 });
 
   const params = {
     year, month,
     industryId: industryId === ALL ? null : industryId,
     uf: uf === ALL ? null : uf,
     promoterId: promoterId === ALL ? null : promoterId,
-    supervisorUserId: supervisorId === ALL ? null : supervisorId,
   };
+  
   const overviewQ = useQuery({
-    queryKey: ["mk9-dashboard", params.year, params.month, params.industryId, params.uf, params.supervisorUserId, params.promoterId],
+    queryKey: ["mk9-dashboard", params.year, params.month, params.industryId, params.uf, params.promoterId],
     queryFn: () => overviewFn({ data: params }),
     staleTime: 60000,
     placeholderData: (prev) => prev,
@@ -166,11 +110,11 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
 
   const years = useMemo(() => {
     const y = now.getFullYear();
-    return [y - 2, y - 1, y, y + 1];
-  }, []);
+    return [y - 1, y, y + 1];
+  }, [now]);
 
   const filtersNode = (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6 mb-6 bg-white/5 p-4 rounded-xl border border-white/5">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       <FilterField label="Mês">
         <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
           <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white"><SelectValue /></SelectTrigger>
@@ -205,15 +149,6 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
           </SelectContent>
         </Select>
       </FilterField>
-      <FilterField label="Supervisor">
-        <Select value={supervisorId} onValueChange={setSupervisorId}>
-          <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white"><SelectValue /></SelectTrigger>
-          <SelectContent className="bg-command-deep border-white/10 text-white">
-            <SelectItem value={ALL}>Todos os supervisores</SelectItem>
-            {(supervisorsQ.data ?? []).map((s: any) => <SelectItem key={s.userId} value={s.userId}>{s.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </FilterField>
       <FilterField label="Promotor">
         <Select value={promoterId} onValueChange={setPromoterId}>
           <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white"><SelectValue /></SelectTrigger>
@@ -227,122 +162,158 @@ export function Mk9DashboardModule({ onDrillDown }: { onDrillDown?: (f: Dashboar
   );
 
   return (
-    <div className="space-y-8 animate-fade-up">
-      <DashboardHeader month={month} year={year} />
+    <DashboardErrorBoundary>
+      <div className="space-y-8 animate-fade-up">
+        <DashboardHeader month={month} year={year} />
 
-      {filtersNode}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <PerformanceCard 
-            label="Performance Operacional"
-            percentage={data?.kpis.coberturaPct ?? 0}
-            status={data?.kpis.coberturaPct && data.kpis.coberturaPct > 85 ? "Excelente" : data?.kpis.coberturaPct && data.kpis.coberturaPct > 60 ? "Atenção" : "Crítico"}
-            comparison={`vs ${nf(data?.kpis.expectedToDate ?? 0)} esperado`}
-          />
+        <div className="glass-command p-6 rounded-2xl shadow-2xl border border-white/5">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">Parâmetros de Comando</h3>
+            <div className="flex items-center gap-3">
+              <DashboardIntegrityCheck params={params} />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 text-slate-400 hover:text-white hover:bg-white/5 transition-colors" 
+                onClick={() => overviewQ.refetch()} 
+                disabled={overviewQ.isFetching}
+              >
+                <RefreshCw className={cn("h-3.5 w-3.5 mr-2", overviewQ.isFetching && "animate-spin")} /> 
+                Sincronizar
+              </Button>
+            </div>
+          </div>
+          {filtersNode}
         </div>
-        <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <MetricCard color="blue" icon={RouteIcon} label="Visitas Contratadas" value={nf(data?.kpis.contractedTotal ?? 0)} hint={`${nf(data?.kpis.lojasContratadas ?? 0)} lojas no escopo`} onClick={() => drill({})} />
-          <MetricCard color="emerald" icon={CheckCircle2} label="Visitas Realizadas" value={nf(data?.kpis.realizedToDate ?? 0)} hint={`${data?.kpis.coberturaPct}% de execução`} onClick={() => drill({})} />
-          <MetricCard color="amber" icon={AlertTriangle} label="Pendências" value={nf(data?.kpis.pendentes ?? 0)} hint="Aguardando execução" onClick={() => drill({})} />
-          <MetricCard color="cyan" icon={Gauge} label="Cobertura Geral" value={`${data?.kpis.coberturaPct ?? 0}%`} hint="Status de entrega" onClick={() => drill({})} />
-          <MetricCard color="purple" icon={Users} label="Promotores Ativos" value={nf(promotersQ.data?.length ?? 0)} hint="Efetivo em campo" onClick={() => drill({})} />
-          <MetricCard color="rose" icon={Factory} label="Indústrias Risco" value={nf(data?.kpis.industriasEmRisco ?? 0)} hint="Atenção imediata" onClick={() => drill({})} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-2">
+            <DashboardHero 
+              label="Execução de Malha"
+              percentage={data?.kpis.coberturaPct ?? 0}
+              status={data?.kpis.coberturaPct && data.kpis.coberturaPct > 85 ? "Operação Estável" : data?.kpis.coberturaPct && data.kpis.coberturaPct > 60 ? "Atenção Necessária" : "Alerta Crítico"}
+            />
+          </div>
+          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <PerformanceCard 
+              label="Nível de Entrega"
+              percentage={data ? Math.min(100, Math.round((data.kpis.realizedToDate / (data.kpis.expectedToDate || 1)) * 100)) : 0}
+              status={(data && (data.kpis.realizedToDate / (data.kpis.expectedToDate || 1)) > 0.95) ? "Meta Batida" : "Em Progresso"}
+              comparison={`Ritmo: ${data?.kpis.pacePercentage ?? 0}% do esperado`}
+            />
+            <MetricCard color="rose" icon={Factory} label="Indústrias Risco" value={nf(data?.kpis.industriasEmRisco ?? 0)} hint="Ação imediata requerida" onClick={() => drill({})} />
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <ChartCard title="Evolução do Período" subtitle="Esperado vs Realizado acumulado">
-          {loading || !data ? <Skeleton className="h-full w-full rounded-lg" /> : (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data.series} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#A855F7" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#A855F7" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorReal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="date" tickFormatter={(v) => v.slice(8) + "/" + v.slice(5, 7)} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94A3B8" }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94A3B8" }} width={30} />
-                <RTooltip 
-                  contentStyle={{ backgroundColor: "#111122", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
-                  labelStyle={{ color: "#94A3B8" }}
-                  itemStyle={{ fontSize: "12px" }}
-                />
-                <Area type="monotone" dataKey="expected" stroke="#A855F7" fillOpacity={1} fill="url(#colorExp)" strokeWidth={2} />
-                <Area type="monotone" dataKey="realized" stroke="#3B82F6" fillOpacity={1} fill="url(#colorReal)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
-          )}
-        </ChartCard>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <MetricCard color="blue" icon={RouteIcon} label="Contratadas" value={nf(data?.kpis.contractedTotal ?? 0)} hint={`Meta: ${nf(data?.kpis.expectedToDate ?? 0)}`} onClick={() => drill({})} />
+          <MetricCard color="emerald" icon={CheckCircle2} label="Realizadas" value={nf(data?.kpis.realizedToDate ?? 0)} hint={`${data?.kpis.coberturaPct}% de cobertura`} onClick={() => drill({})} />
+          <MetricCard color="amber" icon={AlertTriangle} label="Pendências" value={nf(data?.kpis.pendentes ?? 0)} hint="Visitas em aberto" onClick={() => drill({})} />
+          <MetricCard color="purple" icon={Users} label="Promotores" value={nf(promotersQ.data?.length ?? 0)} hint="Equipe em campo" onClick={() => drill({})} />
+        </div>
 
-        <ChartCard title="Execução Semanal" subtitle="Percentual de entrega por semana">
-          {loading || !data ? <Skeleton className="h-full w-full rounded-lg" /> : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.industryStatusDistribution}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94A3B8" }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94A3B8" }} width={30} />
-                <RTooltip 
-                   contentStyle={{ backgroundColor: "#111122", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
-                />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                  {data.industryStatusDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "#A855F7" : "#3B82F6"} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </ChartCard>
-      </div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <ChartCard title="Fluxo Operacional" subtitle="Projeção de visitas vs Realizado acumulado">
+            {loading || !data ? <Skeleton className="h-full w-full rounded-lg" /> : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data.series} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#A855F7" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#A855F7" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorReal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="date" tickFormatter={(v) => v.slice(8) + "/" + v.slice(5, 7)} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94A3B8" }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94A3B8" }} width={30} />
+                  <RTooltip 
+                    contentStyle={{ backgroundColor: "#111122", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
+                    labelStyle={{ color: "#94A3B8" }}
+                    itemStyle={{ fontSize: "12px", color: "#fff" }}
+                  />
+                  <Area type="monotone" dataKey="expected" stroke="#A855F7" fillOpacity={1} fill="url(#colorExp)" strokeWidth={2} name="Esperado" />
+                  <Area type="monotone" dataKey="realized" stroke="#3B82F6" fillOpacity={1} fill="url(#colorReal)" strokeWidth={2} name="Realizado" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MK9IndustryCard industries={(data?.industries ?? []).slice(0, 6).map(i => ({
+          <ChartCard title="Performance por Status" subtitle="Indústrias classificadas por nível de entrega">
+            {loading || !data ? <Skeleton className="h-full w-full rounded-lg" /> : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data.industryStatusDistribution}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94A3B8" }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94A3B8" }} width={30} />
+                  <RTooltip 
+                     contentStyle={{ backgroundColor: "#111122", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
+                     itemStyle={{ color: "#fff" }}
+                  />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]} name="Indústrias">
+                    {data.industryStatusDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.key === 'CONCLUIDA' ? '#10B981' : entry.key === 'ATENCAO' ? '#F59E0B' : '#EF4444'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
+        </div>
+
+        <MK9IndustryCard industries={(data?.industries ?? []).slice(0, 9).map(i => ({
           name: i.industryName,
           percentage: i.coberturaPct,
           visits: i.realizadas,
           status: i.coberturaPct > 85 ? "Excelente" : i.coberturaPct > 60 ? "Atenção" : "Crítico"
         }))} />
-        
-        <RankingCard items={(promotersQ.data ?? []).slice(0, 5).map((p: any, idx: number) => ({
-          position: idx + 1,
-          name: p.name,
-          id: p.id,
-          visits: 0, // Mock, needs real logic if available
-          score: 0 // Mock, needs real logic if available
-        }))} />
-      </div>
 
-      {/* Tabela legada escondida ou em drawer para manter funcionalidade original sem quebrar visual */}
-      <div className="opacity-0 h-0 overflow-hidden">
-        <DashboardIntegrityCheck params={params} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+             <RankingCard items={(data?.promoters ?? []).slice(0, 5).map((p, idx) => ({
+              position: idx + 1,
+              name: p.promoterName,
+              id: p.promoterId?.slice(0, 8) || "N/A",
+              visits: p.realizadas,
+              score: p.coberturaPct
+            }))} />
+          </div>
+          
+          <ChartCard title="Execução Lojas" subtitle="Distribuição por tipo de atendimento" className="h-full">
+             {loading || !data ? <Skeleton className="h-full w-full rounded-lg" /> : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie 
+                    data={data.storeExecutionDistribution} 
+                    dataKey="value" 
+                    nameKey="label" 
+                    innerRadius={60} 
+                    outerRadius={80} 
+                    paddingAngle={5}
+                  >
+                    {data.storeExecutionDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.key === 'INTEGRAL' ? '#10B981' : entry.key === 'PARCIAL' ? '#F59E0B' : '#EF4444'} />
+                    ))}
+                  </Pie>
+                  <RTooltip contentStyle={{ backgroundColor: "#111122", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }} itemStyle={{ color: "#fff" }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
+        </div>
       </div>
-    </div>
+    </DashboardErrorBoundary>
   );
 }
 
 function FilterField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">{label}</label>
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">{label}</label>
       {children}
-    </div>
-  );
-}
-
-function Empty({ message }: { message: string }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-      <div className="mb-3 rounded-full bg-muted/50 p-3">
-        <Info className="h-6 w-6 text-muted-foreground" />
-      </div>
-      <p className="text-sm text-muted-foreground">{message}</p>
     </div>
   );
 }
@@ -350,7 +321,7 @@ function Empty({ message }: { message: string }) {
 function DashboardIntegrityCheck({ params }: { params: any }) {
   const checkFn = useServerFn(mk9DashboardCheckIntegrityFn);
   const [open, setOpen] = useState(false);
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["mk9-dashboard-integrity", params],
     queryFn: () => checkFn({ data: params }),
     enabled: open,
@@ -359,66 +330,64 @@ function DashboardIntegrityCheck({ params }: { params: any }) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-9 gap-2 text-muted-foreground hover:text-primary">
+        <Button variant="ghost" size="sm" className="h-8 gap-2 text-slate-400 hover:text-command-purple hover:bg-white/5 transition-colors">
           <ShieldAlert className="h-4 w-4" />
-          <span className="hidden sm:inline">Integridade</span>
+          <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">Integridade</span>
         </Button>
       </SheetTrigger>
-      <SheetContent className="sm:max-w-md bg-command-deep text-white border-white/10">
+      <SheetContent className="sm:max-w-md bg-[#080812] text-white border-white/5">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2 text-white">
+          <SheetTitle className="flex items-center gap-2 text-white uppercase font-black tracking-tighter">
             <ShieldCheck className="h-5 w-5 text-command-purple" />
-            Diagnóstico de Integridade
+            Diagnóstico de Sistema
           </SheetTitle>
         </SheetHeader>
-        <div className="mt-6 space-y-6">
-          <div className="text-sm text-muted-foreground">
-            Varredura em tempo real para detectar inconsistências que podem afetar os indicadores.
+        <div className="mt-8 space-y-6">
+          <div className="text-xs text-slate-400 font-medium leading-relaxed">
+            Varredura heurística em tempo real para detecção de anomalias na malha operacional.
           </div>
 
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <RefreshCw className="h-8 w-8 animate-spin text-command-purple/30" />
-              <p className="text-xs text-muted-foreground">Analisando base de dados...</p>
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <RefreshCw className="h-10 w-10 animate-spin text-command-purple/20" />
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Processando Matriz...</p>
             </div>
           ) : data ? (
             <div className="space-y-4">
               <div className={cn(
-                "p-4 rounded-xl border flex items-center gap-3",
-                data.ok ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                "p-5 rounded-2xl border flex items-center gap-4 transition-all",
+                data.ok ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]" : "bg-amber-500/5 border-amber-500/10 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.05)]"
               )}>
-                {data.ok ? <CheckCircle2 className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+                {data.ok ? <CheckCircle2 className="h-6 w-6 shrink-0" /> : <AlertTriangle className="h-6 w-6 shrink-0" />}
                 <div>
-                  <p className="font-semibold text-sm">{data.ok ? "Sistema Saudável" : "Atenção Requerida"}</p>
-                  <p className="text-xs opacity-80">{data.ok ? "Nenhuma inconsistência crítica detectada." : `${data.issues.length} item(s) para revisão.`}</p>
+                  <p className="text-sm font-black uppercase tracking-tight">{data.ok ? "Integridade Confirmada" : "Inconsistências Detectadas"}</p>
+                  <p className="text-[10px] opacity-70 font-bold uppercase tracking-widest mt-0.5">{data.message}</p>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                {data.issues.map((issue: any, i: number) => (
-                  <div key={i} className="p-3 rounded-lg bg-white/5 border border-white/10 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <Badge variant={issue.severity === "ERROR" ? "destructive" : "outline"} className="text-[10px] h-4 px-1">
-                        {issue.kind}
-                      </Badge>
-                      <span className="text-[10px] text-muted-foreground">{issue.severity}</span>
+              {!data.ok && data.findings && (
+                <div className="space-y-3 mt-8">
+                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1">Relatório de Anomalias</h4>
+                  {data.findings.map((f: any, i: number) => (
+                    <div key={i} className="glass-command p-4 rounded-xl border border-white/5 flex gap-4 items-start group hover:border-white/10 transition-colors">
+                      <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-white/10 transition-colors">
+                        <Info className="h-4 w-4 text-slate-500" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs font-black text-slate-200 uppercase tracking-tight">{f.title}</p>
+                        <p className="text-[10px] text-slate-500 font-medium leading-normal">{f.description}</p>
+                      </div>
                     </div>
-                    <p className="text-xs">{issue.detail}</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
-          ) : null}
-
-          <Button 
-            className="w-full bg-command-purple hover:bg-command-purple/80 text-white" 
-            variant="outline" 
-            onClick={() => refetch()}
-            disabled={isLoading}
-          >
-            <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
-            Nova Varredura
-          </Button>
+          ) : (
+             <div className="py-20 text-center">
+                <Info className="h-10 w-10 text-slate-700 mx-auto mb-4" />
+                <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Nenhum dado retornado</p>
+             </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>
