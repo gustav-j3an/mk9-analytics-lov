@@ -302,39 +302,26 @@ export function Mk9AnalyticsDashboard() {
 
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Critical Stores Table */}
         <Mk9Panel className="xl:col-span-1">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">Lojas que Exigem Ação</h3>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Ordenado por criticidade operacional</p>
+              <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">Top Prioridades</h3>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Lojas críticas e reincidentes</p>
             </div>
-            <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase tracking-widest text-command-purple hover:bg-command-purple/10">
-              Ver Todas <ArrowRight className="ml-2 h-3 w-3" />
-            </Button>
           </div>
           
           <AnalyticsTable 
-            headers={["Loja", "Indústria", "Contr.", "Real.", "Cobert."]}
-            rows={criticalStores.slice(0, 8).map(s => [
-              <div key={s.storeId} className="flex flex-col">
-                <span className="font-bold text-white uppercase tracking-tighter truncate w-32">{s.storeName}</span>
-                <span className="text-[9px] text-slate-500 font-bold uppercase">{s.uf}</span>
+            headers={["Loja", "Indústria", "Score", "Motivo"]}
+            rows={topPriorities.slice(0, 8).map(p => [
+              <div key={p.storeId} className="flex flex-col">
+                <span className="font-bold text-white uppercase tracking-tighter truncate w-32">{p.storeName}</span>
               </div>,
-              <span key={s.storeId} className="text-[10px] font-bold text-slate-400 uppercase">{s.industryName}</span>,
-              <span key={s.storeId} className="font-black text-slate-300">{s.contratadas}</span>,
-              <span key={s.storeId} className="font-black text-slate-300">{s.realizadas}</span>,
-              <div key={s.storeId} className="flex items-center gap-2">
-                <div className="w-12 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                  <div 
-                    className={cn("h-full rounded-full", s.cobertura > 80 ? "bg-emerald-500" : s.cobertura > 50 ? "bg-amber-500" : "bg-rose-500")}
-                    style={{ width: `${s.cobertura}%` }}
-                  />
-                </div>
-                <span className={cn("text-[10px] font-black", s.cobertura > 80 ? "text-emerald-500" : s.cobertura > 50 ? "text-amber-500" : "text-rose-500")}>
-                  {s.cobertura}%
-                </span>
-              </div>
+              <span key={p.storeId} className="text-[10px] font-bold text-slate-400 uppercase">{p.industryName}</span>,
+              <span key={p.storeId} className={cn(
+                "font-black",
+                p.score > 80 ? "text-rose-500" : p.score > 50 ? "text-amber-500" : "text-emerald-500"
+              )}>{p.score}</span>,
+              <span key={p.storeId} className="text-[9px] font-bold text-slate-500 uppercase">{p.reason}</span>
             ])}
           />
         </Mk9Panel>
@@ -344,38 +331,38 @@ export function Mk9AnalyticsDashboard() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">Análise por Indústria</h3>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Ranking de performance de malha</p>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Ranking de performance e risco</p>
             </div>
           </div>
 
           <div className="space-y-3">
-            {industries.slice(0, 6).map((ind: any) => (
-              <div key={ind.id} className="p-4 rounded-xl bg-white/[0.02] border border-white/5 group hover:bg-white/[0.04] transition-all cursor-pointer">
+            {industries.slice(0, 6).map((ind) => (
+              <div key={ind.industryId} className="p-4 rounded-xl bg-white/[0.02] border border-white/5 group hover:bg-white/[0.04] transition-all cursor-pointer">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Building2 className="h-3.5 w-3.5 text-command-purple" />
-                    <span className="text-[11px] font-black text-white uppercase tracking-tight">{ind.name}</span>
+                    <span className="text-[11px] font-black text-white uppercase tracking-tight">{ind.industryName}</span>
                   </div>
-                  <Mk9Badge variant={ind.cobertura > 85 ? "success" : ind.cobertura > 60 ? "warning" : "danger"}>
-                    {ind.cobertura > 85 ? "Saudável" : ind.cobertura > 60 ? "Atenção" : "Crítica"}
+                  <Mk9Badge variant={ind.risk === "CRITICAL" ? "danger" : ind.risk === "HIGH" ? "warning" : "success"}>
+                    {ind.trend === "IMPROVING" ? "Evoluindo" : ind.trend === "WORSENING" ? "Queda" : "Estável"}
                   </Mk9Badge>
                 </div>
                 <div className="grid grid-cols-4 gap-4 mt-3">
                   <div className="flex flex-col">
-                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Lojas</span>
-                    <span className="text-xs font-bold text-slate-300">{ind.lojas}</span>
+                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Cobertura</span>
+                    <span className={cn("text-xs font-black", ind.coverage.delta >= 0 ? "text-emerald-400" : "text-amber-400")}>{ind.coverage.current}%</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Contratadas</span>
-                    <span className="text-xs font-bold text-slate-300">{ind.contratadas}</span>
+                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Delta</span>
+                    <span className="text-xs font-bold text-slate-300">{ind.coverage.delta > 0 ? "+" : ""}{ind.coverage.delta.toFixed(1)}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Realizadas</span>
-                    <span className="text-xs font-bold text-white">{ind.realizadas}</span>
+                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Zeradas</span>
+                    <span className="text-xs font-bold text-rose-400">{ind.zeroVisits.current}</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Cobertura</span>
-                    <span className={cn("text-xs font-black", ind.cobertura > 85 ? "text-emerald-400" : "text-amber-400")}>{ind.cobertura}%</span>
+                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Risco</span>
+                    <span className={cn("text-[10px] font-black", ind.risk === "CRITICAL" ? "text-rose-500" : "text-amber-500")}>{ind.risk}</span>
                   </div>
                 </div>
               </div>
@@ -384,18 +371,51 @@ export function Mk9AnalyticsDashboard() {
         </Mk9Panel>
       </div>
 
+      {/* Projection Block */}
+      <Mk9Panel className="bg-gradient-to-r from-command-deep to-command-purple/10 border-command-purple/20">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-command-purple/20 flex items-center justify-center border border-command-purple/30">
+              <TrendingUp className="h-6 w-6 text-command-purple" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-white uppercase italic">Projeção de Fechamento</h3>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Baseado no ritmo atual · {projection.daysRemaining} dias restantes</p>
+            </div>
+          </div>
+          <div className="flex gap-10">
+            <div className="text-center">
+              <span className="block text-[10px] font-black text-slate-500 uppercase">Realizado</span>
+              <span className="text-2xl font-black text-white italic">{nf(projection.realized)}</span>
+            </div>
+            <div className="text-center">
+              <span className="block text-[10px] font-black text-slate-500 uppercase">Projetado</span>
+              <span className="text-2xl font-black text-command-purple italic">{nf(projection.projected)}</span>
+            </div>
+            <div className="text-center">
+              <span className="block text-[10px] font-black text-slate-500 uppercase">Contratado</span>
+              <span className="text-2xl font-black text-slate-600 italic">{nf(projection.contracted)}</span>
+            </div>
+          </div>
+          <Mk9Badge variant={projection.riskStatus === "CRITICAL" ? "danger" : projection.riskStatus === "HIGH" ? "warning" : "success"} className="h-10 px-6 text-sm">
+            RISCO {projection.riskStatus}
+          </Mk9Badge>
+        </div>
+      </Mk9Panel>
+
       {/* Performance by UF Table */}
       <Mk9Panel>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">Execução por UF</h3>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Visão regional da malha operacional</p>
+            <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">Análise por UF</h3>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Performance regional e variação</p>
           </div>
         </div>
         
         <AnalyticsTable 
-          headers={["UF", "Lojas", "Contratadas", "Realizadas", "Pendentes", "Cobertura", "Lojas Zeradas"]}
-          rows={states.map(s => [
+          headers={["UF", "Lojas", "Contratadas", "Realizadas", "Cobertura", "Delta", "Zeradas"]}
+          rows={ufs.map(u => [
+
             <div key={s.uf} className="flex items-center gap-2">
               <div className="h-6 w-6 rounded bg-command-purple/10 flex items-center justify-center text-[10px] font-black text-command-purple border border-command-purple/20">
                 {s.uf}
