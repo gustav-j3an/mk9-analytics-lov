@@ -121,7 +121,7 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
         subtitle="Monitoramento da execução em tempo real"
         icon={Gauge}
         actions={
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="glass-command p-1.5 rounded-xl flex flex-wrap items-center gap-2 border border-white/5">
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
               <SelectTrigger className="h-9 w-[130px] bg-command-deep border-white/10 text-white"><SelectValue /></SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
