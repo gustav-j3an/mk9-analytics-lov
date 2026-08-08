@@ -1190,8 +1190,7 @@ function IndividualImport({
                 <AuditStat label="Duplicidades" value={preview.counters.duplicateStoreNames ?? 0} />
               </div>
             </div>
-          </Mk9Panel>
-        )}
+
 
 
             {(preview.storeFrequencies?.length ?? 0) > 0 && (
@@ -1354,9 +1353,9 @@ function IndividualImport({
                 </ul>
               </div>
             )}
-            </div>
           </Mk9Panel>
         )}
+
 
         <Mk9Panel className="relative">
           <div className="flex items-center gap-2 mb-6">
