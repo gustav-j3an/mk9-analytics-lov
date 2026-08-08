@@ -191,7 +191,7 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">Alertas Ativos</h3>
             </div>
             <div className="space-y-3">
-              {data.priorities.map((p, idx) => (
+              {data.priorities.map((p: any, idx: number) => (
                 <div key={p.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors group">
                   <div className="flex items-center gap-4">
                     <span className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center text-[10px] font-black text-slate-500">{idx + 1}</span>
@@ -215,8 +215,9 @@ export function Mk9CockpitModule({ onNavigate }: { onNavigate?: (target: string)
           <Mk9Panel className="h-full">
             <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-6">Ações Rápidas</h3>
             <div className="grid grid-cols-2 gap-3">
-              {data.quickActions.map((a) => {
-                const Icon = ACTION_ICON[a.id] ?? BarChart3;
+              {data.quickActions.map((a: any) => {
+                const Icon = (ACTION_ICON as any)[a.id] ?? BarChart3;
+
                 return (
                   <button
                     key={a.id}
