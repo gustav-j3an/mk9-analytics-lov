@@ -43,8 +43,6 @@ import { cn } from "@/lib/utils";
 import { formatPercentage } from "@/lib/mk9/normalization";
 import { Mk9Panel, Mk9Badge, Mk9LoadingState, Mk9ErrorState } from "./mk9/design-system";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-
-
 import { AnalyticsMetricCard, AnalyticsChartCard, AnalyticsTable } from "./mk9/AnalyticsComponents";
 import {
   Select,
@@ -77,9 +75,8 @@ function nf(v: number) {
 }
 
 export function Mk9AnalyticsDashboard() {
-  const now = new Date();
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState(new Date().getFullYear());
   const [industryId, setIndustryId] = useState("__ALL__");
   const [uf, setUf] = useState("__ALL__");
 
@@ -99,7 +96,7 @@ export function Mk9AnalyticsDashboard() {
     uf: uf === "__ALL__" ? null : uf,
   };
 
-  const { data, isLoading, error, refetch, isFetching } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["mk9-analytics-data", params],
     queryFn: () => analyticsFn({ data: params }),
     staleTime: 60000,
@@ -110,6 +107,14 @@ export function Mk9AnalyticsDashboard() {
     return [currentYear - 1, currentYear, currentYear + 1];
   }, []);
 
+  if (isLoading) return <Mk9LoadingState message="Inicializando Comando Analítico..." />;
+  if (error)
+    return <Mk9ErrorState message="Erro ao carregar matriz analítica." onRetry={() => refetch()} />;
+  if (!data)
+    return (
+      <Mk9ErrorState message="Nenhum dado retornado para este período." onRetry={() => refetch()} />
+    );
+
   const {
     executive: rawExecutive,
     industries = [],
@@ -119,39 +124,25 @@ export function Mk9AnalyticsDashboard() {
     projection: rawProjection,
     topPriorities = [],
     lastUpdate,
-  } = data ?? {};
+  } = data;
 
   // HOTFIX v1.0.2: Normalização robusta para evitar crashes de undefined (.coverage, .riskStatus, etc)
-  const executive = useMemo(() => {
-    const fallbackMetric = { current: 0, previous: 0, delta: 0, percentChange: 0 };
-    return {
-      coverage: rawExecutive?.coverage ?? fallbackMetric,
-      pending: rawExecutive?.pending ?? fallbackMetric,
-      extras: rawExecutive?.extras ?? { current: 0 },
-      zeroVisits: rawExecutive?.zeroVisits ?? fallbackMetric,
-      contracted: rawExecutive?.contracted ?? fallbackMetric,
-      realized: rawExecutive?.realized ?? fallbackMetric,
-    };
-  }, [rawExecutive]);
+  const executive = {
+    coverage: rawExecutive?.coverage ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+    pending: rawExecutive?.pending ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+    extras: rawExecutive?.extras ?? { current: 0 },
+    zeroVisits: rawExecutive?.zeroVisits ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+    contracted: rawExecutive?.contracted ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+    realized: rawExecutive?.realized ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+  };
 
-  const projection = useMemo(
-    () => ({
-      realized: rawProjection?.realized ?? 0,
-      projected: rawProjection?.projected ?? 0,
-      contracted: rawProjection?.contracted ?? 0,
-      riskStatus: (rawProjection?.riskStatus ?? "N/D") as any,
-      daysRemaining: rawProjection?.daysRemaining ?? 0,
-    }),
-    [rawProjection],
-  );
-
-  if (isLoading) return <Mk9LoadingState message="Inicializando Comando Analítico..." />;
-  if (error)
-    return <Mk9ErrorState message="Erro ao carregar matriz analítica." onRetry={() => refetch()} />;
-  if (!data)
-    return (
-      <Mk9ErrorState message="Nenhum dado retornado para este período." onRetry={() => refetch()} />
-    );
+  const projection = {
+    realized: rawProjection?.realized ?? 0,
+    projected: rawProjection?.projected ?? 0,
+    contracted: rawProjection?.contracted ?? 0,
+    riskStatus: (rawProjection?.riskStatus ?? "N/D") as string,
+    daysRemaining: rawProjection?.daysRemaining ?? 0,
+  };
 
   return (
     <div className="space-y-8 animate-fade-in pb-20 selection:bg-purple-500/30">
