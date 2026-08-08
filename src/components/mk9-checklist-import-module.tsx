@@ -112,7 +112,6 @@ const STATUS_LABEL: Record<
   done: { label: "Concluído", variant: "default" },
   failed: { label: "Falhou", variant: "destructive" },
   cancelled: { label: "Cancelada", variant: "secondary" },
-  committing: { label: "Processando", variant: "secondary" },
 };
 
 const VALIDATION_LABEL: Record<
@@ -323,7 +322,7 @@ export function Mk9ChecklistImportModule({
       setImportId(res.importId);
       setLastError(null);
       toast.success("Prévia gerada");
-      qc.invalidateQueries({ queryKey: ["mk9-checklist-imports"] });
+      qc.invalidateQueries({ queryKey: ["mk9-checklist-imports", year, month] });
     },
     onError: (e: any) => {
       const rich = parseServerError(e);
