@@ -269,7 +269,7 @@ export function Mk9AnalyticsDashboard() {
           </div>
 
           <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-            <SelectTrigger className="h-8 min-w-[120px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider">
+            <SelectTrigger className="h-8 min-w-[130px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider px-3 gap-2 shrink-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-command-deep border-white/10 text-white">

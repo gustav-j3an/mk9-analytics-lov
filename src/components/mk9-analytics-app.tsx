@@ -314,7 +314,7 @@ export function Mk9AnalyticsApp() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 bg-white/5 p-1 rounded-lg border border-white/5">
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-                <SelectTrigger className="w-28 h-7 border-none bg-transparent shadow-none focus:ring-0 text-[10px] font-bold text-white uppercase tracking-tighter">
+                <SelectTrigger className="w-32 h-7 border-none bg-transparent shadow-none focus:ring-0 text-[10px] font-bold text-white uppercase tracking-tighter shrink-0 px-2 gap-1">
                   <Calendar className="h-3 w-3 mr-1.5 text-command-purple" />
                   <SelectValue />
                 </SelectTrigger>
