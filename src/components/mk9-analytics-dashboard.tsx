@@ -664,7 +664,7 @@ export function Mk9AnalyticsDashboard() {
                         ind.coverage.delta >= 0 ? "text-emerald-400" : "text-amber-400",
                       )}
                     >
-                      {ind.coverage.current}%
+                      {formatPercentage(ind.coverage.current)}
                     </span>
                   </div>
                   <div className="flex flex-col">
@@ -673,8 +673,9 @@ export function Mk9AnalyticsDashboard() {
                     </span>
                     <span className="text-xs font-bold text-slate-300">
                       {ind.coverage.delta > 0 ? "+" : ""}
-                      {ind.coverage.delta.toFixed(1)}
+                      {formatPercentage(ind.coverage.delta)}
                     </span>
+
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">
@@ -799,7 +800,8 @@ export function Mk9AnalyticsDashboard() {
                   u.variationVsPrevious >= 0 ? "text-emerald-400" : "text-amber-400",
                 )}
               >
-                {u.coverage}%
+                {formatPercentage(u.coverage)}
+
               </span>
               <div className="flex-1 h-1 bg-white/5 rounded-full min-w-[60px] hidden md:block">
                 <div
