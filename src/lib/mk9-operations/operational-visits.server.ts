@@ -100,14 +100,19 @@ export async function listBulkOperationalActualVisits(params: {
   if (!industryIds.length) return [];
 
   // 1. Resolver todas as importações vigentes das indústrias de uma vez
-  const { data: activeImports } = await supabaseAdmin
+  // Para performance em lote, buscamos a importação vigente ou a mais recente de cada indústria
+  const { data: allRecentImports } = await supabaseAdmin
     .from("mk9_checklist_imports")
-    .select("id, industry_id")
+    .select("id, industry_id, is_operational_current, started_at")
     .in("industry_id", industryIds)
-    .eq("is_operational_current" as any, true)
-    .is("reverted_at", null);
+    .is("reverted_at", null)
+    .order('is_operational_current', { ascending: false })
+    .order('started_at', { ascending: false });
 
-  const activeImportIds = (activeImports ?? []).map((i) => i.id);
+  // Pegar apenas a top 1 de cada indústria da lista ordenada
+  const activeImportIds = industryIds.map(id => 
+    allRecentImports?.find(i => i.industry_id === id)?.id
+  ).filter(Boolean) as string[];
 
   // 2. Query de visitas em lote
   let query = supabaseAdmin
