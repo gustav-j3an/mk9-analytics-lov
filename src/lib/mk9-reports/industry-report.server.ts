@@ -340,6 +340,7 @@ export async function buildIndustryReport(
         monthlyFrequency: s.monthly_frequency,
       },
     ];
+
   }
 
   for (const p of planned ?? []) {

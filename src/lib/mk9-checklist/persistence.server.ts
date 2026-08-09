@@ -334,7 +334,7 @@ export async function persistActualVisits(
     const slice = payload.slice(i, i + CHUNK);
     const { error } = await supabaseAdmin
       .from("mk9_actual_visits")
-      .upsert(slice as any, { onConflict: "industry_id,store_id,scheduled_date,origin,source_import_id" });
+      .upsert(slice as any, { onConflict: "industry_id,store_id,scheduled_date,origin" });
 
     if (error) throw new Error(error.message);
   }

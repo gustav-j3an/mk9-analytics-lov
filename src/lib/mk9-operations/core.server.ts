@@ -355,22 +355,42 @@ export async function loadOperationCore(
     b.monthly = last.monthlyFrequency;
   }
 
-  // Nota: O filtro operacional (is_operational_current) deve ser aplicado aqui para dashboards
-  // se quisermos paridade absoluta com o PDF.
   // ---- processamento de visitas operacionais ----
-  // A filtragem operacional já foi realizada na query inicial via getOperationalVisits.
-  // Aqui apenas distribuímos as visitas nos buckets correspondentes.
+  // 1. Identificar importações vigentes para o período
+  const { data: currentImports } = await safeQuery(
+    supabase
+      .from("mk9_checklist_imports")
+      .select("id, industry_id")
+      .in("industry_id", industryIds)
+      .eq("operation_month", month)
+      .eq("operation_year", year)
+      .is("reverted_at", null)
+      .eq("is_operational_current" as any, true)
+  );
+
+  const importIdByIndustry = new Map<string, string>();
+  for (const imp of currentImports ?? []) {
+    importIdByIndustry.set(imp.industry_id, imp.id);
+  }
+
   for (const v of visitRes.data ?? []) {
     const ctx = ctxById.get(v.industry_id);
     if (!ctx || !v.store_id) continue;
 
+    // REGRA MK9 (v1.3.7): Se existe uma importação vigente para esta indústria,
+    // só aceitamos visitas vinculadas a ela ou visitas manuais (null).
+    const activeImportId = importIdByIndustry.get(v.industry_id);
+    if (activeImportId && v.source_import_id && v.source_import_id !== activeImportId) {
+      continue;
+    }
+
     const d = String(v.scheduled_date);
-    // Embora a query já filtre, mantemos a verificação de segurança por janela específica da indústria
     if (d < ctx.win.startDate || d > ctx.win.endDate) continue;
     if (!passesUf(v.store?.uf ?? null)) continue;
     if (!passesStore(v.store_id)) continue;
     touch(ctx, v.store_id, v.store).visits.push(d);
   }
+
 
   const storeRows = buildStoreRows({
     ctxs,
