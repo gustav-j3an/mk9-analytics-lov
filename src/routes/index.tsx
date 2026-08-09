@@ -9,13 +9,13 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.14 — TRACE DE CANCELAMENTO",
+    title: "MK9 | v1.3.15 — SCHEMA ALINHADO",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.14: TRACE DE CANCELAMENTO. Instrumentação total de transições de status para diagnosticar cancelamentos automáticos.",
+        content: "MK9 Analytics v1.3.15: SCHEMA ALINHADO. Sincronização definitiva entre banco e motor para eliminar cancelamentos por colunas ausentes.",
       },
-      { property: "og:title", content: "MK9 | v1.3.14" },
+      { property: "og:title", content: "MK9 | v1.3.15" },
       {
         property: "og:description",
         content: "Analítico (Dashboard, Intelligence, PDF, Cockpit) com promoção resiliente e persistência blindada para MENDEZ.",
@@ -70,7 +70,7 @@ function LandingPage() {
                 MK9 ANALYTICS — REESTRUTURAÇÃO DO ESCOPO
               </h1>
               <p className="text-[10px] text-purple-500 font-black tracking-[0.3em] uppercase">
-                STATUS: v1.3.14 — TRACE DE CANCELAMENTO
+                STATUS: v1.3.15 — SCHEMA ALINHADO
               </p>
             </div>
           </div>
@@ -128,13 +128,13 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.14" sub="STATUS TRACING" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.15" sub="SCHEMA ALIGNMENT" />
                 <StatusCard icon={Zap} title="INTEGRITY" value="100%" sub="ANALYTIC" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MK9 — HOTFIX ESTRUTURAL v1.3.14
+                  MK9 — HOTFIX ESTRUTURAL v1.3.15
                 </h3>
 
 
@@ -176,10 +176,10 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.14
+                  SECURE ACCESS v1.3.15
                 </p>
                 <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] text-emerald-400 leading-relaxed italic">
-                  "Sim — implementamos o Trace de Status v1.3.14. Agora cada transição para CANCELADA exige um motivo explícito no log, permitindo identificar se a causa é timeout, cleanup de UI ou erro de versionamento."
+                  "Sim — o mistério da MENDEZ foi resolvido. A coluna 'reason' foi adicionada ao banco v1.3.15, eliminando a quebra silenciosa no cancelamento automático de prévias e garantindo a fluidez total do commit individual."
                 </div>
               </div>
               <ClientOnly>
