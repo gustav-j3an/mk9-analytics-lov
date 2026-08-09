@@ -246,6 +246,7 @@ export function Mk9ChecklistImportModule({
   const [industryId, setIndustryId] = useState<string>("");
   const [preview, setPreview] = useState<ChecklistPreview | null>(null);
   const [importId, setImportId] = useState<string | null>(null);
+  const [lastImportStatus, setLastImportStatus] = useState<string | null>(null);
   const [filter, setFilter] = useState<
     "all" | "found" | "linked_by_similarity" | "new_store" | "invalid_date"
   >("all");
@@ -298,8 +299,27 @@ export function Mk9ChecklistImportModule({
   });
   const historyQ = useQuery({ 
     queryKey: ["mk9-checklist-imports", year, month], 
-    queryFn: () => listFn({ data: { month, year } }) 
+    queryFn: () => listFn({ data: { month, year } }),
+    refetchInterval: (query) => {
+      // Se tiver algo processando, poll a cada 2s para detectar cancelamento
+      const data = query.state.data;
+      const hasActive = data?.some(i => i.status === 'committing' || i.status === 'previewing');
+      return hasActive ? 2000 : false;
+    }
   });
+
+  useEffect(() => {
+    if (importId && historyQ.data) {
+      const current = historyQ.data.find(i => i.id === importId);
+      if (current && current.status !== lastImportStatus) {
+        console.warn(`[UI_STATUS_TRACE] import=${importId} changed from ${lastImportStatus} to ${current.status}`);
+        setLastImportStatus(current.status);
+        if (current.status === 'cancelled') {
+           toast.error(`A importação foi CANCELADA automaticamente. Motivo: ${current.reason || 'desconhecido'}`, { duration: 10000 });
+        }
+      }
+    }
+  }, [importId, historyQ.data, lastImportStatus]);
 
   const previewMut = useMutation({
     mutationFn: async () => {
@@ -484,6 +504,7 @@ export function Mk9ChecklistImportModule({
 
   const discardMut = useMutation({
     mutationFn: async () => {
+      console.log(`[UI_CANCEL] User clicked discard for import ${importId}`);
       if (importId) await cancelFn({ data: { importId } });
     },
     onSuccess: () => {

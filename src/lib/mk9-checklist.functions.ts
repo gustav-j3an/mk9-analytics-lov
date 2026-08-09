@@ -127,7 +127,12 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Marca committing logo no início para que o histórico saia de "previewing".
-    await updateImportStatus(data.importId, { status: "committing" }).catch(() => undefined);
+    await updateImportStatus(data.importId, { 
+      status: "committing",
+      errorMessage: null // Limpa erro anterior se houver
+    }).catch((err) => {
+      console.error(`[COMMIT-STATUS-ERROR] Falha ao mudar para committing:`, err);
+    });
 
     try {
       // REGRA DE SUBSTITUIÇÃO: Executar em transação
@@ -156,6 +161,7 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
         // Duplicado inalterado: Mantemos a anterior e cancelamos esta.
         await updateImportStatus(data.importId, {
           status: "cancelled",
+          reason: "duplicate_unchanged",
           errorMessage: "Arquivo duplicado inalterado. A versão anterior continua vigente.",
         });
         return {
@@ -412,6 +418,7 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
 
       await updateImportStatus(data.importId, {
         status: finalStatus,
+        reason: "finalize_commit",
         counters,
         finishedAt: new Date(),
         durationMs: Date.now() - startedAt,
@@ -455,18 +462,21 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
         validationError,
       };
     } catch (e: any) {
+      console.error(`[COMMIT-ERROR] Erro durante o commit individual:`, e);
+      await updateImportStatus(data.importId, {
+        status: "failed",
+        reason: "internal_error",
+        errorMessage: e?.message ?? String(e),
+        finishedAt: new Date(),
+      }).catch(() => undefined);
+
       let msg: string;
       try {
         msg = e?.message ?? String(e);
       } catch {
-        msg = "Erro desconhecido";
+        msg = "Erro interno no servidor";
       }
-      await updateImportStatus(data.importId, {
-        status: "failed",
-        errorMessage: msg.slice(0, 4000),
-        finishedAt: new Date(),
-        durationMs: Date.now() - startedAt,
-      });
+
       if (!msg.startsWith("{")) {
         const payload = buildRichError(e, { step: "commit-outer", function: "checklistCommit" });
         throw new Error(JSON.stringify(payload));
@@ -474,8 +484,6 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
       throw e;
     }
 }
-
-
 export const checklistList = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) =>
     z.object({ month: z.number().optional(), year: z.number().optional() }).optional().parse(d)
@@ -526,6 +534,7 @@ export const checklistCancel = createServerFn({ method: "POST" })
     const { updateImportStatus } = await import("./mk9-checklist/persistence.server");
     await updateImportStatus(data.importId, {
       status: "cancelled",
+      reason: "user_action",
       errorMessage: "Prévia descartada pelo usuário",
       finishedAt: new Date(),
     });
