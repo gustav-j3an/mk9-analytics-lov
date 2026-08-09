@@ -9,11 +9,11 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.17 — DIAGNÓSTICO ESTRUTURAL",
+    title: "MK9 | v1.3.18 — PERSISTÊNCIA MENDEZ",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.17: DIAGNÓSTICO ESTRUTURAL. Nova estratégia de rastreamento direto no banco de dados para identificar a causa raiz do cancelamento automático de importações.",
+        content: "MK9 Analytics v1.3.18: PERSISTÊNCIA MENDEZ. Foco no motor de inserção de visitas para resolver a falha de persistência identificada pela auditoria.",
       },
       { property: "og:title", content: "MK9 | v1.3.16" },
       {
@@ -70,7 +70,7 @@ function LandingPage() {
                 MK9 ANALYTICS — REESTRUTURAÇÃO DO ESCOPO
               </h1>
               <p className="text-[10px] text-purple-500 font-black tracking-[0.3em] uppercase">
-                STATUS: v1.3.17 — DIAGNÓSTICO ESTRUTURAL
+                STATUS: v1.3.18 — PERSISTÊNCIA MENDEZ
               </p>
             </div>
           </div>
@@ -128,35 +128,35 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.17" sub="STRUCTURAL DIAGNOSTIC" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.18" sub="PERSISTENCE FIX" />
                 <StatusCard icon={Zap} title="INTEGRITY" value="100%" sub="ANALYTIC" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MK9 — ESTRATÉGIA DE DIAGNÓSTICO v1.3.17
+                  MK9 — BLINDAGEM DE PERSISTÊNCIA v1.3.18
                 </h3>
 
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="RASTREAMENTO DE ESTADO"
-                    desc="Instrumentação de todas as etapas do ciclo de vida da importação para detectar a primeira transição indevida para o status CANCELLED."
+                    title="INTEGRIDADE DE PERSISTÊNCIA"
+                    desc="Instrumentação do payload de visitas para garantir que os 21 registros identificados pelo parser sejam enviados para o comando de INSERT."
                   />
                   <ProtocolItem
                     id="02"
-                    title="AUDITORIA DE ESCRITA"
-                    desc="Monitoramento direto das queries enviadas ao banco, verificando se triggers ou requisições concorrentes estão afetando a integridade do processo."
+                    title="AUDITORIA DE TRANSAÇÃO"
+                    desc="Verificação de possíveis rollbacks ou limpezas indevidas após o insert bem-sucedido das visitas na tabela de visitas realizadas."
                   />
                   <ProtocolItem
                     id="03"
-                    title="VERIFICAÇÃO DE CONCORRÊNCIA"
-                    desc="Análise de duplicidade de submissões no frontend e React Strict Mode para descartar execuções paralelas que invalidam o estado atual."
+                    title="UNIFICAÇÃO DE MOTORES"
+                    desc="Alinhamento entre as funções de persistência do modo individual e do modo lote para eliminar discrepâncias de comportamento."
                   />
                   <ProtocolItem
                     id="04"
-                    title="INDÚSTRIA DE REFERÊNCIA: MENDEZ"
-                    desc="Foco total na MENDEZ Julho/2026 para consolidar o diagnóstico definitivo e garantir que o status final chegue a COMPLETED."
+                    title="BENCHMARK MENDEZ: 21 VISITAS"
+                    desc="Foco na persistência real dos 21 atendimentos identificados, eliminando a divergência de 8 lojas apontada pela auditoria."
                   />
                 </div>
               </div>
@@ -175,10 +175,10 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.17
+                  SECURE ACCESS v1.3.18
                 </p>
-                <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded text-[10px] text-amber-400 leading-relaxed italic">
-                  "Mudança de estratégia: o diagnóstico agora é puramente baseado em evidências de banco. Não vamos mais assumir causas; vamos rastrear cada UPDATE que altera o status da importação para identificar o momento exato do cancelamento."
+                <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded text-[10px] text-blue-400 leading-relaxed italic">
+                  "Diagnóstico confirmado: o parser identifica 21 visitas para a MENDEZ, mas a persistência individual está falhando. O foco agora é rastrear o INSERT/UPSERT real para garantir que as visitas identificadas cheguem ao banco."
                 </div>
               </div>
               <ClientOnly>
