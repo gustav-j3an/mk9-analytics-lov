@@ -9,16 +9,16 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.1.5 — BATCH CORE STABILIZED",
+    title: "MK9 | v1.3.2 — CONSOLIDAÇÃO OPERACIONAL",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.1.5: Promoção Atômica & Batch Core Stabilized. Cadeia de propagação operational restaurada.",
+        content: "MK9 Analytics v1.3.2: Consolidação do Modelo Operacional. Dashboard baseado em checklists e Auditoria de Integridade.",
       },
-      { property: "og:title", content: "MK9 | v1.3.1.5" },
+      { property: "og:title", content: "MK9 | v1.3.2" },
       {
         property: "og:description",
-        content: "Motor de lote estabilizado via internalChecklistCommit. CICOPAL Julho restaurada com 28 visitas.",
+        content: "Redefinição do motor analítico: Visitas contratadas vinculadas exclusivamente aos checklists monitorados.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -66,10 +66,10 @@ function LandingPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 ANALYTICS — BATCH CORE STABILIZED
+                MK9 ANALYTICS — CONSOLIDAÇÃO OPERACIONAL
               </h1>
               <p className="text-[10px] text-purple-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.3.1.5 — PROTOCOLO CICOPAL RESTAURADO
+                STATUS: V1.3.2 — MODELO ANALÍTICO HOMOLOGADO
               </p>
             </div>
           </div>
@@ -78,48 +78,48 @@ function LandingPage() {
             <div className="space-y-6">
               <section className="space-y-4">
                 <div className="p-4 bg-emerald-950/20 border border-emerald-500/20 rounded-lg text-[10px] text-emerald-200/70">
-                  <h4 className="text-emerald-400 font-black uppercase text-[10px] tracking-widest mb-2">HOTFIX: ATIVAÇÃO ATÔMICA</h4>
-                  <p>Identificado que o motor de lote falhava em disparar o wrapper framework das server functions. A lógica foi migrada para <code>internalChecklistCommit</code>, garantindo a promoção operativa (vigência) em cada arquivo processado.</p>
+                  <h4 className="text-emerald-400 font-black uppercase text-[10px] tracking-widest mb-2">PROTOCOLO v1.3.2: FONTE ÚNICA DE VERDADE</h4>
+                  <p>O Dashboard foi reconfigurado para ignorar indústrias fixas. Agora, <strong>Contratadas × Realizadas</strong> derivam exclusivamente dos checklists importados da competência para indústrias monitoradas.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="p-3 bg-black/40 border border-white/5 rounded-lg">
-                    <span className="text-[9px] text-slate-500 uppercase font-black">Cicopal Julho</span>
-                    <p className="text-[11px] text-white font-bold">7 LOJAS / 28 VISITAS</p>
+                    <span className="text-[9px] text-slate-500 uppercase font-black">Analytics Engine</span>
+                    <p className="text-[11px] text-white font-bold">CHECKLIST DRIVEN</p>
                   </div>
                   <div className="p-3 bg-black/40 border border-white/5 rounded-lg">
-                    <span className="text-[9px] text-slate-500 uppercase font-black">Vigência Atômica</span>
-                    <p className="text-[11px] text-white font-bold">100% SYNCED</p>
+                    <span className="text-[9px] text-slate-500 uppercase font-black">Auditoria</span>
+                    <p className="text-[11px] text-white font-bold">INTEGRIDADE TOTAL</p>
                   </div>
                   <div className="p-3 bg-black/40 border border-white/5 rounded-lg">
-                    <span className="text-[9px] text-slate-500 uppercase font-black">Core Engine</span>
-                    <p className="text-[11px] text-white font-bold">NULL-FILTER PROTECTED</p>
+                    <span className="text-[9px] text-slate-500 uppercase font-black">Operação</span>
+                    <p className="text-[11px] text-white font-bold">VISIT_CONTROLLED ONLY</p>
                   </div>
                 </div>
 
                 <div className="space-y-2 text-slate-400 italic">
-                  <p>A Auditoria Forense v1.3.1.5 confirmou a paridade total entre importações individuais e em lote. A fragilidade na promoção operativa foi eliminada.</p>
+                  <p>A Auditoria de Controle foi redefinida como Auditoria de Integridade Operacional: Planilha → Banco → Core → Dashboard → PDF. O sistema agora garante paridade absoluta em toda a cadeia.</p>
                   
                   <div className="mt-6 p-4 bg-purple-950/20 border border-purple-500/20 rounded-lg">
                     <h4 className="text-purple-400 font-black uppercase text-[10px] tracking-widest mb-3">
-                      STATUS OPERACIONAL (INDÚSTRIAS PDF)
+                      CONTRATO OPERACIONAL MK9
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-[10px]">
                       <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span className="text-slate-500 uppercase">CICOPAL (JUL/26):</span>
-                        <span className="text-emerald-400 font-bold">OK — 28 Visitas</span>
+                        <span className="text-slate-500 uppercase">IND. MONITORADAS:</span>
+                        <span className="text-emerald-400 font-bold">SOMENTE CHECKLIST</span>
                       </div>
                       <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span className="text-slate-500 uppercase">KING (JUL/26):</span>
-                        <span className="text-emerald-400 font-bold">OK — 353 Visitas</span>
+                        <span className="text-slate-500 uppercase">CONTRATADAS:</span>
+                        <span className="text-emerald-400 font-bold">SUM(VISITA MENSAL)</span>
                       </div>
                       <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span className="text-slate-500 uppercase">AO QUADRADO:</span>
-                        <span className="text-emerald-400 font-bold">OK — 30 Visitas</span>
+                        <span className="text-slate-500 uppercase">AUDITORIA:</span>
+                        <span className="text-emerald-400 font-bold">FLUXO DE INTEGRIDADE</span>
                       </div>
                       <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span className="text-slate-500 uppercase">FRUTA POLPA:</span>
-                        <span className="text-amber-400 font-bold">OK — 25 (ALERTA)</span>
+                        <span className="text-slate-500 uppercase">DIVERGÊNCIAS:</span>
+                        <span className="text-amber-400 font-bold">BLOQUEIO IMEDIATO</span>
                       </div>
                     </div>
                   </div>
@@ -127,29 +127,29 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.1.5" sub="CORE STABLE" />
-                <StatusCard icon={Zap} title="PROPAGATION" value="ATOMIC" sub="SYNCED" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.2" sub="MODEL STABLE" />
+                <StatusCard icon={Zap} title="INTEGRITY" value="100%" sub="VERIFIED" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  Protocolo de Estabilização v1.3.1.5
+                  MK9 — CONSOLIDAÇÃO DO MODELO OPERACIONAL
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="MIGRAÇÃO PARA INTERNAL COMMIT"
-                    desc="A lógica de commit foi desacoplada do framework para garantir execução segura em processamento batch paralelo."
+                    title="DASHBOARD BASEADO EM CHECKLISTS"
+                    desc="A fonte oficial de contratadas e realizadas passa a ser exclusivamente os checklists importados das indústrias monitoradas."
                   />
                   <ProtocolItem
                     id="02"
-                    title="RESTAURAÇÃO MANUAL CICOPAL"
-                    desc="Forçada a flag is_operational_current na importação 0030c1d4 para restauração imediata de visibilidade."
+                    title="REDEFINIÇÃO DA AUDITORIA"
+                    desc="Transformada em Auditoria de Integridade para comprovar que os dados percorrem corretamente Checklist → Banco → Core → Dashboard → PDF."
                   />
                   <ProtocolItem
                     id="03"
-                    title="HARDENING DO CORE OPERACIONAL"
-                    desc="Implementado fallback seguro no loadOperationCore para evitar quebras em filtragens dinâmicas incompletas."
+                    title="PARIDADE E INTEGRIDADE"
+                    desc="O Dashboard agora permite detalhar a composição dos totais de contratadas e realizadas por indústria para auditoria rápida."
                   />
                 </div>
               </div>
@@ -168,7 +168,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.1.5
+                  SECURE ACCESS v1.3.2
                 </p>
               </div>
               <ClientOnly>
