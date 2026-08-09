@@ -84,6 +84,7 @@ function buildDashboard(
     perf: {
       coreMs: current.coreMs,
       queryCount: current.queryCount,
+      monitoredIndustriesCount: current.monitoredIndustriesCount,
     },
   };
 }

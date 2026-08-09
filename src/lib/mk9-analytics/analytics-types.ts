@@ -107,5 +107,6 @@ export interface AnalyticsDashboardPayload {
   perf?: {
     coreMs: number;
     queryCount: number;
+    monitoredIndustriesCount: number;
   };
 }
