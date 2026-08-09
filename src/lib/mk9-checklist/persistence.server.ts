@@ -340,6 +340,8 @@ export async function persistActualVisits(
     source_import_id: importId,
   }));
 
+  console.log(`[PERSISTENCE-PAYLOAD] Payload final gerado com ${payload.length} visitas para import ${importId}.`);
+
 
   const CHUNK = 500;
   let totalUpserted = 0;

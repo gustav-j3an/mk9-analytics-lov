@@ -249,7 +249,10 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
       // 2) Resolve storeId final por item.
       const resolvedItems: Array<{ storeId: string; scheduledDate: string }> = [];
       const unresolved: Array<{ storeName: string; uf: string | null }> = [];
-      for (const it of data.items) {
+      const sourceItems = data.items.length > 0 ? data.items : (snapshot?.items ?? []);
+      console.log(`[COMMIT-ITEMS] Usando ${sourceItems.length} itens do ${data.items.length > 0 ? 'payload' : 'snapshot'}`);
+
+      for (const it of sourceItems) {
         if (it.storeId) {
           resolvedItems.push({ storeId: it.storeId, scheduledDate: it.scheduledDate });
           continue;
