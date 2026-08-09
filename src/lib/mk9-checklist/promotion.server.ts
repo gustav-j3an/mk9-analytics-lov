@@ -78,6 +78,8 @@ export async function promoteChecklistImportToOperational(importId: string) {
   // 6. GARANTIR VÍNCULO DAS FREQUÊNCIAS VERSIONADAS
   const competencyStart = `${operation_year}-${String(operation_month).padStart(2, "0")}-01`;
   
+  console.log(`[PROMOTION] Vinculando frequências de ${industry_id} para competência ${competencyStart}...`);
+
   const { error: freqUpdateError } = await supabaseAdmin
     .from("mk9_industry_store_frequency_versions")
     .update({ source_import_id: importId } as any)
@@ -87,6 +89,8 @@ export async function promoteChecklistImportToOperational(importId: string) {
 
   if (freqUpdateError) {
     console.warn(`[PROMOTION-WARN] Falha ao vincular frequências: ${freqUpdateError.message}`);
+  } else {
+    console.log(`[PROMOTION] Frequências vinculadas com sucesso.`);
   }
 
   console.log(`[PROMOTION] Importação ${importId} promovida com sucesso.`);
