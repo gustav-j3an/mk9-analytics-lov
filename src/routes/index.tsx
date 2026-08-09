@@ -168,7 +168,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.1.5
+                  SECURE ACCESS v1.3.2
                 </p>
               </div>
               <ClientOnly>
