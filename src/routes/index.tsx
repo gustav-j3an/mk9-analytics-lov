@@ -70,7 +70,7 @@ function LandingPage() {
                 MK9 ANALYTICS — REESTRUTURAÇÃO DO ESCOPO
               </h1>
               <p className="text-[10px] text-purple-500 font-black tracking-[0.3em] uppercase">
-                STATUS: v1.3.16 — PROTEÇÃO DE AUTOCANCELAMENTO
+                STATUS: v1.3.17 — DIAGNÓSTICO ESTRUTURAL
               </p>
             </div>
           </div>
