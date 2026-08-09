@@ -483,7 +483,10 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
         }
         throw e;
       }
-    };
+    }
+}
+
+
 export const checklistList = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) =>
     z.object({ month: z.number().optional(), year: z.number().optional() }).optional().parse(d)
