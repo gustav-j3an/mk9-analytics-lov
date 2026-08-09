@@ -509,33 +509,121 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
       {/* Charts & Matrix Section */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <AnalyticsChartCard
-          title="Matriz de Execução"
-          subtitle="Frequência x Faixa de Cobertura"
+          title={
+            <div className="flex items-center gap-2">
+              <span>Matriz de Execução</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-slate-500 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-command-deep border-white/10 text-white text-[10px] max-w-[250px] p-3 space-y-2">
+                    <p className="font-black text-command-purple uppercase tracking-widest text-[9px]">O que é isso?</p>
+                    <p>Mostra quantas lojas existem em cada faixa de execução, agrupadas pela frequência mensal contratada.</p>
+                    <div className="pt-2 border-t border-white/5">
+                      <p className="text-slate-400 italic">Exemplo:</p>
+                      <p><span className="text-white font-bold">4x/mês + 0%</span> → lojas com 4 visitas mensais contratadas que ainda não tiveram nenhuma visita realizada.</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          }
+          subtitle="Lojas por frequência contratada e cobertura"
           className="xl:col-span-2"
         >
-          <div className="grid grid-cols-5 gap-2 h-full">
-            {["0%", "1-49%", "50-99%", "100%", ">100%"].map((label) => (
-              <div
-                key={label}
-                className="text-[8px] font-black text-slate-500 text-center uppercase"
-              >
-                {label}
-              </div>
-            ))}
-            {matrix.map((cell, idx) => (
-              <div
-                key={idx}
-                className={cn(
-                  "flex flex-col items-center justify-center rounded-lg border border-white/5 transition-all hover:border-white/20",
-                  cell.count > 0 ? "bg-command-purple/10" : "bg-white/[0.02] opacity-50",
-                )}
-              >
-                <span className="text-lg font-black text-white">{cell.count}</span>
-                <span className="text-[7px] font-bold text-slate-500 uppercase">
-                  {cell.frequency}x
-                </span>
-              </div>
-            ))}
+          <div className="flex flex-col gap-4 h-full overflow-x-auto pb-2 custom-scrollbar">
+            <div className="grid grid-cols-5 gap-2 min-w-[600px]">
+              {[
+                { label: "0%", sub: "SEM VISITA", color: "text-rose-500" },
+                { label: "1-49%", sub: "BAIXA EXEC.", color: "text-rose-400" },
+                { label: "50-99%", sub: "PARCIAL", color: "text-amber-400" },
+                { label: "100%", sub: "COMPLETA", color: "text-emerald-400" },
+                { label: ">100%", sub: "ACIMA META", color: "text-blue-400" }
+              ].map((faixa) => (
+                <div
+                  key={faixa.label}
+                  className="flex flex-col items-center justify-center p-2 rounded-lg bg-white/[0.02] border border-white/5"
+                >
+                  <span className={cn("text-[10px] font-black uppercase tracking-tighter", faixa.color)}>
+                    {faixa.label}
+                  </span>
+                  <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest mt-0.5 whitespace-nowrap">
+                    {faixa.sub}
+                  </span>
+                </div>
+              ))}
+              {matrix.map((cell, idx) => {
+                const isCritical = cell.count > 0 && (cell.coverageLabel === "0%" || cell.coverageLabel === "1-49%");
+                const isHealthy = cell.count > 0 && cell.coverageLabel === "100%";
+                const isAbove = cell.count > 0 && cell.coverageLabel === ">100%";
+                
+                return (
+                  <TooltipProvider key={idx}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={cn(
+                            "group flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-300 relative overflow-hidden",
+                            cell.count > 0 
+                              ? "bg-white/[0.03] border-white/10 hover:border-white/30 cursor-help" 
+                              : "bg-black/20 border-white/5 opacity-30 select-none"
+                          )}
+                        >
+                          {cell.count > 0 && (
+                            <div className={cn(
+                              "absolute top-0 left-0 w-full h-0.5",
+                              isCritical ? "bg-rose-500" : isHealthy ? "bg-emerald-500" : isAbove ? "bg-blue-500" : "bg-white/10"
+                            )} />
+                          )}
+                          
+                          <span className={cn(
+                            "text-xl font-black italic transition-transform group-hover:scale-110",
+                            cell.count > 0 ? "text-white" : "text-slate-700"
+                          )}>
+                            {cell.count}
+                          </span>
+                          <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+                            LOJAS
+                          </span>
+                          <div className="mt-2 px-1.5 py-0.5 rounded bg-black/40 border border-white/5">
+                            <span className="text-[8px] font-black text-command-purple uppercase">
+                              {cell.frequency}x/mês
+                            </span>
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-command-deep border-white/10 text-white text-[10px] p-3 shadow-2xl space-y-2">
+                        <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
+                          <span className="text-slate-500 uppercase font-black">Frequência:</span>
+                          <span className="text-command-purple font-black">{cell.frequency}x/mês</span>
+                        </div>
+                        <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
+                          <span className="text-slate-500 uppercase font-black">Cobertura:</span>
+                          <span className={cn("font-black", isCritical ? "text-rose-500" : isHealthy ? "text-emerald-500" : "text-white")}>
+                            {cell.coverageLabel === ">100%" ? "Acima de 100%" : cell.coverageLabel}
+                          </span>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                          <span className="text-slate-500 uppercase font-black">Lojas:</span>
+                          <span className="text-white font-black">{cell.count}</span>
+                        </div>
+                        <p className="text-slate-400 italic mt-2 border-t border-white/5 pt-2 leading-relaxed">
+                          {cell.coverageLabel === "0%" && `Estas lojas possuem ${cell.frequency} visitas mensais contratadas e ainda não tiveram visitas realizadas.`}
+                          {cell.coverageLabel === "1-49%" && `Estas lojas estão com execução parcial baixa em relação às ${cell.frequency} visitas contratadas.`}
+                          {cell.coverageLabel === "50-99%" && `Estas lojas estão em progresso para cumprir as ${cell.frequency} visitas contratadas.`}
+                          {cell.coverageLabel === "100%" && `Estas lojas cumpriram integralmente a frequência de ${cell.frequency} visitas contratadas.`}
+                          {cell.coverageLabel === ">100%" && `Estas lojas receberam mais visitas do que as ${cell.frequency} visitas contratadas.`}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
+            </div>
+            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest italic text-center">
+              Ex.: 126 lojas em 4x/mês e 0% ainda não tiveram nenhuma visita realizada.
+            </p>
           </div>
         </AnalyticsChartCard>
 

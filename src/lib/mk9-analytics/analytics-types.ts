@@ -62,7 +62,7 @@ export interface FrequencyExecutionGroup {
 
 export interface ExecutionMatrixCell {
   frequency: string;
-  coverageRange: string;
+  coverageLabel: string;
   count: number;
 }
 
