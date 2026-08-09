@@ -1,0 +1,2 @@
+UPDATE public.mk9_checklist_imports SET is_operational_current = false WHERE industry_id = '1400f5bc-dac1-46b3-b53f-0d76f96b4a96';
+UPDATE public.mk9_checklist_imports SET is_operational_current = true WHERE id = '13b7fafa-944e-44de-a689-26c3d3050c3e';

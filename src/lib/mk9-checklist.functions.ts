@@ -237,6 +237,7 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
       //    "visitas contratadas" no relatório da indústria.
       let frequenciesUpserted = 0;
       let frequenciesNotImported = 0;
+      let competencyStart: string | null = null;
       let frequencyDiff: {
         unchanged: number;
         new: number;
@@ -289,6 +290,7 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
             }),
         );
         frequenciesUpserted = upserted;
+        competencyStart = report.competencyStart;
         frequencyDiff = {
           unchanged: report.unchanged,
           new: report.new,
@@ -402,7 +404,7 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
             .eq("source_import_id", previous.id);
         }
 
-        // Marca a atual como vigente
+        // Marca a atual como vigente e garante que frequências e snapshots estejam vinculados a ela
         await supabaseAdmin
           .from("mk9_checklist_imports")
           .update({
@@ -410,6 +412,18 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
             replaces_import_id: previous?.id ?? null,
           } as any)
           .eq("id", data.importId);
+        
+        // HOTFIX: Garante que as frequências versionadas criadas/reutilizadas no commit 
+        // apontem para a importação que acabou de se tornar vigente (data.importId).
+        // Isso evita que commits subsequentes ou correções percam o vínculo.
+        if (competencyStart) {
+          await supabaseAdmin
+            .from("mk9_industry_store_frequency_versions")
+            .update({ source_import_id: data.importId } as any)
+            .eq("industry_id", data.industryId)
+            .eq("valid_from", competencyStart)
+            .is("archived_at", null);
+        }
       }
 
       await updateImportStatus(data.importId, {
