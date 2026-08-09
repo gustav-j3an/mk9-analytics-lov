@@ -77,12 +77,17 @@ type ModuleId =
 
 export function Mk9AnalyticsApp() {
   const { user, roles, loading: sessionLoading, signOut } = useMk9Session();
+  const queryClient = useQueryClient();
   const [activeModule, setActiveModule] = useState<ModuleId>("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [auditFilters, setAuditFilters] = useState<Mk9AuditInitialFilters>({});
   const [auditKey, setAuditKey] = useState(0);
+  const fixBananaFn = useServerFn(async () => {
+    const { fixBananaCorrenteJuly } = await import("@/lib/mk9-hotfix-banana.server");
+    return fixBananaCorrenteJuly();
+  });
 
   const isAdmin = roles.includes("ADMIN");
   const isSupervisor = roles.includes("SUPERVISOR");
@@ -393,6 +398,24 @@ export function Mk9AnalyticsApp() {
             </h2>
           </div>
           <div className="flex items-center gap-4">
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-[8px] font-black border-rose-500/20 bg-rose-500/5 text-rose-400 hover:bg-rose-500/10"
+                onClick={async () => {
+                  const res = await fixBananaFn();
+                  if (res.success) {
+                    toast.success("Hotfix BANANA JULHO aplicado com sucesso!");
+                    queryClient.invalidateQueries();
+                  } else {
+                    toast.error("Falha ao aplicar hotfix: " + res.error);
+                  }
+                }}
+              >
+                FIX BANANA JULHO
+              </Button>
+            )}
             <div className="flex items-center gap-1 md:gap-2 bg-white/5 p-1 rounded-lg border border-white/5">
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
                 <SelectTrigger className="w-24 md:w-32 h-7 border-none bg-transparent shadow-none focus:ring-0 text-[9px] md:text-[10px] font-bold text-white uppercase tracking-tighter shrink-0 px-1 md:px-2 gap-0.5 md:gap-1">
