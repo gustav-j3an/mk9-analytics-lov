@@ -61,8 +61,10 @@ export const checklistBatchCommit = createServerFn({ method: "POST" })
 
         results.push({ importId, status: "SUCCESS", data: res });
       } catch (e: any) {
+        console.error(`[BATCH-COMMIT-ERROR] Import ${importId}:`, e);
         results.push({ importId, status: "FAILED", error: e?.message ?? String(e) });
       }
+
     }
 
     const allSuccess = results.every((r) => r.status === "SUCCESS");
