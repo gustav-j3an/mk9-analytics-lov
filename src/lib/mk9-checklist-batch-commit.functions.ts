@@ -46,8 +46,9 @@ export const checklistBatchCommit = createServerFn({ method: "POST" })
 
         // Executa commit individual REAL (não apenas persistência)
         // Isso garante ativação da flag is_operational_current e substituição de versões.
-        const res = await internalChecklistCommit({ userId: "system-batch" }, {
+        const res = await internalChecklistCommit({ userId: null, email: null, roles: ["ADMIN"], devBypass: true }, {
           importId,
+
           industryId: preview.industryId,
           operationMonth: preview.operationMonth,
           operationYear: preview.operationYear,

@@ -2,6 +2,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { ChecklistPreview } from "./mk9-checklist/types";
+import type { Mk9AuthContext } from "./mk9-auth/require-role.server";
+
 
 const previewSchema = z.object({
   filename: z.string().min(1),
@@ -85,8 +87,9 @@ export const checklistCommit = createServerFn({ method: "POST" })
     return internalChecklistCommit(ctx, data);
   });
 
-export async function internalChecklistCommit(ctx: { userId: string }, data: ChecklistCommitInput) {
+export async function internalChecklistCommit(ctx: Mk9AuthContext, data: ChecklistCommitInput) {
     const { logAudit } = await import("./mk9-auth/require-role.server");
+
 
 
     const { assertIndustryRequiresChecklist } =
