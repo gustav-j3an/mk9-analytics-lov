@@ -14,7 +14,7 @@ export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async
   let q = supabaseAdmin
     .from("mk9_industries")
     .select(
-      "id, name, display_name, notes, source_type, archived_at, archive_reason, monthly_contracted_frequency, monthly_estimated_frequency, frequency_difference, frequency_status, weeks_count, requires_checklist, checklist_enabled_at, updated_at",
+      "id, name, display_name, notes, source_type, archived_at, archive_reason, monthly_contracted_frequency, monthly_estimated_frequency, frequency_difference, frequency_status, weeks_count, requires_checklist, control_mode, checklist_enabled_at, updated_at",
     )
     .order("name", { ascending: true });
   if (scope.allowedIndustryIds) q = q.in("id", scope.allowedIndustryIds);
@@ -36,6 +36,7 @@ export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async
     frequencyStatus: r.frequency_status as string | null,
     weeksCount: r.weeks_count as number | null,
     requiresChecklist: r.requires_checklist === true,
+    controlMode: (r.control_mode ?? "VISIT_CONTROLLED") as "VISIT_CONTROLLED" | "FIXED_OPERATION",
     checklistEnabledAt: (r.checklist_enabled_at ?? null) as string | null,
     updatedAt: r.updated_at as string,
   }));
@@ -52,8 +53,9 @@ export const mk9ListChecklistIndustries = createServerFn({ method: "GET" }).hand
   if (scope.allowedIndustryIds?.length === 0) return [];
   let q = supabaseAdmin
     .from("mk9_industries")
-    .select("id, name, requires_checklist")
+    .select("id, name, requires_checklist, control_mode")
     .eq("requires_checklist", true)
+    .eq("control_mode", "VISIT_CONTROLLED")
     .order("name", { ascending: true });
   if (scope.allowedIndustryIds) q = q.in("id", scope.allowedIndustryIds);
   const { data, error } = await q;
@@ -82,6 +84,7 @@ export const mk9SearchChecklistIndustries = createServerFn({ method: "GET" })
       .from("mk9_industries")
       .select("id, name")
       .eq("requires_checklist", true)
+      .eq("control_mode", "VISIT_CONTROLLED")
       .order("name", { ascending: true })
       .limit(20);
     const term = (data.q ?? "").trim();
@@ -105,7 +108,7 @@ export const mk9GetIndustryOperationConfig = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: ind, error } = await supabaseAdmin
       .from("mk9_industries")
-      .select("id, name, requires_checklist, checklist_enabled_at")
+      .select("id, name, requires_checklist, control_mode, checklist_enabled_at")
       .eq("id", data.industryId)
       .maybeSingle();
     if (error) throw new Error("Não foi possível carregar a indústria.");
@@ -122,6 +125,9 @@ export const mk9GetIndustryOperationConfig = createServerFn({ method: "GET" })
       id: ind.id as string,
       name: ind.name as string,
       requiresChecklist: (ind as any).requires_checklist === true,
+      controlMode: ((ind as any).control_mode ?? "VISIT_CONTROLLED") as
+        | "VISIT_CONTROLLED"
+        | "FIXED_OPERATION",
       checklistEnabledAt: ((ind as any).checklist_enabled_at ?? null) as string | null,
       periodType: ((cfg as any)?.period_type ?? "CALENDAR_MONTH") as
         | "CALENDAR_MONTH"
