@@ -103,7 +103,7 @@ export function Mk9AnalyticsApp() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-[#080812] text-foreground flex flex-col md:flex-row overflow-hidden font-sans">
+    <main className="min-h-screen w-full bg-[#080812] text-foreground flex flex-col md:flex-row overflow-hidden font-sans dark">
       {/* Mobile Top Header */}
       <div className="md:hidden h-14 shrink-0 bg-[#111122] border-b border-white/5 flex items-center justify-between px-4 z-30">
         <div className="flex items-center gap-2">
