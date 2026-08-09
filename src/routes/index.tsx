@@ -172,7 +172,7 @@ function LandingPage() {
                   SECURE ACCESS v1.3.11
                 </p>
                 <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] text-emerald-400 leading-relaxed italic">
-                  "Sim — confirmei de novo no arquivo novo da MENDEZ. A planilha tem **21 visitas reais**, não 23. Os 'fantasmas' de importações descartadas foram eliminados do cálculo (v1.3.11)."
+                  "Sim — esse print mostrava a falha na persistência (Excel 21, Banco 0). Implementamos a v1.3.12 com Blindagem de Persistência, garantindo que o commit falhe se as visitas não forem gravadas."
                 </div>
               </div>
               <ClientOnly>
