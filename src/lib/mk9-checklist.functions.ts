@@ -32,7 +32,10 @@ const commitSchema = z.object({
   forceReason: z.string().min(10).max(500).optional(),
 });
 
+type ChecklistCommitInput = z.infer<typeof commitSchema>;
+
 async function validate<T>(step: string, fn: () => T): Promise<T> {
+
   const { withRichErrors } = await import("./mk9-checklist/errors.server");
   return withRichErrors({ step: "validate-input", function: step }, async () => fn());
 }
@@ -82,8 +85,9 @@ export const checklistCommit = createServerFn({ method: "POST" })
     return internalChecklistCommit(ctx, data);
   });
 
-export async function internalChecklistCommit(ctx: any, data: any) {
+export async function internalChecklistCommit(ctx: { userId: string }, data: ChecklistCommitInput) {
     const { logAudit } = await import("./mk9-auth/require-role.server");
+
 
     const { assertIndustryRequiresChecklist } =
       await import("./mk9-checklist/industry-gate.server");
