@@ -77,22 +77,64 @@ export async function promoteChecklistImportToOperational(importId: string) {
     throw new Error(`Erro ao ativar a nova importação: ${activateError.message}`);
   }
 
-  // 6. GARANTIR VÍNCULO DAS FREQUÊNCIAS VERSIONADAS
+  // 6. GARANTIR VÍNCULO DAS FREQUÊNCIAS VERSIONADAS (v1.3.10)
+  // REGRA: Frequências versionadas são o motor do Analytics. Precisamos garantir que elas
+  // existam para a competência e estejam vinculadas à importação vigente.
+  
+  // Resolvemos o início e fim operacional MK9 (23 do mês anterior a 22 do atual)
+  // Para simplificar a promoção, usamos a data comercial de início da competência.
   const competencyStart = `${operation_year}-${String(operation_month).padStart(2, "0")}-01`;
   
-  console.log(`[PROMOTION] Vinculando frequências de ${industry_id} para competência ${competencyStart}...`);
+  console.log(`[PROMOTION] Sincronizando frequências de ${industry_id} para importação ${importId}...`);
 
-  const { error: freqUpdateError } = await supabaseAdmin
-    .from("mk9_industry_store_frequency_versions")
-    .update({ source_import_id: importId } as any)
-    .eq("industry_id", industry_id)
-    .eq("valid_from", competencyStart)
-    .is("archived_at", null);
+  // 6.1. Obter snapshots para criar/atualizar versões
+  const { loadImportSnapshot } = await import("./persistence.server");
+  const snapshot = await loadImportSnapshot(importId).catch(() => []);
 
-  if (freqUpdateError) {
-    console.warn(`[PROMOTION-WARN] Falha ao vincular frequências: ${freqUpdateError.message}`);
+  if (snapshot.length > 0) {
+    // Arquivamos versões conflitantes antes de inserir as novas
+    // Isso evita o erro de overlap do GIST (daterange &&)
+    await supabaseAdmin
+      .from("mk9_industry_store_frequency_versions")
+      .update({ archived_at: new Date().toISOString() } as any)
+      .eq("industry_id", industry_id)
+      .is("archived_at", null)
+      .eq("source_type", "IMPORT")
+      .gte("valid_until", competencyStart); // Qualquer coisa que toque ou comece aqui
+
+    // Inserimos as versões baseadas no snapshot
+    const versions = snapshot.map(s => ({
+      industry_id: industry_id,
+      store_id: s.store_id,
+      weekly_frequency: s.weekly_frequency,
+      monthly_frequency: s.monthly_frequency,
+      valid_from: competencyStart, // Simplificado para data de início do mês comercial
+      valid_until: null,
+      source_type: "IMPORT",
+      source_import_id: importId
+    }));
+
+    const { error: insertError } = await supabaseAdmin
+      .from("mk9_industry_store_frequency_versions")
+      .insert(versions as any);
+
+    if (insertError) {
+      console.warn(`[PROMOTION-WARN] Falha ao inserir frequências versionadas: ${insertError.message}`);
+    } else {
+      console.log(`[PROMOTION] ${versions.length} frequências versionadas criadas/atualizadas.`);
+    }
   } else {
-    console.log(`[PROMOTION] Frequências vinculadas com sucesso.`);
+    // Fallback: se não há snapshot físico, tentamos vincular as órfãs pelo operation_year/month
+    const { error: freqUpdateError } = await supabaseAdmin
+      .from("mk9_industry_store_frequency_versions")
+      .update({ source_import_id: importId } as any)
+      .eq("industry_id", industry_id)
+      .eq("valid_from", competencyStart)
+      .is("archived_at", null);
+      
+    if (freqUpdateError) {
+      console.warn(`[PROMOTION-WARN] Falha no fallback de vinculação: ${freqUpdateError.message}`);
+    }
   }
 
   console.log(`[PROMOTION] Importação ${importId} promovida com sucesso.`);

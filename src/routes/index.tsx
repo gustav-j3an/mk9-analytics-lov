@@ -9,16 +9,16 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.4 — MATRIZ DE EXECUÇÃO AUTOEXPLICATIVA",
+    title: "MK9 | v1.3.10 — INTEGRIDADE DE SNAPSHOTS",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.3: Reestruturação do Escopo Analítico. Separação definitiva entre Universo de Roteiro e Universo Analítico Monitorado.",
+        content: "MK9 Analytics v1.3.10: INTEGRIDADE DE SNAPSHOTS. Universo de lojas baseado em snapshot imutável e sincronização estrutural de frequências.",
       },
-      { property: "og:title", content: "MK9 | v1.3.3" },
+      { property: "og:title", content: "MK9 | v1.3.9" },
       {
         property: "og:description",
-        content: "Analítico (Dashboard, Intelligence, PDF, Cockpit) restrito exclusivamente a indústrias VISIT_CONTROLLED e checklists importados.",
+        content: "Analítico (Dashboard, Intelligence, PDF, Cockpit) com promoção resiliente e versionamento atômico de importações.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -69,7 +69,7 @@ function LandingPage() {
                 MK9 ANALYTICS — REESTRUTURAÇÃO DO ESCOPO
               </h1>
               <p className="text-[10px] text-purple-500 font-black tracking-[0.3em] uppercase">
-                STATUS: v1.3.4 — MATRIZ DE EXECUÇÃO AUTOEXPLICATIVA
+                STATUS: v1.3.10 — INTEGRIDADE DE SNAPSHOTS
               </p>
             </div>
           </div>
@@ -78,8 +78,8 @@ function LandingPage() {
             <div className="space-y-6">
               <section className="space-y-4">
                 <div className="p-4 bg-emerald-950/20 border border-emerald-500/20 rounded-lg text-[10px] text-emerald-200/70">
-                  <h4 className="text-emerald-400 font-black uppercase text-[10px] tracking-widest mb-2">PROTOCOLO v1.3.3: SEPARAÇÃO DE UNIVERSOS</h4>
-                  <p>Separação definitiva entre <strong>Universo de Roteiro</strong> (planejamento geral) e <strong>Universo Analítico</strong> (estritamente Monitorado). O Dashboard agora processa apenas indústrias <code>VISIT_CONTROLLED</code>.</p>
+                  <h4 className="text-emerald-400 font-black uppercase text-[10px] tracking-widest mb-2">PROTOCOLO v1.3.10: INTEGRIDADE DE SNAPSHOTS</h4>
+                  <p>Universo de lojas analítico baseado estritamente no <strong>Snapshot Imutável</strong> do checklist. Promoção operacional resiliente com sincronização estrutural de frequências versionadas. Correção de falhas de status <code>committing</code> e paridade total Dashboard × PDF.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -127,30 +127,30 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.5" sub="SCOPE STABLE" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.10" sub="SNAPSHOT INTEGRITY" />
                 <StatusCard icon={Zap} title="INTEGRITY" value="100%" sub="ANALYTIC" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MK9 — HOTFIX ESTRUTURAL v1.3.5
+                  MK9 — HOTFIX ESTRUTURAL v1.3.10
                 </h3>
 
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="PROMOÇÃO OPERACIONAL UNIFICADA"
-                    desc="Nova arquitetura atômica que garante que toda importação concluída alimente instantaneamente o Core Operacional, Dashboard e PDF."
+                    title="MÁQUINA DE ESTADOS ATÔMICA"
+                    desc="Normalização do pipeline de promoção para aceitar status intermediários e garantir finalização determinística da importação."
                   />
                   <ProtocolItem
                     id="02"
-                    title="RECUPERAÇÃO ESTRUTURAL"
-                    desc="Implementada ferramenta administrativa genérica para reprocessar promoções e corrigir falhas de vigência como a da BANANA CORRENTE."
+                    title="VERSIONAMENTO DE SCHEMA"
+                    desc="Sincronização de colunas de versionamento (superseded_at, replaced_by) no PostgreSQL para suporte total a reimportações."
                   />
                   <ProtocolItem
                     id="03"
-                    title="MATRIZ AUTOEXPLICATIVA v1.3.4"
-                    desc="Consolidação das melhorias visuais na matriz de execução com tooltips e faixas de cobertura descritivas."
+                    title="INTEGRIDADE DE SNAPSHOTS"
+                    desc="Vinculação automática de frequências órfãs durante a promoção, garantindo que o Snapshot Imutável seja a única fonte da verdade."
                   />
                 </div>
               </div>
@@ -169,7 +169,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.5
+                  SECURE ACCESS v1.3.10
                 </p>
 
               </div>

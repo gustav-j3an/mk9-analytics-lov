@@ -334,29 +334,7 @@ export async function loadOperationCore(
     return b;
   };
 
-  for (const [key, segs] of freqVersions) {
-    const [industryId, storeId] = key.split("|");
-    const ctx = ctxById.get(industryId);
-    if (!ctx || !storeId) continue;
-    const inWindow = segmentsForWindow(segs, ctx.win.startDate, ctx.win.endDate);
-    if (!inWindow.length) continue;
-    const store = inWindow[0].store;
-    if (!passesUf(store?.uf ?? null)) continue;
-    if (!passesStore(storeId)) continue;
-    const b = touch(ctx, storeId, store);
-    b.segments = inWindow.map((s) => ({
-      validFrom: s.validFrom,
-      validUntil: s.validUntil,
-      weeklyFrequency: s.weeklyFrequency,
-      monthlyFrequency: s.monthlyFrequency,
-    }));
-    const last = inWindow[inWindow.length - 1];
-    b.weekly = last.weeklyFrequency;
-    b.monthly = last.monthlyFrequency;
-  }
-
-  // ---- processamento de visitas operacionais ----
-  // 1. Identificar importações vigentes para o período
+  // 1) Identificar importações vigentes para o período
   const { data: currentImports } = await safeQuery(
     supabase
       .from("mk9_checklist_imports")
@@ -377,6 +355,60 @@ export async function loadOperationCore(
   if (filters.sourceImportId && filters.industryId) {
     importIdByIndustry.set(filters.industryId, filters.sourceImportId);
   }
+
+  // 1) BASE OBRIGATÓRIA: SNAPSHOT IMUTÁVEL DA IMPORTAÇÃO (v1.3.10)
+  // Para indústrias monitoradas, o universo de lojas vem do snapshot da importação vigente.
+  if (currentImports && currentImports.length > 0) {
+    const { loadImportSnapshot } = await import("@/lib/mk9-checklist/persistence.server");
+    for (const imp of currentImports) {
+      const snapshot = await loadImportSnapshot(imp.id).catch(() => []);
+      const ctx = ctxById.get(imp.industry_id);
+      if (!ctx) continue;
+      
+      for (const s of snapshot) {
+        if (!s.store_id) continue;
+        if (!passesUf(s.uf)) continue;
+        if (!passesStore(s.store_id)) continue;
+        
+        const b = touch(ctx, s.store_id, { name: s.source_store_name, uf: s.uf });
+        b.segments = [{
+          validFrom: ctx.win.startDate,
+          validUntil: ctx.win.endDate,
+          weeklyFrequency: s.weekly_frequency,
+          monthlyFrequency: s.monthly_frequency,
+        }];
+        b.weekly = s.weekly_frequency;
+        b.monthly = s.monthly_frequency;
+      }
+    }
+  }
+
+  // Fallback para versões de frequência (para indústrias sem checklist ou períodos anteriores)
+  for (const [key, segs] of freqVersions) {
+    const [industryId, storeId] = key.split("|");
+    const ctx = ctxById.get(industryId);
+    if (!ctx || !storeId) continue;
+    
+    // Se já foi preenchido pelo snapshot, o snapshot tem precedência
+    if (ctx.buckets.has(storeId)) continue;
+
+    const inWindow = segmentsForWindow(segs, ctx.win.startDate, ctx.win.endDate);
+    if (!inWindow.length) continue;
+    const store = inWindow[0].store;
+    if (!passesUf(store?.uf ?? null)) continue;
+    if (!passesStore(storeId)) continue;
+    const b = touch(ctx, storeId, store);
+    b.segments = inWindow.map((s) => ({
+      validFrom: s.validFrom,
+      validUntil: s.validUntil,
+      weeklyFrequency: s.weeklyFrequency,
+      monthlyFrequency: s.monthlyFrequency,
+    }));
+    const last = inWindow[inWindow.length - 1];
+    b.weekly = last.weeklyFrequency;
+    b.monthly = last.monthlyFrequency;
+  }
+
 
   for (const v of visitRes.data ?? []) {
     const ctx = ctxById.get(v.industry_id);
