@@ -418,6 +418,7 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
 
       await updateImportStatus(data.importId, {
         status: finalStatus,
+        reason: "finalize_commit",
         counters,
         finishedAt: new Date(),
         durationMs: Date.now() - startedAt,
@@ -460,11 +461,21 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
         validation,
         validationError,
       };
-    } catch (e: any) {
-      let msg: string;
-      try {
-        msg = e?.message ?? String(e);
-      } catch {
+      } catch (e: any) {
+        console.error(`[COMMIT-ERROR] Erro durante o commit individual:`, e);
+        await updateImportStatus(data.importId, {
+          status: "failed",
+          reason: "internal_error",
+          errorMessage: e?.message ?? String(e),
+          finishedAt: new Date(),
+        }).catch(() => undefined);
+        
+        let msg: string;
+        try {
+          msg = e?.message ?? String(e);
+        } catch {
+          msg = "Erro interno no servidor";
+        }
         msg = "Erro desconhecido";
       }
       await updateImportStatus(data.importId, {
@@ -532,6 +543,7 @@ export const checklistCancel = createServerFn({ method: "POST" })
     const { updateImportStatus } = await import("./mk9-checklist/persistence.server");
     await updateImportStatus(data.importId, {
       status: "cancelled",
+      reason: "user_action",
       errorMessage: "Prévia descartada pelo usuário",
       finishedAt: new Date(),
     });

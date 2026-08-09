@@ -212,14 +212,16 @@ export async function cancelPreviousPreviews(input: {
   operationMonth: number;
   operationYear: number;
   exceptImportId?: string | null;
+  reason?: string;
 }) {
   const q = supabaseAdmin
     .from("mk9_checklist_imports")
     .update({
       status: "cancelled",
+      reason: input.reason ?? "preview_abandoned",
       error_message: "Prévia abandonada — substituída por nova importação",
       finished_at: new Date().toISOString(),
-    } as any) // Cast as any to avoid type issues if reason is missing in DB but present in patch
+    } as any)
     .eq("industry_id", input.industryId)
     .eq("operation_month", input.operationMonth)
     .eq("operation_year", input.operationYear)
@@ -284,6 +286,7 @@ export async function updateImportStatus(
   const update: Record<string, unknown> = {};
   if (patch.status) {
     update.status = patch.status;
+    if (patch.reason) (update as any).reason = patch.reason;
     console.log(`[STATUS_CHANGE] import=${importId} to=${patch.status} reason=${patch.reason ?? 'not_specified'}`);
     
     // GUARD v1.3.14: Nenhuma função interna pode marcar como 'cancelled' sem motivo explícito

@@ -464,6 +464,7 @@ export async function runChecklistPreview(
     industryId: industry.id,
     operationMonth: input.operationMonth,
     operationYear: input.operationYear,
+    reason: "new_preview_started",
   });
 
   const { id: importId } = await createChecklistImport({
