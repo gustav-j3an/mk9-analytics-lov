@@ -344,6 +344,7 @@ export type Database = {
           operation_month: number
           operation_year: number
           preview: Json | null
+          reason: string | null
           replacement_reason: string | null
           replaces_import_id: string | null
           revert_reason: string | null
@@ -378,6 +379,7 @@ export type Database = {
           operation_month: number
           operation_year: number
           preview?: Json | null
+          reason?: string | null
           replacement_reason?: string | null
           replaces_import_id?: string | null
           revert_reason?: string | null
@@ -412,6 +414,7 @@ export type Database = {
           operation_month?: number
           operation_year?: number
           preview?: Json | null
+          reason?: string | null
           replacement_reason?: string | null
           replaces_import_id?: string | null
           revert_reason?: string | null
