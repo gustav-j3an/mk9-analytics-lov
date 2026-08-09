@@ -338,17 +338,22 @@ export type Database = {
           filename: string
           finished_at: string | null
           id: string
+          import_mode: string | null
           industry_id: string
           is_operational_current: boolean | null
           operation_month: number
           operation_year: number
           preview: Json | null
+          replacement_reason: string | null
+          replaces_import_id: string | null
           revert_reason: string | null
           reverted_at: string | null
           reverted_by: string | null
           reverted_counters: Json | null
           started_at: string
           status: Database["public"]["Enums"]["mk9_import_status"]
+          superseded_at: string | null
+          superseded_by: string | null
           updated_at: string
           user_id: string | null
           validated_at: string | null
@@ -367,17 +372,22 @@ export type Database = {
           filename: string
           finished_at?: string | null
           id?: string
+          import_mode?: string | null
           industry_id: string
           is_operational_current?: boolean | null
           operation_month: number
           operation_year: number
           preview?: Json | null
+          replacement_reason?: string | null
+          replaces_import_id?: string | null
           revert_reason?: string | null
           reverted_at?: string | null
           reverted_by?: string | null
           reverted_counters?: Json | null
           started_at?: string
           status?: Database["public"]["Enums"]["mk9_import_status"]
+          superseded_at?: string | null
+          superseded_by?: string | null
           updated_at?: string
           user_id?: string | null
           validated_at?: string | null
@@ -396,17 +406,22 @@ export type Database = {
           filename?: string
           finished_at?: string | null
           id?: string
+          import_mode?: string | null
           industry_id?: string
           is_operational_current?: boolean | null
           operation_month?: number
           operation_year?: number
           preview?: Json | null
+          replacement_reason?: string | null
+          replaces_import_id?: string | null
           revert_reason?: string | null
           reverted_at?: string | null
           reverted_by?: string | null
           reverted_counters?: Json | null
           started_at?: string
           status?: Database["public"]["Enums"]["mk9_import_status"]
+          superseded_at?: string | null
+          superseded_by?: string | null
           updated_at?: string
           user_id?: string | null
           validated_at?: string | null
@@ -440,6 +455,20 @@ export type Database = {
             columns: ["industry_id"]
             isOneToOne: false
             referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_checklist_imports_replaces_import_id_fkey"
+            columns: ["replaces_import_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_checklist_imports_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_imports"
             referencedColumns: ["id"]
           },
         ]
