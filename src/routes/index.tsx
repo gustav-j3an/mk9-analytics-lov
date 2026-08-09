@@ -9,7 +9,7 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.3 — REESTRUTURAÇÃO DO ESCOPO ANALÍTICO",
+    title: "MK9 | v1.3.4 — MATRIZ DE EXECUÇÃO AUTOEXPLICATIVA",
     meta: [
       {
         name: "description",
@@ -69,7 +69,7 @@ function LandingPage() {
                 MK9 ANALYTICS — REESTRUTURAÇÃO DO ESCOPO
               </h1>
               <p className="text-[10px] text-purple-500 font-black tracking-[0.3em] uppercase">
-                STATUS: v1.3.3 — ESCOPO ANALÍTICO HOMOLOGADO
+                STATUS: v1.3.4 — MATRIZ DE EXECUÇÃO AUTOEXPLICATIVA
               </p>
             </div>
           </div>
@@ -133,23 +133,23 @@ function LandingPage() {
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MK9 — REESTRUTURAÇÃO DO ESCOPO ANALÍTICO
+                  MK9 — HOTFIX VISUAL v1.3.4
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="ISOLAMENTO ANALÍTICO DEFINITIVO"
-                    desc="Analytics (Dashboard, Inteligência, PDF, Cockpit) restrito exclusivamente ao universo de indústrias monitoradas e checklists."
+                    title="MATRIZ DE EXECUÇÃO AUTOEXPLICATIVA"
+                    desc="Interface redesenhada com faixas de cobertura descritivas (Sem Visita, Baixa Execução, Parcial, Completa, Acima da Meta)."
                   />
                   <ProtocolItem
                     id="02"
-                    title="REDEFINIÇÃO DA AUDITORIA"
-                    desc="Transformada em Auditoria de Integridade para comprovar que os dados percorrem corretamente Checklist → Banco → Core → Dashboard → PDF."
+                    title="SISTEMA DE TOOLTIPS CONTEXTUAIS"
+                    desc="Novos indicadores visuais e descrições detalhadas por célula para facilitar a interpretação imediata dos dados."
                   />
                   <ProtocolItem
                     id="03"
-                    title="PARIDADE E INTEGRIDADE"
-                    desc="O Dashboard agora permite detalhar a composição dos totais de contratadas e realizadas por indústria para auditoria rápida."
+                    title="ESTABILIDADE DE DADOS"
+                    desc="Refatoração focada exclusivamente em UX/UI, preservando 100% da integridade dos cálculos do core operacional."
                   />
                 </div>
               </div>
