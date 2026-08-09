@@ -109,8 +109,8 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.2.0" sub="STABLE" />
-                <StatusCard icon={Zap} title="SISTEMA" value="FULL COMMAND" sub="ACTIVE" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.2.1" sub="STABLE" />
+                <StatusCard icon={Database} title="DATABASE" value="SNAPSHOTS" sub="FIXED" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
