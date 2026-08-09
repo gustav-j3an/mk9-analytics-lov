@@ -847,7 +847,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm text-muted-foreground">Mês de competência</label>
+            <label className="text-sm font-medium text-foreground mb-1 block">Mês de competência</label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
               <SelectTrigger>
                 <SelectValue />
@@ -862,7 +862,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
             </Select>
           </div>
           <div>
-            <label className="text-sm text-muted-foreground">Ano</label>
+            <label className="text-sm font-medium text-foreground mb-1 block">Ano</label>
             <Input
               type="number"
               value={year}
@@ -1009,7 +1009,7 @@ function BatchFileRow({
           <div className="flex items-center gap-2 mt-0.5">
             <span className={cn("text-[10px] font-bold uppercase", cfg.color)}>{cfg.label}</span>
             {file.industryName && (
-              <span className="text-[10px] text-muted-foreground underline">
+              <span className="text-[10px] text-slate-400 underline">
                 Indústria: {file.industryName}
               </span>
             )}
@@ -1190,7 +1190,7 @@ function IndividualImport({
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div className="md:col-span-2">
-            <label className="text-sm text-muted-foreground">
+            <label className="text-sm font-medium text-foreground mb-1 block">
               Arquivo .xlsx (checklist mensal da indústria)
             </label>
             <div className="flex gap-2">
@@ -1230,7 +1230,7 @@ function IndividualImport({
             </div>
           </div>
           <div>
-            <label className="text-sm text-muted-foreground">Mês</label>
+            <label className="text-sm font-medium text-foreground mb-1 block">Mês</label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
               <SelectTrigger>
                 <SelectValue />
@@ -1245,7 +1245,7 @@ function IndividualImport({
             </Select>
           </div>
           <div>
-            <label className="text-sm text-muted-foreground">Ano</label>
+            <label className="text-sm font-medium text-foreground mb-1 block">Ano</label>
             <Input
               type="number"
               value={year}
@@ -1256,7 +1256,7 @@ function IndividualImport({
           </div>
         </div>
         <div>
-          <label className="text-sm text-muted-foreground">Indústria</label>
+          <label className="text-sm font-medium text-foreground mb-1 block">Indústria</label>
           <Select value={industryId} onValueChange={setIndustryId}>
             <SelectTrigger>
               <SelectValue
@@ -1274,7 +1274,7 @@ function IndividualImport({
         </div>
         {isAdmin && (
           <div className="rounded-lg border border-dashed border-border/60 p-3 space-y-2">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-foreground/80">
               A indústria do arquivo não está cadastrada? Cadastre-a aqui — ela nasce habilitada
               para checklist, com registro de quem cadastrou.
             </p>
@@ -1452,7 +1452,7 @@ function IndividualImport({
                 <h3 className="text-sm font-black text-white uppercase tracking-widest">
                   Prévia da Importação
                 </h3>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
                   {preview.filename} · {preview.industryName}
                 </p>
               </div>
@@ -1721,7 +1721,7 @@ function IndividualImport({
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-white truncate">{imp.filename}</p>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
                         {imp.industryName} · {MONTHS[imp.operationMonth - 1]} {imp.operationYear}
                         {c.persisted != null &&
                           ` · ${c.persisted} novas / ${c.skipped ?? 0} já existentes`}
