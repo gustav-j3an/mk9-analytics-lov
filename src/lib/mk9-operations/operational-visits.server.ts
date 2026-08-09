@@ -25,11 +25,16 @@ export const getOperationalVisits = async (params: {
   if (sourceImportId) {
     activeImportIds = [sourceImportId];
   } else {
-    // Recuperar a importação mais recente por indústria para o período (se não houver vigente marcada)
-    const { data: latestImports } = await supabaseAdmin.rpc('get_latest_checklist_imports', {
-      industry_ids: [industryId]
-    });
-    activeImportIds = (latestImports ?? []).map((i: any) => i.id);
+    const { data: activeImports } = await supabaseAdmin
+      .from("mk9_checklist_imports")
+      .select("id")
+      .eq("industry_id", industryId)
+      .is("reverted_at", null)
+      .order('is_operational_current', { ascending: false })
+      .order('started_at', { ascending: false })
+      .limit(1);
+
+    activeImportIds = (activeImports ?? []).map((i) => i.id);
   }
 
   // 2. Query de visitas
