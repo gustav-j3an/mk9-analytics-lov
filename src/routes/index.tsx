@@ -9,16 +9,16 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.1.5 — BATCH CORE STABILIZED",
+    title: "MK9 | v1.3.2 — CONSOLIDAÇÃO OPERACIONAL",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.1.5: Promoção Atômica & Batch Core Stabilized. Cadeia de propagação operational restaurada.",
+        content: "MK9 Analytics v1.3.2: Consolidação do Modelo Operacional. Dashboard baseado em checklists e Auditoria de Integridade.",
       },
-      { property: "og:title", content: "MK9 | v1.3.1.5" },
+      { property: "og:title", content: "MK9 | v1.3.2" },
       {
         property: "og:description",
-        content: "Motor de lote estabilizado via internalChecklistCommit. CICOPAL Julho restaurada com 28 visitas.",
+        content: "Redefinição do motor analítico: Visitas contratadas vinculadas exclusivamente aos checklists monitorados.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
