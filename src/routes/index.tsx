@@ -9,11 +9,11 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.17 — DIAGNÓSTICO ESTRUTURAL",
+    title: "MK9 | v1.3.18 — PERSISTÊNCIA MENDEZ",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.17: DIAGNÓSTICO ESTRUTURAL. Nova estratégia de rastreamento direto no banco de dados para identificar a causa raiz do cancelamento automático de importações.",
+        content: "MK9 Analytics v1.3.18: PERSISTÊNCIA MENDEZ. Foco no motor de inserção de visitas para resolver a falha de persistência identificada pela auditoria.",
       },
       { property: "og:title", content: "MK9 | v1.3.16" },
       {
