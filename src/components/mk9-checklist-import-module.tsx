@@ -315,7 +315,7 @@ export function Mk9ChecklistImportModule({
         console.warn(`[UI_STATUS_TRACE] import=${importId} changed from ${lastImportStatus} to ${current.status}`);
         setLastImportStatus(current.status);
         if (current.status === 'cancelled') {
-           toast.error(`A importação foi CANCELADA automaticamente. Motivo: ${current.reason || 'desconhecido'}`, { duration: 10000 });
+           toast.error(`A importação foi CANCELADA automaticamente. Motivo: ${(current as any).reason || 'desconhecido'}`, { duration: 10000 });
         }
       }
     }
