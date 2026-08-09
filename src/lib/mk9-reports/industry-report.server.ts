@@ -189,12 +189,16 @@ export async function buildIndustryReport(
     month: input.month,
     uf: uf ?? undefined,
     industryId: industryId,
+    sourceImportId: sourceImportId ?? undefined, // PASSANDO O IMPORT_ID PARA O CORE
     promoterId: promoterId ?? undefined,
     access,
   });
 
+
   // 2) Snapshot Contratado da Importação (Fonte Imutável)
   const { loadImportSnapshot } = await import("@/lib/mk9-checklist/persistence.server");
+  
+  // REGRA v1.3.7: Identificar a importação vigente para o período
   const { data: currentImport } = await supabase
     .from("mk9_checklist_imports")
     .select("id")
@@ -207,16 +211,17 @@ export async function buildIndustryReport(
     .limit(1)
     .maybeSingle();
 
+  // Se o usuário filtrou um sourceImportId específico, ele tem prioridade sobre a flag de vigente
+  const effectiveImportId = sourceImportId || currentImport?.id;
 
   let snapshotStores: any[] = [];
-  if (currentImport) {
-    // Performance: Promise.all para carregar snapshots de múltiplas fontes em paralelo
+  if (effectiveImportId) {
     const [physicalSnapshot, importData] = await Promise.all([
-      loadImportSnapshot(currentImport.id).catch(() => []),
+      loadImportSnapshot(effectiveImportId).catch(() => []),
       supabase
         .from("mk9_checklist_imports")
         .select("preview")
-        .eq("id", currentImport.id)
+        .eq("id", effectiveImportId)
         .maybeSingle(),
     ]);
 
@@ -237,6 +242,7 @@ export async function buildIndustryReport(
           .filter((s: any) => !!s.store_id);
     }
   }
+
 
   // 3) Carregamento em Paralelo: Roteiros, Visitas e Reconciliações
   const { listOperationalActualVisits } =
@@ -340,6 +346,7 @@ export async function buildIndustryReport(
         monthlyFrequency: s.monthly_frequency,
       },
     ];
+
   }
 
   for (const p of planned ?? []) {

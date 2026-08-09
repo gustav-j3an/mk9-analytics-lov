@@ -328,12 +328,14 @@ export async function persistActualVisits(
     source_import_id: importId,
   }));
 
+
   const CHUNK = 500;
   for (let i = 0; i < payload.length; i += CHUNK) {
     const slice = payload.slice(i, i + CHUNK);
     const { error } = await supabaseAdmin
       .from("mk9_actual_visits")
       .upsert(slice as any, { onConflict: "industry_id,store_id,scheduled_date,origin" });
+
     if (error) throw new Error(error.message);
   }
 
