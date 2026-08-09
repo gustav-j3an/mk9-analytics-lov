@@ -97,6 +97,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
       setCnpj("");
       setNotes("");
       setRequiresChecklist(false);
+      setControlMode("VISIT_CONTROLLED");
       setPeriodType("CALENDAR_MONTH");
       setStartDay("1");
       setEndDay("31");
