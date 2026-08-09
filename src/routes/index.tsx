@@ -9,16 +9,16 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | SISTEMA HOMOLOGADO v1.2.1",
+    title: "MK9 | SISTEMA HOMOLOGADO v1.3.0",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.2.1: Hotfix de Pipeline de Importação (Snapshots).",
+        content: "MK9 Analytics v1.3.0: Arquitetura Operacional Unificada e Propagação de Dados.",
       },
-      { property: "og:title", content: "MK9 | v1.2.1" },
+      { property: "og:title", content: "MK9 | v1.3.0" },
       {
         property: "og:description",
-        content: "Painel de inteligência operacional com pipeline de dados estabilizado.",
+        content: "Painel de inteligência operacional com fonte única de verdade e propagação automática.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
