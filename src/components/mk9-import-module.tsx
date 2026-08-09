@@ -11,10 +11,11 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  Database,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Mk9Panel, Mk9PageHeader, Mk9Badge } from "./mk9/design-system";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -228,14 +229,22 @@ export function Mk9ImportModule({
 
   return (
     <div className="space-y-6">
-      <Card className="glass-panel">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Mk9PageHeader 
+        title="Gestão Operacional" 
+        subtitle="Sincronização da base, roteiros e estrutura operacional."
+        icon={Database}
+      />
+
+      <Mk9Panel>
+        <div className="flex items-center gap-2 mb-6">
+          <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
             <Upload className="h-5 w-5" />
+          </div>
+          <h3 className="text-sm font-black text-white uppercase tracking-widest">
             Importar planilha MK9
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </h3>
+        </div>
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
               <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">
@@ -344,12 +353,12 @@ export function Mk9ImportModule({
                 );
               })()}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </Mk9Panel>
 
       {rejected && (
-        <Card className="glass-panel border-destructive/40">
-          <CardContent className="p-4 space-y-3">
+        <Mk9Panel className="border-destructive/40">
+          <div className="space-y-3">
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
               <div className="space-y-1 flex-1 min-w-0">
@@ -378,16 +387,21 @@ export function Mk9ImportModule({
                 </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </Mk9Panel>
       )}
 
       {preview && c && (
-        <Card className="glass-panel">
-          <CardHeader>
-            <CardTitle>Prévia — {preview.filename}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <Mk9Panel>
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
+              <FileSpreadsheet className="h-5 w-5" />
+            </div>
+            <h3 className="text-sm font-black text-white uppercase tracking-widest">
+              Prévia — {preview.filename}
+            </h3>
+          </div>
+          <div className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <SummaryCard
                 label="Indústrias"
@@ -460,7 +474,7 @@ export function Mk9ImportModule({
                   {ACTION_LABEL[f] ?? f}
                 </button>
               ))}
-              <Badge variant="secondary">{filtered.length} linhas</Badge>
+              <Mk9Badge variant="info">{filtered.length} linhas</Mk9Badge>
             </div>
             <div className="max-h-96 overflow-auto border rounded-lg">
               <table className="w-full text-xs">
@@ -504,8 +518,8 @@ export function Mk9ImportModule({
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Mk9Panel>
       )}
 
       <Card className="glass-panel">
