@@ -172,9 +172,21 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
       {/* Visão de Risco, Projeção e Monitoramento (Executive View) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="glass-command p-4 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col justify-between">
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
-            Indústrias Monitoradas
-          </span>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              Indústrias Monitoradas
+            </span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3 w-3 text-slate-500 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="bg-command-deep border-white/10 text-white text-[10px] max-w-[200px]">
+                  {data.perf?.monitoredWithChecklistCount} importadas · {data.perf?.monitoredPendingChecklistCount} pendentes de checklist.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-black text-white italic">
               {data.perf?.monitoredIndustriesCount ?? 0}
