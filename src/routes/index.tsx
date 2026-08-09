@@ -78,8 +78,8 @@ function LandingPage() {
             <div className="space-y-6">
               <section className="space-y-4">
                 <div className="p-4 bg-emerald-950/20 border border-emerald-500/20 rounded-lg text-[10px] text-emerald-200/70">
-                  <h4 className="text-emerald-400 font-black uppercase text-[10px] tracking-widest mb-2">PROTOCOLO v1.3.9: MÁQUINA DE ESTADOS ATÔMICA</h4>
-                  <p>Promoção operacional resiliente e idempotente. Sincronização estrutural entre <strong>Snapshot Imutável</strong> e <strong>Core Operacional</strong>. Correção de falhas de status <code>committing</code> e versionamento de importações.</p>
+                  <h4 className="text-emerald-400 font-black uppercase text-[10px] tracking-widest mb-2">PROTOCOLO v1.3.10: INTEGRIDADE DE SNAPSHOTS</h4>
+                  <p>Universo de lojas analítico baseado estritamente no <strong>Snapshot Imutável</strong> do checklist. Promoção operacional resiliente com sincronização estrutural de frequências versionadas. Correção de falhas de status <code>committing</code> e paridade total Dashboard × PDF.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
