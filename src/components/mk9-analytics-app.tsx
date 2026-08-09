@@ -145,7 +145,7 @@ export function Mk9AnalyticsApp() {
                 <ShieldCheck className="text-white h-5 w-5" />
               </div>
               <span className="font-black tracking-tighter text-lg text-white">
-                MK9 <span className="text-command-purple">COMMAND</span> <span className="text-[8px] opacity-30 ml-1">v1.0.4</span>
+                MK9 <span className="text-command-purple">COMMAND</span> <span className="text-[8px] opacity-30 ml-1">v1.1.2</span>
               </span>
             </div>
           )}
