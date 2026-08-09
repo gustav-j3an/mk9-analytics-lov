@@ -137,7 +137,6 @@ function LandingPage() {
                   MK9 — ESTRATÉGIA DE DIAGNÓSTICO v1.3.17
                 </h3>
 
-
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
@@ -160,6 +159,7 @@ function LandingPage() {
                     desc="Foco total na MENDEZ Julho/2026 para consolidar o diagnóstico definitivo e garantir que o status final chegue a COMPLETED."
                   />
                 </div>
+              </div>
             </div>
           </div>
         </div>
