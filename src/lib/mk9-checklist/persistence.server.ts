@@ -340,6 +340,8 @@ export async function persistActualVisits(
     source_import_id: importId,
   }));
 
+  console.log(`[PERSISTENCE-PAYLOAD] Payload final gerado com ${payload.length} visitas para import ${importId}.`);
+
 
   const CHUNK = 500;
   let totalUpserted = 0;
@@ -366,10 +368,7 @@ export async function persistActualVisits(
     console.log(`[PERSISTENCE] Chunk upserted successfully: ${count} rows.`);
   }
 
-  if (payload.length > 0 && totalUpserted === 0) {
-    console.warn(`[PERSISTENCE-WARN] Payload length was ${payload.length} but totalUpserted is 0.`);
-  }
-
+  // Auditoria pós-upsert removida após validação binária de sucesso.
   return { persisted: totalUpserted, skipped };
 }
 

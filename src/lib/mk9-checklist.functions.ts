@@ -84,22 +84,20 @@ export const checklistCommit = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
-    
-    // ANTES DO COMMIT: Limpa visitas órfãs ou de importações anteriores que não são manuais
-    // para evitar o acúmulo que gerou o bug da COOPATOS.
-    // O delete na promotion.server.ts lida com a importação 'is_operational_current',
-    // mas aqui garantimos que a nova importação tenha um terreno limpo se for uma re-submissão.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     
-    console.log(`[COMMIT] Iniciando commit individual para import ${data.importId}`);
+    const requestId = crypto.randomUUID();
+    console.log(`[COMMIT-START] [${requestId}] Iniciando commit individual para import ${data.importId}`);
 
-    await supabaseAdmin
-      .from("mk9_actual_visits")
-      .delete()
-      .eq("industry_id", data.industryId)
-      .eq("source_import_id", data.importId);
-
-    return internalChecklistCommit(ctx, data);
+    try {
+      const result = await internalChecklistCommit(ctx, data);
+      
+      console.log(`[COMMIT-END] [${requestId}] Finalizado com sucesso. Persistido: ${result.persisted}`);
+      return result;
+    } catch (err) {
+      console.error(`[COMMIT-FATAL-ERROR] [${requestId}] Erro durante o commit:`, err);
+      throw err;
+    }
   });
 
 
@@ -232,7 +230,10 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
       // 2) Resolve storeId final por item.
       const resolvedItems: Array<{ storeId: string; scheduledDate: string }> = [];
       const unresolved: Array<{ storeName: string; uf: string | null }> = [];
-      for (const it of data.items) {
+      const sourceItems = data.items.length > 0 ? data.items : (snapshot?.items ?? []);
+      console.log(`[COMMIT-ITEMS] Usando ${sourceItems.length} itens do ${data.items.length > 0 ? 'payload' : 'snapshot'}`);
+
+      for (const it of sourceItems) {
         if (it.storeId) {
           resolvedItems.push({ storeId: it.storeId, scheduledDate: it.scheduledDate });
           continue;
