@@ -77,6 +77,7 @@ type ModuleId =
 
 export function Mk9AnalyticsApp() {
   const { user, roles, loading: sessionLoading, signOut } = useMk9Session();
+  const queryClient = useQueryClient();
   const [activeModule, setActiveModule] = useState<ModuleId>("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
