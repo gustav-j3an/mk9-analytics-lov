@@ -373,11 +373,16 @@ export async function loadOperationCore(
     importIdByIndustry.set(imp.industry_id, imp.id);
   }
 
+  // Se um importId específico foi filtrado, ele sobrepõe a regra de 'is_operational_current' para aquela indústria
+  if (filters.sourceImportId && filters.industryId) {
+    importIdByIndustry.set(filters.industryId, filters.sourceImportId);
+  }
+
   for (const v of visitRes.data ?? []) {
     const ctx = ctxById.get(v.industry_id);
     if (!ctx || !v.store_id) continue;
 
-    // REGRA MK9 (v1.3.7): Se existe uma importação vigente para esta indústria,
+    // REGRA MK9 (v1.3.7): Se existe uma importação vigente ou selecionada para esta indústria,
     // só aceitamos visitas vinculadas a ela ou visitas manuais (null).
     const activeImportId = importIdByIndustry.get(v.industry_id);
     if (activeImportId && v.source_import_id && v.source_import_id !== activeImportId) {
@@ -390,6 +395,7 @@ export async function loadOperationCore(
     if (!passesStore(v.store_id)) continue;
     touch(ctx, v.store_id, v.store).visits.push(d);
   }
+
 
 
   const storeRows = buildStoreRows({
