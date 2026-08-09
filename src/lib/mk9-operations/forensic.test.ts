@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { checklistCommit } from "./mk9-checklist.functions";
+import { checklistCommit } from "../mk9-checklist.functions";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { loadPreviewSnapshot } from "./mk9-checklist/persistence.server";
+import { loadPreviewSnapshot } from "../mk9-checklist/persistence.server";
+
 
 describe("Forensic Audit Test", () => {
   it("should process CICOPAL Julho 2026 correctly", async () => {
