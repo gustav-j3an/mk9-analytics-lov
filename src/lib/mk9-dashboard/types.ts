@@ -96,6 +96,11 @@ export interface DashboardOverview {
   windowEnd: string;
   usesHistoricalFrequency: boolean;
   checklistImports: number;
+  monitoredIndustries: {
+    total: number;
+    withChecklist: number;
+    pendingChecklist: number;
+  };
   kpis: DashboardKpis;
   industries: OperationIndustryRow[];
   criticalStores: OperationStoreRow[];

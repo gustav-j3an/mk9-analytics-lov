@@ -9,16 +9,16 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.2 — CONSOLIDAÇÃO OPERACIONAL",
+    title: "MK9 | v1.3.3 — REESTRUTURAÇÃO DO ESCOPO ANALÍTICO",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.2: Consolidação do Modelo Operacional. Dashboard baseado em checklists e Auditoria de Integridade.",
+        content: "MK9 Analytics v1.3.3: Reestruturação do Escopo Analítico. Separação definitiva entre Universo de Roteiro e Universo Analítico Monitorado.",
       },
-      { property: "og:title", content: "MK9 | v1.3.2" },
+      { property: "og:title", content: "MK9 | v1.3.3" },
       {
         property: "og:description",
-        content: "Redefinição do motor analítico: Visitas contratadas vinculadas exclusivamente aos checklists monitorados.",
+        content: "Analítico (Dashboard, Intelligence, PDF, Cockpit) restrito exclusivamente a indústrias VISIT_CONTROLLED e checklists importados.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -66,10 +66,10 @@ function LandingPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 ANALYTICS — CONSOLIDAÇÃO OPERACIONAL
+                MK9 ANALYTICS — REESTRUTURAÇÃO DO ESCOPO
               </h1>
               <p className="text-[10px] text-purple-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.3.2 — MODELO ANALÍTICO HOMOLOGADO
+                STATUS: v1.3.3 — ESCOPO ANALÍTICO HOMOLOGADO
               </p>
             </div>
           </div>
@@ -78,8 +78,8 @@ function LandingPage() {
             <div className="space-y-6">
               <section className="space-y-4">
                 <div className="p-4 bg-emerald-950/20 border border-emerald-500/20 rounded-lg text-[10px] text-emerald-200/70">
-                  <h4 className="text-emerald-400 font-black uppercase text-[10px] tracking-widest mb-2">PROTOCOLO v1.3.2: FONTE ÚNICA DE VERDADE</h4>
-                  <p>O Dashboard foi reconfigurado para ignorar indústrias fixas. Agora, <strong>Contratadas × Realizadas</strong> derivam exclusivamente dos checklists importados da competência para indústrias monitoradas.</p>
+                  <h4 className="text-emerald-400 font-black uppercase text-[10px] tracking-widest mb-2">PROTOCOLO v1.3.3: SEPARAÇÃO DE UNIVERSOS</h4>
+                  <p>Separação definitiva entre <strong>Universo de Roteiro</strong> (planejamento geral) e <strong>Universo Analítico</strong> (estritamente Monitorado). O Dashboard agora processa apenas indústrias <code>VISIT_CONTROLLED</code>.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -127,19 +127,19 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.2" sub="MODEL STABLE" />
-                <StatusCard icon={Zap} title="INTEGRITY" value="100%" sub="VERIFIED" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.3" sub="SCOPE STABLE" />
+                <StatusCard icon={Zap} title="INTEGRITY" value="100%" sub="ANALYTIC" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MK9 — CONSOLIDAÇÃO DO MODELO OPERACIONAL
+                  MK9 — REESTRUTURAÇÃO DO ESCOPO ANALÍTICO
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="DASHBOARD BASEADO EM CHECKLISTS"
-                    desc="A fonte oficial de contratadas e realizadas passa a ser exclusivamente os checklists importados das indústrias monitoradas."
+                    title="ISOLAMENTO ANALÍTICO DEFINITIVO"
+                    desc="Analytics (Dashboard, Inteligência, PDF, Cockpit) restrito exclusivamente ao universo de indústrias monitoradas e checklists."
                   />
                   <ProtocolItem
                     id="02"
@@ -168,7 +168,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.2
+                  SECURE ACCESS v1.3.3
                 </p>
               </div>
               <ClientOnly>

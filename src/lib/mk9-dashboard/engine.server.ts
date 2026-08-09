@@ -70,20 +70,27 @@ export async function buildDashboardOverview(
     return a.coberturaPct - b.coberturaPct;
   });
 
-  // ---- KPIs ------------------------------------------------------------------
-  const contractedTotal = storeRows.reduce((a, s) => a + s.contratadas, 0);
-  const realizedToDate = storeRows.reduce((a, s) => a + s.realizadas, 0);
-  const expectedToDate = industryRows.reduce((a, i) => a + i.expectedToDate, 0);
-  const extras = storeRows.reduce((a, s) => a + Math.max(0, s.realizadas - s.contratadas), 0);
+  // ---- KPIs — FILTRAGEM ANALÍTICA v1.3.3 -------------------------------------
+  // Regra de Ouro: Dashboard Analytics ignora FIXED_OPERATION.
+  const monitoredStoreRows = storeRows.filter(s => {
+    const ctx = core.ctxById.get(s.industryId);
+    return ctx?.controlMode === "VISIT_CONTROLLED";
+  });
+
+  const contractedTotal = monitoredStoreRows.reduce((a, s) => a + s.contratadas, 0);
+  const realizedToDate = monitoredStoreRows.reduce((a, s) => a + s.realizadas, 0);
+  const expectedToDate = industryRows.reduce((a, i) => a + i.expectedToDate, 0); // industryRows já vem filtrado por loadOperationCore/buildIndustryRows
+  const extras = monitoredStoreRows.reduce((a, s) => a + Math.max(0, s.realizadas - s.contratadas), 0);
   const pendentes = Math.max(0, contractedTotal - realizedToDate);
-  const lojasAtendidas = new Set(storeRows.filter((s) => s.realizadas > 0).map((s) => s.storeId))
-    .size;
-  const lojasContratadas = new Set(storeRows.filter((s) => s.contratadas > 0).map((s) => s.storeId))
-    .size;
-  const lojasSemVisita = storeRows.filter((s) => s.contratadas > 0 && s.realizadas === 0).length;
-  const visitasSemPromotor = storeRows
+  
+  const lojasAtendidas = new Set(monitoredStoreRows.filter((s) => s.realizadas > 0).map((s) => s.storeId)).size;
+  const lojasContratadas = new Set(monitoredStoreRows.filter((s) => s.contratadas > 0).map((s) => s.storeId)).size;
+  const lojasSemVisita = monitoredStoreRows.filter((s) => s.contratadas > 0 && s.realizadas === 0).length;
+  
+  const visitasSemPromotor = monitoredStoreRows
     .filter((s) => s.promoterResolution !== "MATCHED_ROUTE")
     .reduce((a, s) => a + s.realizadas, 0);
+    
   const industriasEmRisco = industryRows.filter(
     (i) =>
       i.status === "CRITICA" ||
@@ -114,14 +121,14 @@ export async function buildDashboardOverview(
   const series: DashboardSeriesPoint[] = buildDailySeries({
     ctxs,
     industryRows,
-    storeRows,
+    storeRows: monitoredStoreRows,
     globalStart: core.globalStart,
     globalEnd: core.globalEnd,
   });
 
-  const promoters = buildPromoters(storeRows, ctxs, routeByKey);
+  const promoters = buildPromoters(monitoredStoreRows, ctxs, routeByKey);
 
-  const criticalAll = storeRows
+  const criticalAll = monitoredStoreRows
     .filter((s) => s.pendentes > 0 || s.realizadas === 0)
     .sort((a, b) => {
       const an = a.realizadas === 0 ? 0 : 1;
@@ -133,23 +140,23 @@ export async function buildDashboardOverview(
       return (b.daysWithoutVisit ?? 9999) - (a.daysWithoutVisit ?? 9999);
     });
 
-  const alerts = buildAlerts(industryRows, storeRows, promoters);
+  const alerts = buildAlerts(industryRows, monitoredStoreRows, promoters);
 
   const storeExecutionDistribution = [
     {
       key: "INTEGRAL" as StoreExecStatus,
       label: "Integral",
-      value: storeRows.filter((s) => s.status === "INTEGRAL").length,
+      value: monitoredStoreRows.filter((s) => s.status === "INTEGRAL").length,
     },
     {
       key: "PARCIAL" as StoreExecStatus,
       label: "Parcial",
-      value: storeRows.filter((s) => s.status === "PARCIAL").length,
+      value: monitoredStoreRows.filter((s) => s.status === "PARCIAL").length,
     },
     {
       key: "NAO_ATENDIDA" as StoreExecStatus,
       label: "Não atendida",
-      value: storeRows.filter((s) => s.status === "NAO_ATENDIDA").length,
+      value: monitoredStoreRows.filter((s) => s.status === "NAO_ATENDIDA").length,
     },
   ];
   const industryStatusDistribution = INDUSTRY_STATUS_ORDER.map((key) => ({
@@ -166,6 +173,11 @@ export async function buildDashboardOverview(
     windowEnd: core.globalEnd,
     usesHistoricalFrequency: core.globalEnd < today,
     checklistImports: core.checklistImportsTotal,
+    monitoredIndustries: {
+      total: core.monitoredIndustriesCount,
+      withChecklist: core.monitoredWithChecklistCount,
+      pendingChecklist: core.monitoredPendingChecklistCount,
+    },
     kpis,
     industries: industryRows,
     criticalStores: criticalAll.slice(0, 15),
@@ -500,6 +512,7 @@ function emptyOverview(
     windowEnd: end,
     usesHistoricalFrequency: false,
     checklistImports: 0,
+    monitoredIndustries: { total: 0, withChecklist: 0, pendingChecklist: 0 },
     kpis: {
       contractedTotal: 0,
       expectedToDate: 0,

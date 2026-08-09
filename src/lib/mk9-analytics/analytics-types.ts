@@ -108,5 +108,7 @@ export interface AnalyticsDashboardPayload {
     coreMs: number;
     queryCount: number;
     monitoredIndustriesCount: number;
+    monitoredWithChecklistCount: number;
+    monitoredPendingChecklistCount: number;
   };
 }

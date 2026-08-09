@@ -85,6 +85,8 @@ function buildDashboard(
       coreMs: current.coreMs,
       queryCount: current.queryCount,
       monitoredIndustriesCount: current.monitoredIndustriesCount,
+      monitoredWithChecklistCount: current.monitoredWithChecklistCount,
+      monitoredPendingChecklistCount: current.monitoredPendingChecklistCount,
     },
   };
 }
@@ -96,15 +98,23 @@ function aggregate(core: OperationCore) {
   let zeroVisits = 0;
   let extras = 0;
 
+  // REESTRUTURAÇÃO DO ESCOPO ANALÍTICO (v1.3.3)
+  // Dashboard Analytics ignora FIXED_OPERATION.
+  const monitoredStoreRows = core.storeRows.filter(s => {
+    const ctx = core.ctxById.get(s.industryId);
+    return ctx?.controlMode === "VISIT_CONTROLLED";
+  });
+
   for (const row of core.industryRows) {
+    // industryRows já vem filtrado por loadOperationCore
     contracted += row.contratadas;
     realized += row.realizadas;
     pending += row.pendentes;
     zeroVisits += row.zeradasCount;
   }
 
-  // Extras vêm da diferença positiva nas lojas
-  for (const store of core.storeRows) {
+  // Extras vêm da diferença positiva nas lojas monitoradas
+  for (const store of monitoredStoreRows) {
     if (store.realizadas > store.contratadas) {
       extras += store.realizadas - store.contratadas;
     }
@@ -174,8 +184,14 @@ function buildUfPerformance(current: OperationCore, previous: OperationCore): Uf
   });
 
   return ufs.map((uf) => {
-    const stores = current.storeRows.filter((s) => s.uf === uf);
-    const prevStores = prevStoresByUf.get(uf) || [];
+    const stores = current.storeRows.filter((s) => {
+      const ctx = current.ctxById.get(s.industryId);
+      return s.uf === uf && ctx?.controlMode === "VISIT_CONTROLLED";
+    });
+    const prevStores = previous.storeRows.filter((s) => {
+      const ctx = previous.ctxById.get(s.industryId);
+      return s.uf === uf && ctx?.controlMode === "VISIT_CONTROLLED";
+    });
 
     const contracted = stores.reduce((a, b) => a + b.contratadas, 0);
     const realized = stores.reduce((a, b) => a + b.realizadas, 0);
@@ -202,6 +218,9 @@ function buildRecurrence(current: OperationCore, previous: OperationCore): Recur
   const recurrence: RecurrenceRecord[] = [];
 
   for (const cur of current.storeRows) {
+    const ctx = current.ctxById.get(cur.industryId);
+    if (ctx?.controlMode !== "VISIT_CONTROLLED") continue;
+
     const prev = prevMap.get(`${cur.storeId}-${cur.industryId}`);
     if (!prev) continue;
 
@@ -245,6 +264,9 @@ function buildFrequencyAnalytics(current: OperationCore): FrequencyExecutionGrou
   const groups = new Map<number, FrequencyExecutionGroup>();
 
   for (const s of current.storeRows) {
+    const ctx = current.ctxById.get(s.industryId);
+    if (ctx?.controlMode !== "VISIT_CONTROLLED") continue;
+    
     const freq = s.monthlyFrequency || 0;
     const group = groups.get(freq) || {
       frequency: freq > 0 ? `${freq}x/mês` : "Manual",
@@ -280,7 +302,10 @@ function buildFrequencyAnalytics(current: OperationCore): FrequencyExecutionGrou
 function buildExecutionMatrix(current: OperationCore): ExecutionMatrixCell[] {
   const matrix: ExecutionMatrixCell[] = [];
   const frequencies = Array.from(
-    new Set(current.storeRows.map((s) => s.monthlyFrequency || 0)),
+    new Set(current.storeRows.filter(s => {
+      const ctx = current.ctxById.get(s.industryId);
+      return ctx?.controlMode === "VISIT_CONTROLLED";
+    }).map((s) => s.monthlyFrequency || 0)),
   ).sort((a, b) => a - b);
   const ranges = [
     { label: "0%", min: 0, max: 0 },
@@ -291,7 +316,10 @@ function buildExecutionMatrix(current: OperationCore): ExecutionMatrixCell[] {
   ];
 
   for (const f of frequencies) {
-    const stores = current.storeRows.filter((s) => (s.monthlyFrequency || 0) === f);
+    const stores = current.storeRows.filter((s) => {
+      const ctx = current.ctxById.get(s.industryId);
+      return ctx?.controlMode === "VISIT_CONTROLLED" && (s.monthlyFrequency || 0) === f;
+    });
     for (const r of ranges) {
       const count = stores.filter((s) => {
         const cov = s.contratadas > 0 ? (s.realizadas / s.contratadas) * 100 : 0;
@@ -370,7 +398,10 @@ function buildTopPriorities(
     industries.filter((i) => i.risk === "CRITICAL").map((i) => i.industryName),
   );
   current.storeRows
-    .filter((s) => s.realizadas === 0 && criticalIndNames.has(s.industryName))
+    .filter((s) => {
+      const ctx = current.ctxById.get(s.industryId);
+      return ctx?.controlMode === "VISIT_CONTROLLED" && s.realizadas === 0 && criticalIndNames.has(s.industryName);
+    })
     .slice(0, 5)
     .forEach((s) => {
       priorities.push({
