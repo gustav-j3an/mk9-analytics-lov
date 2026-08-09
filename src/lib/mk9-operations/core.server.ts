@@ -334,6 +334,17 @@ export async function loadOperationCore(
     return b;
   };
 
+
+  const importIdByIndustry = new Map<string, string>();
+  for (const imp of currentImports ?? []) {
+    importIdByIndustry.set(imp.industry_id, imp.id);
+  }
+
+  // Se um importId específico foi filtrado, ele sobrepõe a regra de 'is_operational_current' para aquela indústria
+  if (filters.sourceImportId && filters.industryId) {
+    importIdByIndustry.set(filters.industryId, filters.sourceImportId);
+  }
+
   // 1) BASE OBRIGATÓRIA: SNAPSHOT IMUTÁVEL DA IMPORTAÇÃO (v1.3.10)
   // Para indústrias monitoradas, o universo de lojas vem do snapshot da importação vigente.
   if (currentImports && currentImports.length > 0) {
@@ -386,19 +397,6 @@ export async function loadOperationCore(
     b.weekly = last.weeklyFrequency;
     b.monthly = last.monthlyFrequency;
   }
-
-  // ---- processamento de visitas operacionais ----
-  // 1. Identificar importações vigentes para o período
-  const { data: currentImports } = await safeQuery(
-    supabase
-      .from("mk9_checklist_imports")
-      .select("id, industry_id")
-      .in("industry_id", industryIds)
-      .eq("operation_month", month)
-      .eq("operation_year", year)
-      .is("reverted_at", null)
-      .eq("is_operational_current" as any, true)
-  );
 
   const importIdByIndustry = new Map<string, string>();
   for (const imp of currentImports ?? []) {
