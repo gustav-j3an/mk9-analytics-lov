@@ -49,7 +49,9 @@ export interface OperationFilters {
   year: number;
   month: number;
   industryId?: string | null;
+  sourceImportId?: string | null;
   uf?: string | null;
+
   promoterId?: string | null;
   supervisorUserId?: string | null;
   access?: OperationAccess | null;
