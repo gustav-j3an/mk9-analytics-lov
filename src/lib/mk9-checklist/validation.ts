@@ -162,8 +162,15 @@ export function buildValidationReport(input: BuildValidationInput): ChecklistVal
     else status = "CONSISTENT";
   } else {
     // No preview, nunca é INCONSISTENT (pois ainda não persistimos)
-    if (declaredCheckMismatch || anyParseDiff || anyUnmatched) status = "COMPLETED_WITH_ALERTS";
-    else status = "CONSISTENT";
+    if (declaredCheckMismatch || anyParseDiff || anyUnmatched) {
+      status = "COMPLETED_WITH_ALERTS";
+    } else if (parsed.realizadoSum > 0 && parsed.marks.length !== parsed.realizadoSum) {
+      // REGRA CICOPAL/FRUTA POLPA: Divergência entre REALIZADO e MARCAÇÕES é alerta não-bloqueante
+      status = "COMPLETED_WITH_ALERTS";
+    } else {
+      status = "CONSISTENT";
+    }
+
   }
 
   const summaryLines: string[] = [];

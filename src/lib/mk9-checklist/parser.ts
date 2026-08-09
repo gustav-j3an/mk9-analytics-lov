@@ -352,21 +352,18 @@ export function parseChecklistWorkbook(
       const storeNormalized = normalizeStoreName(storeName);
       if (!storeNormalized) continue;
 
-      // AJUSTE FINAL: Validar que BANDEIRA (implícito), LOJA e UF estão preenchidos.
-      // Linhas de anotação/observação geralmente não têm UF nem BANDEIRA.
-      const hasUf = ufCol >= 0 && row[ufCol] !== null && String(row[ufCol]).trim() !== "";
-      // Se não tem UF, desconfiamos que seja uma linha de nota solta no meio da planilha.
-      if (!hasUf && ufCol >= 0) {
-        debug("parser-row-skipped", "Linha ignorada: UF ausente (provável anotação)", {
-          storeName,
-          excelRow: r + 1,
-        });
-        continue;
-      }
+      // REVISÃO MK9 (Protocolo CICOPAL): Uma linha NÃO deve ser descartada simplesmente porque
+      // CIDADE ou UF estão vazias, desde que possua o campo LOJA válido.
+      // O parser atual estava exigindo UF, o que descartava lojas válidas em arquivos da CICOPAL.
+      
+      // Permitimos que a linha prossiga sem UF; a reconciliação tentará resolver pela base oficial.
+      const ufValue = ufCol >= 0 ? normalizeUF(row[ufCol]) : null;
+
+
 
       if (/^(total|totais|geral|subtotal)/i.test(storeName)) continue;
 
-      const uf = ufCol >= 0 ? normalizeUF(row[ufCol]) : null;
+      const uf = ufValue;
       const weekly = weeklyCol >= 0 ? parseNumber(row[weeklyCol]) : null;
       const monthly = monthlyCol >= 0 ? parseNumber(row[monthlyCol]) : null;
       const realizado = realizadoCol >= 0 ? parseNumber(row[realizadoCol]) : null;
@@ -428,17 +425,19 @@ export function parseChecklistWorkbook(
   }
 
   // Validação checksum: REALIZADO da planilha (soma AK) vs marcações lidas (F-AJ)
-  // KING FIX: Apenas gera aviso, não bloqueia e não substitui a contagem real de marcações.
+  // MK9 CORE RULE: A fonte de verdade das visitas realizadas são as MARCAÇÕES NAS DATAS.
+  // A coluna REALIZADO serve apenas como conferência e sinalização de alertas.
   if (out.realizadoSum > 0 && out.marks.length !== out.realizadoSum) {
     out.warnings.push(
-      `Divergência de checksum: a coluna REALIZADO soma ${out.realizadoSum}, mas foram identificadas ${out.marks.length} marcações "✅" na planilha. Usando as ${out.marks.length} marcações reais para processamento.`,
+      `Alerta de divergência (REALIZED_SUMMARY_MISMATCH): a coluna REALIZADO informa ${out.realizadoSum} visitas, mas foram identificadas ${out.marks.length} marcações reais nas datas. O sistema utilizará as ${out.marks.length} marcações confirmadas.`,
     );
   } else if (out.realizadoSum === 0 && out.marks.length > 0) {
     // Caso a coluna REALIZADO esteja vazia mas existam marcações
     out.warnings.push(
-      `Coluna REALIZADO zerada ou ausente, mas foram identificadas ${out.marks.length} marcações "✅" na planilha.`,
+      `Coluna REALIZADO zerada ou ausente, mas foram identificadas ${out.marks.length} marcações reais nas datas.`,
     );
   }
+
 
   debug("parser-complete", "Parser de checklist finalizado", {
     sheetsAnalyzed: out.sheetsAnalyzed,
