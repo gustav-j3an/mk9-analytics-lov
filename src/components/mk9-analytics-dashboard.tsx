@@ -169,8 +169,22 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
         </div>
       )}
 
-      {/* Visão de Risco e Projeção (Executive View) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Visão de Risco, Projeção e Monitoramento (Executive View) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="glass-command p-4 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col justify-between">
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
+            Indústrias Monitoradas
+          </span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-black text-white italic">
+              {data.perf?.monitoredIndustriesCount ?? 0}
+            </span>
+            <span className="text-[10px] font-bold text-slate-500">
+              DE {industries.length}
+            </span>
+          </div>
+        </div>
+
         <div
           className={cn(
             "glass-command p-5 rounded-2xl border flex flex-col justify-between transition-all duration-300",
