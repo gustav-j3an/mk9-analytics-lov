@@ -127,7 +127,12 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Marca committing logo no início para que o histórico saia de "previewing".
-    await updateImportStatus(data.importId, { status: "committing" }).catch(() => undefined);
+    await updateImportStatus(data.importId, { 
+      status: "committing",
+      errorMessage: null // Limpa erro anterior se houver
+    }).catch((err) => {
+      console.error(`[COMMIT-STATUS-ERROR] Falha ao mudar para committing:`, err);
+    });
 
     try {
       // REGRA DE SUBSTITUIÇÃO: Executar em transação
@@ -156,6 +161,7 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
         // Duplicado inalterado: Mantemos a anterior e cancelamos esta.
         await updateImportStatus(data.importId, {
           status: "cancelled",
+          reason: "duplicate_unchanged",
           errorMessage: "Arquivo duplicado inalterado. A versão anterior continua vigente.",
         });
         return {

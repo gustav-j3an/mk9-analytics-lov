@@ -484,6 +484,7 @@ export function Mk9ChecklistImportModule({
 
   const discardMut = useMutation({
     mutationFn: async () => {
+      console.log(`[UI_CANCEL] User clicked discard for import ${importId}`);
       if (importId) await cancelFn({ data: { importId } });
     },
     onSuccess: () => {

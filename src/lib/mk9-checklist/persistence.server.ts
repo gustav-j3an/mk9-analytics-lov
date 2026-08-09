@@ -219,7 +219,7 @@ export async function cancelPreviousPreviews(input: {
       status: "cancelled",
       error_message: "Prévia abandonada — substituída por nova importação",
       finished_at: new Date().toISOString(),
-    })
+    } as any) // Cast as any to avoid type issues if reason is missing in DB but present in patch
     .eq("industry_id", input.industryId)
     .eq("operation_month", input.operationMonth)
     .eq("operation_year", input.operationYear)
@@ -278,10 +278,19 @@ export async function updateImportStatus(
     errorMessage?: string | null;
     finishedAt?: Date;
     durationMs?: number;
+    reason?: string; // Para auditoria de quem disparou
   },
 ) {
   const update: Record<string, unknown> = {};
-  if (patch.status) update.status = patch.status;
+  if (patch.status) {
+    update.status = patch.status;
+    console.log(`[STATUS_CHANGE] import=${importId} to=${patch.status} reason=${patch.reason ?? 'not_specified'}`);
+    
+    // GUARD v1.3.14: Nenhuma função interna pode marcar como 'cancelled' sem motivo explícito
+    if (patch.status === 'cancelled' && !patch.reason) {
+      console.warn(`[STATUS_CHANGE_WARNING] import=${importId} status cancelled without reason!`);
+    }
+  }
   if (patch.counters) update.counters = patch.counters;
   if (patch.errorMessage !== undefined) update.error_message = patch.errorMessage;
   if (patch.finishedAt) update.finished_at = patch.finishedAt.toISOString();
