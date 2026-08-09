@@ -141,24 +141,23 @@ function LandingPage() {
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="CORE ANALÍTICO UNIFICADO"
-                    desc="Refatoração do motor central (Dashboard/PDF) para usar Snapshot como fonte primária do universo de lojas e frequências."
+                    title="RASTREAMENTO DE ESTADO"
+                    desc="Instrumentação de todas as etapas do ciclo de vida da importação para detectar a primeira transição indevida para o status CANCELLED."
                   />
                   <ProtocolItem
                     id="02"
-                    title="RESOLUÇÃO SISTÊMICA MENDEZ"
-                    desc="Saneamento de visitas órfãs e ativação operacional da indústria MENDEZ Julho/2026, recuperando lojas com zero atendimento."
+                    title="AUDITORIA DE ESCRITA"
+                    desc="Monitoramento direto das queries enviadas ao banco, verificando se triggers ou requisições concorrentes estão afetando a integridade do processo."
                   />
                   <ProtocolItem
                     id="03"
-                    title="BLINDAGEM DE ESCOPO"
-                    desc="Garantia de que visitas realizadas só são contabilizadas se pertencerem à importação ativa, eliminando duplicatas acumuladas."
+                    title="VERIFICAÇÃO DE CONCORRÊNCIA"
+                    desc="Análise de duplicidade de submissões no frontend e React Strict Mode para descartar execuções paralelas que invalidam o estado atual."
                   />
-                </div>
                   <ProtocolItem
                     id="04"
-                    title="BLINDAGEM DE PERSISTÊNCIA"
-                    desc="Nova barreira de integridade que impede a conclusão de importações se as visitas identificadas não forem persistidas com sucesso no banco."
+                    title="INDÚSTRIA DE REFERÊNCIA: MENDEZ"
+                    desc="Foco total na MENDEZ Julho/2026 para consolidar o diagnóstico definitivo e garantir que o status final chegue a COMPLETED."
                   />
                 </div>
             </div>
