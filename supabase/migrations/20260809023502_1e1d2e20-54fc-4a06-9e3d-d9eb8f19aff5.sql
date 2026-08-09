@@ -1,0 +1,1 @@
+UPDATE public.mk9_checklist_imports SET is_operational_current = true WHERE id = 'aeda200c-1943-4d9d-a199-0e22368db7b3';
