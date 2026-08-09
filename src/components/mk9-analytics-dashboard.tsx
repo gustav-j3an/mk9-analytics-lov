@@ -182,7 +182,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                   <Info className="h-3 w-3 text-slate-500 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="bg-command-deep border-white/10 text-white text-[10px] max-w-[200px]">
-                  {data.perf?.monitoredWithChecklistCount} importadas · {data.perf?.monitoredPendingChecklistCount} pendentes de checklist.
+                  {data.perf?.monitoredWithChecklistCount ?? 0} importadas · {data.perf?.monitoredPendingChecklistCount ?? 0} pendentes de checklist.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -191,7 +191,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             <span className="text-2xl font-black text-white italic">
               {data.perf?.monitoredIndustriesCount ?? 0}
             </span>
-            <span className="text-[10px] font-bold text-slate-500">
+            <span className="text-[10px] font-bold text-slate-500 uppercase">
               DE {industries.length}
             </span>
           </div>
