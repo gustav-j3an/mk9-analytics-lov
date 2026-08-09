@@ -1,5 +1,5 @@
-import { supabaseAdmin } from "./integrations/supabase/client.server";
-import { promoteChecklistImportToOperational } from "./lib/mk9-checklist/promotion.server";
+import { supabaseAdmin } from "./src/integrations/supabase/client.server";
+import { promoteChecklistImportToOperational } from "./src/lib/mk9-checklist/promotion.server";
 
 async function fix() {
   const BANANA_JULY_IMPORT_ID = "691c3ba6-3eb7-423a-aa81-3bbdbe2b770c";
