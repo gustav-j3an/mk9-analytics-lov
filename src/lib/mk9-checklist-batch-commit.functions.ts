@@ -24,6 +24,9 @@ export const checklistBatchCommit = createServerFn({ method: "POST" })
         const preview = await loadPreviewSnapshot(importId);
         if (!preview) throw new Error("Preview não encontrado");
 
+        // Regra de Filtro Operacional MK9:
+        // Apenas itens resolvidos (found, similarity, new_store) com data válida
+        // seguem para o commit.
         const items = preview.items
           .filter(
             (i: any) =>
@@ -41,8 +44,9 @@ export const checklistBatchCommit = createServerFn({ method: "POST" })
             isNew: i.status === "new_store",
           }));
 
-        // Executa commit individual
-        // @ts-ignore - Chamada interna da server function
+        // Executa commit individual REAL (não apenas persistência)
+        // Isso garante ativação da flag is_operational_current e substituição de versões.
+        // @ts-ignore - Chamada interna da server function via TanStack Start context simulation
         const res = await checklistCommit({
           data: {
             importId,
@@ -52,6 +56,7 @@ export const checklistBatchCommit = createServerFn({ method: "POST" })
             items,
           },
         });
+
 
         results.push({ importId, status: "SUCCESS", data: res });
       } catch (e: any) {
