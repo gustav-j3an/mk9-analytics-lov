@@ -162,6 +162,8 @@ export interface OperationCore {
   availableUfs: string[];
   industryIds: string[];
   monitoredIndustriesCount: number;
+  monitoredWithChecklistCount: number;
+  monitoredPendingChecklistCount: number;
   checklistImportsTotal: number;
   /** Telemetria de performance do núcleo. */
   queryCount: number;

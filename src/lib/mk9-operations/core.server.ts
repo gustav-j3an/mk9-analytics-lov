@@ -5,6 +5,10 @@
  * janelas por indústria, frequências versionadas, visitas, roteiros vigentes,
  * importações de checklist da competência e UFs disponíveis.
  *
+ * REESTRUTURAÇÃO DO ESCOPO ANALÍTICO (v1.3.3):
+ * O core operacional agora separa estritamente o universo de ROTEIRO (operação completa)
+ * do universo ANALÍTICO MONITORADO (somente VISIT_CONTROLLED).
+ *
  * NADA aqui inventa fórmula: os cálculos vivem em ./buckets.
  * Segurança: o escopo (`filters.access`) é sempre INTERSECTADO — filtros do
  * navegador nunca ampliam o que o usuário enxerga.
@@ -49,6 +53,8 @@ function emptyCore(
     availableUfs: [],
     industryIds: [],
     monitoredIndustriesCount: 0,
+    monitoredWithChecklistCount: 0,
+    monitoredPendingChecklistCount: 0,
     checklistImportsTotal: 0,
     queryCount,
     coreMs: Math.round(Date.now() - startedAt),
@@ -135,7 +141,7 @@ export async function loadOperationCore(
 
   const industriesList = await supabase
     .from("mk9_industries")
-    .select("id, name, requires_checklist, checklist_enabled_at")
+    .select("id, name, requires_checklist, checklist_enabled_at, control_mode")
     .order("name", { ascending: true });
 
   if (cfgRes.error) throw new Error(cfgRes.error.message);
@@ -391,6 +397,12 @@ export async function loadOperationCore(
     availableUfs,
     industryIds,
     monitoredIndustriesCount: ctxs.filter((c) => c.controlMode === "VISIT_CONTROLLED").length,
+    monitoredWithChecklistCount: ctxs.filter(
+      (c) => c.controlMode === "VISIT_CONTROLLED" && c.checklistImports > 0,
+    ).length,
+    monitoredPendingChecklistCount: ctxs.filter(
+      (c) => c.controlMode === "VISIT_CONTROLLED" && c.checklistImports === 0,
+    ).length,
     checklistImportsTotal: ctxs.reduce((a, c) => a + c.checklistImports, 0),
     queryCount,
     coreMs: Math.round(Date.now() - startedAt),
