@@ -36,6 +36,7 @@ export const mk9ListIndustries = createServerFn({ method: "GET" }).handler(async
     frequencyStatus: r.frequency_status as string | null,
     weeksCount: r.weeks_count as number | null,
     requiresChecklist: r.requires_checklist === true,
+    controlMode: (r.control_mode ?? "VISIT_CONTROLLED") as "VISIT_CONTROLLED" | "FIXED_OPERATION",
     checklistEnabledAt: (r.checklist_enabled_at ?? null) as string | null,
     updatedAt: r.updated_at as string,
   }));
@@ -122,6 +123,9 @@ export const mk9GetIndustryOperationConfig = createServerFn({ method: "GET" })
       id: ind.id as string,
       name: ind.name as string,
       requiresChecklist: (ind as any).requires_checklist === true,
+      controlMode: ((ind as any).control_mode ?? "VISIT_CONTROLLED") as
+        | "VISIT_CONTROLLED"
+        | "FIXED_OPERATION",
       checklistEnabledAt: ((ind as any).checklist_enabled_at ?? null) as string | null,
       periodType: ((cfg as any)?.period_type ?? "CALENDAR_MONTH") as
         | "CALENDAR_MONTH"

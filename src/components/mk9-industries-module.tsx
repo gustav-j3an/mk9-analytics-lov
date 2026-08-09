@@ -160,6 +160,15 @@ export function Mk9IndustriesModule() {
                             <CheckCircle className="h-2 w-2" /> Checklist
                           </Mk9Badge>
                         )}
+                        {i.controlMode === "FIXED_OPERATION" ? (
+                          <Mk9Badge variant="warning" className="flex items-center gap-1">
+                            <Clock className="h-2 w-2" /> Fixa
+                          </Mk9Badge>
+                        ) : (
+                          <Mk9Badge variant="success" className="flex items-center gap-1">
+                            <ShieldCheck className="h-2 w-2" /> Monitorada
+                          </Mk9Badge>
+                        )}
                         <Mk9Badge className="flex items-center gap-1">
                           <Clock className="h-2 w-2" />{" "}
                           {i.periodType === "CUSTOM_CYCLE" ? "Ciclo" : "Mensal"}

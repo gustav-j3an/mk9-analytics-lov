@@ -171,6 +171,9 @@ export function buildIndustryRows(input: {
 
   return ctxs
     .filter((ctx) => {
+      // Regra de Filtro Analítico: Somente indústrias VISIT_CONTROLLED participam dos indicadores.
+      if (ctx.controlMode !== "VISIT_CONTROLLED") return false;
+
       const rows = rowsByIndustry.get(ctx.id) ?? [];
       return (
         rows.some((s) => s.contratadas > 0 || s.realizadas > 0) ||

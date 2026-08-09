@@ -48,6 +48,7 @@ function emptyCore(
     industryRows: [],
     availableUfs: [],
     industryIds: [],
+    monitoredIndustriesCount: 0,
     checklistImportsTotal: 0,
     queryCount,
     coreMs: Math.round(Date.now() - startedAt),
@@ -161,6 +162,9 @@ export async function loadOperationCore(
       id: ind.id,
       name: ind.name,
       requiresChecklist: ind.requires_checklist === true,
+      controlMode: (ind.control_mode ?? "VISIT_CONTROLLED") as
+        | "VISIT_CONTROLLED"
+        | "FIXED_OPERATION",
       checklistEnabledAt: ind.checklist_enabled_at ?? null,
       win: w,
       fraction: elapsedFraction(w, today),
@@ -380,6 +384,7 @@ export async function loadOperationCore(
     industryRows,
     availableUfs,
     industryIds,
+    monitoredIndustriesCount: ctxs.filter((c) => c.controlMode === "VISIT_CONTROLLED").length,
     checklistImportsTotal: ctxs.reduce((a, c) => a + c.checklistImports, 0),
     queryCount,
     coreMs: Math.round(Date.now() - startedAt),

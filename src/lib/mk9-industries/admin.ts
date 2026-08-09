@@ -8,6 +8,9 @@
  */
 import { z } from "zod";
 
+export const industryControlModeSchema = z.enum(["VISIT_CONTROLLED", "FIXED_OPERATION"]);
+export type IndustryControlMode = z.infer<typeof industryControlModeSchema>;
+
 const trimmed = (max: number) =>
   z
     .string()
@@ -43,6 +46,7 @@ export const createIndustrySchema = z
     cnpj: cnpjSchema,
     notes: optionalText(1000),
     requiresChecklist: z.boolean().default(false),
+    controlMode: industryControlModeSchema.default("VISIT_CONTROLLED"),
     periodType: z.enum(["CALENDAR_MONTH", "CUSTOM_CYCLE"]).default("CALENDAR_MONTH"),
     startDay: z.number().int().min(1).max(31).nullable().optional(),
     endDay: z.number().int().min(1).max(31).nullable().optional(),
@@ -65,6 +69,7 @@ export const updateIndustrySchema = z
     cnpj: cnpjSchema,
     notes: optionalText(1000),
     requiresChecklist: z.boolean().optional(),
+    controlMode: industryControlModeSchema.optional(),
     periodType: z.enum(["CALENDAR_MONTH", "CUSTOM_CYCLE"]).optional(),
     startDay: z.number().int().min(1).max(31).nullable().optional(),
     endDay: z.number().int().min(1).max(31).nullable().optional(),
