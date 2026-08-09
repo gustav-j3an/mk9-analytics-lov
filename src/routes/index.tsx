@@ -9,11 +9,11 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.9 — MÁQUINA DE ESTADOS ATÔMICA",
+    title: "MK9 | v1.3.10 — INTEGRIDADE DE SNAPSHOTS",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.9: MÁQUINA DE ESTADOS ATÔMICA. Promoção operacional resiliente e integridade de snapshots.",
+        content: "MK9 Analytics v1.3.10: INTEGRIDADE DE SNAPSHOTS. Universo de lojas baseado em snapshot imutável e sincronização estrutural de frequências.",
       },
       { property: "og:title", content: "MK9 | v1.3.9" },
       {
