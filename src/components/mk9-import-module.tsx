@@ -238,7 +238,7 @@ export function Mk9ImportModule({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
-              <label className="text-sm font-medium text-foreground mb-1 block">
+              <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">
                 Arquivo .xlsx (Base MK9 — roteiro/consulta)
               </label>
               <Input
@@ -268,7 +268,7 @@ export function Mk9ImportModule({
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">Mês</label>
+              <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Mês</label>
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -283,7 +283,7 @@ export function Mk9ImportModule({
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground mb-1 block">Ano</label>
+              <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Ano</label>
               <Input
                 type="number"
                 value={year}
@@ -294,7 +294,7 @@ export function Mk9ImportModule({
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground mb-1 block">Modo de sincronização</label>
+            <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Modo de sincronização</label>
             <Select value={syncMode} onValueChange={(v) => setSyncMode(v as SyncMode)}>
               <SelectTrigger>
                 <SelectValue />
