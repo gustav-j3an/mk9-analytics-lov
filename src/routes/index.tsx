@@ -9,11 +9,11 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.10 — INTEGRIDADE DE SNAPSHOTS",
+    title: "MK9 | v1.3.11 — CORE ANALÍTICO UNIFICADO",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.10: INTEGRIDADE DE SNAPSHOTS. Universo de lojas baseado em snapshot imutável e sincronização estrutural de frequências.",
+        content: "MK9 Analytics v1.3.11: CORE ANALÍTICO UNIFICADO. Resolução sistêmica de paridade para MENDEZ, IMAGINA, EMBAVI e COPRA.",
       },
       { property: "og:title", content: "MK9 | v1.3.9" },
       {
@@ -127,30 +127,30 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.10" sub="SNAPSHOT INTEGRITY" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.11" sub="UNIFIED CORE" />
                 <StatusCard icon={Zap} title="INTEGRITY" value="100%" sub="ANALYTIC" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MK9 — HOTFIX ESTRUTURAL v1.3.10
+                  MK9 — HOTFIX ESTRUTURAL v1.3.11
                 </h3>
 
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="MÁQUINA DE ESTADOS ATÔMICA"
-                    desc="Normalização do pipeline de promoção para aceitar status intermediários e garantir finalização determinística da importação."
+                    title="CORE ANALÍTICO UNIFICADO"
+                    desc="Refatoração do motor central (Dashboard/PDF) para usar Snapshot como fonte primária do universo de lojas e frequências."
                   />
                   <ProtocolItem
                     id="02"
-                    title="VERSIONAMENTO DE SCHEMA"
-                    desc="Sincronização de colunas de versionamento (superseded_at, replaced_by) no PostgreSQL para suporte total a reimportações."
+                    title="RESOLUÇÃO SISTÊMICA MENDEZ"
+                    desc="Saneamento de visitas órfãs e ativação operacional da indústria MENDEZ Julho/2026, recuperando lojas com zero atendimento."
                   />
                   <ProtocolItem
                     id="03"
-                    title="INTEGRIDADE DE SNAPSHOTS"
-                    desc="Vinculação automática de frequências órfãs durante a promoção, garantindo que o Snapshot Imutável seja a única fonte da verdade."
+                    title="BLINDAGEM DE ESCOPO"
+                    desc="Garantia de que visitas realizadas só são contabilizadas se pertencerem à importação ativa, eliminando duplicatas acumuladas."
                   />
                 </div>
               </div>
@@ -169,7 +169,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.10
+                  SECURE ACCESS v1.3.11
                 </p>
 
               </div>
