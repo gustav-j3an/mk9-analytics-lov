@@ -80,7 +80,7 @@ function LandingPage() {
                 <div className="flex items-center gap-2 text-white mb-3">
                   <Info className="w-4 h-4 text-purple-400" />
                   <span className="font-black uppercase tracking-widest text-purple-400">
-                    Notas de Versão v1.2.0
+                    Notas de Versão v1.2.1
                   </span>
                 </div>
                 <div className="text-slate-400 space-y-2">
