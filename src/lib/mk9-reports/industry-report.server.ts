@@ -325,28 +325,54 @@ export async function buildIndustryReport(
   // 1) BASE OBRIGATÓRIA: SNAPSHOT IMUTÁVEL DA IMPORTAÇÃO
   // REGRA v1.3.10: O universo de lojas do relatório é definido pelo snapshot do checklist,
   // permitindo a exibição de lojas com zero visitas (NAO_ATENDIDA).
-  for (const s of snapshotStores) {
-    const sid = s.store_id;
-    if (!sid) continue;
+  if (snapshotStores && snapshotStores.length > 0) {
+    for (const s of snapshotStores) {
+      const sid = s.store_id;
+      if (!sid) continue;
 
-    // Filtros de escopo e UF aplicados sobre a base do snapshot
-    if (uf && s.uf !== uf) continue;
-    if (storeId && sid !== storeId) continue;
-    if (!inAccess(s, sid)) continue;
+      // Filtros de escopo e UF aplicados sobre a base do snapshot
+      if (uf && s.uf !== uf) continue;
+      if (storeId && sid !== storeId) continue;
+      if (!inAccess(s, sid)) continue;
 
-    const b = touch(sid, { name: s.source_store_name, uf: s.uf });
-    b.weekly = s.weekly_frequency;
-    b.monthly = s.monthly_frequency;
+      const b = touch(sid, { name: s.source_store_name, uf: s.uf });
+      b.weekly = s.weekly_frequency;
+      b.monthly = s.monthly_frequency;
 
-    // Convertemos para o formato de segmentos para reuso do motor de cálculo
-    b.segments = [
-      {
-        validFrom: window.startDate,
-        validUntil: window.endDate,
-        weeklyFrequency: s.weekly_frequency,
-        monthlyFrequency: s.monthly_frequency,
-      },
-    ];
+      // Convertemos para o formato de segmentos para reuso do motor de cálculo
+      b.segments = [
+        {
+          validFrom: window.startDate,
+          validUntil: window.endDate,
+          weeklyFrequency: s.weekly_frequency,
+          monthlyFrequency: s.monthly_frequency,
+        },
+      ];
+    }
+  } else {
+    // Fallback para indústrias sem snapshot mas com visitas ou versões de frequência
+    const { loadFrequencyVersionsForPeriod } = await import("@/lib/mk9-frequency/versions.server");
+    const freqVersions = await loadFrequencyVersionsForPeriod(supabase, {
+      industryIds: [industryId],
+      storeIds: storeId ? [storeId] : access?.allowedStoreIds ?? null,
+      periodStart: window.startDate,
+      periodEnd: window.endDate,
+      accessScope: access,
+    }).catch(() => new Map<string, any[]>());
+
+    for (const [key, segs] of freqVersions) {
+      const [, sid] = key.split("|");
+      if (!sid) continue;
+      const b = touch(sid, segs[0].store);
+      b.segments = segs.map(s => ({
+        validFrom: s.validFrom,
+        validUntil: s.validUntil,
+        weeklyFrequency: s.weeklyFrequency,
+        monthlyFrequency: s.monthlyFrequency,
+      }));
+      b.weekly = b.segments[b.segments.length - 1].weeklyFrequency;
+      b.monthly = b.segments[b.segments.length - 1].monthlyFrequency;
+    }
   }
 
   for (const p of planned ?? []) {
