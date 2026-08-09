@@ -483,7 +483,7 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
         }
         throw e;
       }
-    });
+    }
 
 
 export const checklistList = createServerFn({ method: "GET" })
