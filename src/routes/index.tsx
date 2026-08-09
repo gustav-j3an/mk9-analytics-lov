@@ -9,13 +9,13 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | SISTEMA HOMOLOGADO v1.1.1",
+    title: "MK9 | SISTEMA HOMOLOGADO v1.1.2",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.1.1: Hotfix Visual e Contraste em Módulos de Importação.",
+        content: "MK9 Analytics v1.1.2: Hardening de Tema Dark e Fix de Contraste Global.",
       },
-      { property: "og:title", content: "MK9 | v1.1.1" },
+      { property: "og:title", content: "MK9 | v1.1.2" },
       {
         property: "og:description",
         content: "Painel de inteligência operacional com contraste visual otimizado.",
@@ -69,7 +69,7 @@ function LandingPage() {
                 MK9 ANALYTICS — SISTEMA HOMOLOGADO
               </h1>
               <p className="text-[10px] text-emerald-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.1.1 — HOTFIX VISUAL E CONTRASTE
+                STATUS: V1.1.2 — HARDENING DE TEMA DARK
               </p>
             </div>
           </div>
@@ -80,12 +80,12 @@ function LandingPage() {
                 <div className="flex items-center gap-2 text-white mb-3">
                   <Info className="w-4 h-4 text-purple-400" />
                   <span className="font-black uppercase tracking-widest text-purple-400">
-                    Notas de Versão v1.1.1
+                    Notas de Versão v1.1.2
                   </span>
                 </div>
                 <div className="text-slate-400 space-y-2">
                   <p>
-                    A versão 1.1.1 resolve problemas críticos de legibilidade e contraste nos módulos de importação (Base MK9 e Checklist), garantindo que todos os campos, labels e placeholders sejam perfeitamente visíveis no tema escuro.
+                    A versão 1.1.2 implementa o endurecimento (hardening) do motor de temas, garantindo que a classe '.dark' seja forçada no container principal e os tokens OKLCH sejam mapeados corretamente para alto contraste em ambientes de produção.
                   </p>
                   <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px] mt-4">
                     <div className="flex justify-between border-b border-white/5 pb-1">
@@ -101,42 +101,42 @@ function LandingPage() {
                       <span className="text-emerald-400 font-bold">ATIVA</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Legibilidade Campos</span>
-                      <span className="text-emerald-400 font-bold">CORRIGIDO</span>
+                     <span>Hardening Dark Mode</span>
+                      <span className="text-emerald-400 font-bold">APLICADO</span>
                     </div>
                   </div>
                 </div>
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.1.1" sub="STABLE" />
-                <StatusCard icon={Zap} title="CONTRASTE" value="OTIMIZADO" sub="ACTIVE" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.1.2" sub="STABLE" />
+                <StatusCard icon={Zap} title="SISTEMA" value="DARK FORCED" sub="ACTIVE" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  Protocolo v1.1.1
+                  Protocolo v1.1.2
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="CONTRASTE DE LABELS"
-                    desc="Ajuste global de cores nas etiquetas de formulários para garantir conformidade visual no tema dark."
+                    title="FORÇAMENTO DE CLASSE DARK"
+                    desc="Injeção explícita da classe .dark no container root para evitar falhas de herança de tema no Preview."
                   />
                   <ProtocolItem
                     id="02"
-                    title="VISIBILIDADE DE PLACEHOLDERS"
-                    desc="Otimização da opacidade dos textos auxiliares em Selects e Inputs para facilitar a identificação dos campos."
+                    title="HARDENING OKLCH"
+                    desc="Ajuste fino nos tokens de cor (background, card e sidebar) para garantir separação visual em brilhos baixos."
                   />
                   <ProtocolItem
                     id="03"
-                    title="ESTABILIZAÇÃO DE SELECTS"
-                    desc="Correção nos disparadores e menus dropdown para visualização clara de valores selecionados e opções."
+                    title="ESTILIZAÇÃO DE LABELS BRANCOS"
+                    desc="Labels de formulários agora usam text-white e font-semibold para garantir legibilidade absoluta em qualquer monitor."
                   />
                   <ProtocolItem
                     id="04"
-                    title="INTEGRIDADE v1.1.1"
-                    desc="Manutenção da paridade operacional KING (146 visitas) e aprovação em 391 testes de contrato."
+                    title="INTEGRIDADE v1.1.2"
+                    desc="Sincronização global de competência mantida com 391 testes aprovados e paridade KING intacta."
                   />
                 </div>
               </div>
@@ -155,7 +155,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.1.1
+                  SECURE ACCESS v1.1.2
                 </p>
               </div>
               <ClientOnly>
