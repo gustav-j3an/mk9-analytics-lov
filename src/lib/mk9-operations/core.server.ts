@@ -356,13 +356,15 @@ export async function loadOperationCore(
     importIdByIndustry.set(filters.industryId, filters.sourceImportId);
   }
 
-  // 1) BASE OBRIGATÓRIA: SNAPSHOT IMUTÁVEL DA IMPORTAÇÃO (v1.3.10)
-  // Para indústrias monitoradas, o universo de lojas vem do snapshot da importação vigente.
-  if (currentImports && currentImports.length > 0) {
+  // 1.1) BASE OBRIGATÓRIA: SNAPSHOT IMUTÁVEL DA IMPORTAÇÃO (v1.3.10)
+  // REGRA MK9 (v1.3.10): O universo de lojas analítico para VISIT_CONTROLLED vem do snapshot.
+  // Isso garante que lojas com zero visitas apareçam no Dashboard/PDF.
+  const importsToProcess = Array.from(importIdByIndustry.entries());
+  if (importsToProcess.length > 0) {
     const { loadImportSnapshot } = await import("@/lib/mk9-checklist/persistence.server");
-    for (const imp of currentImports) {
-      const snapshot = await loadImportSnapshot(imp.id).catch(() => []);
-      const ctx = ctxById.get(imp.industry_id);
+    for (const [indId, impId] of importsToProcess) {
+      const snapshot = await loadImportSnapshot(impId).catch(() => []);
+      const ctx = ctxById.get(indId);
       if (!ctx) continue;
       
       for (const s of snapshot) {
