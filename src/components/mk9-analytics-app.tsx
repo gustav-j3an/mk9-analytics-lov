@@ -529,6 +529,7 @@ export function Mk9AnalyticsApp() {
             {activeModule === "homologacao" && <Mk9HomologationModule />}
 
             {activeModule === "usuarios" && <Mk9UsersModule currentUserId={user?.id ?? null} />}
+            {activeModule === "auditoria_controle" && <Mk9IndustryAuditModule />}
           </div>
         </section>
       </div>

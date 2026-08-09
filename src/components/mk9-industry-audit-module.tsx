@@ -184,17 +184,17 @@ export function Mk9IndustryAuditModule() {
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    <Mk9Badge variant={r.inRoute ? "info" : "ghost"}>
+                    <Mk9Badge variant={r.inRoute ? "info" : "default"}>
                       {r.inRoute ? "PRESENTE" : "—"}
                     </Mk9Badge>
                   </TableCell>
                   <TableCell className="text-center">
-                    <Mk9Badge variant={r.hasFrequencies ? "info" : "ghost"}>
+                    <Mk9Badge variant={r.hasFrequencies ? "info" : "default"}>
                       {r.hasFrequencies ? "SIM" : "—"}
                     </Mk9Badge>
                   </TableCell>
                   <TableCell className="text-center">
-                    <Mk9Badge variant={r.hasVisits ? "info" : "ghost"}>
+                    <Mk9Badge variant={r.hasVisits ? "info" : "default"}>
                       {r.hasVisits ? "SIM" : "—"}
                     </Mk9Badge>
                   </TableCell>
