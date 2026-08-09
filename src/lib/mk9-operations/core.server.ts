@@ -309,31 +309,17 @@ export async function loadOperationCore(
     routeByKey.set(key, info);
   }
 
-  // ---- buckets por (indústria, loja) ----------------------------------------
-  const passesUf = (uf: string | null) => {
-    if (ufFilter && uf !== ufFilter) return false;
-    if (scopeUfs && (!uf || !scopeUfs.includes(uf))) return false;
-    return true;
-  };
-  const passesStore = (storeId: string) => !accessStoreIds || accessStoreIds.includes(storeId);
-  const touch = (ctx: IndustryContext, storeId: string, store: any): StoreBucket => {
-    let b = ctx.buckets.get(storeId);
-    if (!b) {
-      b = {
-        storeId,
-        storeName: store?.name ?? "—",
-        chain: store?.chain ?? null,
-        uf: store?.uf ?? null,
-        weekly: null,
-        monthly: null,
-        segments: [],
-        visits: [],
-      };
-      ctx.buckets.set(storeId, b);
-    }
-    return b;
-  };
-
+  // 1) Identificar importações vigentes para o período
+  const { data: currentImports } = await safeQuery(
+    supabase
+      .from("mk9_checklist_imports")
+      .select("id, industry_id")
+      .in("industry_id", industryIds)
+      .eq("operation_month", month)
+      .eq("operation_year", year)
+      .is("reverted_at", null)
+      .eq("is_operational_current" as any, true)
+  );
 
   const importIdByIndustry = new Map<string, string>();
   for (const imp of currentImports ?? []) {
@@ -398,15 +384,6 @@ export async function loadOperationCore(
     b.monthly = last.monthlyFrequency;
   }
 
-  const importIdByIndustry = new Map<string, string>();
-  for (const imp of currentImports ?? []) {
-    importIdByIndustry.set(imp.industry_id, imp.id);
-  }
-
-  // Se um importId específico foi filtrado, ele sobrepõe a regra de 'is_operational_current' para aquela indústria
-  if (filters.sourceImportId && filters.industryId) {
-    importIdByIndustry.set(filters.industryId, filters.sourceImportId);
-  }
 
   for (const v of visitRes.data ?? []) {
     const ctx = ctxById.get(v.industry_id);
