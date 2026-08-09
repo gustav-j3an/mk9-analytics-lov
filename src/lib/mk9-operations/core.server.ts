@@ -334,10 +334,42 @@ export async function loadOperationCore(
     return b;
   };
 
+  // 1) BASE OBRIGATÓRIA: SNAPSHOT IMUTÁVEL DA IMPORTAÇÃO (v1.3.10)
+  // Para indústrias monitoradas, o universo de lojas vem do snapshot da importação vigente.
+  if (currentImports && currentImports.length > 0) {
+    const { loadImportSnapshot } = await import("@/lib/mk9-checklist/persistence.server");
+    for (const imp of currentImports) {
+      const snapshot = await loadImportSnapshot(imp.id).catch(() => []);
+      const ctx = ctxById.get(imp.industry_id);
+      if (!ctx) continue;
+      
+      for (const s of snapshot) {
+        if (!s.store_id) continue;
+        if (!passesUf(s.uf)) continue;
+        if (!passesStore(s.store_id)) continue;
+        
+        const b = touch(ctx, s.store_id, { name: s.source_store_name, uf: s.uf });
+        b.segments = [{
+          validFrom: ctx.win.startDate,
+          validUntil: ctx.win.endDate,
+          weeklyFrequency: s.weekly_frequency,
+          monthlyFrequency: s.monthly_frequency,
+        }];
+        b.weekly = s.weekly_frequency;
+        b.monthly = s.monthly_frequency;
+      }
+    }
+  }
+
+  // Fallback para versões de frequência (para indústrias sem checklist ou períodos anteriores)
   for (const [key, segs] of freqVersions) {
     const [industryId, storeId] = key.split("|");
     const ctx = ctxById.get(industryId);
     if (!ctx || !storeId) continue;
+    
+    // Se já foi preenchido pelo snapshot, o snapshot tem precedência
+    if (ctx.buckets.has(storeId)) continue;
+
     const inWindow = segmentsForWindow(segs, ctx.win.startDate, ctx.win.endDate);
     if (!inWindow.length) continue;
     const store = inWindow[0].store;
