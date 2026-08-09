@@ -290,6 +290,7 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
             }),
         );
         frequenciesUpserted = upserted;
+        competencyStart = report.competencyStart;
         frequencyDiff = {
           unchanged: report.unchanged,
           new: report.new,
