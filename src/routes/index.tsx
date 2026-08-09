@@ -9,16 +9,16 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | SISTEMA HOMOLOGADO v1.1.0",
+    title: "MK9 | SISTEMA HOMOLOGADO v1.1.1",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.1.0: Refatoração Estrutural e Arquitetura Profissional.",
+        content: "MK9 Analytics v1.1.1: Hotfix Visual e Contraste em Módulos de Importação.",
       },
-      { property: "og:title", content: "MK9 | v1.1.0" },
+      { property: "og:title", content: "MK9 | v1.1.1" },
       {
         property: "og:description",
-        content: "Painel de inteligência operacional com sincronia de competência.",
+        content: "Painel de inteligência operacional com contraste visual otimizado.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -69,7 +69,7 @@ function LandingPage() {
                 MK9 ANALYTICS — SISTEMA HOMOLOGADO
               </h1>
               <p className="text-[10px] text-emerald-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.1.0 — REFATORAÇÃO E ARQUITETURA
+                STATUS: V1.1.1 — HOTFIX VISUAL E CONTRASTE
               </p>
             </div>
           </div>
@@ -80,12 +80,12 @@ function LandingPage() {
                 <div className="flex items-center gap-2 text-white mb-3">
                   <Info className="w-4 h-4 text-purple-400" />
                   <span className="font-black uppercase tracking-widest text-purple-400">
-                    Notas de Versão v1.1.0
+                    Notas de Versão v1.1.1
                   </span>
                 </div>
                 <div className="text-slate-400 space-y-2">
                   <p>
-                    A versão 1.1.0 marca uma evolução estrutural na base de código. Refatoramos o sistema para uma arquitetura modular, eliminando redundâncias e preparando a escala para novos domínios operacionais.
+                    A versão 1.1.1 resolve problemas críticos de legibilidade e contraste nos módulos de importação (Base MK9 e Checklist), garantindo que todos os campos, labels e placeholders sejam perfeitamente visíveis no tema escuro.
                   </p>
                   <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px] mt-4">
                     <div className="flex justify-between border-b border-white/5 pb-1">
@@ -101,7 +101,7 @@ function LandingPage() {
                       <span className="text-emerald-400 font-bold">ATIVA</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Layout Header</span>
+                      <span>Legibilidade Campos</span>
                       <span className="text-emerald-400 font-bold">CORRIGIDO</span>
                     </div>
                   </div>
@@ -109,34 +109,34 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.1.0" sub="STABLE" />
-                <StatusCard icon={Cpu} title="ARCH" value="MODULAR" sub="ACTIVE" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.1.1" sub="STABLE" />
+                <StatusCard icon={Zap} title="CONTRASTE" value="OTIMIZADO" sub="ACTIVE" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  Protocolo v1.1.0
+                  Protocolo v1.1.1
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="DESACOPLAMENTO E MÓDULOS"
-                    desc="Separação rigorosa entre UI, Lógica de Negócio e Camada de Dados para facilitar manutenção."
+                    title="CONTRASTE DE LABELS"
+                    desc="Ajuste global de cores nas etiquetas de formulários para garantir conformidade visual no tema dark."
                   />
                   <ProtocolItem
                     id="02"
-                    title="ELIMINAÇÃO DE REDUNDÂNCIAS"
-                    desc="Refatoração de componentes duplicados e hooks globais para uma base de código DRY (Don't Repeat Yourself)."
+                    title="VISIBILIDADE DE PLACEHOLDERS"
+                    desc="Otimização da opacidade dos textos auxiliares em Selects e Inputs para facilitar a identificação dos campos."
                   />
                   <ProtocolItem
                     id="03"
-                    title="ESCALABILIDADE E DOMÍNIO"
-                    desc="Reorganização de arquivos por domínio funcional, permitindo expansão rápida de novas funcionalidades."
+                    title="ESTABILIZAÇÃO DE SELECTS"
+                    desc="Correção nos disparadores e menus dropdown para visualização clara de valores selecionados e opções."
                   />
                   <ProtocolItem
                     id="04"
-                    title="INTEGRIDADE v1.1.0"
-                    desc="Manutenção da paridade operacional com aprovação total em todos os contratos de teste."
+                    title="INTEGRIDADE v1.1.1"
+                    desc="Manutenção da paridade operacional KING (146 visitas) e aprovação em 391 testes de contrato."
                   />
                 </div>
               </div>
@@ -155,7 +155,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.1.0
+                  SECURE ACCESS v1.1.1
                 </p>
               </div>
               <ClientOnly>
