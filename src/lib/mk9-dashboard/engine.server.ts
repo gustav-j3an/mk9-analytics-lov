@@ -73,7 +73,7 @@ export async function buildDashboardOverview(
   // ---- KPIs — FILTRAGEM ANALÍTICA v1.3.3 -------------------------------------
   // Regra de Ouro: Dashboard Analytics ignora FIXED_OPERATION.
   const monitoredStoreRows = storeRows.filter(s => {
-    const ctx = ctxById.get(s.industryId);
+    const ctx = core.ctxById.get(s.industryId);
     return ctx?.controlMode === "VISIT_CONTROLLED";
   });
 
