@@ -140,23 +140,23 @@ function LandingPage() {
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="RASTREAMENTO DE ESTADO"
-                    desc="Instrumentação de todas as etapas do ciclo de vida da importação para detectar a primeira transição indevida para o status CANCELLED."
+                    title="INTEGRIDADE DE PERSISTÊNCIA"
+                    desc="Instrumentação do payload de visitas para garantir que os 21 registros identificados pelo parser sejam enviados para o comando de INSERT."
                   />
                   <ProtocolItem
                     id="02"
-                    title="AUDITORIA DE ESCRITA"
-                    desc="Monitoramento direto das queries enviadas ao banco, verificando se triggers ou requisições concorrentes estão afetando a integridade do processo."
+                    title="AUDITORIA DE TRANSAÇÃO"
+                    desc="Verificação de possíveis rollbacks ou limpezas indevidas após o insert bem-sucedido das visitas na tabela de visitas realizadas."
                   />
                   <ProtocolItem
                     id="03"
-                    title="VERIFICAÇÃO DE CONCORRÊNCIA"
-                    desc="Análise de duplicidade de submissões no frontend e React Strict Mode para descartar execuções paralelas que invalidam o estado atual."
+                    title="UNIFICAÇÃO DE MOTORES"
+                    desc="Alinhamento entre as funções de persistência do modo individual e do modo lote para eliminar discrepâncias de comportamento."
                   />
                   <ProtocolItem
                     id="04"
-                    title="INDÚSTRIA DE REFERÊNCIA: MENDEZ"
-                    desc="Foco total na MENDEZ Julho/2026 para consolidar o diagnóstico definitivo e garantir que o status final chegue a COMPLETED."
+                    title="BENCHMARK MENDEZ: 21 VISITAS"
+                    desc="Foco na persistência real dos 21 atendimentos identificados, eliminando a divergência de 8 lojas apontada pela auditoria."
                   />
                 </div>
               </div>
