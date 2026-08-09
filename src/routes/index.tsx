@@ -134,7 +134,7 @@ function LandingPage() {
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MK9 — HOTFIX ESTRUTURAL v1.3.16
+                  MK9 — ESTRATÉGIA DE DIAGNÓSTICO v1.3.17
                 </h3>
 
 
