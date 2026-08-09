@@ -201,8 +201,10 @@ export async function buildIndustryReport(
     .eq("industry_id", industryId)
     .eq("operation_month", input.month)
     .eq("operation_year", input.year)
-    .eq("is_operational_current" as any, true)
     .is("reverted_at", null)
+    .order('is_operational_current', { ascending: false })
+    .order('started_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   let snapshotStores: any[] = [];
