@@ -290,8 +290,9 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             </h1>
           </div>
           <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-5">
-            Inteligência Operacional · V1.0.3
+            Inteligência Operacional · V1.3.5
           </p>
+
         </div>
 
         <div className="glass-command p-1.5 md:p-2 rounded-2xl flex flex-wrap items-center gap-1.5 md:gap-2 border border-white/5">
