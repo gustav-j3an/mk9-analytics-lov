@@ -63,7 +63,13 @@ export async function loadOperationCore(
   const startedAt = Date.now();
   const today = todayIso();
 
-  const { year, month } = filters;
+  if (!filters) {
+    throw new Error("Parâmetros de filtro (ano/mês) são obrigatórios para o core operacional.");
+  }
+
+  const year = filters.year ?? new Date().getFullYear();
+  const month = filters.month ?? new Date().getMonth() + 1;
+
   let queryCount = 0;
 
   // ---- escopo do supervisor (mk9_user_scopes) --------------------------------
