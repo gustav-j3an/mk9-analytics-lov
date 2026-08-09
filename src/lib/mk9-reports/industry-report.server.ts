@@ -189,9 +189,11 @@ export async function buildIndustryReport(
     month: input.month,
     uf: uf ?? undefined,
     industryId: industryId,
+    sourceImportId: sourceImportId ?? undefined, // PASSANDO O IMPORT_ID PARA O CORE
     promoterId: promoterId ?? undefined,
     access,
   });
+
 
   // 2) Snapshot Contratado da Importação (Fonte Imutável)
   const { loadImportSnapshot } = await import("@/lib/mk9-checklist/persistence.server");
