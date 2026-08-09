@@ -412,21 +412,28 @@ export async function loadOperationCore(
   }
 
 
-  for (const v of visitRes.data ?? []) {
+  const actualVisits = visitRes.data ?? [];
+  for (const v of actualVisits) {
     const ctx = ctxById.get(v.industry_id);
     if (!ctx || !v.store_id) continue;
 
-    // REGRA MK9 (v1.3.7): Se existe uma importação vigente ou selecionada para esta indústria,
-    // só aceitamos visitas vinculadas a ela ou visitas manuais (null).
+    // REGRA MK9 (v1.3.11): Se existe uma importação vigente ou selecionada para esta indústria,
+    // filtramos estritamente por source_import_id para evitar duplicidade.
+    // Benchmark MENDEZ Julho/2026: 21 visitas (13 vinculadas ao import, 8 sem vínculo mas no período).
+    // O PDF e o Dashboard precisam apresentar paridade com a planilha.
     const activeImportId = importIdByIndustry.get(v.industry_id);
-    if (activeImportId && v.source_import_id && v.source_import_id !== activeImportId) {
-      continue;
-    }
-
+    
     const d = String(v.scheduled_date);
     if (d < ctx.win.startDate || d > ctx.win.endDate) continue;
+
+    if (activeImportId) {
+      // Se a visita tem um import_id diferente do ativo, ela é um "fantasma" de outra tentativa.
+      if (v.source_import_id && v.source_import_id !== activeImportId) continue;
+    }
+
     if (!passesUf(v.store?.uf ?? null)) continue;
     if (!passesStore(v.store_id)) continue;
+    
     touch(ctx, v.store_id, v.store).visits.push(d);
   }
 
