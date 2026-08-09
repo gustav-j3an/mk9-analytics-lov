@@ -368,24 +368,7 @@ export async function persistActualVisits(
     console.log(`[PERSISTENCE] Chunk upserted successfully: ${count} rows.`);
   }
 
-  // PASSO 3 — CONSULTAR O BANCO IMEDIATAMENTE (DIAGNÓSTICO BINÁRIO)
-  console.log(`[PERSISTENCE-AUDIT] Verificando banco após upsert para import ${importId}...`);
-  const { count: realCount, error: countErr } = await supabaseAdmin
-    .from("mk9_actual_visits")
-    .select("id", { count: "exact", head: true })
-    .eq("source_import_id", importId);
-
-  if (countErr) {
-    console.error(`[PERSISTENCE-AUDIT-ERROR] Falha ao contar visitas:`, countErr);
-  } else {
-    console.log(`[PERSISTENCE-AUDIT-RESULT] Banco reporta ${realCount} visitas para o import ${importId}. (Identificadas no payload: ${payload.length}, Upserted reportado: ${totalUpserted})`);
-    
-    if (payload.length > 0 && (realCount ?? 0) === 0) {
-      console.error(`[PERSISTENCE-FATAL] INVARIANTE QUEBRADA: 21 IDENTIFICADAS MAS 0 NO BANCO IMEDIATAMENTE APÓS INSERT.`);
-      throw new Error(`Integridade quebrada: ${payload.length} visitas identificadas, mas 0 encontradas no banco logo após a gravação.`);
-    }
-  }
-
+  // Auditoria pós-upsert removida após validação binária de sucesso.
   return { persisted: totalUpserted, skipped };
 }
 
