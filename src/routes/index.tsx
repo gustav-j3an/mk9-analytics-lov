@@ -9,7 +9,7 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.11 — CORE ANALÍTICO UNIFICADO",
+    title: "MK9 | v1.3.12 — BLINDAGEM DE PERSISTÊNCIA",
     meta: [
       {
         name: "description",
