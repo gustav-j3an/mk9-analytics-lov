@@ -468,7 +468,8 @@ export async function internalChecklistCommit(ctx: any, data: any) {
       }
       throw e;
     }
-  });
+}
+
 
 export const checklistList = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) =>
