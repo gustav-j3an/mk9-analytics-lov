@@ -97,12 +97,12 @@ function LandingPage() {
                       <span className="text-emerald-400 font-bold">RESTAURADO</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Sincronia Global</span>
-                      <span className="text-emerald-400 font-bold">ATIVA</span>
+                      <span>Security Hardening</span>
+                      <span className="text-emerald-400 font-bold">mk9_private</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                     <span>Gestão Operacional</span>
-                      <span className="text-emerald-400 font-bold">REESTILIZADO</span>
+                     <span>Importação Lote</span>
+                      <span className="text-emerald-400 font-bold">ESTABILIZADA</span>
                     </div>
                   </div>
                 </div>
