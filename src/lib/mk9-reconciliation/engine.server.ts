@@ -102,10 +102,35 @@ async function loadScope(scope: ReconcileScope) {
         scope.operationMonth === 12 ? 1 : scope.operationMonth + 1,
       ).padStart(2, "0")}-01`,
     );
+
   if (scope.industryId) {
     plannedQ.eq("industry_id", scope.industryId);
     actualQ.eq("industry_id", scope.industryId);
   }
+
+  // REGRA DE OURO: Se estamos reconciliando uma importação específica,
+  // ou se existe uma vigente para o período, filtramos as visitas para NÃO acumular.
+  let activeImportId = scope.sourceImportId;
+  if (!activeImportId && scope.industryId) {
+    const { data: activeImports } = await supabaseAdmin
+      .from("mk9_checklist_imports")
+      .select("id")
+      .eq("industry_id", scope.industryId)
+      .eq("operation_month", scope.operationMonth)
+      .eq("operation_year", scope.operationYear)
+      .is("reverted_at", null)
+      .eq("is_operational_current" as any, true)
+      .limit(1);
+    
+    if (activeImports && activeImports.length > 0) {
+      activeImportId = activeImports[0].id;
+    }
+  }
+
+  if (activeImportId) {
+    actualQ.or(`source_import_id.is.null,source_import_id.eq."${activeImportId}"`);
+  }
+
   const [{ data: planned, error: pErr }, { data: actual, error: aErr }] = await Promise.all([
     plannedQ,
     actualQ,
