@@ -85,7 +85,7 @@ function LandingPage() {
                 </div>
                 <div className="text-slate-400 space-y-2">
                   <p>
-                    A versão 1.2.0 consolida a interface Command Center em todo o sistema. O módulo de Gestão Operacional foi totalmente redesenhado para seguir o padrão visual de alta densidade, tema dark e glass effect do Importador de Checklists.
+                    A versão 1.2.1 corrige uma falha crítica no pipeline de importação de checklists. A tabela de snapshots imutáveis foi restaurada e as políticas de segurança (RLS) foram endurecidas usando o schema privado mk9_private.
                   </p>
                   <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px] mt-4">
                     <div className="flex justify-between border-b border-white/5 pb-1">
@@ -93,8 +93,8 @@ function LandingPage() {
                       <span className="text-emerald-400 font-bold">391 PASS</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Paridade KING</span>
-                      <span className="text-emerald-400 font-bold">146 VISITS</span>
+                      <span>Pipeline Snapshot</span>
+                      <span className="text-emerald-400 font-bold">RESTAURADO</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
                       <span>Sincronia Global</span>
