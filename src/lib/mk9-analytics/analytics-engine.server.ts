@@ -85,6 +85,8 @@ function buildDashboard(
       coreMs: current.coreMs,
       queryCount: current.queryCount,
       monitoredIndustriesCount: current.monitoredIndustriesCount,
+      monitoredWithChecklistCount: current.monitoredWithChecklistCount,
+      monitoredPendingChecklistCount: current.monitoredPendingChecklistCount,
     },
   };
 }
@@ -113,8 +115,8 @@ function aggregate(core: OperationCore) {
 
   // Extras vêm da diferença positiva nas lojas monitoradas
   for (const store of monitoredStoreRows) {
-    if (store.realizadas > store.contracted) {
-      extras += store.realizadas - store.contracted;
+    if (store.realizadas > store.contratadas) {
+      extras += store.realizadas - store.contratadas;
     }
   }
 
