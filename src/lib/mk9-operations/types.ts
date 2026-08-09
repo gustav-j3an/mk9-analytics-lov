@@ -123,6 +123,8 @@ export interface IndustryContext {
   name: string;
   /** Participa do fluxo operacional de checklist (não indica indústria inativa). */
   requiresChecklist: boolean;
+  /** Modo de controle da indústria (Etapa 5). */
+  controlMode: "VISIT_CONTROLLED" | "FIXED_OPERATION";
   /** Data de habilitação: impede cobrança de checklist em competências anteriores. */
   checklistEnabledAt: string | null;
 
@@ -159,6 +161,7 @@ export interface OperationCore {
   industryRows: OperationIndustryRow[];
   availableUfs: string[];
   industryIds: string[];
+  monitoredIndustriesCount: number;
   checklistImportsTotal: number;
   /** Telemetria de performance do núcleo. */
   queryCount: number;
