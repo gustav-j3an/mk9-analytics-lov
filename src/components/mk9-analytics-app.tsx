@@ -103,7 +103,7 @@ export function Mk9AnalyticsApp() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-[#080812] text-foreground flex flex-col md:flex-row overflow-hidden font-sans">
+    <main className="min-h-screen w-full bg-[#080812] text-foreground flex flex-col md:flex-row overflow-hidden font-sans dark">
       {/* Mobile Top Header */}
       <div className="md:hidden h-14 shrink-0 bg-[#111122] border-b border-white/5 flex items-center justify-between px-4 z-30">
         <div className="flex items-center gap-2">
@@ -145,7 +145,7 @@ export function Mk9AnalyticsApp() {
                 <ShieldCheck className="text-white h-5 w-5" />
               </div>
               <span className="font-black tracking-tighter text-lg text-white">
-                MK9 <span className="text-command-purple">COMMAND</span> <span className="text-[8px] opacity-30 ml-1">v1.0.4</span>
+                MK9 <span className="text-command-purple">COMMAND</span> <span className="text-[8px] opacity-30 ml-1">v1.1.2</span>
               </span>
             </div>
           )}

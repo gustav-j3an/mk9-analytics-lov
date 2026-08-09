@@ -847,7 +847,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium text-foreground mb-1 block">Mês de competência</label>
+            <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Mês de competência</label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
               <SelectTrigger>
                 <SelectValue />
@@ -862,7 +862,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
             </Select>
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground mb-1 block">Ano</label>
+            <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Ano</label>
             <Input
               type="number"
               value={year}
@@ -1190,7 +1190,7 @@ function IndividualImport({
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div className="md:col-span-2">
-            <label className="text-sm font-medium text-foreground mb-1 block">
+            <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">
               Arquivo .xlsx (checklist mensal da indústria)
             </label>
             <div className="flex gap-2">
@@ -1230,7 +1230,7 @@ function IndividualImport({
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground mb-1 block">Mês</label>
+            <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Mês</label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
               <SelectTrigger>
                 <SelectValue />
@@ -1245,7 +1245,7 @@ function IndividualImport({
             </Select>
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground mb-1 block">Ano</label>
+            <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Ano</label>
             <Input
               type="number"
               value={year}
@@ -1256,7 +1256,7 @@ function IndividualImport({
           </div>
         </div>
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Indústria</label>
+          <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Indústria</label>
           <Select value={industryId} onValueChange={setIndustryId}>
             <SelectTrigger>
               <SelectValue
