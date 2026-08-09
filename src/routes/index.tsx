@@ -66,10 +66,10 @@ function LandingPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 ANALYTICS — BATCH CORE STABILIZED
+                MK9 ANALYTICS — CONSOLIDAÇÃO OPERACIONAL
               </h1>
               <p className="text-[10px] text-purple-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.3.1.5 — PROTOCOLO CICOPAL RESTAURADO
+                STATUS: V1.3.2 — MODELO ANALÍTICO HOMOLOGADO
               </p>
             </div>
           </div>
