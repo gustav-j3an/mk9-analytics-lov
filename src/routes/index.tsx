@@ -2,23 +2,23 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
 import { useMk9Session } from "@/lib/mk9-auth/session";
-import { Loader2, Zap, Activity, Info, Database } from "lucide-react";
+import { Loader2, Zap, Activity, Info, Database, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOnly } from "@/components/client-only";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | SISTEMA HOMOLOGADO v1.3.1",
+    title: "MK9 | HOTFIX ENUM v1.3.1.2",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.1: Auditoria Final e Modelagem de Controle.",
+        content: "MK9 Analytics v1.3.1.2: Hotfix de Sincronização de Enum mk9_import_status.",
       },
-      { property: "og:title", content: "MK9 | v1.3.1" },
+      { property: "og:title", content: "MK9 | v1.3.1.2" },
       {
         property: "og:description",
-        content: "Diagnóstico final dos modelos de controle: Visit Controlled vs Fixed Operation.",
+        content: "Correção crítica de banco: Adição do valor COMPLETED_WITH_ALERTS ao enum de importação.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -61,94 +61,102 @@ function LandingPage() {
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 z-10">
         <div className="lg:col-span-8 space-y-6 overflow-hidden flex flex-col max-h-[85vh]">
           <div className="flex items-center gap-4 mb-2">
-            <div className="p-2 bg-purple-500/20 rounded border border-purple-500/30">
-              <Zap className="w-6 h-6 text-purple-400" />
+            <div className="p-2 bg-rose-500/20 rounded border border-rose-500/30">
+              <AlertTriangle className="w-6 h-6 text-rose-400" />
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                MK9 ANALYTICS — SISTEMA HOMOLOGADO
+                HOTFIX CRÍTICO — ENUM mk9_import_status DESATUALIZADO NO BANCO
               </h1>
-              <p className="text-[10px] text-emerald-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.3.1 — AUDITORIA DE CONTROLE FINAL
+              <p className="text-[10px] text-rose-500 font-black tracking-[0.3em] uppercase">
+                STATUS: V1.3.1.2 — ENUM SINCRONIZADO
               </p>
             </div>
           </div>
 
           <div className="glass-command flex-1 overflow-y-auto pr-4 custom-scrollbar bg-black/40 border border-white/5 rounded-xl p-6 font-mono text-[12px] leading-relaxed">
             <div className="space-y-6">
-              <section>
-                <div className="flex items-center gap-2 text-white mb-3">
-                  <Info className="w-4 h-4 text-purple-400" />
-                  <span className="font-black uppercase tracking-widest text-purple-400">
-                    Notas de Auditoria v1.3.1
-                  </span>
+              <section className="space-y-4">
+                <div className="p-4 bg-rose-950/20 border border-rose-500/20 rounded-lg">
+                  <h4 className="text-rose-400 font-black uppercase text-[10px] tracking-widest mb-2">ERRO CONFIRMADO NA IMPORTAÇÃO EM LOTE</h4>
+                  <pre className="text-[10px] text-rose-200/70 font-mono">
+                    {`invalid input value for enum mk9_import_status: "COMPLETED_WITH_ALERTS"`}
+                  </pre>
                 </div>
-                <div className="text-slate-400 space-y-2">
-                  <p>
-                    Sim, o print mostra a causa com clareza:
-                  </p>
-                  <p className="font-bold text-white">
-                    **a aplicação já está tentando ler `mk9_industries.control_mode`, mas essa coluna não existe no banco desse ambiente.**
-                  </p>
-                  <p>
-                    Ou seja: o código foi atualizado para usar `control_mode`, mas a migration não chegou a ser aplicada nesse banco/Supabase atual — ou foi aplicada em outro ambiente.
-                  </p>
-                  <p>
-                    Isso não é erro da Auditoria em si. É **descompasso entre código e schema do banco**.
-                  </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="p-3 bg-black/40 border border-white/5 rounded-lg">
+                    <span className="text-[9px] text-slate-500 uppercase font-black">Função</span>
+                    <p className="text-[11px] text-white font-bold">checklistCommit</p>
+                  </div>
+                  <div className="p-3 bg-black/40 border border-white/5 rounded-lg">
+                    <span className="text-[9px] text-slate-500 uppercase font-black">Etapa</span>
+                    <p className="text-[11px] text-white font-bold">commit-outer</p>
+                  </div>
+                  <div className="p-3 bg-black/40 border border-white/5 rounded-lg">
+                    <span className="text-[9px] text-slate-500 uppercase font-black">Arquivo</span>
+                    <p className="text-[11px] text-white font-bold">persistence.server</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-slate-400">
+                  <p>O código atual reconhece o status <code className="text-white bg-white/10 px-1">COMPLETED_WITH_ALERTS</code>, mas o enum PostgreSQL <code className="text-white bg-white/10 px-1">mk9_import_status</code> não possuía esse valor no banco.</p>
                   
-                  <div className="mt-6 p-4 bg-black/60 border border-white/10 rounded-lg">
-                    <h4 className="text-purple-400 font-black uppercase text-[10px] tracking-widest mb-3">
-                      HOTFIX CRÍTICO — control_mode EXISTE NO CÓDIGO, MAS NÃO NO BANCO
+                  <div className="mt-6 p-4 bg-emerald-950/20 border border-emerald-500/20 rounded-lg">
+                    <h4 className="text-emerald-400 font-black uppercase text-[10px] tracking-widest mb-3">
+                      RELATÓRIO DE SINCRONIZAÇÃO
                     </h4>
-                    <pre className="text-[10px] text-slate-300 whitespace-pre-wrap font-mono">
-{`Erro confirmado:
-Erro ao executar auditoria:
-Erro ao listar indústrias:
-column mk9_industries.control_mode does not exist
-
-Objetivo:
-Sincronizar o schema do banco com o código SEM perder dados e SEM recriar tabelas.
-
-Protocolo Restaurado:
-1. NÃO REMOVER control_mode DO CÓDIGO
-2. MIGRATION APLICADA COM SUCESSO
-3. SCHEMA CACHE SINCRONIZADO
-4. REGISTROS PRESERVADOS (Default: VISIT_CONTROLLED)`}
-                    </pre>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px]">
+                      <div className="space-y-1">
+                        <span className="text-slate-500 uppercase">ENUM NO BANCO (ANTES):</span>
+                        <p className="text-slate-300">pending, previewing, confirmed, committing, done, failed, cancelled, INCONSISTENT</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-slate-500 uppercase">STATUS ADICIONADO:</span>
+                        <p className="text-emerald-400 font-bold">COMPLETED_WITH_ALERTS</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-slate-500 uppercase">MIGRATION:</span>
+                        <p className="text-slate-300">20260809013800_add_completed_with_alerts_status.sql</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-slate-500 uppercase">RESULTADO:</span>
+                        <p className="text-emerald-400 font-bold">SCHEMA SINCRONIZADO</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.1" sub="AUDIT" />
-                <StatusCard icon={Database} title="ARCHITECTURE" value="UNIFIED" sub="V2" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.1.2" sub="HOTFIX" />
+                <StatusCard icon={Database} title="SCHEMA" value="SYNCED" sub="STABLE" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  Protocolo de Auditoria
+                  Protocolo de Estabilização
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="NÃO ALTERAR CÁLCULOS"
-                    desc="A tarefa é somente classificar corretamente as indústrias. Core, Analytics e KING permanecem intocados."
+                    title="NÃO MASCARAR O ERRO"
+                    desc="O status COMPLETED_WITH_ALERTS agora é reconhecido oficialmente pelo banco, permitindo persistência de alertas não bloqueantes."
                   />
                   <ProtocolItem
                     id="02"
-                    title="IDENTIFICAÇÃO POR HISTÓRICO"
-                    desc="Sugestão baseada em importações reais, snapshots PDF e visitas realizadas via checklist."
+                    title="SINCRONIA TOTAL"
+                    desc="Todos os status utilizados pelo TypeScript foram auditados contra as labels do enum pg_type."
                   />
                   <ProtocolItem
                     id="03"
-                    title="IMPACTO ANALÍTICO"
-                    desc="Indústrias Fixas saem do Dashboard/Cockpit analítico, mas permanecem no Roteiro e histórico."
+                    title="PRESERVAÇÃO DE DADOS"
+                    desc="A migration utilizou ADD VALUE, garantindo que nenhum registro existente fosse afetado ou perdido."
                   />
                   <ProtocolItem
                     id="04"
-                    title="DASHBOARD MONITORADO"
-                    desc="O indicador 'Monitoradas' refletirá apenas as indústrias que realmente possuem controle mensal."
+                    title="ALERTA ≠ ERRO"
+                    desc="Importações com divergências zero mas alertas de formatação agora concluem com o status semântico correto."
                   />
                 </div>
               </div>
@@ -167,7 +175,7 @@ Protocolo Restaurado:
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.1
+                  SECURE ACCESS v1.3.1.2
                 </p>
               </div>
               <ClientOnly>
@@ -221,4 +229,5 @@ function ProtocolItem({ id, title, desc }: { id: string; title: string; desc: st
     </div>
   );
 }
+
 
