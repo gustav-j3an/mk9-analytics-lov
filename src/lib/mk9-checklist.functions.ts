@@ -2,6 +2,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { ChecklistPreview } from "./mk9-checklist/types";
+import type { Mk9AuthContext } from "./mk9-auth/require-role.server";
+
 
 const previewSchema = z.object({
   filename: z.string().min(1),
@@ -32,7 +34,10 @@ const commitSchema = z.object({
   forceReason: z.string().min(10).max(500).optional(),
 });
 
+type ChecklistCommitInput = z.infer<typeof commitSchema>;
+
 async function validate<T>(step: string, fn: () => T): Promise<T> {
+
   const { withRichErrors } = await import("./mk9-checklist/errors.server");
   return withRichErrors({ step: "validate-input", function: step }, async () => fn());
 }
@@ -77,8 +82,16 @@ export const checklistPreview = createServerFn({ method: "POST" })
 export const checklistCommit = createServerFn({ method: "POST" })
   .validator(async (data: unknown) => validate("checklistCommit", () => commitSchema.parse(data)))
   .handler(async ({ data }) => {
-    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const { requireMk9Role } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
+    return internalChecklistCommit(ctx, data);
+  });
+
+export async function internalChecklistCommit(ctx: Mk9AuthContext, data: ChecklistCommitInput) {
+    const { logAudit } = await import("./mk9-auth/require-role.server");
+
+
+
     const { assertIndustryRequiresChecklist } =
       await import("./mk9-checklist/industry-gate.server");
     await assertIndustryRequiresChecklist(data.industryId);
@@ -462,7 +475,8 @@ export const checklistCommit = createServerFn({ method: "POST" })
       }
       throw e;
     }
-  });
+}
+
 
 export const checklistList = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) =>

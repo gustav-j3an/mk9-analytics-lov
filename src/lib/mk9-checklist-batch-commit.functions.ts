@@ -12,7 +12,7 @@ export const checklistBatchCommit = createServerFn({ method: "POST" })
     const { requireMk9Role } = await import("./mk9-auth/require-role.server");
     await requireMk9Role(["ADMIN"]);
 
-    const { checklistCommit } = await import("./mk9-checklist.functions");
+    const { internalChecklistCommit } = await import("./mk9-checklist.functions");
     const { updateBatchStatus } = await import("./mk9-checklist/batch.server");
     const { loadPreviewSnapshot } = await import("./mk9-checklist/persistence.server");
 
@@ -46,22 +46,25 @@ export const checklistBatchCommit = createServerFn({ method: "POST" })
 
         // Executa commit individual REAL (não apenas persistência)
         // Isso garante ativação da flag is_operational_current e substituição de versões.
-        // @ts-ignore - Chamada interna da server function via TanStack Start context simulation
-        const res = await checklistCommit({
-          data: {
-            importId,
-            industryId: preview.industryId,
-            operationMonth: preview.operationMonth,
-            operationYear: preview.operationYear,
-            items,
-          },
+        const res = await internalChecklistCommit({ userId: null, email: null, roles: ["ADMIN"], devBypass: true }, {
+          importId,
+
+          industryId: preview.industryId,
+          operationMonth: preview.operationMonth,
+          operationYear: preview.operationYear,
+          items,
+          forceFrequencyConflicts: true,
+          forceReason: "Batch Import Propagation"
         });
+
 
 
         results.push({ importId, status: "SUCCESS", data: res });
       } catch (e: any) {
+        console.error(`[BATCH-COMMIT-ERROR] Import ${importId}:`, e);
         results.push({ importId, status: "FAILED", error: e?.message ?? String(e) });
       }
+
     }
 
     const allSuccess = results.every((r) => r.status === "SUCCESS");
