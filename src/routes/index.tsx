@@ -9,11 +9,11 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.16 — PROTEÇÃO DE AUTOCANCELAMENTO",
+    title: "MK9 | v1.3.17 — DIAGNÓSTICO ESTRUTURAL",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.16: PROTEÇÃO DE AUTOCANCELAMENTO. Correção na lógica de limpeza de prévias para impedir que o sistema cancele a própria importação ativa.",
+        content: "MK9 Analytics v1.3.17: DIAGNÓSTICO ESTRUTURAL. Nova estratégia de rastreamento direto no banco de dados para identificar a causa raiz do cancelamento automático de importações.",
       },
       { property: "og:title", content: "MK9 | v1.3.16" },
       {
