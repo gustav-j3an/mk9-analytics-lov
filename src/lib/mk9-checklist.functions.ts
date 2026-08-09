@@ -461,28 +461,27 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
         validation,
         validationError,
       };
-      } catch (e: any) {
-        console.error(`[COMMIT-ERROR] Erro durante o commit individual:`, e);
-        await updateImportStatus(data.importId, {
-          status: "failed",
-          reason: "internal_error",
-          errorMessage: e?.message ?? String(e),
-          finishedAt: new Date(),
-        }).catch(() => undefined);
-        
-        let msg: string;
-        try {
-          msg = e?.message ?? String(e);
-        } catch {
-          msg = "Erro interno no servidor";
-        }
+    } catch (e: any) {
+      console.error(`[COMMIT-ERROR] Erro durante o commit individual:`, e);
+      await updateImportStatus(data.importId, {
+        status: "failed",
+        reason: "internal_error",
+        errorMessage: e?.message ?? String(e),
+        finishedAt: new Date(),
+      }).catch(() => undefined);
 
-        if (!msg.startsWith("{")) {
-          const payload = buildRichError(e, { step: "commit-outer", function: "checklistCommit" });
-          throw new Error(JSON.stringify(payload));
-        }
-        throw e;
+      let msg: string;
+      try {
+        msg = e?.message ?? String(e);
+      } catch {
+        msg = "Erro interno no servidor";
       }
+
+      if (!msg.startsWith("{")) {
+        const payload = buildRichError(e, { step: "commit-outer", function: "checklistCommit" });
+        throw new Error(JSON.stringify(payload));
+      }
+      throw e;
     }
 }
 export const checklistList = createServerFn({ method: "GET" })
