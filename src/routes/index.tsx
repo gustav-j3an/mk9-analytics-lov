@@ -9,7 +9,7 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.11 — CORE ANALÍTICO UNIFICADO",
+    title: "MK9 | v1.3.12 — BLINDAGEM DE PERSISTÊNCIA",
     meta: [
       {
         name: "description",
@@ -69,7 +69,7 @@ function LandingPage() {
                 MK9 ANALYTICS — REESTRUTURAÇÃO DO ESCOPO
               </h1>
               <p className="text-[10px] text-purple-500 font-black tracking-[0.3em] uppercase">
-                STATUS: v1.3.10 — INTEGRIDADE DE SNAPSHOTS
+                STATUS: v1.3.12 — BLINDAGEM DE PERSISTÊNCIA
               </p>
             </div>
           </div>
@@ -133,7 +133,7 @@ function LandingPage() {
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MK9 — HOTFIX ESTRUTURAL v1.3.11
+                  MK9 — HOTFIX ESTRUTURAL v1.3.12
                 </h3>
 
                 <div className="space-y-4 text-slate-400">
@@ -153,7 +153,12 @@ function LandingPage() {
                     desc="Garantia de que visitas realizadas só são contabilizadas se pertencerem à importação ativa, eliminando duplicatas acumuladas."
                   />
                 </div>
-              </div>
+                  <ProtocolItem
+                    id="04"
+                    title="BLINDAGEM DE PERSISTÊNCIA"
+                    desc="Nova barreira de integridade que impede a conclusão de importações se as visitas identificadas não forem persistidas com sucesso no banco."
+                  />
+                </div>
             </div>
           </div>
         </div>
@@ -172,7 +177,7 @@ function LandingPage() {
                   SECURE ACCESS v1.3.11
                 </p>
                 <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] text-emerald-400 leading-relaxed italic">
-                  "Sim — confirmei de novo no arquivo novo da MENDEZ. A planilha tem **21 visitas reais**, não 23. Os 'fantasmas' de importações descartadas foram eliminados do cálculo (v1.3.11)."
+                  "Sim — esse print mostrava a falha na persistência (Excel 21, Banco 0). Implementamos a v1.3.12 com Blindagem de Persistência, garantindo que o commit falhe se as visitas não forem gravadas."
                 </div>
               </div>
               <ClientOnly>

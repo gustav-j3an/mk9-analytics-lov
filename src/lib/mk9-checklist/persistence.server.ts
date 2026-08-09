@@ -330,14 +330,35 @@ export async function persistActualVisits(
 
 
   const CHUNK = 500;
+  let totalUpserted = 0;
+  
   for (let i = 0; i < payload.length; i += CHUNK) {
     const slice = payload.slice(i, i + CHUNK);
-    const { error } = await supabaseAdmin
+    console.log(`[PERSISTENCE] Upserting chunk of ${slice.length} visits...`);
+    
+    const { data: upsertedData, error } = await supabaseAdmin
       .from("mk9_actual_visits")
-      .upsert(slice as any, { onConflict: "industry_id,store_id,scheduled_date,origin" });
+      .upsert(slice as any, { 
+        onConflict: "industry_id,store_id,scheduled_date,origin",
+        ignoreDuplicates: false // Garante que source_import_id seja atualizado
+      })
+      .select("id");
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error(`[PERSISTENCE-ERROR] Supabase error during upsert:`, error);
+      throw new Error(`Database error: ${error.message} (${error.code})`);
+    }
+    
+    const count = upsertedData?.length ?? 0;
+    totalUpserted += count;
+    console.log(`[PERSISTENCE] Chunk upserted successfully: ${count} rows.`);
   }
+
+  if (payload.length > 0 && totalUpserted === 0) {
+    console.warn(`[PERSISTENCE-WARN] Payload length was ${payload.length} but totalUpserted is 0.`);
+  }
+
+  return { persisted: list.length - skipped, skipped };
 
   return { persisted: list.length - skipped, skipped };
 }

@@ -237,6 +237,7 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
       }
 
       // 3) Persiste visitas realizadas.
+      console.log(`[COMMIT] Persistindo ${resolvedItems.length} visitas para import ${data.importId}`);
       const { persisted, skipped } = await withRichErrors(
         {
           step: "persist-actual-visits",
@@ -245,6 +246,12 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
         },
         () => persistActualVisits(data.importId, data.industryId, resolvedItems),
       );
+      console.log(`[COMMIT] Persistidas: ${persisted}, Skipped: ${skipped}`);
+
+      if (resolvedItems.length > 0 && persisted === 0 && skipped === 0) {
+        console.error(`[COMMIT-ERROR] Divergência crítica: ${resolvedItems.length} itens resolvidos mas 0 persistidos/skipped.`);
+        throw new Error(`Falha na persistência: ${resolvedItems.length} visitas identificadas mas nenhuma gravada no banco.`);
+      }
 
       // 4) Persiste frequência contratada por loja (usa o snapshot da prévia
       //    salvo em mk9_checklist_imports.preview). Fonte oficial da métrica
