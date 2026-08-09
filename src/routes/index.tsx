@@ -9,16 +9,17 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.12 — BLINDAGEM DE PERSISTÊNCIA",
+    title: "MK9 | v1.3.13 — BLINDAGEM OPERACIONAL MENDEZ",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.11: CORE ANALÍTICO UNIFICADO. Resolução sistêmica de paridade para MENDEZ, IMAGINA, EMBAVI e COPRA.",
+        content: "MK9 Analytics v1.3.13: BLINDAGEM OPERACIONAL MENDEZ. Unificação de pipelines para garantir persistência total em modo individual e lote.",
       },
-      { property: "og:title", content: "MK9 | v1.3.9" },
+      { property: "og:title", content: "MK9 | v1.3.13" },
       {
         property: "og:description",
-        content: "Analítico (Dashboard, Intelligence, PDF, Cockpit) com promoção resiliente e versionamento atômico de importações.",
+        content: "Analítico (Dashboard, Intelligence, PDF, Cockpit) com promoção resiliente e persistência blindada para MENDEZ.",
+
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -127,14 +128,15 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.11" sub="UNIFIED CORE" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.13" sub="OPERATIONAL BLINDING" />
                 <StatusCard icon={Zap} title="INTEGRITY" value="100%" sub="ANALYTIC" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MK9 — HOTFIX ESTRUTURAL v1.3.12
+                  MK9 — HOTFIX ESTRUTURAL v1.3.13
                 </h3>
+
 
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
@@ -174,10 +176,10 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.11
+                  SECURE ACCESS v1.3.13
                 </p>
                 <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] text-emerald-400 leading-relaxed italic">
-                  "Sim — esse print mostrava a falha na persistência (Excel 21, Banco 0). Implementamos a v1.3.12 com Blindagem de Persistência, garantindo que o commit falhe se as visitas não forem gravadas."
+                  "Sim — resolvemos o fluxo individual da MENDEZ. Implementamos a v1.3.13 com Blindagem Operacional, garantindo que o commit e a promoção ocorram de forma atômica e idêntica ao lote."
                 </div>
               </div>
               <ClientOnly>

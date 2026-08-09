@@ -358,10 +358,9 @@ export async function persistActualVisits(
     console.warn(`[PERSISTENCE-WARN] Payload length was ${payload.length} but totalUpserted is 0.`);
   }
 
-  return { persisted: list.length - skipped, skipped };
-
-  return { persisted: list.length - skipped, skipped };
+  return { persisted: totalUpserted, skipped };
 }
+
 
 export async function listChecklistImports(limit = 30) {
   const { data, error } = await supabaseAdmin

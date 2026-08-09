@@ -77,9 +77,10 @@ export async function promoteChecklistImportToOperational(importId: string) {
     throw new Error(`Erro ao ativar a nova importação: ${activateError.message}`);
   }
 
-  // 6. GARANTIR VÍNCULO DAS FREQUÊNCIAS VERSIONADAS (v1.3.10)
+  // 6. GARANTIR VÍNCULO DAS FREQUÊNCIAS VERSIONADAS (v1.3.13)
   // REGRA: Frequências versionadas são o motor do Analytics. Precisamos garantir que elas
   // existam para a competência e estejam vinculadas à importação vigente.
+
   
   // Resolvemos o início e fim operacional MK9 (23 do mês anterior a 22 do atual)
   // Para simplificar a promoção, usamos a data comercial de início da competência.

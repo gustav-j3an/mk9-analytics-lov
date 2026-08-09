@@ -90,6 +90,9 @@ export const checklistCommit = createServerFn({ method: "POST" })
     // O delete na promotion.server.ts lida com a importação 'is_operational_current',
     // mas aqui garantimos que a nova importação tenha um terreno limpo se for uma re-submissão.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    
+    console.log(`[COMMIT] Iniciando commit individual para import ${data.importId}`);
+
     await supabaseAdmin
       .from("mk9_actual_visits")
       .delete()
@@ -98,6 +101,7 @@ export const checklistCommit = createServerFn({ method: "POST" })
 
     return internalChecklistCommit(ctx, data);
   });
+
 
 
 export async function internalChecklistCommit(ctx: Mk9AuthContext, data: ChecklistCommitInput) {
