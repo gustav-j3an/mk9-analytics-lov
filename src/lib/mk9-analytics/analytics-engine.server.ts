@@ -327,8 +327,8 @@ function buildExecutionMatrix(current: OperationCore): ExecutionMatrixCell[] {
       }).length;
 
       matrix.push({
-        frequency: f > 0 ? `${f}x` : "Man",
-        coverageRange: r.label,
+        frequency: f > 0 ? `${f}x/mês` : "Manual",
+        coverageLabel: r.label,
         count,
       });
     }
