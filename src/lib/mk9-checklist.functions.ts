@@ -416,12 +416,14 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
         // HOTFIX: Garante que as frequências versionadas criadas/reutilizadas no commit 
         // apontem para a importação que acabou de se tornar vigente (data.importId).
         // Isso evita que commits subsequentes ou correções percam o vínculo.
-        await supabaseAdmin
-          .from("mk9_industry_store_frequency_versions")
-          .update({ source_import_id: data.importId } as any)
-          .eq("industry_id", data.industryId)
-          .eq("valid_from", report.competencyStart)
-          .is("archived_at", null);
+        if (competencyStart) {
+          await supabaseAdmin
+            .from("mk9_industry_store_frequency_versions")
+            .update({ source_import_id: data.importId } as any)
+            .eq("industry_id", data.industryId)
+            .eq("valid_from", competencyStart)
+            .is("archived_at", null);
+        }
       }
 
       await updateImportStatus(data.importId, {
