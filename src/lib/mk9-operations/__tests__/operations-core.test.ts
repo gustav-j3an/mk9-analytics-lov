@@ -43,6 +43,7 @@ function ctx(overrides: Partial<IndustryContext> = {}): IndustryContext {
     id: "ind-1",
     name: "KING",
     requiresChecklist: true,
+    controlMode: "VISIT_CONTROLLED",
     checklistEnabledAt: null,
 
     win: WIN,

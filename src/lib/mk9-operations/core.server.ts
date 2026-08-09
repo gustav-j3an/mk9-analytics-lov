@@ -162,7 +162,9 @@ export async function loadOperationCore(
       id: ind.id,
       name: ind.name,
       requiresChecklist: ind.requires_checklist === true,
-      controlMode: (ind.control_mode ?? "VISIT_CONTROLLED") as any,
+      controlMode: (ind.control_mode ?? "VISIT_CONTROLLED") as
+        | "VISIT_CONTROLLED"
+        | "FIXED_OPERATION",
       checklistEnabledAt: ind.checklist_enabled_at ?? null,
       win: w,
       fraction: elapsedFraction(w, today),
