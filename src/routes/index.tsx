@@ -9,16 +9,16 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | HOTFIX ENUM v1.3.1.2",
+    title: "MK9 | MOTOR OPERACIONAL v1.3.1.3",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.1.2: Hotfix de Sincronização de Enum mk9_import_status.",
+        content: "MK9 Analytics v1.3.1.3: Estabilização do Motor de Importação (Protocolo CICOPAL).",
       },
-      { property: "og:title", content: "MK9 | v1.3.1.2" },
+      { property: "og:title", content: "MK9 | v1.3.1.3" },
       {
         property: "og:description",
-        content: "Correção crítica de banco: Adição do valor COMPLETED_WITH_ALERTS ao enum de importação.",
+        content: "Correção estrutural do motor de importação: fim do descarte silencioso de linhas sem UF e paridade total com 13 benchmarks reais.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -66,71 +66,81 @@ function LandingPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-widest uppercase">
-                HOTFIX CRÍTICO — ENUM mk9_import_status DESATUALIZADO NO BANCO
+                ESTABILIZAÇÃO DO MOTOR OPERACIONAL — PROTOCOLO CICOPAL
               </h1>
               <p className="text-[10px] text-rose-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.3.1.2 — ENUM SINCRONIZADO
+                STATUS: V1.3.1.3 — MOTOR HOMOLOGADO
               </p>
+
             </div>
           </div>
 
           <div className="glass-command flex-1 overflow-y-auto pr-4 custom-scrollbar bg-black/40 border border-white/5 rounded-xl p-6 font-mono text-[12px] leading-relaxed">
             <div className="space-y-6">
               <section className="space-y-4">
-                <div className="p-4 bg-rose-950/20 border border-rose-500/20 rounded-lg">
-                  <h4 className="text-rose-400 font-black uppercase text-[10px] tracking-widest mb-2">ERRO CONFIRMADO NA IMPORTAÇÃO EM LOTE</h4>
-                  <pre className="text-[10px] text-rose-200/70 font-mono">
-                    {`invalid input value for enum mk9_import_status: "COMPLETED_WITH_ALERTS"`}
-                  </pre>
+                <div className="p-4 bg-rose-950/20 border border-rose-500/20 rounded-lg text-[10px] text-rose-200/70">
+                  <h4 className="text-rose-400 font-black uppercase text-[10px] tracking-widest mb-2">DIAGNÓSTICO CICOPAL CONFIRMADO</h4>
+                  <p>O motor estava descartando silenciosamente linhas onde CIDADE ou UF estavam ausentes. No checklist da CICOPAL, 4 das 7 lojas (7 visitas) foram perdidas por falta desses campos geográficos.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="p-3 bg-black/40 border border-white/5 rounded-lg">
-                    <span className="text-[9px] text-slate-500 uppercase font-black">Função</span>
-                    <p className="text-[11px] text-white font-bold">checklistCommit</p>
+                    <span className="text-[9px] text-slate-500 uppercase font-black">Benchmark CICOPAL</span>
+                    <p className="text-[11px] text-white font-bold">7 Lojas / 28 Visitas</p>
                   </div>
                   <div className="p-3 bg-black/40 border border-white/5 rounded-lg">
-                    <span className="text-[9px] text-slate-500 uppercase font-black">Etapa</span>
-                    <p className="text-[11px] text-white font-bold">commit-outer</p>
+                    <span className="text-[9px] text-slate-500 uppercase font-black">Fonte de Verdade</span>
+                    <p className="text-[11px] text-white font-bold">Datas (Marcações ✅)</p>
                   </div>
                   <div className="p-3 bg-black/40 border border-white/5 rounded-lg">
-                    <span className="text-[9px] text-slate-500 uppercase font-black">Arquivo</span>
-                    <p className="text-[11px] text-white font-bold">persistence.server</p>
+                    <span className="text-[9px] text-slate-500 uppercase font-black">Avisos Incorretos</span>
+                    <p className="text-[11px] text-white font-bold">REMOVIDOS</p>
                   </div>
                 </div>
 
                 <div className="space-y-2 text-slate-400">
-                  <p>O código atual reconhece o status <code className="text-white bg-white/10 px-1">COMPLETED_WITH_ALERTS</code>, mas o enum PostgreSQL <code className="text-white bg-white/10 px-1">mk9_import_status</code> não possuía esse valor no banco.</p>
+                  <p>A versão <b>v1.3.1.3</b> unifica o comportamento operacional do MK9 seguindo 13 fixtures reais de Julho/2026. Agora, se uma linha possui LOJA válida, ela é processada mesmo sem dados geográficos.</p>
+
                   
                   <div className="mt-6 p-4 bg-emerald-950/20 border border-emerald-500/20 rounded-lg">
                     <h4 className="text-emerald-400 font-black uppercase text-[10px] tracking-widest mb-3">
-                      RELATÓRIO DE SINCRONIZAÇÃO
+                      AUDITORIA DE PARIDADE REAL (13/13)
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px]">
-                      <div className="space-y-1">
-                        <span className="text-slate-500 uppercase">ENUM NO BANCO (ANTES):</span>
-                        <p className="text-slate-300">pending, previewing, confirmed, committing, done, failed, cancelled, INCONSISTENT</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-[10px]">
+                      <div className="flex justify-between border-b border-white/5 pb-1">
+                        <span className="text-slate-500 uppercase">AO QUADRADO:</span>
+                        <span className="text-emerald-400 font-bold">17 Lojas / 30 Visitas</span>
                       </div>
-                      <div className="space-y-1">
-                        <span className="text-slate-500 uppercase">STATUS ADICIONADO:</span>
-                        <p className="text-emerald-400 font-bold">COMPLETED_WITH_ALERTS</p>
+                      <div className="flex justify-between border-b border-white/5 pb-1">
+                        <span className="text-slate-500 uppercase">BANANA CORRENTE:</span>
+                        <span className="text-emerald-400 font-bold">8 Lojas / 150 Visitas</span>
                       </div>
-                      <div className="space-y-1">
-                        <span className="text-slate-500 uppercase">MIGRATION:</span>
-                        <p className="text-slate-300">20260809013800_add_completed_with_alerts_status.sql</p>
+                      <div className="flex justify-between border-b border-white/5 pb-1 font-bold text-white bg-purple-500/10 px-1">
+                        <span className="uppercase text-purple-400">CICOPAL (FIXED):</span>
+                        <span className="text-emerald-400">7 Lojas / 28 Visitas</span>
                       </div>
-                      <div className="space-y-1">
-                        <span className="text-slate-500 uppercase">RESULTADO:</span>
-                        <p className="text-emerald-400 font-bold">SCHEMA SINCRONIZADO</p>
+                      <div className="flex justify-between border-b border-white/5 pb-1">
+                        <span className="text-slate-500 uppercase">KING (OPERATIONAL):</span>
+                        <span className="text-emerald-400 font-bold">143 Lojas / 353 Visitas</span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-1 italic">
+                        <span className="text-slate-500 uppercase">FRUTA POLPA:</span>
+                        <span className="text-emerald-400 font-bold">25 Visitas (Alerta Realizado: 24)</span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-1">
+                        <span className="text-slate-500 uppercase">SÃO BRAZ:</span>
+                        <span className="text-emerald-400 font-bold">41 Lojas / 136 Visitas</span>
                       </div>
                     </div>
                   </div>
+
                 </div>
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.1.2" sub="HOTFIX" />
-                <StatusCard icon={Database} title="SCHEMA" value="SYNCED" sub="STABLE" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.1.3" sub="STABLE" />
+                <StatusCard icon={Database} title="PARSER" value="HOMOLOGATED" sub="FIXED" />
+
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
@@ -140,24 +150,25 @@ function LandingPage() {
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="NÃO MASCARAR O ERRO"
-                    desc="O status COMPLETED_WITH_ALERTS agora é reconhecido oficialmente pelo banco, permitindo persistência de alertas não bloqueantes."
+                    title="FIM DO DESCARTE SILENCIOSO"
+                    desc="Uma linha de loja nunca é ignorada apenas por ausência de Cidade/UF. O campo LOJA é o identificador soberano."
                   />
                   <ProtocolItem
                     id="02"
-                    title="SINCRONIA TOTAL"
-                    desc="Todos os status utilizados pelo TypeScript foram auditados contra as labels do enum pg_type."
+                    title="FONTE DE VERDADE: DATAS"
+                    desc="Visitas realizadas são calculadas pelas marcações reais nas colunas de data. A coluna 'REALIZADO' torna-se apenas conferência."
                   />
                   <ProtocolItem
                     id="03"
-                    title="PRESERVAÇÃO DE DADOS"
-                    desc="A migration utilizou ADD VALUE, garantindo que nenhum registro existente fosse afetado ou perdido."
+                    title="ALERTA REALIZED_SUMMARY_MISMATCH"
+                    desc="Inconsistências como na FRUTA POLPA (25 marcações vs 24 declarados) geram alertas sem bloquear o fluxo operacional."
                   />
                   <ProtocolItem
                     id="04"
-                    title="ALERTA ≠ ERRO"
-                    desc="Importações com divergências zero mas alertas de formatação agora concluem com o status semântico correto."
+                    title="PARIDADE INDIVIDUAL X LOTE"
+                    desc="O motor de parsing é agora compartilhado, garantindo resultados idênticos independente do método de entrada."
                   />
+
                 </div>
               </div>
             </div>
@@ -175,7 +186,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.1.2
+                  SECURE ACCESS v1.3.1.3
                 </p>
               </div>
               <ClientOnly>

@@ -357,12 +357,13 @@ export function parseChecklistWorkbook(
       // O parser atual estava exigindo UF, o que descartava lojas válidas em arquivos da CICOPAL.
       
       // Permitimos que a linha prossiga sem UF; a reconciliação tentará resolver pela base oficial.
-      const uf = ufCol >= 0 ? normalizeUF(row[ufCol]) : null;
+      const ufValue = ufCol >= 0 ? normalizeUF(row[ufCol]) : null;
+
 
 
       if (/^(total|totais|geral|subtotal)/i.test(storeName)) continue;
 
-      const uf = ufCol >= 0 ? normalizeUF(row[ufCol]) : null;
+      const uf = ufValue;
       const weekly = weeklyCol >= 0 ? parseNumber(row[weeklyCol]) : null;
       const monthly = monthlyCol >= 0 ? parseNumber(row[monthlyCol]) : null;
       const realizado = realizadoCol >= 0 ? parseNumber(row[realizadoCol]) : null;
