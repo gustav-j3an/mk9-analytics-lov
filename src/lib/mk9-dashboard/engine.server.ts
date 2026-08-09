@@ -512,6 +512,7 @@ function emptyOverview(
     windowEnd: end,
     usesHistoricalFrequency: false,
     checklistImports: 0,
+    monitoredIndustries: { total: 0, withChecklist: 0, pendingChecklist: 0 },
     kpis: {
       contractedTotal: 0,
       expectedToDate: 0,
