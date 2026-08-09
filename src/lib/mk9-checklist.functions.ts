@@ -476,21 +476,14 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
         } catch {
           msg = "Erro interno no servidor";
         }
-        msg = "Erro desconhecido";
+
+        if (!msg.startsWith("{")) {
+          const payload = buildRichError(e, { step: "commit-outer", function: "checklistCommit" });
+          throw new Error(JSON.stringify(payload));
+        }
+        throw e;
       }
-      await updateImportStatus(data.importId, {
-        status: "failed",
-        errorMessage: msg.slice(0, 4000),
-        finishedAt: new Date(),
-        durationMs: Date.now() - startedAt,
-      });
-      if (!msg.startsWith("{")) {
-        const payload = buildRichError(e, { step: "commit-outer", function: "checklistCommit" });
-        throw new Error(JSON.stringify(payload));
-      }
-      throw e;
-    }
-}
+    })
 
 
 export const checklistList = createServerFn({ method: "GET" })
