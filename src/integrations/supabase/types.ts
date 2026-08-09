@@ -267,6 +267,64 @@ export type Database = {
         }
         Relationships: []
       }
+      mk9_checklist_import_store_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          import_id: string
+          industry_id: string
+          monthly_frequency: number | null
+          source_store_name: string
+          store_id: string
+          uf: string | null
+          weekly_frequency: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          import_id: string
+          industry_id: string
+          monthly_frequency?: number | null
+          source_store_name: string
+          store_id: string
+          uf?: string | null
+          weekly_frequency?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          import_id?: string
+          industry_id?: string
+          monthly_frequency?: number | null
+          source_store_name?: string
+          store_id?: string
+          uf?: string | null
+          weekly_frequency?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_checklist_import_store_snapshots_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_checklist_imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_checklist_import_store_snapshots_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_checklist_import_store_snapshots_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mk9_checklist_imports: {
         Row: {
           batch_id: string | null
