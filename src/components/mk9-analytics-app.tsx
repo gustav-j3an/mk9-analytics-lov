@@ -19,6 +19,7 @@ import { Mk9IndustriesModule } from "./mk9-industries-module";
 import { Mk9StoresModule } from "./mk9-stores-module";
 import { Mk9PromotersModule } from "./mk9-promoters-module";
 import { Mk9HomologationModule } from "./mk9-homologation-module";
+import { Mk9IndustryAuditModule } from "./mk9-industry-audit-module";
 
 import {
   AlertTriangle,
@@ -71,7 +72,8 @@ type ModuleId =
   | "usuarios"
   | "industrias"
   | "lojas"
-  | "promotores";
+  | "promotores"
+  | "auditoria_controle";
 
 export function Mk9AnalyticsApp() {
   const { user, roles, loading: sessionLoading, signOut } = useMk9Session();
@@ -321,6 +323,15 @@ export function Mk9AnalyticsApp() {
                     if (window.innerWidth < 768) setCollapsed(true);
                   }}
                 />
+                <SidebarItem
+                  icon={ShieldCheck}
+                  label="Auditoria Controle"
+                  active={activeModule === "auditoria_controle"}
+                  onClick={() => {
+                    setActiveModule("auditoria_controle");
+                    if (window.innerWidth < 768) setCollapsed(true);
+                  }}
+                />
               </>
             )}
           </nav>
@@ -378,6 +389,7 @@ export function Mk9AnalyticsApp() {
               {activeModule === "cleanup_admin" && "Admin"}
               {activeModule === "homologacao" && "Saúde"}
               {activeModule === "usuarios" && "Usuários"}
+              {activeModule === "auditoria_controle" && "Auditoria"}
             </h2>
           </div>
           <div className="flex items-center gap-4">
@@ -517,6 +529,7 @@ export function Mk9AnalyticsApp() {
             {activeModule === "homologacao" && <Mk9HomologationModule />}
 
             {activeModule === "usuarios" && <Mk9UsersModule currentUserId={user?.id ?? null} />}
+            {activeModule === "auditoria_controle" && <Mk9IndustryAuditModule />}
           </div>
         </section>
       </div>

@@ -2,23 +2,23 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
 import { useMk9Session } from "@/lib/mk9-auth/session";
-import { Loader2, Zap, BarChart3, Shield, Cpu, Activity, Info, Database } from "lucide-react";
+import { Loader2, Zap, Activity, Info, Database } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOnly } from "@/components/client-only";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | SISTEMA HOMOLOGADO v1.3.0",
+    title: "MK9 | SISTEMA HOMOLOGADO v1.3.1",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.0: Arquitetura Operacional Unificada e Propagação de Dados.",
+        content: "MK9 Analytics v1.3.1: Auditoria Final e Modelagem de Controle.",
       },
-      { property: "og:title", content: "MK9 | v1.3.0" },
+      { property: "og:title", content: "MK9 | v1.3.1" },
       {
         property: "og:description",
-        content: "Painel de inteligência operacional com fonte única de verdade e propagação automática.",
+        content: "Diagnóstico final dos modelos de controle: Visit Controlled vs Fixed Operation.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -69,7 +69,7 @@ function LandingPage() {
                 MK9 ANALYTICS — SISTEMA HOMOLOGADO
               </h1>
               <p className="text-[10px] text-emerald-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.3.0 — ARQUITETURA OPERACIONAL UNIFICADA
+                STATUS: V1.3.1 — AUDITORIA DE CONTROLE FINAL
               </p>
             </div>
           </div>
@@ -80,63 +80,63 @@ function LandingPage() {
                 <div className="flex items-center gap-2 text-white mb-3">
                   <Info className="w-4 h-4 text-purple-400" />
                   <span className="font-black uppercase tracking-widest text-purple-400">
-                    Notas de Versão v1.3.0
+                    Notas de Auditoria v1.3.1
                   </span>
                 </div>
                 <div className="text-slate-400 space-y-2">
                   <p>
-                    A versão 1.3.0 consolida a arquitetura operacional unificada. O checklist importado agora alimenta automaticamente Dashboard, PDF, Inteligência e Cockpit através de uma fonte única de verdade (Core Operacional) e propagação imediata pós-commit.
+                    A versão 1.3.1 introduz a auditoria final dos modelos de controle. Esta etapa visa classificar corretamente as indústrias monitoradas via checklist mensal (VISIT_CONTROLLED) vs indústrias de operação fixa apenas no roteiro (FIXED_OPERATION).
                   </p>
                   <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px] mt-4">
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Testes (npm verify)</span>
-                      <span className="text-emerald-400 font-bold">391 PASS</span>
+                      <span>Motor de Diagnóstico</span>
+                      <span className="text-emerald-400 font-bold">ATIVO</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Propagação Automática</span>
-                      <span className="text-emerald-400 font-bold">ATIVA</span>
+                      <span>Integridade Histórica</span>
+                      <span className="text-emerald-400 font-bold">PRESERVADA</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Core Operacional</span>
-                      <span className="text-emerald-400 font-bold">UNIFICADO</span>
+                      <span>Separação Analítica</span>
+                      <span className="text-emerald-400 font-bold">CONCLUÍDA</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                     <span>Vigência Operacional</span>
-                      <span className="text-emerald-400 font-bold">ESTABILIZADA</span>
+                      <span>Status Auditoria</span>
+                      <span className="text-emerald-400 font-bold">AGUARDANDO APROVAÇÃO</span>
                     </div>
                   </div>
                 </div>
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.0" sub="STABLE" />
-                <StatusCard icon={Database} title="ARCHITECTURE" value="UNIFIED" sub="CORE" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.1" sub="AUDIT" />
+                <StatusCard icon={Database} title="ARCHITECTURE" value="UNIFIED" sub="V2" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  Protocolo v1.3.0
+                  Protocolo de Auditoria
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="FONTE ÚNICA DE VERDADE"
-                    desc="Unificação do motor loadOperationCore para servir todos os módulos a partir do mesmo estado operacional."
+                    title="NÃO ALTERAR CÁLCULOS"
+                    desc="A tarefa é somente classificar corretamente as indústrias. Core, Analytics e KING permanecem intocados."
                   />
                   <ProtocolItem
                     id="02"
-                    title="PROPAGAÇÃO AUTOMÁTICA"
-                    desc="Ativação garantida da importação como 'vigente' pós-commit, alimentando o sistema sem necessidade de F5."
+                    title="IDENTIFICAÇÃO POR HISTÓRICO"
+                    desc="Sugestão baseada em importações reais, snapshots PDF e visitas realizadas via checklist."
                   />
                   <ProtocolItem
                     id="03"
-                    title="IMUTABILIDADE E SNAPSHOTS"
-                    desc="Consolidação de snapshots operacionais imutáveis que protegem a integridade histórica dos relatórios PDF."
+                    title="IMPACTO ANALÍTICO"
+                    desc="Indústrias Fixas saem do Dashboard/Cockpit analítico, mas permanecem no Roteiro e histórico."
                   />
                   <ProtocolItem
                     id="04"
-                    title="VERSIONAMENTO ESTABILIZADO"
-                    desc="Correção na lógica de substituição de importações, garantindo paridade absoluta (KING: 146 visitas)."
+                    title="DASHBOARD MONITORADO"
+                    desc="O indicador 'Monitoradas' refletirá apenas as indústrias que realmente possuem controle mensal."
                   />
                 </div>
               </div>
@@ -147,7 +147,7 @@ function LandingPage() {
         <div className="lg:col-span-4 flex flex-col justify-center space-y-6">
           <div className="bg-black/40 border border-white/5 p-8 rounded-2xl shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Shield className="w-16 h-16 text-purple-400" />
+              <Database className="w-16 h-16 text-purple-400" />
             </div>
             <div className="relative z-10">
               <div className="mb-6">
@@ -155,7 +155,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.0
+                  SECURE ACCESS v1.3.1
                 </p>
               </div>
               <ClientOnly>
@@ -209,3 +209,4 @@ function ProtocolItem({ id, title, desc }: { id: string; title: string; desc: st
     </div>
   );
 }
+
