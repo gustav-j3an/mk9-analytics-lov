@@ -322,9 +322,9 @@ export async function buildIndustryReport(
     return b;
   };
 
-  // 1) BASE OBRIGATÓRIA: TODAS as lojas com frequência contratada/vigente
-  // NUNCA construir o relatório partindo de actualVisits.
   // 1) BASE OBRIGATÓRIA: SNAPSHOT IMUTÁVEL DA IMPORTAÇÃO
+  // REGRA v1.3.10: O universo de lojas do relatório é definido pelo snapshot do checklist,
+  // permitindo a exibição de lojas com zero visitas (NAO_ATENDIDA).
   for (const s of snapshotStores) {
     const sid = s.store_id;
     if (!sid) continue;
@@ -332,6 +332,7 @@ export async function buildIndustryReport(
     // Filtros de escopo e UF aplicados sobre a base do snapshot
     if (uf && s.uf !== uf) continue;
     if (storeId && sid !== storeId) continue;
+    if (!inAccess(s, sid)) continue;
 
     const b = touch(sid, { name: s.source_store_name, uf: s.uf });
     b.weekly = s.weekly_frequency;
@@ -346,7 +347,6 @@ export async function buildIndustryReport(
         monthlyFrequency: s.monthly_frequency,
       },
     ];
-
   }
 
   for (const p of planned ?? []) {
@@ -450,15 +450,14 @@ export async function buildIndustryReport(
   const totalsMetrics = aggregateVisitMetrics(
     stores.map((s) => ({ contratadas: s.metrics.contratadas, executadas: s.metrics.executadas })),
   );
-  // Nova regra: realizadas é SEMPRE o total bruto do checklist (nunca reduzido).
+
+  // REGRA v1.3.10: realizadas é SEMPRE o total bruto do checklist para indústrias monitoradas.
   // Pendentes e cobertura globais usam contratadas - realizadas.
   const contractedVisitsCount = totalsMetrics.contratadas;
   const executedVisitsCount = totalsMetrics.executadas;
-  const pendingVisitsCount = Math.max(0, contractedVisitsCount - executedVisitsCount);
-  const contractCoveragePct =
-    contractedVisitsCount > 0
-      ? Math.min(100, Math.round((executedVisitsCount / contractedVisitsCount) * 100))
-      : 0;
+  const pendingVisitsCount = totalsMetrics.pendencias;
+  const contractCoveragePct = totalsMetrics.coberturaPct;
+
   totalsMetrics.pendencias = pendingVisitsCount;
   totalsMetrics.coberturaPct = contractCoveragePct;
 
