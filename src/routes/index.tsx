@@ -153,7 +153,12 @@ function LandingPage() {
                     desc="Garantia de que visitas realizadas só são contabilizadas se pertencerem à importação ativa, eliminando duplicatas acumuladas."
                   />
                 </div>
-              </div>
+                  <ProtocolItem
+                    id="04"
+                    title="BLINDAGEM DE PERSISTÊNCIA"
+                    desc="Nova barreira de integridade que impede a conclusão de importações se as visitas identificadas não forem persistidas com sucesso no banco."
+                  />
+                </div>
             </div>
           </div>
         </div>
