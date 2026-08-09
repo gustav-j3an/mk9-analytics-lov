@@ -36,6 +36,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { getCleanupDiagnosis, executeGranularCleanup } from "@/lib/mk9-cleanup.functions";
+import { reprocessChecklistPromotion } from "@/lib/mk9-admin.functions";
 import { mk9ListChecklistIndustries } from "@/lib/mk9-data.functions";
 import {
   Mk9Panel,
@@ -356,13 +357,43 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                             </span>
                           </div>
                         </div>
-                        <Mk9Badge variant={i.status === "reverted" ? "danger" : "info"}>
-                          {i.status}
-                        </Mk9Badge>
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
+                          <div className="flex items-center gap-2">
+                            <Mk9Badge variant={i.status === "reverted" ? "danger" : "info"}>
+                              {i.status}
+                            </Mk9Badge>
+                            {i.is_operational_current && (
+                              <Mk9Badge className="bg-emerald-500/10 border-emerald-500/20 text-emerald-400">
+                                VIGENTE
+                              </Mk9Badge>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-sky-400 hover:text-sky-300 hover:bg-sky-500/10"
+                              title="Reprocessar Promoção Operacional"
+                              onClick={async () => {
+                                const loading = toast.loading("Reprocessando promoção...");
+                                try {
+                                  const res = await reprocessChecklistPromotion({ data: { importId: i.id } });
+                                  if (res.success) {
+                                    toast.success("Promoção operacional concluída!", { id: loading });
+                                    diagnosisMut.mutate({ industryId, month, year });
+                                  } else {
+                                    toast.error("Erro: " + res.error, { id: loading });
+                                  }
+                                } catch (e: any) {
+                                  toast.error("Falha na comunicação", { id: loading });
+                                }
+                              }}
+                            >
+                              <RotateCcw className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+
               </Tabs>
             </Mk9Panel>
           </div>

@@ -88,6 +88,7 @@ export const checklistCommit = createServerFn({ method: "POST" })
   });
 
 export async function internalChecklistCommit(ctx: Mk9AuthContext, data: ChecklistCommitInput) {
+    const { promoteChecklistImportToOperational } = await import("./mk9-checklist/promotion.server");
     const { logAudit } = await import("./mk9-auth/require-role.server");
 
 
@@ -375,55 +376,11 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
             ? "COMPLETED_WITH_ALERTS"
             : "done";
 
-      // SUBSTITUIÇÃO: Marcar como vigente e atualizar anterior
-      // REGRA: Somente importações com status 'done', 'INCONSISTENT' ou 'COMPLETED_WITH_ALERTS' podem ser operacionais.
+      // PROMOÇÃO OPERACIONAL ESTRUTURAL
       const isSuccess = ["done", "INCONSISTENT", "COMPLETED_WITH_ALERTS"].includes(finalStatus);
 
       if (isSuccess) {
-        // REGRA DE SEGURANÇA: Antes de ativar a nova, garantimos que qualquer outra importação 
-        // marcada como 'vigente' para esta mesma competência seja desativada, 
-        // mesmo que não tenha sido detectada como 'previous' (ex.: status diferente de 'done').
-        await supabaseAdmin
-          .from("mk9_checklist_imports")
-          .update({
-            is_operational_current: false,
-            superseded_at: new Date().toISOString(),
-            superseded_by: data.importId,
-          } as any)
-          .eq("industry_id", data.industryId)
-          .eq("operation_month", data.operationMonth)
-          .eq("operation_year", data.operationYear)
-          .eq("is_operational_current" as any, true)
-          .neq("id", data.importId);
-
-        if (previous) {
-          // Remove visitas da importação anterior para não somar no operacional
-          await supabaseAdmin
-            .from("mk9_actual_visits")
-            .delete()
-            .eq("source_import_id", previous.id);
-        }
-
-        // Marca a atual como vigente e garante que frequências e snapshots estejam vinculados a ela
-        await supabaseAdmin
-          .from("mk9_checklist_imports")
-          .update({
-            is_operational_current: true,
-            replaces_import_id: previous?.id ?? null,
-          } as any)
-          .eq("id", data.importId);
-        
-        // HOTFIX: Garante que as frequências versionadas criadas/reutilizadas no commit 
-        // apontem para a importação que acabou de se tornar vigente (data.importId).
-        // Isso evita que commits subsequentes ou correções percam o vínculo.
-        if (competencyStart) {
-          await supabaseAdmin
-            .from("mk9_industry_store_frequency_versions")
-            .update({ source_import_id: data.importId } as any)
-            .eq("industry_id", data.industryId)
-            .eq("valid_from", competencyStart)
-            .is("archived_at", null);
-        }
+        await promoteChecklistImportToOperational(data.importId);
       }
 
       await updateImportStatus(data.importId, {
