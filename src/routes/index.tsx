@@ -176,10 +176,10 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.16
+                  SECURE ACCESS v1.3.17
                 </p>
-                <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] text-emerald-400 leading-relaxed italic">
-                  "Sim — identificamos a causa do cancelamento automático. A v1.3.16 inverte a ordem de criação e aplica um guard no 'cancelPreviousPreviews', garantindo que a nova importação da MENDEZ não seja invalidada pela própria rotina de limpeza."
+                <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded text-[10px] text-amber-400 leading-relaxed italic">
+                  "Mudança de estratégia: o diagnóstico agora é puramente baseado em evidências de banco. Não vamos mais assumir causas; vamos rastrear cada UPDATE que altera o status da importação para identificar o momento exato do cancelamento."
                 </div>
               </div>
               <ClientOnly>
