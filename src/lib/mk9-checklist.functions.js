@@ -1,0 +1,462 @@
+// RPCs do módulo Importador de Checklists.
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+const previewSchema = z.object({
+    filename: z.string().min(1),
+    base64: z.string().min(4),
+    industryId: z.string().uuid(),
+    operationMonth: z.number().int().min(1).max(12),
+    operationYear: z.number().int().min(2020).max(2100),
+});
+const commitItemSchema = z.object({
+    storeId: z.string().uuid().nullable().optional(),
+    storeName: z.string().min(1),
+    storeNormalized: z.string().min(1),
+    uf: z.string().length(2).nullable().optional(),
+    scheduledDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    isNew: z.boolean().optional(),
+});
+const commitSchema = z.object({
+    importId: z.string().uuid(),
+    industryId: z.string().uuid(),
+    operationMonth: z.number().int().min(1).max(12),
+    operationYear: z.number().int().min(2020).max(2100),
+    items: z.array(commitItemSchema),
+    // Conflitos de frequência (MANUAL/FUTURE) só podem ser forçados por ADMIN
+    // e exigem justificativa registrada em auditoria.
+    forceFrequencyConflicts: z.boolean().optional(),
+    forceReason: z.string().min(10).max(500).optional(),
+});
+async function validate(step, fn) {
+    const { withRichErrors } = await import("./mk9-checklist/errors.server");
+    return withRichErrors({ step: "validate-input", function: step }, async () => fn());
+}
+function b64ToArrayBuffer(base64) {
+    const bin = typeof atob === "function" ? atob(base64) : Buffer.from(base64, "base64").toString("binary");
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++)
+        bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+}
+export const checklistPreview = createServerFn({ method: "POST" })
+    .validator(async (data) => validate("checklistPreview", () => previewSchema.parse(data)))
+    .handler(async ({ data }) => {
+    const { requireMk9Role } = await import("./mk9-auth/require-role.server");
+    await requireMk9Role(["ADMIN"]);
+    // Somente indústrias classificadas como "exige checklist" entram no fluxo.
+    const { assertIndustryRequiresChecklist } = await import("./mk9-checklist/industry-gate.server");
+    await assertIndustryRequiresChecklist(data.industryId);
+    const { createChecklistDiagnostics } = await import("./mk9-checklist/diagnostics");
+    const { runChecklistPreview } = await import("./mk9-checklist/preview.server");
+    const diagnostics = createChecklistDiagnostics("preview-server-fn");
+    const result = await runChecklistPreview({
+        buffer: b64ToArrayBuffer(data.base64),
+        filename: data.filename,
+        fileSize: Math.floor((data.base64.length * 3) / 4),
+        mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        industryId: data.industryId,
+        operationMonth: data.operationMonth,
+        operationYear: data.operationYear,
+    }, diagnostics);
+    return { importId: result.importId, preview: result.preview };
+});
+export const checklistCommit = createServerFn({ method: "POST" })
+    .validator(async (data) => validate("checklistCommit", () => commitSchema.parse(data)))
+    .handler(async ({ data }) => {
+    const { requireMk9Role } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
+    // ANTES DO COMMIT: Limpa visitas órfãs ou de importações anteriores que não são manuais
+    // para evitar o acúmulo que gerou o bug da COOPATOS.
+    // O delete na promotion.server.ts lida com a importação 'is_operational_current',
+    // mas aqui garantimos que a nova importação tenha um terreno limpo se for uma re-submissão.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    console.log(`[COMMIT] Iniciando commit individual para import ${data.importId}`);
+    await supabaseAdmin
+        .from("mk9_actual_visits")
+        .delete()
+        .eq("industry_id", data.industryId)
+        .eq("source_import_id", data.importId);
+    return internalChecklistCommit(ctx, data);
+});
+export async function internalChecklistCommit(ctx, data) {
+    const { promoteChecklistImportToOperational } = await import("./mk9-checklist/promotion.server");
+    const { logAudit } = await import("./mk9-auth/require-role.server");
+    const { assertIndustryRequiresChecklist } = await import("./mk9-checklist/industry-gate.server");
+    await assertIndustryRequiresChecklist(data.industryId);
+    const { withRichErrors, buildRichError } = await import("./mk9-checklist/errors.server");
+    const { persistActualVisits, updateImportStatus, ensureChecklistStores, loadPreviewSnapshot, upsertIndustryStoreFrequencies, persistImportSnapshot, } = await import("./mk9-checklist/persistence.server");
+    const startedAt = Date.now();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Marca committing logo no início para que o histórico saia de "previewing".
+    await updateImportStatus(data.importId, {
+        status: "committing",
+        errorMessage: null // Limpa erro anterior se houver
+    }).catch((err) => {
+        console.error(`[COMMIT-STATUS-ERROR] Falha ao mudar para committing:`, err);
+    });
+    try {
+        // REGRA DE SUBSTITUIÇÃO: Executar em transação
+        const snapshot = await withRichErrors({
+            step: "load-preview-snapshot",
+            function: "checklistCommit",
+            extra: { importId: data.importId },
+        }, () => loadPreviewSnapshot(data.importId));
+        // 0) Identifica importação anterior para substituir
+        const { data: previous } = await supabaseAdmin
+            .from("mk9_checklist_imports")
+            .select("id, file_hash")
+            .eq("industry_id", data.industryId)
+            .eq("operation_month", data.operationMonth)
+            .eq("operation_year", data.operationYear)
+            .eq("is_operational_current", true)
+            .eq("status", "done")
+            .maybeSingle();
+        const newHash = snapshot?.fileHash;
+        if (previous && previous.file_hash === newHash) {
+            // Duplicado inalterado: Mantemos a anterior e cancelamos esta.
+            await updateImportStatus(data.importId, {
+                status: "cancelled",
+                reason: "duplicate_unchanged",
+                errorMessage: "Arquivo duplicado inalterado. A versão anterior continua vigente.",
+            });
+            return {
+                importId: data.importId,
+                persisted: 0,
+                skipped: 0,
+                total: 0,
+                storesCreated: 0,
+                storesReused: 0,
+                unresolved: 0,
+                frequenciesUpserted: 0,
+                frequenciesNotImported: 0,
+                frequencyDiff: null,
+                reconciliationError: null,
+                validation: null,
+                validationError: "DUPLICATE_UNCHANGED",
+            };
+        }
+        const freqs = snapshot?.storeFrequencies ?? [];
+        const storeIdByKey = new Map();
+        for (const f of freqs) {
+            if (f.storeId)
+                storeIdByKey.set(`${f.storeNormalized}|${f.uf ?? ""}`, f.storeId);
+        }
+        for (const it of data.items) {
+            if (it.storeId)
+                storeIdByKey.set(`${it.storeNormalized}|${it.uf ?? ""}`, it.storeId);
+        }
+        const allCandidates = freqs
+            .filter((f) => !storeIdByKey.has(`${f.storeNormalized}|${f.uf ?? ""}`))
+            .map((f) => ({
+            storeName: f.storeName,
+            storeNormalized: f.storeNormalized,
+            uf: f.uf ?? null,
+        }));
+        const fallbackCandidates = data.items
+            .filter((i) => !storeIdByKey.has(`${i.storeNormalized}|${i.uf ?? ""}`))
+            .map((i) => ({
+            storeName: i.storeName,
+            storeNormalized: i.storeNormalized,
+            uf: i.uf ?? null,
+        }));
+        const candidatesByKey = new Map();
+        for (const c of [...allCandidates, ...fallbackCandidates]) {
+            candidatesByKey.set(`${c.storeNormalized}|${c.uf ?? ""}`, c);
+        }
+        const createdMap = await withRichErrors({
+            step: "ensure-checklist-stores",
+            function: "checklistCommit",
+            extra: { candidates: candidatesByKey.size },
+        }, () => ensureChecklistStores(data.importId, Array.from(candidatesByKey.values())));
+        for (const [key, v] of createdMap)
+            storeIdByKey.set(key, v.storeId);
+        let storesCreated = 0;
+        let storesReused = 0;
+        for (const v of createdMap.values()) {
+            if (v.created)
+                storesCreated++;
+            else
+                storesReused++;
+        }
+        // 2) Resolve storeId final por item.
+        const resolvedItems = [];
+        const unresolved = [];
+        for (const it of data.items) {
+            if (it.storeId) {
+                resolvedItems.push({ storeId: it.storeId, scheduledDate: it.scheduledDate });
+                continue;
+            }
+            const key = `${it.storeNormalized}|${it.uf ?? ""}`;
+            const found = storeIdByKey.get(key);
+            if (found) {
+                resolvedItems.push({ storeId: found, scheduledDate: it.scheduledDate });
+            }
+            else {
+                unresolved.push({ storeName: it.storeName, uf: it.uf ?? null });
+            }
+        }
+        // 3) Persiste visitas realizadas.
+        console.log(`[COMMIT] Persistindo ${resolvedItems.length} visitas para import ${data.importId}`);
+        const { persisted, skipped } = await withRichErrors({
+            step: "persist-actual-visits",
+            function: "checklistCommit",
+            extra: { importId: data.importId, count: resolvedItems.length },
+        }, () => persistActualVisits(data.importId, data.industryId, resolvedItems));
+        console.log(`[COMMIT] Persistidas: ${persisted}, Skipped: ${skipped}`);
+        if (resolvedItems.length > 0 && persisted === 0 && skipped === 0) {
+            console.error(`[COMMIT-ERROR] Divergência crítica: ${resolvedItems.length} itens resolvidos mas 0 persistidos/skipped.`);
+            throw new Error(`Falha na persistência: ${resolvedItems.length} visitas identificadas mas nenhuma gravada no banco.`);
+        }
+        // 4) Persiste frequência contratada por loja (usa o snapshot da prévia
+        //    salvo em mk9_checklist_imports.preview). Fonte oficial da métrica
+        //    "visitas contratadas" no relatório da indústria.
+        let frequenciesUpserted = 0;
+        let frequenciesNotImported = 0;
+        let competencyStart = null;
+        let frequencyDiff = null;
+        if (freqs.length) {
+            const rows = freqs
+                .map((f) => ({
+                storeId: storeIdByKey.get(`${f.storeNormalized}|${f.uf ?? ""}`) ?? null,
+                // Preserva a origem da linha para que o dedup NUNCA some frequências
+                // de nomes diferentes do Excel vinculados à mesma loja.
+                storeKey: `${f.storeNormalized}|${f.uf ?? ""}`,
+                matchKind: f.status === "linked_by_similarity" ? "SIMILARITY" : "EXACT",
+                weeklyFrequency: f.weeklyFrequency,
+                monthlyFrequency: f.monthlyFrequency,
+            }))
+                .filter((r) => !!r.storeId);
+            frequenciesNotImported = freqs.length - rows.length;
+            const { upserted, report, applied } = await withRichErrors({
+                step: "upsert-industry-store-frequencies",
+                function: "checklistCommit",
+                extra: { rows: rows.length, frequenciesNotImported },
+            }, () => upsertIndustryStoreFrequencies(data.industryId, data.importId, rows, {
+                operationMonth: data.operationMonth,
+                operationYear: data.operationYear,
+                // force só é aceito para ADMIN (papel já validado acima) e exige justificativa.
+                force: !!data.forceFrequencyConflicts && !!data.forceReason,
+                reason: data.forceReason ?? null,
+                actorId: ctx.userId,
+            }));
+            frequenciesUpserted = upserted;
+            competencyStart = report.competencyStart;
+            frequencyDiff = {
+                unchanged: report.unchanged,
+                new: report.new,
+                changed: report.changed,
+                removed: report.removed,
+                manualConflicts: report.manualConflicts,
+                futureConflicts: report.futureConflicts,
+                skipped: applied.skipped,
+                forced: applied.forced,
+            };
+            await logAudit(ctx, "mk9.frequency.version.apply", "mk9_industry_store_frequency_versions", data.importId, {
+                industryId: data.industryId,
+                competencyStart: report.competencyStart,
+                ...frequencyDiff,
+                forceReason: data.forceReason ?? null,
+            });
+            // 4.1) Persiste o Snapshot Imutável de TODAS as lojas do arquivo (mesmo sem visitas)
+            const snapshotRows = freqs
+                .map((f) => ({
+                storeId: storeIdByKey.get(`${f.storeNormalized}|${f.uf ?? ""}`),
+                storeName: f.storeName,
+                uf: f.uf ?? null,
+                weeklyFrequency: f.weeklyFrequency,
+                monthlyFrequency: f.monthlyFrequency,
+            }))
+                .filter((r) => !!r.storeId);
+            await withRichErrors({
+                step: "persist-import-snapshot",
+                function: "checklistCommit",
+                extra: { importId: data.importId, count: snapshotRows.length },
+            }, () => persistImportSnapshot(data.importId, data.industryId, snapshotRows));
+        }
+        const counters = {
+            persisted,
+            skipped,
+            total: data.items.length,
+            storesCreated,
+            storesReused,
+            unresolved: unresolved.length,
+            frequenciesUpserted,
+            frequenciesNotImported,
+            totalStoresInExcel: snapshot?.counters.totalStores ?? freqs.length,
+            totalContractedFrequency: snapshot?.counters.totalContractedFrequency ?? null,
+        };
+        // 5) Auditoria em 3 níveis pós-commit: recomputa parsed × declarado × persistido.
+        let validation = null;
+        let validationError = null;
+        try {
+            const [{ queryPersistedVisitsByImport, writeValidationReport }, { buildValidationFromSnapshot },] = await Promise.all([
+                import("./mk9-checklist/persistence.server"),
+                import("./mk9-checklist/validation"),
+            ]);
+            const persistedByStore = await queryPersistedVisitsByImport(data.importId);
+            if (snapshot) {
+                validation = buildValidationFromSnapshot(snapshot, persistedByStore);
+                await writeValidationReport(data.importId, validation);
+            }
+        }
+        catch (vErr) {
+            validationError = String(vErr?.message ?? vErr);
+        }
+        const finalStatus = validation && validation.status === "INCONSISTENT"
+            ? "INCONSISTENT"
+            : validation && validation.status === "COMPLETED_WITH_ALERTS"
+                ? "COMPLETED_WITH_ALERTS"
+                : "done";
+        // PROMOÇÃO OPERACIONAL ESTRUTURAL
+        const isSuccess = ["done", "INCONSISTENT", "COMPLETED_WITH_ALERTS"].includes(finalStatus);
+        if (isSuccess) {
+            // REGRA DE TRANSAÇÃO LÓGICA: Promovemos ENQUANTO o status ainda é 'committing'
+            // para garantir que se a promoção falhar, a importação fique em 'failed' 
+            // e não como 'done' mas não operacional.
+            await promoteChecklistImportToOperational(data.importId);
+        }
+        await updateImportStatus(data.importId, {
+            status: finalStatus,
+            reason: "finalize_commit",
+            counters,
+            finishedAt: new Date(),
+            durationMs: Date.now() - startedAt,
+        });
+        let reconciliationError = null;
+        try {
+            const { reconcile } = await import("./mk9-reconciliation/engine.server");
+            await reconcile({
+                operationYear: data.operationYear,
+                operationMonth: data.operationMonth,
+                industryId: data.industryId,
+                sourceImportId: data.importId,
+            });
+        }
+        catch (recErr) {
+            reconciliationError = String(recErr?.message ?? recErr);
+        }
+        await logAudit(ctx, "mk9.checklist.commit", "mk9_checklist_imports", data.importId, {
+            industryId: data.industryId,
+            operationMonth: data.operationMonth,
+            operationYear: data.operationYear,
+            persisted,
+            storesCreated,
+            validationStatus: validation?.status ?? null,
+        });
+        return {
+            importId: data.importId,
+            persisted,
+            skipped,
+            total: data.items.length,
+            storesCreated,
+            storesReused,
+            unresolved: unresolved.length,
+            frequenciesUpserted,
+            frequenciesNotImported,
+            frequencyDiff,
+            reconciliationError,
+            validation,
+            validationError,
+        };
+    }
+    catch (e) {
+        console.error(`[COMMIT-ERROR] Erro durante o commit individual:`, e);
+        await updateImportStatus(data.importId, {
+            status: "failed",
+            reason: "internal_error",
+            errorMessage: e?.message ?? String(e),
+            finishedAt: new Date(),
+        }).catch(() => undefined);
+        let msg;
+        try {
+            msg = e?.message ?? String(e);
+        }
+        catch {
+            msg = "Erro interno no servidor";
+        }
+        if (!msg.startsWith("{")) {
+            const payload = buildRichError(e, { step: "commit-outer", function: "checklistCommit" });
+            throw new Error(JSON.stringify(payload));
+        }
+        throw e;
+    }
+}
+export const checklistList = createServerFn({ method: "GET" })
+    .inputValidator((d) => z.object({ month: z.number().optional(), year: z.number().optional() }).optional().parse(d))
+    .handler(async ({ data }) => {
+    const { requireMk9AdminRead } = await import("@/lib/mk9-auth/read-guards.server");
+    await requireMk9AdminRead();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let query = supabaseAdmin
+        .from("mk9_checklist_imports")
+        .select(`
+        *,
+        industry:mk9_industries(name)
+      `)
+        .order("created_at", { ascending: false })
+        .limit(50);
+    if (data?.month)
+        query = query.eq("operation_month", data.month);
+    if (data?.year)
+        query = query.eq("operation_year", data.year);
+    const { data: list, error } = await query;
+    if (error)
+        throw error;
+    return list;
+});
+export const checklistDelete = createServerFn({ method: "POST" })
+    .validator(async (data) => validate("checklistDelete", () => z.object({ importId: z.string().uuid() }).parse(data)))
+    .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
+    const { deleteChecklistImport } = await import("./mk9-checklist/persistence.server");
+    await deleteChecklistImport(data.importId);
+    await logAudit(ctx, "mk9.checklist.delete", "mk9_checklist_imports", data.importId);
+    return { ok: true };
+});
+// Marca a prévia como descartada sem apagar o registro do histórico.
+export const checklistCancel = createServerFn({ method: "POST" })
+    .validator(async (data) => validate("checklistCancel", () => z.object({ importId: z.string().uuid() }).parse(data)))
+    .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
+    const { updateImportStatus } = await import("./mk9-checklist/persistence.server");
+    await updateImportStatus(data.importId, {
+        status: "cancelled",
+        reason: "user_action",
+        errorMessage: "Prévia descartada pelo usuário",
+        finishedAt: new Date(),
+    });
+    await logAudit(ctx, "mk9.checklist.cancel", "mk9_checklist_imports", data.importId);
+    return { ok: true };
+});
+// Recomputa a validação em 3 níveis a partir dos dados persistidos, sem re-parsear o Excel.
+// Útil quando a auditoria foi salva com uma versão antiga do motor.
+export const checklistReprocessValidation = createServerFn({ method: "POST" })
+    .validator(async (data) => validate("checklistReprocessValidation", () => z.object({ importId: z.string().uuid() }).parse(data)))
+    .handler(async ({ data }) => {
+    const { requireMk9Role, logAudit } = await import("./mk9-auth/require-role.server");
+    const ctx = await requireMk9Role(["ADMIN"]);
+    const { loadPreviewSnapshot, queryPersistedVisitsByImport, writeValidationReport } = await import("./mk9-checklist/persistence.server");
+    const { buildValidationFromSnapshot } = await import("./mk9-checklist/validation");
+    const snapshot = await loadPreviewSnapshot(data.importId);
+    if (!snapshot)
+        throw new Error("Snapshot da prévia não encontrado para essa importação.");
+    const persistedByStore = await queryPersistedVisitsByImport(data.importId);
+    const validation = buildValidationFromSnapshot(snapshot, persistedByStore);
+    await writeValidationReport(data.importId, validation);
+    await logAudit(ctx, "mk9.checklist.reprocess_validation", "mk9_checklist_imports", data.importId, {
+        status: validation.status,
+        persistedTotal: validation.persistedTotal,
+        parsedTotal: validation.parsedTotal,
+    });
+    return { validation };
+});
+export const checklistGetValidation = createServerFn({ method: "GET" })
+    .inputValidator(async (data) => validate("checklistGetValidation", () => z.object({ importId: z.string().uuid() }).parse(data)))
+    .handler(async ({ data }) => {
+    const { requireMk9Role } = await import("./mk9-auth/require-role.server");
+    await requireMk9Role(["ADMIN", "SUPERVISOR", "AUDITOR"]);
+    const { loadValidationReport } = await import("./mk9-checklist/persistence.server");
+    return { validation: await loadValidationReport(data.importId) };
+});

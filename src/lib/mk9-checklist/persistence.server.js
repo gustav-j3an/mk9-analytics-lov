@@ -197,6 +197,7 @@ export async function cancelPreviousPreviews(input) {
         .from("mk9_checklist_imports")
         .update({
         status: "cancelled",
+        reason: input.reason ?? "preview_abandoned",
         error_message: "Prévia abandonada — substituída por nova importação",
         finished_at: new Date().toISOString(),
     })
@@ -236,8 +237,16 @@ export async function savePreviewSnapshot(importId, preview) {
 }
 export async function updateImportStatus(importId, patch) {
     const update = {};
-    if (patch.status)
+    if (patch.status) {
         update.status = patch.status;
+        if (patch.reason)
+            update.reason = patch.reason;
+        console.log(`[STATUS_CHANGE] import=${importId} to=${patch.status} reason=${patch.reason ?? 'not_specified'}`);
+        // GUARD v1.3.14: Nenhuma função interna pode marcar como 'cancelled' sem motivo explícito
+        if (patch.status === 'cancelled' && !patch.reason) {
+            console.warn(`[STATUS_CHANGE_WARNING] import=${importId} status cancelled without reason!`);
+        }
+    }
     if (patch.counters)
         update.counters = patch.counters;
     if (patch.errorMessage !== undefined)
@@ -282,15 +291,29 @@ export async function persistActualVisits(importId, industryId, rows) {
         source_import_id: importId,
     }));
     const CHUNK = 500;
+    let totalUpserted = 0;
     for (let i = 0; i < payload.length; i += CHUNK) {
         const slice = payload.slice(i, i + CHUNK);
-        const { error } = await supabaseAdmin
+        console.log(`[PERSISTENCE] Upserting chunk of ${slice.length} visits...`);
+        const { data: upsertedData, error } = await supabaseAdmin
             .from("mk9_actual_visits")
-            .upsert(slice, { onConflict: "industry_id,store_id,scheduled_date,origin" });
-        if (error)
-            throw new Error(error.message);
+            .upsert(slice, {
+            onConflict: "industry_id,store_id,scheduled_date,origin",
+            ignoreDuplicates: false // Garante que source_import_id seja atualizado
+        })
+            .select("id");
+        if (error) {
+            console.error(`[PERSISTENCE-ERROR] Supabase error during upsert:`, error);
+            throw new Error(`Database error: ${error.message} (${error.code})`);
+        }
+        const count = upsertedData?.length ?? 0;
+        totalUpserted += count;
+        console.log(`[PERSISTENCE] Chunk upserted successfully: ${count} rows.`);
     }
-    return { persisted: list.length - skipped, skipped };
+    if (payload.length > 0 && totalUpserted === 0) {
+        console.warn(`[PERSISTENCE-WARN] Payload length was ${payload.length} but totalUpserted is 0.`);
+    }
+    return { persisted: totalUpserted, skipped };
 }
 export async function listChecklistImports(limit = 30) {
     const { data, error } = await supabaseAdmin
