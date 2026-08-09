@@ -433,6 +433,11 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           value={nf(executive.contracted.current)}
           icon={Activity}
           color="blue"
+          hint="Detalhamento por Indústria"
+          onClick={() => {
+            const el = document.getElementById("industry-analysis");
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+          }}
           comparison={{
             value: executive.contracted.previous,
             label: "anterior",
@@ -445,6 +450,11 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           value={nf(executive.realized.current)}
           icon={CheckCircle2}
           color="emerald"
+          hint="Detalhamento por Indústria"
+          onClick={() => {
+            const el = document.getElementById("industry-analysis");
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+          }}
           comparison={{
             value: executive.realized.previous,
             label: "anterior",
@@ -702,7 +712,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
         )}
 
         {/* Industry Performance */}
-        <Mk9Panel className="xl:col-span-1">
+        <Mk9Panel className="xl:col-span-1" id="industry-analysis">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">
