@@ -11,10 +11,11 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  Database,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Mk9Panel, Mk9PageHeader, Mk9Badge } from "./mk9/design-system";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -228,14 +229,22 @@ export function Mk9ImportModule({
 
   return (
     <div className="space-y-6">
-      <Card className="glass-panel">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Mk9PageHeader 
+        title="Gestão Operacional" 
+        subtitle="Sincronização da base, roteiros e estrutura operacional."
+        icon={Database}
+      />
+
+      <Mk9Panel>
+        <div className="flex items-center gap-2 mb-6">
+          <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
             <Upload className="h-5 w-5" />
+          </div>
+          <h3 className="text-sm font-black text-white uppercase tracking-widest">
             Importar planilha MK9
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </h3>
+        </div>
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
               <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">
@@ -344,12 +353,12 @@ export function Mk9ImportModule({
                 );
               })()}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </Mk9Panel>
 
       {rejected && (
-        <Card className="glass-panel border-destructive/40">
-          <CardContent className="p-4 space-y-3">
+        <Mk9Panel className="border-destructive/40">
+          <div className="space-y-3">
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
               <div className="space-y-1 flex-1 min-w-0">
@@ -378,16 +387,21 @@ export function Mk9ImportModule({
                 </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </Mk9Panel>
       )}
 
       {preview && c && (
-        <Card className="glass-panel">
-          <CardHeader>
-            <CardTitle>Prévia — {preview.filename}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <Mk9Panel>
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
+              <FileSpreadsheet className="h-5 w-5" />
+            </div>
+            <h3 className="text-sm font-black text-white uppercase tracking-widest">
+              Prévia — {preview.filename}
+            </h3>
+          </div>
+          <div className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <SummaryCard
                 label="Indústrias"
@@ -460,7 +474,7 @@ export function Mk9ImportModule({
                   {ACTION_LABEL[f] ?? f}
                 </button>
               ))}
-              <Badge variant="secondary">{filtered.length} linhas</Badge>
+              <Mk9Badge variant="info">{filtered.length} linhas</Mk9Badge>
             </div>
             <div className="max-h-96 overflow-auto border rounded-lg">
               <table className="w-full text-xs">
@@ -504,22 +518,24 @@ export function Mk9ImportModule({
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </Mk9Panel>
       )}
 
-      <Card className="glass-panel">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Mk9Panel className="relative">
+        <div className="flex items-center gap-2 mb-6">
+          <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
             <Clock className="h-5 w-5" />
+          </div>
+          <h3 className="text-sm font-black text-white uppercase tracking-widest">
             Histórico de importações
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+          </h3>
+        </div>
+        <div>
           {historyQ.isLoading ? (
-            <p className="text-sm text-muted-foreground">Carregando…</p>
+            <p className="text-sm text-slate-500 italic">Carregando…</p>
           ) : (historyQ.data ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma importação registrada.</p>
+            <p className="text-sm text-slate-500 italic">Nenhuma importação registrada.</p>
           ) : (
             <div className="space-y-2">
               {(historyQ.data ?? []).map((imp) => {
@@ -530,11 +546,11 @@ export function Mk9ImportModule({
                 const isOpen = !!expanded[imp.id];
                 const hasError = !!imp.errorMessage;
                 return (
-                  <div key={imp.id} className="text-sm rounded-lg border">
-                    <div className="flex items-center justify-between p-3">
+                  <div key={imp.id} className="text-sm rounded-lg border border-white/5 bg-white/5 p-3">
+                    <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium truncate">{imp.filename}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="font-medium text-white truncate">{imp.filename}</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
                           {MONTHS[imp.operationMonth - 1]} {imp.operationYear} ·{" "}
                           {SYNC_MODE_LABEL[imp.syncMode] ?? imp.syncMode} ·{" "}
                           {imp.sheetsAnalyzed.length} abas
@@ -542,17 +558,22 @@ export function Mk9ImportModule({
                         </p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <Badge variant={st.variant}>{st.label}</Badge>
+                        <Mk9Badge 
+                          variant={st.variant === "default" ? "success" : st.variant === "destructive" ? "danger" : "default"}
+                        >
+                          {st.label}
+                        </Mk9Badge>
                         {hasError && (
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => setExpanded((s) => ({ ...s, [imp.id]: !s[imp.id] }))}
+                            className="h-8 text-slate-400 hover:text-white"
                           >
                             {isOpen ? (
-                              <ChevronDown className="h-4 w-4" />
+                              <ChevronDown className="h-4 w-4 mr-1" />
                             ) : (
-                              <ChevronRight className="h-4 w-4" />
+                              <ChevronRight className="h-4 w-4 mr-1" />
                             )}
                             Ver erro
                           </Button>
@@ -562,21 +583,22 @@ export function Mk9ImportModule({
                           variant="ghost"
                           onClick={() => deleteMut.mutate(imp.id)}
                           disabled={deleteMut.isPending}
+                          className="h-8 w-8 p-0 text-slate-400 hover:text-red-400 hover:bg-red-400/10"
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
                     {hasError && isOpen && (
-                      <div className="px-3 pb-3">
-                        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 space-y-1">
-                          <div className="flex items-center gap-2 text-destructive font-medium">
+                      <div className="mt-3">
+                        <div className="rounded-md border border-rose-500/30 bg-rose-500/5 p-3 space-y-1">
+                          <div className="flex items-center gap-2 text-rose-400 font-medium">
                             <AlertTriangle className="h-4 w-4" /> Erro na importação
                           </div>
-                          <p className="text-xs whitespace-pre-wrap break-words text-destructive/90 font-mono">
+                          <p className="text-[11px] whitespace-pre-wrap break-words text-rose-400/90 font-mono">
                             {imp.errorMessage}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-[10px] text-slate-500 uppercase font-black">
                             Iniciada em {new Date(imp.startedAt).toLocaleString("pt-BR")}
                             {imp.finishedAt &&
                               ` · Falhou em ${new Date(imp.finishedAt).toLocaleString("pt-BR")}`}
@@ -589,8 +611,8 @@ export function Mk9ImportModule({
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </Mk9Panel>
 
       <AlertDialog
         open={confirmOpen}
