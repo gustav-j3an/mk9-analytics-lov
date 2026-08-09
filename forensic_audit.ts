@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "./src/integrations/supabase/client.server";
 
+
 async function diagnostic() {
   console.log("=== MK9 FORENSIC AUDIT START ===");
 
