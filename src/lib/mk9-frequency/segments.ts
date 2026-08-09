@@ -135,10 +135,11 @@ export function contractedVisitsForFrequencySegments(input: {
     let segRaw = 0;
     if (monthly != null) {
       source = "MONTHLY_FREQUENCY";
-      // REGRA MK9 (HOTFIX KING): O valor contratado mensal é a meta do período.
-      // Em competências mensais normais (mesmo as personalizadas como a KING 23 a 22),
-      // o usuário espera que a meta seja o valor total do arquivo.
-      // Só proporcionalizamos se o segmento for parcial em relação ao período operacional total.
+      // REGRA MK9 (v1.3.8): O valor contratado mensal deve ser preservado integralmente
+      // quando o segmento cobre o mês comercial, ignorando o total de dias do período.
+      // Isso resolve o problema de meses com > 30 dias (ex: Julho) reduzindo a meta
+      // quando calculada proporcionalmente ao mês civil.
+      
       const segCobreInicio = seg.validFrom <= periodStart;
       const segCobreFim = seg.validUntil === null || seg.validUntil >= periodEnd;
 
@@ -146,7 +147,7 @@ export function contractedVisitsForFrequencySegments(input: {
         // Se o segmento cobre o período operacional inteiro, usamos o valor mensal integral.
         segRaw = monthly;
       } else {
-        // Caso contrário, proporcionalizamos os dias vigentes pelo denominador do período.
+        // Caso contrário (meta parcial até a data), proporcionalizamos.
         segRaw = monthly * (days / periodDays);
       }
 
