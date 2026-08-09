@@ -2,23 +2,23 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
 import { useMk9Session } from "@/lib/mk9-auth/session";
-import { Loader2, Zap, BarChart3, Shield, Cpu, Activity, Info } from "lucide-react";
+import { Loader2, Zap, BarChart3, Shield, Cpu, Activity, Info, Database } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOnly } from "@/components/client-only";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | SISTEMA HOMOLOGADO v1.2.0",
+    title: "MK9 | SISTEMA HOMOLOGADO v1.2.1",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.2.0: Padronização Visual Global MK9 Command Center.",
+        content: "MK9 Analytics v1.2.1: Hotfix de Pipeline de Importação (Snapshots).",
       },
-      { property: "og:title", content: "MK9 | v1.2.0" },
+      { property: "og:title", content: "MK9 | v1.2.1" },
       {
         property: "og:description",
-        content: "Painel de inteligência operacional com contraste visual otimizado.",
+        content: "Painel de inteligência operacional com pipeline de dados estabilizado.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -69,7 +69,7 @@ function LandingPage() {
                 MK9 ANALYTICS — SISTEMA HOMOLOGADO
               </h1>
               <p className="text-[10px] text-emerald-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.2.0 — PADRONIZAÇÃO VISUAL GLOBAL
+                STATUS: V1.2.1 — HOTFIX DE PIPELINE E SNAPSHOTS
               </p>
             </div>
           </div>
@@ -80,12 +80,12 @@ function LandingPage() {
                 <div className="flex items-center gap-2 text-white mb-3">
                   <Info className="w-4 h-4 text-purple-400" />
                   <span className="font-black uppercase tracking-widest text-purple-400">
-                    Notas de Versão v1.2.0
+                    Notas de Versão v1.2.1
                   </span>
                 </div>
                 <div className="text-slate-400 space-y-2">
                   <p>
-                    A versão 1.2.0 consolida a interface Command Center em todo o sistema. O módulo de Gestão Operacional foi totalmente redesenhado para seguir o padrão visual de alta densidade, tema dark e glass effect do Importador de Checklists.
+                    A versão 1.2.1 corrige uma falha crítica no pipeline de importação de checklists. A tabela de snapshots imutáveis foi restaurada e as políticas de segurança (RLS) foram endurecidas usando o schema privado mk9_private.
                   </p>
                   <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px] mt-4">
                     <div className="flex justify-between border-b border-white/5 pb-1">
@@ -93,50 +93,50 @@ function LandingPage() {
                       <span className="text-emerald-400 font-bold">391 PASS</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Paridade KING</span>
-                      <span className="text-emerald-400 font-bold">146 VISITS</span>
+                      <span>Pipeline Snapshot</span>
+                      <span className="text-emerald-400 font-bold">RESTAURADO</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Sincronia Global</span>
-                      <span className="text-emerald-400 font-bold">ATIVA</span>
+                      <span>Security Hardening</span>
+                      <span className="text-emerald-400 font-bold">mk9_private</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                     <span>Gestão Operacional</span>
-                      <span className="text-emerald-400 font-bold">REESTILIZADO</span>
+                     <span>Importação Lote</span>
+                      <span className="text-emerald-400 font-bold">ESTABILIZADA</span>
                     </div>
                   </div>
                 </div>
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.2.0" sub="STABLE" />
-                <StatusCard icon={Zap} title="SISTEMA" value="FULL COMMAND" sub="ACTIVE" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.2.1" sub="STABLE" />
+                <StatusCard icon={Database} title="DATABASE" value="SNAPSHOTS" sub="FIXED" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  Protocolo v1.2.0
+                  Protocolo v1.2.1
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="OVERHAUL GESTÃO OPERACIONAL"
-                    desc="Migração completa de Cards e Inputs claros para Mk9Panel dark e Glass Command, unificando a linguagem visual."
+                    title="RESTAURAÇÃO DE SNAPSHOTS"
+                    desc="Recriação da tabela mk9_checklist_import_store_snapshots e correção do erro 'schema cache' na persistência."
                   />
                   <ProtocolItem
                     id="02"
-                    title="UNIFICAÇÃO DE COMPONENTES"
-                    desc="Reutilização de Mk9Badge, Mk9Panel e tokens de tipografia em todos os módulos operacionais."
+                    title="HARDENING DE RLS"
+                    desc="Migração de políticas para usar mk9_private.is_mk9_admin(), garantindo isolamento total e performance."
                   />
                   <ProtocolItem
                     id="03"
-                    title="OTIMIZAÇÃO DE FORMULÁRIOS"
-                    desc="Padronização de labels, selects e inputs de data com foco em contraste e densidade de informação."
+                    title="ESTABILIZAÇÃO DO LOTE"
+                    desc="Sincronização do motor de commit em lote para reutilizar o pipeline de persistência imutável homologado."
                   />
                   <ProtocolItem
                     id="04"
-                    title="INTEGRIDADE OPERACIONAL"
-                    desc="Manutenção da paridade KING (146 visitas) e validação de 391 testes após o redesign estrutural."
+                    title="AUDITORIA E INTEGRIDADE"
+                    desc="Validação de 391 testes e garantia de paridade KING (146 visitas) pós-correção de banco."
                   />
                 </div>
               </div>
@@ -155,7 +155,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.2.0
+                  SECURE ACCESS v1.2.1
                 </p>
               </div>
               <ClientOnly>
