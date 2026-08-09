@@ -127,29 +127,30 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.3" sub="SCOPE STABLE" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.5" sub="SCOPE STABLE" />
                 <StatusCard icon={Zap} title="INTEGRITY" value="100%" sub="ANALYTIC" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MK9 — HOTFIX VISUAL v1.3.4
+                  MK9 — HOTFIX ESTRUTURAL v1.3.5
                 </h3>
+
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="MATRIZ DE EXECUÇÃO AUTOEXPLICATIVA"
-                    desc="Interface redesenhada com faixas de cobertura descritivas (Sem Visita, Baixa Execução, Parcial, Completa, Acima da Meta)."
+                    title="PROMOÇÃO OPERACIONAL UNIFICADA"
+                    desc="Nova arquitetura atômica que garante que toda importação concluída alimente instantaneamente o Core Operacional, Dashboard e PDF."
                   />
                   <ProtocolItem
                     id="02"
-                    title="SISTEMA DE TOOLTIPS CONTEXTUAIS"
-                    desc="Novos indicadores visuais e descrições detalhadas por célula para facilitar a interpretação imediata dos dados."
+                    title="RECUPERAÇÃO ESTRUTURAL"
+                    desc="Implementada ferramenta administrativa genérica para reprocessar promoções e corrigir falhas de vigência como a da BANANA CORRENTE."
                   />
                   <ProtocolItem
                     id="03"
-                    title="ESTABILIDADE DE DADOS"
-                    desc="Refatoração focada exclusivamente em UX/UI, preservando 100% da integridade dos cálculos do core operacional."
+                    title="MATRIZ AUTOEXPLICATIVA v1.3.4"
+                    desc="Consolidação das melhorias visuais na matriz de execução com tooltips e faixas de cobertura descritivas."
                   />
                 </div>
               </div>
