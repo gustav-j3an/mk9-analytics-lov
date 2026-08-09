@@ -2377,6 +2377,7 @@ export type Database = {
         | "failed"
         | "cancelled"
         | "INCONSISTENT"
+        | "COMPLETED_WITH_ALERTS"
       mk9_industry_control_mode: "VISIT_CONTROLLED" | "FIXED_OPERATION"
       mk9_industry_status:
         | "DENTRO DA META"
@@ -2537,6 +2538,7 @@ export const Constants = {
         "failed",
         "cancelled",
         "INCONSISTENT",
+        "COMPLETED_WITH_ALERTS",
       ],
       mk9_industry_control_mode: ["VISIT_CONTROLLED", "FIXED_OPERATION"],
       mk9_industry_status: [
