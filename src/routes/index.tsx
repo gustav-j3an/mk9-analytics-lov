@@ -115,28 +115,28 @@ function LandingPage() {
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  Protocolo v1.2.0
+                  Protocolo v1.2.1
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="OVERHAUL GESTÃO OPERACIONAL"
-                    desc="Migração completa de Cards e Inputs claros para Mk9Panel dark e Glass Command, unificando a linguagem visual."
+                    title="RESTAURAÇÃO DE SNAPSHOTS"
+                    desc="Recriação da tabela mk9_checklist_import_store_snapshots e correção do erro 'schema cache' na persistência."
                   />
                   <ProtocolItem
                     id="02"
-                    title="UNIFICAÇÃO DE COMPONENTES"
-                    desc="Reutilização de Mk9Badge, Mk9Panel e tokens de tipografia em todos os módulos operacionais."
+                    title="HARDENING DE RLS"
+                    desc="Migração de políticas para usar mk9_private.is_mk9_admin(), garantindo isolamento total e performance."
                   />
                   <ProtocolItem
                     id="03"
-                    title="OTIMIZAÇÃO DE FORMULÁRIOS"
-                    desc="Padronização de labels, selects e inputs de data com foco em contraste e densidade de informação."
+                    title="ESTABILIZAÇÃO DO LOTE"
+                    desc="Sincronização do motor de commit em lote para reutilizar o pipeline de persistência imutável homologado."
                   />
                   <ProtocolItem
                     id="04"
-                    title="INTEGRIDADE OPERACIONAL"
-                    desc="Manutenção da paridade KING (146 visitas) e validação de 391 testes após o redesign estrutural."
+                    title="AUDITORIA E INTEGRIDADE"
+                    desc="Validação de 391 testes e garantia de paridade KING (146 visitas) pós-correção de banco."
                   />
                 </div>
               </div>
