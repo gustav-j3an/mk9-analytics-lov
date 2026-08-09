@@ -129,7 +129,7 @@ export async function loadOperationCore(
 
   const industriesList = await supabase
     .from("mk9_industries")
-    .select("id, name, requires_checklist, control_mode, checklist_enabled_at")
+    .select("id, name, requires_checklist, checklist_enabled_at")
     .order("name", { ascending: true });
 
   if (cfgRes.error) throw new Error(cfgRes.error.message);
@@ -162,9 +162,7 @@ export async function loadOperationCore(
       id: ind.id,
       name: ind.name,
       requiresChecklist: ind.requires_checklist === true,
-      controlMode: (ind.control_mode ?? "VISIT_CONTROLLED") as
-        | "VISIT_CONTROLLED"
-        | "FIXED_OPERATION",
+      controlMode: (ind.control_mode ?? "VISIT_CONTROLLED") as any,
       checklistEnabledAt: ind.checklist_enabled_at ?? null,
       win: w,
       fraction: elapsedFraction(w, today),
