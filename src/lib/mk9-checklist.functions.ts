@@ -84,22 +84,39 @@ export const checklistCommit = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
-    
-    // ANTES DO COMMIT: Limpa visitas órfãs ou de importações anteriores que não são manuais
-    // para evitar o acúmulo que gerou o bug da COOPATOS.
-    // O delete na promotion.server.ts lida com a importação 'is_operational_current',
-    // mas aqui garantimos que a nova importação tenha um terreno limpo se for uma re-submissão.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     
-    console.log(`[COMMIT] Iniciando commit individual para import ${data.importId}`);
+    const requestId = crypto.randomUUID();
+    console.log(`[COMMIT-START] [${requestId}] Iniciando commit individual para import ${data.importId}`);
 
+    // ANTES DO COMMIT: Limpa visitas órfãs ou de importações anteriores
     await supabaseAdmin
       .from("mk9_actual_visits")
       .delete()
       .eq("industry_id", data.industryId)
       .eq("source_import_id", data.importId);
 
-    return internalChecklistCommit(ctx, data);
+    try {
+      const result = await internalChecklistCommit(ctx, data);
+      
+      // PASSO 6 — CONSULTAR O BANCO APÓS COMMIT COMPLETO
+      console.log(`[COMMIT-END] [${requestId}] Finalizado. Verificando estado final do banco para import ${data.importId}...`);
+      const { count: finalCount } = await supabaseAdmin
+        .from("mk9_actual_visits")
+        .select("id", { count: "exact", head: true })
+        .eq("source_import_id", data.importId);
+      
+      console.log(`[COMMIT-AUDIT] [${requestId}] Status Final: Persistido no Banco = ${finalCount} vs Retornado = ${result.persisted}`);
+      
+      if (result.persisted > 0 && (finalCount ?? 0) === 0) {
+        console.error(`[COMMIT-FATAL] [${requestId}] As visitas sumiram após o commit! 21 -> 0.`);
+      }
+      
+      return result;
+    } catch (err) {
+      console.error(`[COMMIT-FATAL-ERROR] [${requestId}] Erro durante o commit:`, err);
+      throw err;
+    }
   });
 
 
