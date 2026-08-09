@@ -459,20 +459,23 @@ export async function runChecklistPreview(
   const fileHash = createHash("sha256").update(Buffer.from(input.buffer)).digest("hex");
   preview.fileHash = fileHash;
 
-  // Encerra prévias anteriores presas para a mesma indústria/competência antes de criar a nova.
-  await cancelPreviousPreviews({
-    industryId: industry.id,
-    operationMonth: input.operationMonth,
-    operationYear: input.operationYear,
-    reason: "new_preview_started",
-  });
-
+  // 1. Criar a importação PRIMEIRO para termos o ID que não deve ser cancelado.
   const { id: importId } = await createChecklistImport({
     filename: input.filename,
     industryId: industry.id,
     operationMonth: input.operationMonth,
     operationYear: input.operationYear,
     fileHash,
+  });
+
+  // 2. Encerra prévias anteriores presas para a mesma indústria/competência,
+  //    EXCLUINDO explicitamente a que acabamos de criar.
+  await cancelPreviousPreviews({
+    industryId: industry.id,
+    operationMonth: input.operationMonth,
+    operationYear: input.operationYear,
+    exceptImportId: importId, // <--- CRUCIAL: Protege a importação atual do autocancelamento
+    reason: "new_preview_started",
   });
 
   await savePreviewSnapshot(importId, preview);
