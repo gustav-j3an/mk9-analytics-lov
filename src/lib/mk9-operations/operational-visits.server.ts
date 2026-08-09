@@ -25,16 +25,33 @@ export const getOperationalVisits = async (params: {
   if (sourceImportId) {
     activeImportIds = [sourceImportId];
   } else {
+    // Buscamos a importação vigente para o período
     const { data: activeImports } = await supabaseAdmin
       .from("mk9_checklist_imports")
       .select("id")
       .eq("industry_id", industryId)
       .is("reverted_at", null)
-      .order('is_operational_current', { ascending: false })
+      .eq("is_operational_current" as any, true)
+      .gte("operation_year", Number(startDate.split("-")[0])) // Filtro grosseiro de período para performance
       .order('started_at', { ascending: false })
       .limit(1);
 
     activeImportIds = (activeImports ?? []).map((i) => i.id);
+
+    // Se não há NENHUMA marcada como vigente, fallback para a última "done" do período 
+    // (compatível com a v1.3.6 heuristic)
+    if (activeImportIds.length === 0) {
+      const { data: lastDone } = await supabaseAdmin
+        .from("mk9_checklist_imports")
+        .select("id")
+        .eq("industry_id", industryId)
+        .eq("status", "done")
+        .is("reverted_at", null)
+        .order('started_at', { ascending: false })
+        .limit(1);
+      
+      activeImportIds = (lastDone ?? []).map((i) => i.id);
+    }
   }
 
   // 2. Query de visitas
@@ -51,17 +68,14 @@ export const getOperationalVisits = async (params: {
     query = query.eq("store_id", storeId);
   }
 
+  // REGRA DE OURO: Se temos uma importação ativa/específica, filtramos OBRIGATORIAMENTE por ela.
+  // Visitas manuais (null) continuam entrando se não houver conflito de regra.
   if (activeImportIds.length > 0) {
-    // Regra: source_import_id é NULL OR source_import_id IN (activeIds)
-    if (sourceImportId) {
-      query = query.eq("source_import_id", sourceImportId);
-    } else {
-      query = query.or(
-        `source_import_id.is.null,source_import_id.in.(${activeImportIds.map((id) => `"${id}"`).join(",")})`,
-      );
-    }
+    query = query.or(
+      `source_import_id.is.null,source_import_id.in.(${activeImportIds.map((id) => `"${id}"`).join(",")})`,
+    );
   } else {
-    // Se não há importações vigentes e nenhuma específica foi pedida, apenas as manuais
+    // Sem importação, apenas manuais
     query = query.is("source_import_id", null);
   }
 
@@ -76,7 +90,6 @@ export const getOperationalVisits = async (params: {
 
 /**
  * Fonte ÚNICA de verdade para visitas operacionais realizadas.
- * Centraliza a lógica para Dashboard, PDF e Auditoria.
  */
 export async function listOperationalActualVisits(params: {
   industryId: string;
@@ -106,13 +119,15 @@ export async function listBulkOperationalActualVisits(params: {
     .select("id, industry_id, is_operational_current, started_at")
     .in("industry_id", industryIds)
     .is("reverted_at", null)
-    .order('is_operational_current', { ascending: false })
+    .eq("is_operational_current" as any, true)
     .order('started_at', { ascending: false });
 
-  // Pegar apenas a top 1 de cada indústria da lista ordenada
-  const activeImportIds = industryIds.map(id => 
-    allRecentImports?.find(i => i.industry_id === id)?.id
-  ).filter(Boolean) as string[];
+  const activeImportIds = industryIds.map(id => {
+    const active = allRecentImports?.find(i => i.industry_id === id);
+    if (active) return active.id;
+    return null;
+  }).filter(Boolean) as string[];
+
 
   // 2. Query de visitas em lote
   let query = supabaseAdmin

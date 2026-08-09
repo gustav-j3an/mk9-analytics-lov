@@ -84,8 +84,21 @@ export const checklistCommit = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { requireMk9Role } = await import("./mk9-auth/require-role.server");
     const ctx = await requireMk9Role(["ADMIN"]);
+    
+    // ANTES DO COMMIT: Limpa visitas órfãs ou de importações anteriores que não são manuais
+    // para evitar o acúmulo que gerou o bug da COOPATOS.
+    // O delete na promotion.server.ts lida com a importação 'is_operational_current',
+    // mas aqui garantimos que a nova importação tenha um terreno limpo se for uma re-submissão.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin
+      .from("mk9_actual_visits")
+      .delete()
+      .eq("industry_id", data.industryId)
+      .eq("source_import_id", data.importId);
+
     return internalChecklistCommit(ctx, data);
   });
+
 
 export async function internalChecklistCommit(ctx: Mk9AuthContext, data: ChecklistCommitInput) {
     const { promoteChecklistImportToOperational } = await import("./mk9-checklist/promotion.server");
