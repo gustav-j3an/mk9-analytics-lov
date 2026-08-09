@@ -1,5 +1,4 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { ChecklistValidationReport } from "./mk9-checklist/types";
 
 /**
  * Função central para promover uma importação de checklist a operacional.
@@ -11,7 +10,7 @@ export async function promoteChecklistImportToOperational(importId: string) {
   // 1. Validar importação e obter metadados
   const { data: importRec, error: importError } = await supabaseAdmin
     .from("mk9_checklist_imports")
-    .select("id, industry_id, operation_month, operation_year, status, preview, is_operational_current")
+    .select("id, industry_id, operation_month, operation_year, status, preview")
     .eq("id", importId)
     .single();
 
@@ -56,7 +55,6 @@ export async function promoteChecklistImportToOperational(importId: string) {
   }
 
   // 4. Se havia uma versão anterior, opcionalmente limpamos as visitas vinculadas a ela 
-  // (seguindo a lógica do internalChecklistCommit)
   if (previous) {
     await supabaseAdmin
       .from("mk9_actual_visits")
@@ -78,7 +76,6 @@ export async function promoteChecklistImportToOperational(importId: string) {
   }
 
   // 6. GARANTIR VÍNCULO DAS FREQUÊNCIAS VERSIONADAS
-  // Precisamos descobrir a data de início da competência (primeiro dia do mês)
   const competencyStart = `${operation_year}-${String(operation_month).padStart(2, "0")}-01`;
   
   const { error: freqUpdateError } = await supabaseAdmin
@@ -90,11 +87,7 @@ export async function promoteChecklistImportToOperational(importId: string) {
 
   if (freqUpdateError) {
     console.warn(`[PROMOTION-WARN] Falha ao vincular frequências: ${freqUpdateError.message}`);
-    // Não lançamos erro fatal aqui pois as frequências podem não existir se for um lote sem mudanças
   }
-
-  // 7. GARANTIR VÍNCULO DOS SNAPSHOTS (Já costuma estar certo, mas reforçamos)
-  // mk9_checklist_import_store_snapshots já usa import_id na PK/FK por padrão.
 
   console.log(`[PROMOTION] Importação ${importId} promovida com sucesso.`);
   

@@ -379,7 +379,8 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                                     toast.success("Promoção operacional concluída!", { id: loading });
                                     diagnosisMut.mutate({ industryId, month, year });
                                   } else {
-                                    toast.error("Erro: " + res.error, { id: loading });
+                                    const errorMsg = 'error' in res ? res.error : "Erro desconhecido";
+                                    toast.error("Erro: " + errorMsg, { id: loading });
                                   }
                                 } catch (e: any) {
                                   toast.error("Falha na comunicação", { id: loading });
@@ -388,6 +389,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                             >
                               <RotateCcw className="h-3 w-3" />
                             </Button>
+
                           </div>
                         </div>
                       ))}

@@ -12,7 +12,7 @@ export const reprocessChecklistPromotion = createServerFn({ method: "POST" })
     
     const result = await reprocessOperationalPromotion(data.importId);
     
-    if (result.success) {
+    if (result.success && 'industryId' in result) {
       await logAudit(ctx, "mk9.admin.reprocess_promotion", "mk9_checklist_imports", data.importId, {
         industryId: result.industryId,
         previousImportId: result.previousImportId
