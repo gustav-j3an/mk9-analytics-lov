@@ -365,17 +365,23 @@ export const checklistCommit = createServerFn({ method: "POST" })
       const isSuccess = ["done", "INCONSISTENT", "COMPLETED_WITH_ALERTS"].includes(finalStatus);
 
       if (isSuccess) {
-        if (previous) {
-          // Desativa a anterior
-          await supabaseAdmin
-            .from("mk9_checklist_imports")
-            .update({
-              is_operational_current: false,
-              superseded_at: new Date().toISOString(),
-              superseded_by: data.importId,
-            } as any)
-            .eq("id", previous.id);
+        // REGRA DE SEGURANÇA: Antes de ativar a nova, garantimos que qualquer outra importação 
+        // marcada como 'vigente' para esta mesma competência seja desativada, 
+        // mesmo que não tenha sido detectada como 'previous' (ex.: status diferente de 'done').
+        await supabaseAdmin
+          .from("mk9_checklist_imports")
+          .update({
+            is_operational_current: false,
+            superseded_at: new Date().toISOString(),
+            superseded_by: data.importId,
+          } as any)
+          .eq("industry_id", data.industryId)
+          .eq("operation_month", data.operationMonth)
+          .eq("operation_year", data.operationYear)
+          .eq("is_operational_current" as any, true)
+          .neq("id", data.importId);
 
+        if (previous) {
           // Remove visitas da importação anterior para não somar no operacional
           await supabaseAdmin
             .from("mk9_actual_visits")
