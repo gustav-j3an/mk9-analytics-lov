@@ -237,6 +237,7 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
       //    "visitas contratadas" no relatório da indústria.
       let frequenciesUpserted = 0;
       let frequenciesNotImported = 0;
+      let competencyStart: string | null = null;
       let frequencyDiff: {
         unchanged: number;
         new: number;
