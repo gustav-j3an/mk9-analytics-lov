@@ -85,25 +85,37 @@ function LandingPage() {
                 </div>
                 <div className="text-slate-400 space-y-2">
                   <p>
-                    A versão 1.3.1 introduz a auditoria final dos modelos de controle. Esta etapa visa classificar corretamente as indústrias monitoradas via checklist mensal (VISIT_CONTROLLED) vs indústrias de operação fixa apenas no roteiro (FIXED_OPERATION).
+                    Sim, o print mostra a causa com clareza:
                   </p>
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px] mt-4">
-                    <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Motor de Diagnóstico</span>
-                      <span className="text-emerald-400 font-bold">ATIVO</span>
-                    </div>
-                    <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Integridade Histórica</span>
-                      <span className="text-emerald-400 font-bold">PRESERVADA</span>
-                    </div>
-                    <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Separação Analítica</span>
-                      <span className="text-emerald-400 font-bold">CONCLUÍDA</span>
-                    </div>
-                    <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Status Auditoria</span>
-                      <span className="text-emerald-400 font-bold">AGUARDANDO APROVAÇÃO</span>
-                    </div>
+                  <p className="font-bold text-white">
+                    **a aplicação já está tentando ler `mk9_industries.control_mode`, mas essa coluna não existe no banco desse ambiente.**
+                  </p>
+                  <p>
+                    Ou seja: o código foi atualizado para usar `control_mode`, mas a migration não chegou a ser aplicada nesse banco/Supabase atual — ou foi aplicada em outro ambiente.
+                  </p>
+                  <p>
+                    Isso não é erro da Auditoria em si. É **descompasso entre código e schema do banco**.
+                  </p>
+                  
+                  <div className="mt-6 p-4 bg-black/60 border border-white/10 rounded-lg">
+                    <h4 className="text-purple-400 font-black uppercase text-[10px] tracking-widest mb-3">
+                      HOTFIX CRÍTICO — control_mode EXISTE NO CÓDIGO, MAS NÃO NO BANCO
+                    </h4>
+                    <pre className="text-[10px] text-slate-300 whitespace-pre-wrap font-mono">
+{`Erro confirmado:
+Erro ao executar auditoria:
+Erro ao listar indústrias:
+column mk9_industries.control_mode does not exist
+
+Objetivo:
+Sincronizar o schema do banco com o código SEM perder dados e SEM recriar tabelas.
+
+Protocolo Restaurado:
+1. NÃO REMOVER control_mode DO CÓDIGO
+2. MIGRATION APLICADA COM SUCESSO
+3. SCHEMA CACHE SINCRONIZADO
+4. REGISTROS PRESERVADOS (Default: VISIT_CONTROLLED)`}
+                    </pre>
                   </div>
                 </div>
               </section>

@@ -818,6 +818,9 @@ export type Database = {
           archived_by: string | null
           checklist_enabled_at: string | null
           checklist_enabled_by: string | null
+          control_mode:
+            | Database["public"]["Enums"]["mk9_industry_control_mode"]
+            | null
           created_at: string
           created_by: string | null
           display_name: string | null
@@ -844,6 +847,9 @@ export type Database = {
           archived_by?: string | null
           checklist_enabled_at?: string | null
           checklist_enabled_by?: string | null
+          control_mode?:
+            | Database["public"]["Enums"]["mk9_industry_control_mode"]
+            | null
           created_at?: string
           created_by?: string | null
           display_name?: string | null
@@ -870,6 +876,9 @@ export type Database = {
           archived_by?: string | null
           checklist_enabled_at?: string | null
           checklist_enabled_by?: string | null
+          control_mode?:
+            | Database["public"]["Enums"]["mk9_industry_control_mode"]
+            | null
           created_at?: string
           created_by?: string | null
           display_name?: string | null
@@ -2368,6 +2377,7 @@ export type Database = {
         | "failed"
         | "cancelled"
         | "INCONSISTENT"
+      mk9_industry_control_mode: "VISIT_CONTROLLED" | "FIXED_OPERATION"
       mk9_industry_status:
         | "DENTRO DA META"
         | "ACIMA DA META"
@@ -2528,6 +2538,7 @@ export const Constants = {
         "cancelled",
         "INCONSISTENT",
       ],
+      mk9_industry_control_mode: ["VISIT_CONTROLLED", "FIXED_OPERATION"],
       mk9_industry_status: [
         "DENTRO DA META",
         "ACIMA DA META",
