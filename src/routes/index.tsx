@@ -69,7 +69,7 @@ function LandingPage() {
                 MK9 ANALYTICS — REESTRUTURAÇÃO DO ESCOPO
               </h1>
               <p className="text-[10px] text-purple-500 font-black tracking-[0.3em] uppercase">
-                STATUS: v1.3.10 — INTEGRIDADE DE SNAPSHOTS
+                STATUS: v1.3.12 — BLINDAGEM DE PERSISTÊNCIA
               </p>
             </div>
           </div>
