@@ -47,6 +47,7 @@ export type IndustryRow = {
   displayName?: string | null;
   notes?: string | null;
   requiresChecklist?: boolean;
+  controlMode?: "VISIT_CONTROLLED" | "FIXED_OPERATION";
   archivedAt?: string | null;
   cnpj?: string | null;
   periodType?: string;
@@ -81,6 +82,9 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
   const [notes, setNotes] = useState("");
 
   const [requiresChecklist, setRequiresChecklist] = useState(false);
+  const [controlMode, setControlMode] = useState<"VISIT_CONTROLLED" | "FIXED_OPERATION">(
+    "VISIT_CONTROLLED",
+  );
   const [periodType, setPeriodType] = useState<"CALENDAR_MONTH" | "CUSTOM_CYCLE">("CALENDAR_MONTH");
   const [startDay, setStartDay] = useState("1");
   const [endDay, setEndDay] = useState("31");
@@ -109,6 +113,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
           cnpj: cnpj || null,
           notes: notes || null,
           requiresChecklist,
+          controlMode,
           periodType,
           startDay: periodType === "CUSTOM_CYCLE" ? Number(startDay) : null,
           endDay: periodType === "CUSTOM_CYCLE" ? Number(endDay) : null,
@@ -218,6 +223,20 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
               </p>
             </div>
             <Switch checked={requiresChecklist} onCheckedChange={setRequiresChecklist} />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              Modelo de Controle
+            </Label>
+            <Select value={controlMode} onValueChange={(v) => setControlMode(v as any)}>
+              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10">
+                <SelectItem value="VISIT_CONTROLLED">Monitorada (Dashboard/Analytics)</SelectItem>
+                <SelectItem value="FIXED_OPERATION">Operação Fixa (Apenas Roteiro)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
@@ -332,6 +351,9 @@ export function IndustryEditDialog({
   const [cnpj, setCnpj] = useState("");
   const [notes, setNotes] = useState("");
   const [requiresChecklist, setRequiresChecklist] = useState(false);
+  const [controlMode, setControlMode] = useState<"VISIT_CONTROLLED" | "FIXED_OPERATION">(
+    "VISIT_CONTROLLED",
+  );
   const [periodType, setPeriodType] = useState<"CALENDAR_MONTH" | "CUSTOM_CYCLE">("CALENDAR_MONTH");
   const [startDay, setStartDay] = useState("1");
   const [endDay, setEndDay] = useState("31");
@@ -345,6 +367,7 @@ export function IndustryEditDialog({
       setCnpj(industry.cnpj ?? "");
       setNotes(industry.notes ?? "");
       setRequiresChecklist(industry.requiresChecklist === true);
+      setControlMode(industry.controlMode ?? "VISIT_CONTROLLED");
       setPeriodType((industry.periodType as any) ?? "CALENDAR_MONTH");
       setStartDay(String(industry.startDay ?? "1"));
       setEndDay(String(industry.endDay ?? "31"));
@@ -363,6 +386,7 @@ export function IndustryEditDialog({
           cnpj: cnpj || null,
           notes: notes || null,
           requiresChecklist,
+          controlMode,
           periodType,
           startDay: periodType === "CUSTOM_CYCLE" ? Number(startDay) : null,
           endDay: periodType === "CUSTOM_CYCLE" ? Number(endDay) : null,
@@ -461,7 +485,20 @@ export function IndustryEditDialog({
             </div>
             <Switch checked={requiresChecklist} onCheckedChange={setRequiresChecklist} />
           </div>
-
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              Modelo de Controle
+            </Label>
+            <Select value={controlMode} onValueChange={(v) => setControlMode(v as any)}>
+              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10">
+                <SelectItem value="VISIT_CONTROLLED">Monitorada (Dashboard/Analytics)</SelectItem>
+                <SelectItem value="FIXED_OPERATION">Operação Fixa (Apenas Roteiro)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
               Tipo de período
