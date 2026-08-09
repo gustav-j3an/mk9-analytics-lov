@@ -69,7 +69,7 @@ function LandingPage() {
                 MK9 ANALYTICS — SISTEMA HOMOLOGADO
               </h1>
               <p className="text-[10px] text-emerald-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.2.0 — PADRONIZAÇÃO VISUAL GLOBAL
+                STATUS: V1.2.1 — HOTFIX DE PIPELINE E SNAPSHOTS
               </p>
             </div>
           </div>
