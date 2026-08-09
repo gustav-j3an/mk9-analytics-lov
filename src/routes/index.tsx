@@ -69,7 +69,7 @@ function LandingPage() {
                 MK9 ANALYTICS — SISTEMA HOMOLOGADO
               </h1>
               <p className="text-[10px] text-emerald-500 font-black tracking-[0.3em] uppercase">
-                STATUS: V1.2.1 — HOTFIX DE PIPELINE E SNAPSHOTS
+                STATUS: V1.3.0 — ARQUITETURA OPERACIONAL UNIFICADA
               </p>
             </div>
           </div>
@@ -80,12 +80,12 @@ function LandingPage() {
                 <div className="flex items-center gap-2 text-white mb-3">
                   <Info className="w-4 h-4 text-purple-400" />
                   <span className="font-black uppercase tracking-widest text-purple-400">
-                    Notas de Versão v1.2.1
+                    Notas de Versão v1.3.0
                   </span>
                 </div>
                 <div className="text-slate-400 space-y-2">
                   <p>
-                    A versão 1.2.1 corrige uma falha crítica no pipeline de importação de checklists. A tabela de snapshots imutáveis foi restaurada e as políticas de segurança (RLS) foram endurecidas usando o schema privado mk9_private.
+                    A versão 1.3.0 consolida a arquitetura operacional unificada. O checklist importado agora alimenta automaticamente Dashboard, PDF, Inteligência e Cockpit através de uma fonte única de verdade (Core Operacional) e propagação imediata pós-commit.
                   </p>
                   <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-[11px] mt-4">
                     <div className="flex justify-between border-b border-white/5 pb-1">
@@ -93,15 +93,15 @@ function LandingPage() {
                       <span className="text-emerald-400 font-bold">391 PASS</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Pipeline Snapshot</span>
-                      <span className="text-emerald-400 font-bold">RESTAURADO</span>
+                      <span>Propagação Automática</span>
+                      <span className="text-emerald-400 font-bold">ATIVA</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                      <span>Security Hardening</span>
-                      <span className="text-emerald-400 font-bold">mk9_private</span>
+                      <span>Core Operacional</span>
+                      <span className="text-emerald-400 font-bold">UNIFICADO</span>
                     </div>
                     <div className="flex justify-between border-b border-white/5 pb-1">
-                     <span>Importação Lote</span>
+                     <span>Vigência Operacional</span>
                       <span className="text-emerald-400 font-bold">ESTABILIZADA</span>
                     </div>
                   </div>
@@ -109,34 +109,34 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.2.1" sub="STABLE" />
-                <StatusCard icon={Database} title="DATABASE" value="SNAPSHOTS" sub="FIXED" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.0" sub="STABLE" />
+                <StatusCard icon={Database} title="ARCHITECTURE" value="UNIFIED" sub="CORE" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  Protocolo v1.2.1
+                  Protocolo v1.3.0
                 </h3>
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="RESTAURAÇÃO DE SNAPSHOTS"
-                    desc="Recriação da tabela mk9_checklist_import_store_snapshots e correção do erro 'schema cache' na persistência."
+                    title="FONTE ÚNICA DE VERDADE"
+                    desc="Unificação do motor loadOperationCore para servir todos os módulos a partir do mesmo estado operacional."
                   />
                   <ProtocolItem
                     id="02"
-                    title="HARDENING DE RLS"
-                    desc="Migração de políticas para usar mk9_private.is_mk9_admin(), garantindo isolamento total e performance."
+                    title="PROPAGAÇÃO AUTOMÁTICA"
+                    desc="Ativação garantida da importação como 'vigente' pós-commit, alimentando o sistema sem necessidade de F5."
                   />
                   <ProtocolItem
                     id="03"
-                    title="ESTABILIZAÇÃO DO LOTE"
-                    desc="Sincronização do motor de commit em lote para reutilizar o pipeline de persistência imutável homologado."
+                    title="IMUTABILIDADE E SNAPSHOTS"
+                    desc="Consolidação de snapshots operacionais imutáveis que protegem a integridade histórica dos relatórios PDF."
                   />
                   <ProtocolItem
                     id="04"
-                    title="AUDITORIA E INTEGRIDADE"
-                    desc="Validação de 391 testes e garantia de paridade KING (146 visitas) pós-correção de banco."
+                    title="VERSIONAMENTO ESTABILIZADO"
+                    desc="Correção na lógica de substituição de importações, garantindo paridade absoluta (KING: 146 visitas)."
                   />
                 </div>
               </div>
@@ -155,7 +155,7 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.2.1
+                  SECURE ACCESS v1.3.0
                 </p>
               </div>
               <ClientOnly>
