@@ -9,51 +9,54 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
  * 1. Presença no roteiro planejado (mk9_planned_routes)
  * 2. Histórico de importações (mk9_checklist_imports)
  * 3. Frequências configuradas (mk9_industry_store_frequency_versions)
- * 4. Visitas operacionais (mk9_operational_actual_visits)
+ * 4. Visitas operacionais (mk9_actual_visits)
  */
 export const mk9RunIndustryAudit = createServerFn({ method: "POST" }).handler(async () => {
   // 1. Listar todas as indústrias
+  // Nota: Usando 'any' temporariamente para evitar erros de tipos enquanto o schema cache não atualiza localmente
   const { data: industries, error: indErr } = await supabaseAdmin
     .from("mk9_industries")
     .select("id, name, control_mode, archived_at")
-    .order("name", { ascending: true });
+    .order("name", { ascending: true }) as any;
 
   if (indErr) throw new Error("Erro ao listar indústrias: " + indErr.message);
 
   const results = [];
 
   for (const ind of industries || []) {
+    const industryId = ind.id;
+
     // A. Verificar roteiro planejado
     const { count: routeCount } = await supabaseAdmin
       .from("mk9_planned_routes")
       .select("*", { count: 'exact', head: true })
-      .eq("industry_id", ind.id)
+      .eq("industry_id", industryId)
       .is("archived_at", null);
 
     // B. Verificar histórico de importações
     const { count: importCount } = await supabaseAdmin
       .from("mk9_checklist_imports")
       .select("*", { count: 'exact', head: true })
-      .eq("industry_id", ind.id)
+      .eq("industry_id", industryId)
       .in("status", ["done", "confirmed"]);
 
     // C. Verificar frequências versionadas
     const { count: freqCount } = await supabaseAdmin
       .from("mk9_industry_store_frequency_versions")
       .select("*", { count: 'exact', head: true })
-      .eq("industry_id", ind.id);
+      .eq("industry_id", industryId);
 
-    // D. Verificar visitas operacionais (realizadas via checklist)
+    // D. Verificar visitas reais (antiga mk9_actual_visits ou operacional)
     const { count: visitCount } = await supabaseAdmin
-      .from("mk9_operational_actual_visits")
+      .from("mk9_actual_visits")
       .select("*", { count: 'exact', head: true })
-      .eq("industry_id", ind.id);
+      .eq("industry_id", industryId);
 
     // E. Verificar se aparece em snapshots (Indústrias PDF)
     const { count: snapshotCount } = await supabaseAdmin
       .from("mk9_checklist_import_store_snapshots")
       .select("*", { count: 'exact', head: true })
-      .eq("industry_id", ind.id);
+      .eq("industry_id", industryId);
 
     const hasChecklistActivity = (importCount ?? 0) > 0 || (freqCount ?? 0) > 0 || (visitCount ?? 0) > 0 || (snapshotCount ?? 0) > 0;
     
@@ -63,7 +66,7 @@ export const mk9RunIndustryAudit = createServerFn({ method: "POST" }).handler(as
     const suggestedMode = hasChecklistActivity ? "VISIT_CONTROLLED" : "FIXED_OPERATION";
 
     results.push({
-      id: ind.id,
+      id: industryId,
       name: ind.name,
       currentMode: ind.control_mode || "VISIT_CONTROLLED",
       suggestedMode,
