@@ -9,11 +9,11 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.16 — PROTEÇÃO DE AUTOCANCELAMENTO",
+    title: "MK9 | v1.3.17 — DIAGNÓSTICO ESTRUTURAL",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.16: PROTEÇÃO DE AUTOCANCELAMENTO. Correção na lógica de limpeza de prévias para impedir que o sistema cancele a própria importação ativa.",
+        content: "MK9 Analytics v1.3.17: DIAGNÓSTICO ESTRUTURAL. Nova estratégia de rastreamento direto no banco de dados para identificar a causa raiz do cancelamento automático de importações.",
       },
       { property: "og:title", content: "MK9 | v1.3.16" },
       {
@@ -70,7 +70,7 @@ function LandingPage() {
                 MK9 ANALYTICS — REESTRUTURAÇÃO DO ESCOPO
               </h1>
               <p className="text-[10px] text-purple-500 font-black tracking-[0.3em] uppercase">
-                STATUS: v1.3.16 — PROTEÇÃO DE AUTOCANCELAMENTO
+                STATUS: v1.3.17 — DIAGNÓSTICO ESTRUTURAL
               </p>
             </div>
           </div>
@@ -128,39 +128,38 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.16" sub="SELF-CANCEL GUARD" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.17" sub="STRUCTURAL DIAGNOSTIC" />
                 <StatusCard icon={Zap} title="INTEGRITY" value="100%" sub="ANALYTIC" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MK9 — HOTFIX ESTRUTURAL v1.3.16
+                  MK9 — ESTRATÉGIA DE DIAGNÓSTICO v1.3.17
                 </h3>
-
 
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="CORE ANALÍTICO UNIFICADO"
-                    desc="Refatoração do motor central (Dashboard/PDF) para usar Snapshot como fonte primária do universo de lojas e frequências."
+                    title="RASTREAMENTO DE ESTADO"
+                    desc="Instrumentação de todas as etapas do ciclo de vida da importação para detectar a primeira transição indevida para o status CANCELLED."
                   />
                   <ProtocolItem
                     id="02"
-                    title="RESOLUÇÃO SISTÊMICA MENDEZ"
-                    desc="Saneamento de visitas órfãs e ativação operacional da indústria MENDEZ Julho/2026, recuperando lojas com zero atendimento."
+                    title="AUDITORIA DE ESCRITA"
+                    desc="Monitoramento direto das queries enviadas ao banco, verificando se triggers ou requisições concorrentes estão afetando a integridade do processo."
                   />
                   <ProtocolItem
                     id="03"
-                    title="BLINDAGEM DE ESCOPO"
-                    desc="Garantia de que visitas realizadas só são contabilizadas se pertencerem à importação ativa, eliminando duplicatas acumuladas."
+                    title="VERIFICAÇÃO DE CONCORRÊNCIA"
+                    desc="Análise de duplicidade de submissões no frontend e React Strict Mode para descartar execuções paralelas que invalidam o estado atual."
                   />
-                </div>
                   <ProtocolItem
                     id="04"
-                    title="BLINDAGEM DE PERSISTÊNCIA"
-                    desc="Nova barreira de integridade que impede a conclusão de importações se as visitas identificadas não forem persistidas com sucesso no banco."
+                    title="INDÚSTRIA DE REFERÊNCIA: MENDEZ"
+                    desc="Foco total na MENDEZ Julho/2026 para consolidar o diagnóstico definitivo e garantir que o status final chegue a COMPLETED."
                   />
                 </div>
+              </div>
             </div>
           </div>
         </div>
@@ -176,10 +175,10 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.16
+                  SECURE ACCESS v1.3.17
                 </p>
-                <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] text-emerald-400 leading-relaxed italic">
-                  "Sim — identificamos a causa do cancelamento automático. A v1.3.16 inverte a ordem de criação e aplica um guard no 'cancelPreviousPreviews', garantindo que a nova importação da MENDEZ não seja invalidada pela própria rotina de limpeza."
+                <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded text-[10px] text-amber-400 leading-relaxed italic">
+                  "Mudança de estratégia: o diagnóstico agora é puramente baseado em evidências de banco. Não vamos mais assumir causas; vamos rastrear cada UPDATE que altera o status da importação para identificar o momento exato do cancelamento."
                 </div>
               </div>
               <ClientOnly>
