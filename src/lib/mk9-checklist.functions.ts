@@ -393,6 +393,9 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
       const isSuccess = ["done", "INCONSISTENT", "COMPLETED_WITH_ALERTS"].includes(finalStatus);
 
       if (isSuccess) {
+        // REGRA DE TRANSAÇÃO LÓGICA: Promovemos ENQUANTO o status ainda é 'committing'
+        // para garantir que se a promoção falhar, a importação fique em 'failed' 
+        // e não como 'done' mas não operacional.
         await promoteChecklistImportToOperational(data.importId);
       }
 

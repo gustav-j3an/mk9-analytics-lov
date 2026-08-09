@@ -18,8 +18,10 @@ export async function promoteChecklistImportToOperational(importId: string) {
     throw new Error(`Importação ${importId} não encontrada.`);
   }
 
-  // Só podemos promover importações que não falharam (done, INCONSISTENT, COMPLETED_WITH_ALERTS)
-  const successStatuses = ["done", "INCONSISTENT", "COMPLETED_WITH_ALERTS"];
+  // Só podemos promover importações que não falharam.
+  // REGRA MK9 (v1.3.9): 'committing' é aceito porque o commit chama a promoção
+  // ANTES de mudar o status final (done/inconsistent), garantindo atomicidade visual.
+  const successStatuses = ["done", "INCONSISTENT", "COMPLETED_WITH_ALERTS", "committing"];
   if (!successStatuses.includes(importRec.status)) {
     throw new Error(`Importação ${importId} está com status '${importRec.status}' e não pode ser promovida.`);
   }
