@@ -2,23 +2,23 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
 import { useMk9Session } from "@/lib/mk9-auth/session";
-import { Loader2, Zap, BarChart3, Shield, Cpu, Activity, Info } from "lucide-react";
+import { Loader2, Zap, BarChart3, Shield, Cpu, Activity, Info, Database } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOnly } from "@/components/client-only";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | SISTEMA HOMOLOGADO v1.2.0",
+    title: "MK9 | SISTEMA HOMOLOGADO v1.2.1",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.2.0: Padronização Visual Global MK9 Command Center.",
+        content: "MK9 Analytics v1.2.1: Hotfix de Pipeline de Importação (Snapshots).",
       },
-      { property: "og:title", content: "MK9 | v1.2.0" },
+      { property: "og:title", content: "MK9 | v1.2.1" },
       {
         property: "og:description",
-        content: "Painel de inteligência operacional com contraste visual otimizado.",
+        content: "Painel de inteligência operacional com pipeline de dados estabilizado.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
