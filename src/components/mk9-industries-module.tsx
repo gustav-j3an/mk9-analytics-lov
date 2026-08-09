@@ -166,7 +166,7 @@ export function Mk9IndustriesModule() {
                           </Mk9Badge>
                         ) : (
                           <Mk9Badge variant="success" className="flex items-center gap-1">
-                            <shieldCheck className="h-2 w-2" /> Monitorada
+                            <ShieldCheck className="h-2 w-2" /> Monitorada
                           </Mk9Badge>
                         )}
                         <Mk9Badge className="flex items-center gap-1">
