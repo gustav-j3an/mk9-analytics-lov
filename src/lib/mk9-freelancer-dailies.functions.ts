@@ -193,3 +193,83 @@ export const deleteDaily = createServerFn({ method: "POST" })
     await logAudit(ctx, 'DAILY_RATE_DELETED', 'mk9_freelancer_dailies', id);
     return { success: true };
   });
+
+export const getDailiesExportData = createServerFn({ method: "GET" })
+  .inputValidator(z.object({
+    startDate: z.string(),
+    endDate: z.string(),
+    freelancerId: z.string().uuid().optional(),
+    supervisorId: z.string().uuid().optional(),
+    status: z.string().optional(),
+  }))
+  .handler(async ({ data }) => {
+    const admin = supabaseAdmin as any;
+    let query = admin
+      .from('mk9_freelancer_dailies')
+      .select(`
+        *,
+        freelancer:mk9_freelancers(*),
+        supervisor:mk9_supervisors(*),
+        items:mk9_freelancer_daily_items(
+          *,
+          store:mk9_stores(*),
+          industry:mk9_industries(*)
+        )
+      `)
+      .gte('date', data.startDate)
+      .lte('date', data.endDate)
+      .order('date', { ascending: true });
+
+    if (data.freelancerId) query = query.eq('freelancer_id', data.freelancerId);
+    if (data.supervisorId) query = query.eq('supervisor_id', data.supervisorId);
+    if (data.status) query = query.eq('status', data.status);
+
+    const { data: dailies, error } = await query;
+    if (error) throw error;
+
+    // Resumo
+    const totalDailies = dailies.length;
+    const totalAmount = dailies
+      .filter((d: any) => d.status === 'REALIZADA')
+      .reduce((acc: number, d: any) => acc + Number(d.amount), 0);
+    
+    const uniqueFreelancers = new Set(dailies.map((d: any) => d.freelancer_id)).size;
+    const uniqueStores = new Set(dailies.flatMap((d: any) => d.items.map((it: any) => it.store_id))).size;
+    const uniqueIndustries = new Set(dailies.flatMap((d: any) => d.items.map((it: any) => it.industry_id))).size;
+
+    const summary = [
+      { campo: "Período", valor: `${data.startDate} a ${data.endDate}` },
+      { campo: "Total de diárias", valor: totalDailies },
+      { campo: "Total financeiro (REALIZADA)", valor: totalAmount },
+      { campo: "Freelancers utilizados", valor: uniqueFreelancers },
+      { campo: "Lojas atendidas", valor: uniqueStores },
+      { campo: "Indústrias atendidas", valor: uniqueIndustries },
+    ];
+
+    // Diárias
+    const dailiesList = dailies.map((d: any) => ({
+      DATA: d.date,
+      FREELANCER: d.freelancer?.name,
+      SUPERVISOR: d.supervisor?.name || "-",
+      VALOR: Number(d.amount),
+      STATUS: d.status,
+      "QTD LOJAS": new Set(d.items.map((it: any) => it.store_id)).size,
+      "QTD INDÚSTRIAS": d.items.length,
+      OBSERVAÇÃO: d.notes || "-"
+    }));
+
+    // Atendimentos
+    const itemsList = dailies.flatMap((d: any) => d.items.map((it: any) => ({
+      DATA: d.date,
+      FREELANCER: d.freelancer?.name,
+      LOJA: it.store?.name,
+      REDE: it.store?.chain || "-",
+      UF: it.store?.uf || "-",
+      INDÚSTRIA: it.industry?.name,
+      "VALOR DA DIÁRIA": Number(d.amount),
+      STATUS: d.status
+    })));
+
+    return { summary, dailiesList, itemsList };
+  });
+
