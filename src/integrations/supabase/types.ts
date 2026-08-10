@@ -1385,6 +1385,50 @@ export type Database = {
         }
         Relationships: []
       }
+      mk9_promoter_presence: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          date: string
+          id: string
+          observation: string | null
+          promoter_id: string
+          status: Database["public"]["Enums"]["presence_status"]
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          date: string
+          id?: string
+          observation?: string | null
+          promoter_id: string
+          status: Database["public"]["Enums"]["presence_status"]
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          date?: string
+          id?: string
+          observation?: string | null
+          promoter_id?: string
+          status?: Database["public"]["Enums"]["presence_status"]
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_promoter_presence_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_promoters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mk9_promoters: {
         Row: {
           archive_reason: string | null
@@ -2433,6 +2477,7 @@ export type Database = {
       mk9_sync_mode: "full" | "add_only" | "registry_only" | "routes_only"
       mk9_visit_status: "planned" | "completed" | "cancelled" | "skipped"
       mk9_week_grouping: "CALENDAR_WEEK" | "CYCLE_WEEK"
+      presence_status: "PRESENT" | "ABSENT" | "MEDICAL_CERTIFICATE"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2597,6 +2642,7 @@ export const Constants = {
       mk9_sync_mode: ["full", "add_only", "registry_only", "routes_only"],
       mk9_visit_status: ["planned", "completed", "cancelled", "skipped"],
       mk9_week_grouping: ["CALENDAR_WEEK", "CYCLE_WEEK"],
+      presence_status: ["PRESENT", "ABSENT", "MEDICAL_CERTIFICATE"],
     },
   },
 } as const
