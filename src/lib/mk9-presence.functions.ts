@@ -11,16 +11,14 @@ export const getPresenceList = createServerFn({ method: "GET" })
       search: z.string().optional(),
       uf: z.string().optional(),
       status: z.string().optional(),
-      supervisor: z.string().optional(), // Added supervisor filter
+      teamId: z.string().optional(),
     }).optional()
   }).parse(data))
   .handler(async ({ data }) => {
-    const supervisorAId = '3765698f-3d6b-4d75-a6a4-ddc48686318c';
-
-    // 1. Fetch active promoters using the correct column 'is_active'
+    // 1. Fetch active promoters
     let promotersQuery = supabaseAdmin
-      .from('mk9_promoters')
-      .select('id, name, employee_number, uf, supervisor_id')
+      .from('mk9_promoters' as any)
+      .select('id, name, employee_number, uf, presence_team_id')
       .eq('is_active', true)
       .order('name', { ascending: true });
 
@@ -31,12 +29,11 @@ export const getPresenceList = createServerFn({ method: "GET" })
       promotersQuery = promotersQuery.eq('uf', data.filters.uf);
     }
 
-    // Apply Supervisor Filter
-    if (data.filters?.supervisor === 'SUPERVISOR_A') {
-      promotersQuery = promotersQuery.eq('supervisor_id', supervisorAId);
-    } else if (data.filters?.supervisor === 'SUPERVISOR_B') {
-      // B = All actives that are NOT A
-      promotersQuery = promotersQuery.or(`supervisor_id.is.null,supervisor_id.neq.${supervisorAId}`);
+    // Apply Team Filter
+    if (data.filters?.teamId === 'NONE') {
+      promotersQuery = promotersQuery.is('presence_team_id', null);
+    } else if (data.filters?.teamId && data.filters.teamId !== 'ALL') {
+      promotersQuery = promotersQuery.eq('presence_team_id', data.filters.teamId);
     }
 
     const { data: promoters, error: pError } = await promotersQuery;
@@ -44,7 +41,7 @@ export const getPresenceList = createServerFn({ method: "GET" })
 
     // 2. Fetch presence for the date
     const { data: presence, error: prError } = await supabaseAdmin
-      .from('mk9_promoter_presence')
+      .from('mk9_promoter_presence' as any)
       .select('*')
       .eq('date', data.date);
     
@@ -58,7 +55,7 @@ export const getPresenceList = createServerFn({ method: "GET" })
         name: p.name,
         registration_number: p.employee_number,
         uf: p.uf,
-        supervisor_id: p.supervisor_id,
+        teamId: (p as any).presence_team_id,
         presenceId: pData?.id || null,
         status: (pData?.status as z.infer<typeof PresenceStatusSchema>) || null,
         observation: pData?.observation || ''
@@ -84,7 +81,7 @@ export const savePresenceBulk = createServerFn({ method: "POST" })
     }));
 
     const { error } = await supabaseAdmin
-      .from('mk9_promoter_presence')
+      .from('mk9_promoter_presence' as any)
       .upsert(records, { onConflict: 'date,promoter_id' });
 
     if (error) throw error;
@@ -94,36 +91,33 @@ export const savePresenceBulk = createServerFn({ method: "POST" })
 export const getPresenceStats = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ 
     date: z.string(),
-    supervisor: z.string().optional()
+    teamId: z.string().optional()
   }).parse(data))
   .handler(async ({ data }) => {
-    const supervisorAId = '3765698f-3d6b-4d75-a6a4-ddc48686318c';
-
-    // 1. Filter Promoters first to get the correct total count for the team
+    // 1. Filter Promoters first
     let promotersQuery = supabaseAdmin
-      .from('mk9_promoters')
+      .from('mk9_promoters' as any)
       .select('id', { count: 'exact' })
       .eq('is_active', true);
 
-    if (data.supervisor === 'SUPERVISOR_A') {
-      promotersQuery = promotersQuery.eq('supervisor_id', supervisorAId);
-    } else if (data.supervisor === 'SUPERVISOR_B') {
-      promotersQuery = promotersQuery.or(`supervisor_id.is.null,supervisor_id.neq.${supervisorAId}`);
+    if (data.teamId === 'NONE') {
+      promotersQuery = promotersQuery.is('presence_team_id', null);
+    } else if (data.teamId && data.teamId !== 'ALL') {
+      promotersQuery = promotersQuery.eq('presence_team_id', data.teamId);
     }
 
     const { count: total, data: teamPromoters } = await promotersQuery;
-    const teamIds = teamPromoters?.map(p => p.id) || [];
+    const teamIds = (teamPromoters as any[])?.map(p => p.id) || [];
 
     // 2. Fetch presence only for these promoters
     let presenceQuery = supabaseAdmin
-      .from('mk9_promoter_presence')
+      .from('mk9_promoter_presence' as any)
       .select('status, promoter_id')
       .eq('date', data.date);
     
     if (teamIds.length > 0) {
       presenceQuery = presenceQuery.in('promoter_id', teamIds);
-    } else if (data.supervisor) {
-      // If team is empty and filtering by supervisor, stats should be zero
+    } else if (data.teamId && data.teamId !== 'ALL') {
       return { total: 0, present: 0, absent: 0, medical: 0, unmarked: 0 };
     }
 

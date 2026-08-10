@@ -15,7 +15,8 @@ import {
   Filter,
   Check,
   X,
-  Plus
+  Plus,
+  Settings
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -33,6 +34,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
   Mk9PageHeader,
   Mk9MetricCard,
   Mk9Panel,
@@ -40,30 +48,37 @@ import {
   Mk9EmptyState,
 } from "./mk9/design-system";
 import { getPresenceList, savePresenceBulk, getPresenceStats } from "@/lib/mk9-presence.functions";
+import { listPresenceTeams } from "@/lib/mk9-presence-teams.functions";
+import { PresenceTeamsManager } from "./mk9-presence-teams-manager";
 
 export function Mk9PresenceModule() {
   const queryClient = useQueryClient();
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [search, setSearch] = useState("");
   const [ufFilter, setUfFilter] = useState("__ALL__");
-  const [supervisorFilter, setSupervisorFilter] = useState("ALL");
+  const [teamFilter, setTeamFilter] = useState("ALL");
   const [localPresence, setLocalPresence] = useState<Record<string, { status: any, observation: string }>>({});
 
   const listFn = useServerFn(getPresenceList);
   const saveFn = useServerFn(savePresenceBulk);
   const statsFn = useServerFn(getPresenceStats);
+  const listTeamsFn = useServerFn(listPresenceTeams);
 
   const { data: presenceItems, isLoading: listLoading } = useQuery({
-    queryKey: ["mk9-presence-list", date, search, ufFilter, supervisorFilter],
-    queryFn: () => listFn({ data: { date, filters: { search, uf: ufFilter, supervisor: supervisorFilter } } }),
+    queryKey: ["mk9-presence-list", date, search, ufFilter, teamFilter],
+    queryFn: () => listFn({ data: { date, filters: { search, uf: ufFilter, teamId: teamFilter } } }),
   });
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ["mk9-presence-stats", date, supervisorFilter],
-    queryFn: () => statsFn({ data: { date, supervisor: supervisorFilter } }),
+  const { data: teams } = useQuery({
+    queryKey: ["mk9-presence-teams-list"],
+    queryFn: () => listTeamsFn(),
   });
 
-  // Reset local state when data loads or date changes
+  const { data: stats } = useQuery({
+    queryKey: ["mk9-presence-stats", date, teamFilter],
+    queryFn: () => statsFn({ data: { date, teamId: teamFilter } }),
+  });
+
   useEffect(() => {
     if (presenceItems) {
       const newState: Record<string, { status: any, observation: string }> = {};
@@ -131,14 +146,19 @@ export function Mk9PresenceModule() {
   const exportToExcel = () => {
     if (!presenceItems) return;
     
-    const supervisorLabel = supervisorFilter === 'SUPERVISOR_A' ? 'SUPERVISOR A' : 
-                            supervisorFilter === 'SUPERVISOR_B' ? 'SUPERVISOR B' : 'TODOS';
+    const teamLabel = teamFilter === 'ALL' ? 'TODOS' : 
+                      teamFilter === 'NONE' ? 'SEM EQUIPE' : 
+                      teams?.find(t => t.id === teamFilter)?.name || 'EQUIPE';
 
-    // Header info rows
+    const supervisorLabel = teamFilter !== 'ALL' && teamFilter !== 'NONE' 
+      ? teams?.find(t => t.id === teamFilter)?.supervisor?.full_name || '—'
+      : '—';
+
     const headerRows = [
       ['MK9 TRADE'],
       ['CONTROLE DE PRESENÇA'],
       [''],
+      ['Equipe:', teamLabel],
       ['Supervisor:', supervisorLabel],
       ['Data:', format(parseISO(date), "dd/MM/yyyy")],
       [''],
@@ -159,11 +179,10 @@ export function Mk9PresenceModule() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Presença");
     
-    const fileName = `PRESENCA - ${supervisorLabel} - ${format(parseISO(date), "dd-MM-yyyy")}.xlsx`;
+    const fileName = `PRESENCA - ${teamLabel} - ${format(parseISO(date), "dd-MM-yyyy")}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
 
-  // Local stats calculation for immediate feedback
   const localStats = useMemo(() => {
     const s = { present: 0, absent: 0, medical: 0, unmarked: 0 };
     Object.values(localPresence).forEach(p => {
@@ -195,6 +214,21 @@ export function Mk9PresenceModule() {
               onChange={(e) => setDate(e.target.value)}
               className="h-8 w-[140px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider"
             />
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="h-8 w-8 p-0 border-white/10 text-slate-400 hover:text-white">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="bg-command-deep border-l-white/10 text-white w-[400px]">
+                <SheetHeader>
+                  <SheetTitle className="text-white uppercase tracking-tighter">Gestão de Equipes</SheetTitle>
+                </SheetHeader>
+                <div className="py-6">
+                  <PresenceTeamsManager />
+                </div>
+              </SheetContent>
+            </Sheet>
             <Button
               onClick={handleSave}
               disabled={saveMutation.isPending}
@@ -248,14 +282,16 @@ export function Mk9PresenceModule() {
                 className="pl-9 h-9 w-[220px] bg-command-deep border-white/10 text-white text-xs"
               />
             </div>
-            <Select value={supervisorFilter} onValueChange={setSupervisorFilter}>
-              <SelectTrigger className="h-9 w-[150px] bg-command-deep border-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
-                <SelectValue placeholder="SUPERVISOR" />
+            <Select value={teamFilter} onValueChange={setTeamFilter}>
+              <SelectTrigger className="h-9 w-[180px] bg-command-deep border-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
+                <SelectValue placeholder="EQUIPE" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
-                <SelectItem value="ALL">TODOS</SelectItem>
-                <SelectItem value="SUPERVISOR_A">SUPERVISOR A</SelectItem>
-                <SelectItem value="SUPERVISOR_B">SUPERVISOR B</SelectItem>
+                <SelectItem value="ALL">TODAS EQUIPES</SelectItem>
+                <SelectItem value="NONE">SEM EQUIPE (AVULSOS)</SelectItem>
+                {teams?.map(t => (
+                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
