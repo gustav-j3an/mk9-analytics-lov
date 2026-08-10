@@ -147,6 +147,7 @@ export const listPotentialMembers = createServerFn({ method: "GET" })
       .order('name');
     
     if (error) throw error;
+    // Map backend snake_case to frontend camelCase if needed, though component uses snake_case here
     return data as any[];
   });
 
