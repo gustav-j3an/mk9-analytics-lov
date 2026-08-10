@@ -1,10 +1,19 @@
-import {
-  PDFDocument,
-  StandardFonts,
-  rgb,
-  type PDFPage,
-  type PDFFont,
-} from "pdf-lib";
+import * as pdfLib from "pdf-lib";
+
+// Defesa contra falhas de interop ESM/CJS em runtime server
+const getPdfLib = () => {
+  if ((pdfLib as any).PDFDocument) return pdfLib;
+  if ((pdfLib as any).default && (pdfLib as any).default.PDFDocument) return (pdfLib as any).default;
+  return pdfLib;
+};
+
+const lib = getPdfLib();
+const PDFDocument = lib.PDFDocument;
+const StandardFonts = lib.StandardFonts;
+const rgb = lib.rgb;
+
+type PDFPage = any;
+type PDFFont = any;
 
 
 const WEEKDAY_PT = [
