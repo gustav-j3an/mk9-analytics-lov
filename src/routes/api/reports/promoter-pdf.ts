@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { requireMk9ReadScope } from "@/lib/mk9-auth/read-guards.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { renderPromoterRoutePdf, promoterPdfFileName } from "@/lib/reports/promoter-pdf.server";
 
 const payloadSchema = z.object({
   promoterId: z.string().uuid(),
@@ -29,7 +33,6 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           log("Início da requisição");
           
           step = "auth-start";
-          const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
           const { scope: access } = await requireMk9ReadScope(request);
           log("Auth OK", { userId: access.userId });
           
@@ -41,7 +44,6 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           log("Params OK", { promoterId, referenceDate });
 
           step = "db-load-route";
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data: rows, error: routeError } = await supabaseAdmin
             .from("mk9_planned_routes")
             .select(`
@@ -91,7 +93,6 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           log("Promoter Loaded", { name: promoter?.name });
 
           step = "renderer-start";
-          const { renderPromoterRoutePdf, promoterPdfFileName } = await import("@/lib/reports/promoter-pdf.server");
           log("Starting render...");
           const bytes = await renderPromoterRoutePdf({
             routes,
