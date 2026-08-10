@@ -45,6 +45,7 @@ export function PresenceTeamsManager() {
 
   const mutation = useMutation({
     mutationFn: async () => {
+      console.log("[PRESENCE-TEAM] Payload:", { teamName, supervisorId });
       if (editingTeam) return updateFn({ data: { id: editingTeam.id, name: teamName, supervisorId } });
       return createFn({ data: { name: teamName, supervisorId } });
     },
@@ -52,6 +53,10 @@ export function PresenceTeamsManager() {
       toast.success(editingTeam ? "Equipe atualizada." : "Equipe criada.");
       queryClient.invalidateQueries({ queryKey: ["mk9-presence-teams-list"] });
       resetAndClose();
+    },
+    onError: (err: any) => {
+      console.error("[PRESENCE-TEAM] Error detail:", err);
+      toast.error(`Erro ao salvar equipe: ${err.message || "Tente novamente."}`);
     }
   });
 
@@ -84,7 +89,7 @@ export function PresenceTeamsManager() {
           <div key={team.id} className="bg-white/[0.02] border border-white/5 rounded-xl p-4 flex items-center justify-between">
             <div>
               <p className="text-sm font-bold text-white">{team.name}</p>
-              <p className="text-[10px] uppercase text-slate-500">Supervisor: {team.supervisor?.full_name || "Não definido"}</p>
+              <p className="text-[10px] uppercase text-slate-500">Supervisor: {team.supervisor?.name || team.supervisor?.full_name || "Não definido"}</p>
             </div>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={() => { setEditingTeam(team); setTeamName(team.name); setSupervisorId(team.supervisor_id); setIsDialogOpen(true); }}>
