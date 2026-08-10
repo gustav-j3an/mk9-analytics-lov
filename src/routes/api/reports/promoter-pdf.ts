@@ -67,7 +67,7 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
               valid_from, 
               valid_until, 
               is_active,
-              store:mk9_stores(id, name, chain, uf, address),
+              store:mk9_stores(id, name, chain, uf),
               industry:mk9_industries(id, name)
             `)
             .eq("promoter_id", body.promoterId)
