@@ -131,20 +131,36 @@ export function Mk9PresenceModule() {
   const exportToExcel = () => {
     if (!presenceItems) return;
     
-    const data = presenceItems.map(item => ({
-      'DATA': format(parseISO(date), "dd/MM/yyyy"),
-      'NOME': item.name,
-      'MATRÍCULA': item.registration_number || "-",
-      'STATUS': localPresence[item.id]?.status === 'PRESENT' ? 'PRESENTE' :
-                localPresence[item.id]?.status === 'ABSENT' ? 'FALTA' :
-                localPresence[item.id]?.status === 'MEDICAL_CERTIFICATE' ? 'ATESTADO' : 'NÃO MARCADO',
-      'OBSERVAÇÃO': localPresence[item.id]?.observation || "-"
-    }));
+    const supervisorLabel = supervisorFilter === 'SUPERVISOR_A' ? 'SUPERVISOR A' : 
+                            supervisorFilter === 'SUPERVISOR_B' ? 'SUPERVISOR B' : 'TODOS';
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    // Header info rows
+    const headerRows = [
+      ['MK9 TRADE'],
+      ['CONTROLE DE PRESENÇA'],
+      [''],
+      ['Supervisor:', supervisorLabel],
+      ['Data:', format(parseISO(date), "dd/MM/yyyy")],
+      [''],
+      ['MATRÍCULA', 'NOME', 'UF', 'STATUS', 'OBSERVAÇÃO']
+    ];
+
+    const dataRows = presenceItems.map(item => [
+      item.registration_number || "-",
+      item.name,
+      item.uf || "-",
+      localPresence[item.id]?.status === 'PRESENT' ? 'PRESENTE' :
+      localPresence[item.id]?.status === 'ABSENT' ? 'FALTA' :
+      localPresence[item.id]?.status === 'MEDICAL_CERTIFICATE' ? 'ATESTADO' : 'NÃO MARCADO',
+      localPresence[item.id]?.observation || "-"
+    ]);
+
+    const ws = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Presença");
-    XLSX.writeFile(wb, `PRESENCA-${date}.xlsx`);
+    
+    const fileName = `PRESENCA - ${supervisorLabel} - ${format(parseISO(date), "dd-MM-yyyy")}.xlsx`;
+    XLSX.writeFile(wb, fileName);
   };
 
   // Local stats calculation for immediate feedback
