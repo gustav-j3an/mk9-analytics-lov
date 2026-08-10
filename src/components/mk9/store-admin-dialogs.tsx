@@ -67,6 +67,7 @@ export function StoreDialog({
     },
     onSuccess: () => {
       toast.success(store ? "Loja atualizada." : "Loja criada.");
+      queryClient.invalidateQueries({ queryKey: ["mk9-stores-admin"] });
       queryClient.invalidateQueries({ queryKey: ["mk9-stores"] });
       onClose();
     },
@@ -174,6 +175,7 @@ export function StoreArchiveDialog({
     mutationFn: async () => archiveFn({ data: { id: store.id, reason } }),
     onSuccess: () => {
       toast.success("Loja arquivada.");
+      queryClient.invalidateQueries({ queryKey: ["mk9-stores-admin"] });
       queryClient.invalidateQueries({ queryKey: ["mk9-stores"] });
       onClose();
     },

@@ -87,6 +87,7 @@ export function PromoterDialog({
     },
     onSuccess: () => {
       toast.success(promoter ? "Promotor atualizado." : "Promotor criado.");
+      queryClient.invalidateQueries({ queryKey: ["mk9-promoters-admin"] });
       queryClient.invalidateQueries({ queryKey: ["mk9-promoters"] });
       onClose();
     },

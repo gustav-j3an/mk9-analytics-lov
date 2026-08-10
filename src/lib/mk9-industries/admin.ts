@@ -134,6 +134,7 @@ export function matchesStatusFilter(
 
 /** Caches invalidados após qualquer escrita administrativa de indústria. */
 export const INDUSTRY_ADMIN_CACHE_KEYS = [
+  "mk9-industries-admin",
   "mk9-industries",
   "mk9-checklist-industries",
   "mk9-industry-operation-config",
