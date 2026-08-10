@@ -33,7 +33,7 @@ import {
 
 export function Mk9PromotersModule() {
   const listFn = useServerFn(mk9ListPromoters);
-  const { data: promoters = [], isLoading } = useQuery({
+  const { data: promoters = [], isLoading, refetch } = useQuery({
     queryKey: ["mk9-promoters-admin"],
     queryFn: () => listFn(),
   });
@@ -199,7 +199,15 @@ export function Mk9PromotersModule() {
 
       <PromoterDeleteDialog
         open={!!deletingPromoter}
-        onClose={() => setDeletingPromoter(null)}
+        onClose={() => {
+          if (deletingPromoter?.wasDeleted) {
+            refetch();
+          }
+          setDeletingPromoter(null);
+        }}
+        onSuccess={() => {
+          setDeletingPromoter(prev => ({ ...prev, wasDeleted: true }));
+        }}
         promoter={deletingPromoter}
       />
     </div>
