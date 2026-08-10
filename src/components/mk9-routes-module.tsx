@@ -435,6 +435,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
             setEditing(null);
             setCreating(false);
             qc.invalidateQueries({ queryKey: ["mk9-routes-versioned"] });
+            qc.invalidateQueries({ queryKey: ["mk9-promoter-route-stats"] });
           }}
         />
       )}
