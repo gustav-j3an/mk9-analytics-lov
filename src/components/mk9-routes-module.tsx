@@ -63,65 +63,14 @@ const WEEKDAY_PT = [
   "Sábado",
 ];
 
-async function downloadPromoterPdf(
+function downloadPromoterPdf(
   promoterId: string,
   promoterName: string,
   referenceDate: string,
 ) {
-  try {
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
-
-    const d = new Date(referenceDate);
-    const year = d.getFullYear();
-    const month = d.getMonth() + 1;
-
-    const res = await fetch("/api/reports/promoter-pdf", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ promoterId, year, month }),
-    });
-
-    if (!res.ok) {
-      let errorMessage = "Erro ao gerar PDF";
-      let technicalInfo = "";
-      try {
-        const err = await res.json();
-        errorMessage = err.message || errorMessage;
-        technicalInfo = JSON.stringify(err, null, 2);
-      } catch (e) {
-        const text = await res.text();
-        technicalInfo = text;
-        console.error("[downloadPromoterPdf] Raw error text:", text);
-      }
-      
-      console.error("[downloadPromoterPdf] Technical Details:", technicalInfo);
-      throw new Error(`${errorMessage}\n\nDetalhes técnicos disponíveis no console.`);
-    }
-
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    const cleanName = promoterName
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toUpperCase()
-      .replace(/[^A-Z0-9]+/g, "_");
-    a.download = `ROTEIRO_${cleanName}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-    toast.success("PDF gerado com sucesso!");
-  } catch (err: any) {
-    console.error("[downloadPromoterPdf] Failed:", err);
-    toast.error(err.message);
-  }
+  // Substituído definitivamente por rota de impressão nativa
+  const url = `/roteiros/${promoterId}/imprimir?date=${referenceDate}`;
+  window.open(url, "_blank");
 }
 
 type Route = Awaited<ReturnType<typeof mk9RoutesListVersioned>>[number];
