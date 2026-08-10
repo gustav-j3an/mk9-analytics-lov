@@ -5,14 +5,20 @@ import { requireMk9Role, logAudit } from "@/lib/mk9-auth/require-role.server";
 
 export const listPresenceTeams = createServerFn({ method: "GET" })
   .handler(async () => {
+    // Join with count of promoters
     const { data, error } = await supabaseAdmin
       .from('mk9_presence_teams' as any)
-      .select('*, supervisor:mk9_supervisors(id, name)')
+      .select('*, supervisor:mk9_supervisors(id, name), members:mk9_promoters(count)')
       .eq('active', true)
       .order('name');
     
     if (error) throw error;
-    return data as any[];
+    
+    // Format count
+    return data.map((t: any) => ({
+      ...t,
+      member_count: t.members?.[0]?.count || 0
+    }));
   });
 
 export const getPresenceTeamDetails = createServerFn({ method: "GET" })

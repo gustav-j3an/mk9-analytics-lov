@@ -114,7 +114,7 @@ export function PresenceTeamsManager() {
               <div className="flex items-center gap-3 mt-1">
                 <p className="text-[10px] uppercase text-slate-500">Supervisor: {team.supervisor?.name || "Não definido"}</p>
                 <div className="w-1 h-1 rounded-full bg-slate-700" />
-                <p className="text-[10px] uppercase text-command-purple font-bold">18 promotores</p>
+                <p className="text-[10px] uppercase text-command-purple font-bold">{team.member_count || 0} promotores</p>
               </div>
             </div>
             <div className="flex gap-2">
