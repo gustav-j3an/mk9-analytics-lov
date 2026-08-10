@@ -1,12 +1,11 @@
-import * as pdfLib from "pdf-lib";
+import {
+  PDFDocument,
+  StandardFonts,
+  rgb,
+  type PDFPage,
+  type PDFFont,
+} from "pdf-lib";
 
-const PDFDocument = (pdfLib as any).PDFDocument || pdfLib.PDFDocument;
-const StandardFonts = (pdfLib as any).StandardFonts || pdfLib.StandardFonts;
-const rgb = (pdfLib as any).rgb || pdfLib.rgb;
-
-type PDFPage = any;
-type PDFFont = any;
-type PDFDocType = any;
 
 const WEEKDAY_PT = [
   "DOMINGO", "SEGUNDA-FEIRA", "TERÇA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO"
@@ -30,7 +29,7 @@ function sanitize(s: string): string {
 }
 
 interface PdfCtx {
-  pdf: PDFDocType;
+  pdf: PDFDocument;
   page: PDFPage;
   y: number;
   font: PDFFont;
@@ -221,7 +220,7 @@ export async function renderPromoterRoutePdf(input: {
 
   // Finalize all pages with footers
   const totalPages = pdf.getPageCount();
-  pdf.getPages().forEach((p: any, i: number) => {
+  pdf.getPages().forEach((p, i) => {
     ctx.page = p;
     ctx.pageNum = i + 1;
     drawFooter(ctx, totalPages);
