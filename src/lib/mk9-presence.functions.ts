@@ -31,9 +31,9 @@ export const getPresenceList = createServerFn({ method: "GET" })
     const { data: promoters, error: pError } = await promotersQuery;
     if (pError) throw pError;
 
-    // 2. Fetch presence for the date using type casting to bypass TS issues with newly created tables
+    // 2. Fetch presence for the date
     const { data: presence, error: prError } = await supabaseAdmin
-      .from('mk9_promoter_presence' as any)
+      .from('mk9_promoter_presence')
       .select('*')
       .eq('date', data.date);
     
@@ -73,7 +73,7 @@ export const savePresenceBulk = createServerFn({ method: "POST" })
     }));
 
     const { error } = await supabaseAdmin
-      .from('mk9_promoter_presence' as any)
+      .from('mk9_promoter_presence')
       .upsert(records, { onConflict: 'date,promoter_id' });
 
     if (error) throw error;
@@ -89,7 +89,7 @@ export const getPresenceStats = createServerFn({ method: "GET" })
       .eq('is_active', true);
 
     const { data: presence } = await supabaseAdmin
-      .from('mk9_promoter_presence' as any)
+      .from('mk9_promoter_presence')
       .select('status')
       .eq('date', data.date);
 
