@@ -209,10 +209,6 @@ export async function renderPromoterRoutePdf(input: {
       ctx.page.drawText(indStr, { x: MARGIN + 25, y: ctx.y, size: 8, font: font, color: COLOR_MUTED });
       ctx.y -= 12;
 
-      if (hasAddress) {
-        ctx.page.drawText(sanitize(store.storeAddress), { x: MARGIN + 25, y: ctx.y, size: 7, font: font, color: COLOR_MUTED });
-        ctx.y -= 10;
-      }
 
       ctx.y -= 8;
       storeIdx++;
