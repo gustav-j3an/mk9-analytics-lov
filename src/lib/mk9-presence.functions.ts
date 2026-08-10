@@ -11,7 +11,7 @@ export const getPresenceList = createServerFn({ method: "GET" })
       search: z.string().optional(),
       uf: z.string().optional(),
       status: z.string().optional(),
-      supervisor: z.string().optional(), // Added supervisor filter
+      teamId: z.string().optional(), // MUDANÇA: Agora usa teamId explícito
     }).optional()
   }).parse(data))
   .handler(async ({ data }) => {
