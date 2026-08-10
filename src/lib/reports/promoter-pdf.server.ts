@@ -15,9 +15,9 @@ const MARGIN = 40;
 const CONTENT_W = PAGE.w - MARGIN * 2;
 const BOTTOM_LIMIT = 50;
 
-// Paleta MK9 Trade (White/Gray scale for printing with Purple/Blue accents)
-const COLOR_BRAND = rgb(0.42, 0.21, 0.97); // Purple (#6D35F7 approx)
-const COLOR_BLUE = rgb(0.23, 0.51, 0.96);  // Blue (#3B82F6 approx)
+// Paleta MK9 Trade
+const COLOR_BRAND = rgb(0.42, 0.21, 0.97); // Purple
+const COLOR_BLUE = rgb(0.23, 0.51, 0.96);  // Blue
 const COLOR_TEXT = rgb(0.06, 0.09, 0.16);
 const COLOR_MUTED = rgb(0.39, 0.45, 0.55);
 const COLOR_LINE = rgb(0.9, 0.92, 0.95);
@@ -49,8 +49,9 @@ function drawHeader(ctx: PdfCtx, promoterName: string, refDate: string, stats: {
 
   ctx.y = PAGE.h - 55;
   
-  // Promoter & Ref
+  // Promoter
   ctx.page.drawText(sanitize(promoterName), { x: MARGIN, y: ctx.y, size: 14, font: ctx.fontB, color: COLOR_TEXT });
+  
   const refStr = `Referência: ${refDate.split('-').reverse().join('/')}`;
   ctx.page.drawText(refStr, { 
     x: PAGE.w - MARGIN - ctx.font.widthOfTextAtSize(refStr, 9), 
@@ -62,7 +63,7 @@ function drawHeader(ctx: PdfCtx, promoterName: string, refDate: string, stats: {
   
   ctx.y -= 20;
 
-  // Stats Line
+  // Stats Line - Formato solicitado: 5 DIAS | 9 PARADAS | 19 ITENS
   const statsStr = `${stats.days} DIAS | ${stats.stops} PARADAS | ${stats.items} ITENS`;
   ctx.page.drawText(statsStr, { x: MARGIN, y: ctx.y, size: 8, font: ctx.fontB, color: COLOR_BLUE });
   
@@ -132,10 +133,11 @@ export async function renderPromoterRoutePdf(input: {
   for (const r of routes) {
     if (!grouped.has(r.weekday)) grouped.set(r.weekday, new Map());
     const dayMap = grouped.get(r.weekday)!;
-    if (!dayMap.has(r.storeId)) {
-      dayMap.set(r.storeId, { store: r, industries: [] });
+    const storeKey = r.storeId || r.storeName;
+    if (!dayMap.has(storeKey)) {
+      dayMap.set(storeKey, { store: r, industries: [] });
     }
-    dayMap.get(r.storeId)!.industries.push(r.industryName);
+    dayMap.get(storeKey)!.industries.push(r.industryName);
   }
 
   const sortedDays = Array.from(grouped.keys()).sort((a, b) => {
@@ -174,8 +176,8 @@ export async function renderPromoterRoutePdf(input: {
 
     let storeIdx = 1;
     for (const { store, industries } of dayStores.values()) {
-      // Estimated height: store name (12) + industries (12) + padding (10)
-      const needed = 35;
+      // Estimated height: store name (10) + industries (10) + padding (10)
+      const needed = 30;
       
       if (ctx.y < needed + BOTTOM_LIMIT) {
         startNewPage(ctx, promoterName, referenceDate, stats);
@@ -184,12 +186,12 @@ export async function renderPromoterRoutePdf(input: {
         ctx.y -= 20;
       }
 
-      // Store Row
+      // Store Row - Formato compacto
       const idxStr = String(storeIdx).padStart(2, '0');
       ctx.page.drawText(idxStr, { x: MARGIN, y: ctx.y, size: 9, font: fontB, color: COLOR_BLUE });
       
       const storeName = sanitize(`${store.storeChain ? `${store.storeChain} · ` : ""}${store.storeName}`);
-      ctx.page.drawText(storeName, { x: MARGIN + 25, y: ctx.y, size: 9, font: fontB, color: COLOR_TEXT });
+      ctx.page.drawText(storeName.substring(0, 65), { x: MARGIN + 25, y: ctx.y, size: 9, font: fontB, color: COLOR_TEXT });
       
       const uf = sanitize(store.storeUf || "");
       if (uf) {
@@ -202,19 +204,18 @@ export async function renderPromoterRoutePdf(input: {
         });
       }
       
-      ctx.y -= 12;
+      ctx.y -= 11;
 
-      // Industries (compact line)
+      // Industries (compact line) - Sem "INDÚSTRIAS:" extra
       const indStr = industries.map(sanitize).join(" • ");
-      ctx.page.drawText(indStr, { x: MARGIN + 25, y: ctx.y, size: 8, font: font, color: COLOR_MUTED });
-      ctx.y -= 12;
-
-
-      ctx.y -= 8;
+      ctx.page.drawText(indStr.substring(0, 100), { x: MARGIN + 25, y: ctx.y, size: 8, font: font, color: COLOR_MUTED });
+      
+      ctx.y -= 15;
       storeIdx++;
     }
-    ctx.y -= 10;
+    ctx.y -= 5;
   }
+
 
   // Finalize all pages with footers
   const totalPages = pdf.getPageCount();
