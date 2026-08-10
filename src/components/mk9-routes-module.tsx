@@ -317,18 +317,19 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           Roteiros vigentes em <strong>{referenceDate}</strong> · {routes.length} itens
         </p>
         <div className="flex items-center gap-3">
-          {filterPromoter && (
+          {(filterPromoter || (grouped.size === 1)) ? (
             <Button
               variant="outline"
               size="sm"
               className="h-9 border-command-purple/20 text-command-purple hover:bg-command-purple/10 text-[10px] font-black uppercase tracking-widest px-4"
               onClick={() => {
-                const promoter = promoters.find((p) => p.id === filterPromoter);
-                if (promoter) {
+                const pName = Array.from(grouped.keys())[0];
+                const pId = filterPromoter || promoters.find(p => p.name === pName)?.id;
+                if (pId) {
                   const d = new Date(referenceDate);
                   downloadPromoterPdf(
-                    filterPromoter,
-                    promoter.name,
+                    pId,
+                    pName,
                     d.getFullYear(),
                     d.getMonth() + 1,
                   );
@@ -337,7 +338,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
             >
               <FileText className="h-4 w-4 mr-2" /> Exportar Roteiro PDF
             </Button>
-          )}
+          ) : null}
           <Button
             size="sm"
             onClick={() => setCreating(true)}
@@ -374,9 +375,25 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
               return (
                 <Card key={promoter}>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Users className="h-4 w-4 text-primary" />
-                      {promoter}
+                    <CardTitle className="text-base flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-primary" />
+                        {promoter}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white"
+                        onClick={() => {
+                          const pId = promoters.find(p => p.name === promoter)?.id;
+                          if (pId) {
+                            const d = new Date(referenceDate);
+                            downloadPromoterPdf(pId, promoter, d.getFullYear(), d.getMonth() + 1);
+                          }
+                        }}
+                      >
+                        <FileText className="h-3 w-3 mr-1.5" /> PDF
+                      </Button>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
