@@ -16,6 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   mk9CreatePromoter,
   mk9UpdatePromoter,
   mk9DeletePromoter,
@@ -34,6 +41,11 @@ export function PromoterDialog({
   const queryClient = useQueryClient();
   const createFn = useServerFn(mk9CreatePromoter);
   const updateFn = useServerFn(mk9UpdatePromoter);
+  
+  // Supervisor static reference for now (SUPERVISOR A)
+  const supervisors = [
+    { id: '3765698f-3d6b-4d75-a6a4-ddc48686318c', name: 'SUPERVISOR A' }
+  ];
 
   const [name, setName] = useState("");
   const [city, setCity] = useState("");
@@ -42,6 +54,7 @@ export function PromoterDialog({
   const [notes, setNotes] = useState("");
   const [externalId, setExternalId] = useState("");
   const [employeeNumber, setEmployeeNumber] = useState("");
+  const [supervisorId, setSupervisorId] = useState<string | null>(null);
 
   useEffect(() => {
     if (promoter) {
@@ -52,6 +65,7 @@ export function PromoterDialog({
       setNotes(promoter.notes || "");
       setExternalId(promoter.externalId || "");
       setEmployeeNumber(promoter.employeeNumber || "");
+      setSupervisorId(promoter.supervisorId || null);
     } else {
       setName("");
       setCity("");
@@ -60,6 +74,7 @@ export function PromoterDialog({
       setNotes("");
       setExternalId("");
       setEmployeeNumber("");
+      setSupervisorId(null);
     }
   }, [promoter, open]);
 
@@ -73,6 +88,7 @@ export function PromoterDialog({
         notes,
         externalId,
         employeeNumber,
+        supervisorId: supervisorId || null,
       };
       if (promoter) {
         return updateFn({
@@ -165,6 +181,22 @@ export function PromoterDialog({
                 placeholder="ERP ID"
               />
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              Supervisor
+            </Label>
+            <Select value={supervisorId || "NONE"} onValueChange={(val) => setSupervisorId(val === "NONE" ? null : val)}>
+              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white text-xs">
+                <SelectValue placeholder="Sem Supervisor" />
+              </SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10 text-white">
+                <SelectItem value="NONE">Sem Supervisor (Supervisor B)</SelectItem>
+                {supervisors.map(s => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">

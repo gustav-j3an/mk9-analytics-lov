@@ -17,6 +17,7 @@ const promoterSchema = z
     uf: z.string().length(2).nullable().optional(),
     contact: z.string().max(120).nullable().optional(),
     notes: z.string().max(1000).nullable().optional(),
+    supervisorId: z.string().uuid().nullable().optional(),
   })
   .strict();
 
@@ -51,6 +52,7 @@ export const mk9CreatePromoter = createServerFn({ method: "POST" })
         uf: data.uf || null,
         contact: data.contact || null,
         notes: data.notes || null,
+        supervisor_id: data.supervisorId || null,
         is_active: true,
       } as any)
       .select()
@@ -109,6 +111,7 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
         uf: data.data.uf || null,
         contact: data.data.contact || null,
         notes: data.data.notes || null,
+        supervisor_id: data.data.supervisorId || null,
         updated_at: new Date().toISOString(),
         updated_by: ctx.userId,
       } as any)

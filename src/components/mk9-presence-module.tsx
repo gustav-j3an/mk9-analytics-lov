@@ -46,6 +46,7 @@ export function Mk9PresenceModule() {
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [search, setSearch] = useState("");
   const [ufFilter, setUfFilter] = useState("__ALL__");
+  const [supervisorFilter, setSupervisorFilter] = useState("ALL");
   const [localPresence, setLocalPresence] = useState<Record<string, { status: any, observation: string }>>({});
 
   const listFn = useServerFn(getPresenceList);
@@ -53,13 +54,13 @@ export function Mk9PresenceModule() {
   const statsFn = useServerFn(getPresenceStats);
 
   const { data: presenceItems, isLoading: listLoading } = useQuery({
-    queryKey: ["mk9-presence-list", date, search, ufFilter],
-    queryFn: () => listFn({ data: { date, filters: { search, uf: ufFilter } } }),
+    queryKey: ["mk9-presence-list", date, search, ufFilter, supervisorFilter],
+    queryFn: () => listFn({ data: { date, filters: { search, uf: ufFilter, supervisor: supervisorFilter } } }),
   });
 
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ["mk9-presence-stats", date],
-    queryFn: () => statsFn({ data: { date } }),
+    queryKey: ["mk9-presence-stats", date, supervisorFilter],
+    queryFn: () => statsFn({ data: { date, supervisor: supervisorFilter } }),
   });
 
   // Reset local state when data loads or date changes
@@ -130,20 +131,36 @@ export function Mk9PresenceModule() {
   const exportToExcel = () => {
     if (!presenceItems) return;
     
-    const data = presenceItems.map(item => ({
-      'DATA': format(parseISO(date), "dd/MM/yyyy"),
-      'NOME': item.name,
-      'MATRÍCULA': item.registration_number || "-",
-      'STATUS': localPresence[item.id]?.status === 'PRESENT' ? 'PRESENTE' :
-                localPresence[item.id]?.status === 'ABSENT' ? 'FALTA' :
-                localPresence[item.id]?.status === 'MEDICAL_CERTIFICATE' ? 'ATESTADO' : 'NÃO MARCADO',
-      'OBSERVAÇÃO': localPresence[item.id]?.observation || "-"
-    }));
+    const supervisorLabel = supervisorFilter === 'SUPERVISOR_A' ? 'SUPERVISOR A' : 
+                            supervisorFilter === 'SUPERVISOR_B' ? 'SUPERVISOR B' : 'TODOS';
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    // Header info rows
+    const headerRows = [
+      ['MK9 TRADE'],
+      ['CONTROLE DE PRESENÇA'],
+      [''],
+      ['Supervisor:', supervisorLabel],
+      ['Data:', format(parseISO(date), "dd/MM/yyyy")],
+      [''],
+      ['MATRÍCULA', 'NOME', 'UF', 'STATUS', 'OBSERVAÇÃO']
+    ];
+
+    const dataRows = presenceItems.map(item => [
+      item.registration_number || "-",
+      item.name,
+      item.uf || "-",
+      localPresence[item.id]?.status === 'PRESENT' ? 'PRESENTE' :
+      localPresence[item.id]?.status === 'ABSENT' ? 'FALTA' :
+      localPresence[item.id]?.status === 'MEDICAL_CERTIFICATE' ? 'ATESTADO' : 'NÃO MARCADO',
+      localPresence[item.id]?.observation || "-"
+    ]);
+
+    const ws = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Presença");
-    XLSX.writeFile(wb, `PRESENCA-${date}.xlsx`);
+    
+    const fileName = `PRESENCA - ${supervisorLabel} - ${format(parseISO(date), "dd-MM-yyyy")}.xlsx`;
+    XLSX.writeFile(wb, fileName);
   };
 
   // Local stats calculation for immediate feedback
@@ -231,8 +248,19 @@ export function Mk9PresenceModule() {
                 className="pl-9 h-9 w-[220px] bg-command-deep border-white/10 text-white text-xs"
               />
             </div>
+            <Select value={supervisorFilter} onValueChange={setSupervisorFilter}>
+              <SelectTrigger className="h-9 w-[150px] bg-command-deep border-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
+                <SelectValue placeholder="SUPERVISOR" />
+              </SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10 text-white">
+                <SelectItem value="ALL">TODOS</SelectItem>
+                <SelectItem value="SUPERVISOR_A">SUPERVISOR A</SelectItem>
+                <SelectItem value="SUPERVISOR_B">SUPERVISOR B</SelectItem>
+              </SelectContent>
+            </Select>
+
             <Select value={ufFilter} onValueChange={setUfFilter}>
-              <SelectTrigger className="h-9 w-[80px] bg-command-deep border-white/10 text-white text-xs">
+              <SelectTrigger className="h-9 w-[80px] bg-command-deep border-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
                 <SelectValue placeholder="UF" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
