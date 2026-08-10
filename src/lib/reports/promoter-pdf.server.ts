@@ -4,7 +4,7 @@ import {
   rgb,
   type PDFPage,
   type PDFFont,
-} from "pdf-lib/dist/pdf-lib.esm.js";
+} from "pdf-lib";
 
 const WEEKDAY_PT = [
   "DOMINGO", "SEGUNDA-FEIRA", "TERÇA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO"

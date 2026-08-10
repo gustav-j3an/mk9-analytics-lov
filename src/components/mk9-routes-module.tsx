@@ -77,8 +77,6 @@ async function downloadPromoterPdf(
     const year = d.getFullYear();
     const month = d.getMonth() + 1;
 
-    console.log("[downloadPromoterPdf] Requesting PDF for:", { promoterId, promoterName, year, month });
-
     const res = await fetch("/api/reports/promoter-pdf", {
       method: "POST",
       headers: {
@@ -94,7 +92,6 @@ async function downloadPromoterPdf(
         const err = await res.json();
         errorMessage = err.message || errorMessage;
       } catch (e) {
-        // Fallback for non-json errors
         const text = await res.text();
         console.error("[downloadPromoterPdf] Raw error text:", text);
       }

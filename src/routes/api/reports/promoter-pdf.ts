@@ -21,13 +21,11 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
         try {
           const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
           const { scope: access } = await requireMk9ReadScope(request);
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const raw = await request.json();
           const body = payloadSchema.parse(raw);
 
-          // DADOS DO ROTEIRO: Usar a mesma fonte da tela de Roteiros
-          
           const refDateStr = `${body.year}-${String(body.month).padStart(2, '0')}-01`;
           
           const { data: rows, error: routeError } = await supabaseAdmin
@@ -75,7 +73,6 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           const { renderPromoterRoutePdf, promoterPdfFileName } =
             await import("@/lib/reports/promoter-pdf.server");
 
-          // Busca o nome do promotor
           const { data: promoter } = await supabaseAdmin
             .from("mk9_promoters")
             .select("name, employee_number")
@@ -85,7 +82,7 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           const bytes = await renderPromoterRoutePdf({
             routes,
             promoterName: promoter?.name ?? "Promotor",
-            referenceDate: `${body.year}-${String(body.month).padStart(2, '0')}-01`,
+            referenceDate: refDateStr,
           });
 
           const filename = promoterPdfFileName(promoter?.name ?? "Promotor");

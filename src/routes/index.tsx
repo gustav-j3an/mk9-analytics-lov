@@ -9,11 +9,11 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.22 — HOTFIX EXPORTAÇÃO PDF",
+    title: "MK9 | v1.3.23 — PDF STABILIZED",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.22: HOTFIX PDF. Correção do erro 'Server function info not found' migrando para endpoint HTTP estável.",
+        content: "MK9 Analytics v1.3.23: PDF STABILIZED. Resolvido INTERNAL_ERROR via ajuste de importação da pdf-lib no servidor.",
       },
       { property: "og:title", content: "MK9 | v1.3.16" },
       {
@@ -85,10 +85,10 @@ function LandingPage() {
 
               <div className="mt-8 pt-6 border-t border-white/5 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-slate-500 font-medium">
-                  MK9 Analytics • <span className="text-purple-400/80">v1.3.22</span>
+                  MK9 Analytics • <span className="text-purple-400/80">v1.3.23</span>
                 </p>
                 <p className="text-[9px] text-slate-600 uppercase tracking-widest font-bold">
-                  HOTFIX ESTABILIDADE PDF (HTTP ENDPOINT)
+                  EXPORTAÇÃO PDF ESTABILIZADA (INTERNAL_ERROR FIX)
                 </p>
               </div>
             </div>
