@@ -5,14 +5,20 @@ import { requireMk9Role, logAudit } from "@/lib/mk9-auth/require-role.server";
 
 export const listPresenceTeams = createServerFn({ method: "GET" })
   .handler(async () => {
+    // Join with count of promoters
     const { data, error } = await supabaseAdmin
       .from('mk9_presence_teams' as any)
-      .select('*, supervisor:mk9_supervisors(id, name)')
+      .select('*, supervisor:mk9_supervisors(id, name), members:mk9_promoters(count)')
       .eq('active', true)
       .order('name');
     
     if (error) throw error;
-    return data as any[];
+    
+    // Format count
+    return data.map((t: any) => ({
+      ...t,
+      member_count: t.members?.[0]?.count || 0
+    }));
   });
 
 export const getPresenceTeamDetails = createServerFn({ method: "GET" })
@@ -91,9 +97,23 @@ export const addPromotersToTeam = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN']);
+    
+    // 1. Get team details to sync supervisor
+    const { data: team, error: tErr } = await supabaseAdmin
+      .from('mk9_presence_teams' as any)
+      .select('supervisor_id')
+      .eq('id', data.teamId)
+      .single();
+    
+    if (tErr) throw tErr;
+
+    // 2. Update promoters (team_id AND supervisor_id)
     const { error } = await supabaseAdmin
       .from('mk9_promoters' as any)
-      .update({ presence_team_id: data.teamId })
+      .update({ 
+        presence_team_id: data.teamId,
+        mk9_supervisor_id: (team as any).supervisor_id
+      })
       .in('id', data.promoterIds);
     
     if (error) throw error;
@@ -147,6 +167,7 @@ export const listPotentialMembers = createServerFn({ method: "GET" })
       .order('name');
     
     if (error) throw error;
+    // Map backend snake_case to frontend camelCase if needed, though component uses snake_case here
     return data as any[];
   });
 
