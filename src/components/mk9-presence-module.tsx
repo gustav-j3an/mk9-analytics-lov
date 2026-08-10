@@ -46,6 +46,7 @@ export function Mk9PresenceModule() {
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [search, setSearch] = useState("");
   const [ufFilter, setUfFilter] = useState("__ALL__");
+  const [supervisorFilter, setSupervisorFilter] = useState("ALL");
   const [localPresence, setLocalPresence] = useState<Record<string, { status: any, observation: string }>>({});
 
   const listFn = useServerFn(getPresenceList);
@@ -53,13 +54,13 @@ export function Mk9PresenceModule() {
   const statsFn = useServerFn(getPresenceStats);
 
   const { data: presenceItems, isLoading: listLoading } = useQuery({
-    queryKey: ["mk9-presence-list", date, search, ufFilter],
-    queryFn: () => listFn({ data: { date, filters: { search, uf: ufFilter } } }),
+    queryKey: ["mk9-presence-list", date, search, ufFilter, supervisorFilter],
+    queryFn: () => listFn({ data: { date, filters: { search, uf: ufFilter, supervisor: supervisorFilter } } }),
   });
 
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ["mk9-presence-stats", date],
-    queryFn: () => statsFn({ data: { date } }),
+    queryKey: ["mk9-presence-stats", date, supervisorFilter],
+    queryFn: () => statsFn({ data: { date, supervisor: supervisorFilter } }),
   });
 
   // Reset local state when data loads or date changes
