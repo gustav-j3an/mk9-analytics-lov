@@ -5,34 +5,18 @@ import {
   type PDFPage,
   type PDFFont,
 } from "pdf-lib/dist/pdf-lib.esm.js";
-import type { OperationCore } from "@/lib/mk9-operations/types";
+import type { OperationCore, OperationStoreRow } from "@/lib/mk9-operations/types";
 
 const MONTHS_PT = [
-  "Janeiro",
-  "Fevereiro",
-  "Março",
-  "Abril",
-  "Maio",
-  "Junho",
-  "Julho",
-  "Agosto",
-  "Setembro",
-  "Outubro",
-  "Novembro",
-  "Dezembro",
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ];
 
 const WEEKDAY_PT = [
-  "DOMINGO",
-  "SEGUNDA-FEIRA",
-  "TERÇA-FEIRA",
-  "QUARTA-FEIRA",
-  "QUINTA-FEIRA",
-  "SEXTA-FEIRA",
-  "SÁBADO",
+  "DOMINGO", "SEGUNDA-FEIRA", "TERÇA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO"
 ];
 
-const PAGE = { w: 595.28, h: 841.89 }; // A4 portrait
+const PAGE = { w: 595.28, h: 841.89 };
 const MARGIN = 40;
 const CONTENT_W = PAGE.w - MARGIN * 2;
 const BOTTOM_LIMIT = 50;
@@ -53,26 +37,20 @@ interface PdfCtx {
   y: number;
   font: PDFFont;
   fontB: PDFFont;
-  core: OperationCore;
-  promoterId: string;
-  promoterName: string;
-  promoterEmployeeNumber: string | null;
-  year: number;
-  month: number;
 }
 
 function drawHeader(ctx: PdfCtx) {
-  ctx.page.drawText("MK9 Analytics", {
+  ctx.page.drawText("MK9 TRADE", {
     x: MARGIN,
     y: PAGE.h - 30,
     size: 10,
     font: ctx.fontB,
     color: COLOR_BRAND,
   });
-  ctx.page.drawText("ROTEIRO DO PROMOTOR", {
-    x: PAGE.w - MARGIN - ctx.font.widthOfTextAtSize("ROTEIRO DO PROMOTOR", 10),
+  ctx.page.drawText("ROTEIRO SEMANAL DO PROMOTOR", {
+    x: PAGE.w - MARGIN - ctx.font.widthOfTextAtSize("ROTEIRO SEMANAL DO PROMOTOR", 8),
     y: PAGE.h - 30,
-    size: 10,
+    size: 8,
     font: ctx.font,
     color: COLOR_MUTED,
   });
@@ -93,7 +71,7 @@ function drawFooter(ctx: PdfCtx, pageNum: number, total: number) {
     color: COLOR_LINE,
   });
   const d = new Date();
-  const dateStr = `Emitido em ${d.toLocaleDateString("pt-BR")} às ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+  const dateStr = `Gerado em ${d.toLocaleDateString("pt-BR")} às ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
   ctx.page.drawText(sanitizePdfText(dateStr), {
     x: MARGIN,
     y,
@@ -129,7 +107,7 @@ export async function renderPromoterRoutePdf(input: {
   year: number;
   month: number;
 }): Promise<Uint8Array> {
-  const { core, promoterId, promoterName, promoterEmployeeNumber, year, month } = input;
+  const { core, promoterId, promoterName, year, month } = input;
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const fontB = await pdf.embedFont(StandardFonts.HelveticaBold);
@@ -141,12 +119,6 @@ export async function renderPromoterRoutePdf(input: {
     y: PAGE.h - 60,
     font,
     fontB,
-    core,
-    promoterId,
-    promoterName,
-    promoterEmployeeNumber,
-    year,
-    month,
   };
 
   drawHeader(ctx);
@@ -157,190 +129,121 @@ export async function renderPromoterRoutePdf(input: {
   const uniqueStores = new Set(rows.map((r) => r.storeId)).size;
   const uniqueIndustries = new Set(rows.map((r) => r.industryId)).size;
 
-  ctx.page.drawText("RESUMO DO ROTEIRO", {
+  ctx.page.drawText(sanitizePdfText(`Promotor: ${promoterName}`), {
     x: MARGIN,
     y: ctx.y,
-    size: 12,
+    size: 11,
     font: fontB,
-    color: COLOR_BRAND,
+    color: COLOR_TEXT,
+  });
+  ctx.y -= 15;
+
+  ctx.page.drawText(`Competência: ${MONTHS_PT[month - 1]} / ${year}`, {
+    x: MARGIN,
+    y: ctx.y,
+    size: 9,
+    font: font,
+    color: COLOR_MUTED,
   });
   ctx.y -= 25;
 
-  const info = [
-    ["Promotor:", promoterName],
-    ...(promoterEmployeeNumber ? [["Matrícula:", promoterEmployeeNumber]] : []),
-    ["Competência:", `${MONTHS_PT[month - 1]} / ${year}`],
-    ["", ""],
-    ["TOTAL DE VISITAS:", String(totalVisits)],
-    ["LOJAS ÚNICAS:", String(uniqueStores)],
-    ["INDÚSTRIAS:", String(uniqueIndustries)],
-  ];
-
-  for (const [label, val] of info) {
-    if (!label) {
-      ctx.y -= 10;
-      continue;
-    }
-    ctx.page.drawText(label, { x: MARGIN, y: ctx.y, size: 9, font: fontB, color: COLOR_TEXT });
-    ctx.page.drawText(sanitizePdfText(val), {
-      x: MARGIN + 120,
-      y: ctx.y,
-      size: 9,
-      font: font,
-      color: COLOR_TEXT,
-    });
-    ctx.y -= 14;
-  }
-
-  ctx.y -= 20;
-  ctx.page.drawLine({
-    start: { x: MARGIN, y: ctx.y + 10 },
-    end: { x: PAGE.w - MARGIN, y: ctx.y + 10 },
-    thickness: 0.5,
-    color: COLOR_LINE,
-  });
-
-  // 2. AGRUPAMENTO POR DIA DA SEMANA
-  const weekdayMap = new Map<number, any[]>();
-  const weekdayTotalVisits = [0, 0, 0, 0, 0, 0, 0];
-
-  for (const row of rows) {
-    const routeInfo = core.routeByKey.get(`${row.industryId}|${row.storeId}`);
-    if (routeInfo) {
-      const daysCount = routeInfo.weekdays.size;
-      const perDay = row.contratadas / daysCount;
-      for (const wd of routeInfo.weekdays) {
-        if (!weekdayMap.has(wd)) weekdayMap.set(wd, []);
-        weekdayMap.get(wd)!.push({
-          storeName: row.storeName,
-          chain: row.chain,
-          industryName: row.industryName,
-          uf: row.uf,
-        });
-        weekdayTotalVisits[wd] += perDay;
-      }
-    }
-  }
-
-  // Renderiza cada dia
-  for (let wd = 1; wd <= 6; wd++) {
-    // Segunda a Sábado (padrão)
-    const stores = weekdayMap.get(wd) || [];
-    if (stores.length === 0 && wd > 5) continue; // Pula Sábado se vazio
-
-    ensureSpace(ctx, 40);
-    ctx.page.drawRectangle({
-      x: MARGIN,
-      y: ctx.y - 15,
-      width: CONTENT_W,
-      height: 15,
-      color: COLOR_HEADER_BG,
-    });
-    const dayLabel = `${WEEKDAY_PT[wd]} (${Math.round(weekdayTotalVisits[wd])} visitas)`;
-    ctx.page.drawText(dayLabel, {
-      x: MARGIN + 5,
-      y: ctx.y - 11,
-      size: 9,
-      font: fontB,
-      color: COLOR_BRAND,
-    });
-    ctx.y -= 25;
-
-    if (stores.length === 0) {
-      ctx.page.drawText("Sem visitas programadas.", {
-        x: MARGIN + 10,
-        y: ctx.y,
-        size: 8,
-        font: font,
-        color: COLOR_MUTED,
-      });
-      ctx.y -= 15;
-    } else {
-      // Ordena por Loja
-      stores.sort((a, b) => a.storeName.localeCompare(b.storeName));
-      for (const s of stores) {
-        ensureSpace(ctx, 15);
-        const storeLine = sanitizePdfText(
-          `${s.chain ? `${s.chain} · ` : ""}${s.storeName} (${s.uf})`,
-        );
-        ctx.page.drawText("•", {
-          x: MARGIN + 5,
-          y: ctx.y,
-          size: 8,
-          font: fontB,
-          color: COLOR_BRAND,
-        });
-        ctx.page.drawText(storeLine, {
-          x: MARGIN + 15,
-          y: ctx.y,
-          size: 8,
-          font: font,
-          color: COLOR_TEXT,
-        });
-        const indW = font.widthOfTextAtSize(sanitizePdfText(s.industryName), 7);
-        ctx.page.drawText(sanitizePdfText(s.industryName), {
-          x: PAGE.w - MARGIN - indW,
-          y: ctx.y,
-          size: 7,
-          font: font,
-          color: COLOR_MUTED,
-        });
-        ctx.y -= 12;
-      }
-      ctx.y -= 5;
-    }
-  }
-
-  // 3. RESUMO FINAL
-  ensureSpace(ctx, 120);
-  ctx.y -= 20;
+  // Grid de Totais
   ctx.page.drawRectangle({
     x: MARGIN,
-    y: ctx.y - 100,
+    y: ctx.y - 40,
     width: CONTENT_W,
-    height: 100,
-    color: rgb(0.98, 0.98, 0.98),
+    height: 40,
+    color: COLOR_HEADER_BG,
     borderColor: COLOR_LINE,
     borderWidth: 0.5,
   });
 
-  let subY = ctx.y - 20;
-  ctx.page.drawText("RESUMO POR DIA", {
-    x: MARGIN + 20,
-    y: subY,
-    size: 9,
-    font: fontB,
-    color: COLOR_TEXT,
-  });
-  subY -= 20;
+  const totals = [
+    { label: "TOTAL DE LOJAS", value: uniqueStores },
+    { label: "TOTAL DE INDÚSTRIAS", value: uniqueIndustries },
+    { label: "TOTAL DE ATENDIMENTOS", value: totalVisits },
+  ];
 
-  const gridX = [MARGIN + 20, MARGIN + 120, MARGIN + 220, MARGIN + 320];
+  let tx = MARGIN + 20;
+  for (const t of totals) {
+    ctx.page.drawText(t.label, { x: tx, y: ctx.y - 15, size: 7, font: fontB, color: COLOR_MUTED });
+    ctx.page.drawText(String(t.value), { x: tx, y: ctx.y - 30, size: 12, font: fontB, color: COLOR_BRAND });
+    tx += 160;
+  }
+  ctx.y -= 60;
+
+  // 2. AGRUPAMENTO POR DIA DA SEMANA
+  const weekdayMap = new Map<number, Map<string, { name: string; chain: string | null; uf: string | null; industries: string[] }>>();
+
+  for (const row of rows) {
+    const routeInfo = core.routeByKey.get(`${row.industryId}|${row.storeId}`);
+    if (routeInfo) {
+      for (const wd of routeInfo.weekdays) {
+        if (!weekdayMap.has(wd)) weekdayMap.set(wd, new Map());
+        const dayStores = weekdayMap.get(wd)!;
+        if (!dayStores.has(row.storeId)) {
+          dayStores.set(row.storeId, {
+            name: row.storeName,
+            chain: row.chain,
+            uf: row.uf,
+            industries: []
+          });
+        }
+        dayStores.get(row.storeId)!.industries.push(row.industryName);
+      }
+    }
+  }
+
   const daysToShow = [1, 2, 3, 4, 5, 6, 0];
+  for (const wd of daysToShow) {
+    const dayStores = weekdayMap.get(wd);
+    if (!dayStores || dayStores.size === 0) continue;
 
-  daysToShow.forEach((wd, i) => {
-    const col = i % 4;
-    const row = Math.floor(i / 4);
-    const x = gridX[col];
-    const y = subY - row * 15;
-    const label = WEEKDAY_PT[wd].split("-")[0];
-    ctx.page.drawText(`${label}: ${Math.round(weekdayTotalVisits[wd])}`, {
-      x,
-      y: y,
-      size: 8,
-      font: font,
-      color: COLOR_TEXT,
+    ensureSpace(ctx, 50);
+    ctx.y -= 10;
+    
+    // Separador de Dia
+    ctx.page.drawLine({
+      start: { x: MARGIN, y: ctx.y },
+      end: { x: PAGE.w - MARGIN, y: ctx.y },
+      thickness: 2,
+      color: COLOR_BRAND,
     });
-  });
+    ctx.y -= 15;
+    ctx.page.drawText(WEEKDAY_PT[wd], { x: MARGIN, y: ctx.y, size: 10, font: fontB, color: COLOR_BRAND });
+    ctx.y -= 10;
+    ctx.page.drawLine({
+      start: { x: MARGIN, y: ctx.y },
+      end: { x: PAGE.w - MARGIN, y: ctx.y },
+      thickness: 2,
+      color: COLOR_BRAND,
+    });
+    ctx.y -= 25;
 
-  const totalStr = `TOTAL: ${totalVisits} visitas`;
-  const totalW = fontB.widthOfTextAtSize(totalStr, 10);
-  ctx.page.drawText(totalStr, {
-    x: PAGE.w - MARGIN - 20 - totalW,
-    y: subY - 15,
-    size: 10,
-    font: fontB,
-    color: COLOR_BRAND,
-  });
+    let storeIdx = 1;
+    const sortedStores = Array.from(dayStores.values()).sort((a, b) => a.name.localeCompare(b.name));
+    
+    for (const s of sortedStores) {
+      ensureSpace(ctx, 60);
+      
+      const storeTitle = sanitizePdfText(`${storeIdx}. ${s.chain ? `${s.chain} · ` : ""}${s.name} — ${s.uf ?? ""}`);
+      ctx.page.drawText(storeTitle, { x: MARGIN, y: ctx.y, size: 9, font: fontB, color: COLOR_TEXT });
+      ctx.y -= 15;
+
+      ctx.page.drawText("Indústrias:", { x: MARGIN + 15, y: ctx.y, size: 8, font: fontB, color: COLOR_MUTED });
+      ctx.y -= 12;
+
+      for (const ind of s.industries) {
+        ensureSpace(ctx, 15);
+        ctx.page.drawText(`• ${sanitizePdfText(ind)}`, { x: MARGIN + 25, y: ctx.y, size: 8, font: font, color: COLOR_TEXT });
+        ctx.y -= 12;
+      }
+      
+      ctx.y -= 10;
+      storeIdx++;
+    }
+    ctx.y -= 10;
+  }
 
   const pages = pdf.getPages();
   pages.forEach((p, i) => {
