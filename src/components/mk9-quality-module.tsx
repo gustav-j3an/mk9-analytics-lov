@@ -13,6 +13,7 @@ import {
   Search,
   Filter,
   ArrowRight,
+  Eye,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,7 @@ import {
   Mk9ErrorState,
   Mk9EmptyState,
 } from "./mk9/design-system";
+import { QualityIssueDetailSheet } from "./mk9/quality-issue-detail";
 
 const PAGE_SIZE = 25;
 const ALL = "__ALL__";
@@ -90,6 +92,7 @@ export function Mk9QualityModule({
   });
   const [searchInput, setSearchInput] = useState("");
   const [running, setRunning] = useState(false);
+  const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
 
   useEffect(() => {
     setFilters((f) => ({ ...f, month, year, page: 1 }));
@@ -303,9 +306,10 @@ export function Mk9QualityModule({
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={() => setSelectedIssueId(item.id)}
                     className="h-8 gap-2 text-slate-400 group-hover:text-command-purple opacity-0 group-hover:opacity-100 transition-all"
                   >
-                    Visualizar <ArrowRight className="h-4 w-4" />
+                    Visualizar <Eye className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               ))}
@@ -313,6 +317,23 @@ export function Mk9QualityModule({
           )}
         </div>
       </Mk9Panel>
+
+      <QualityIssueDetailSheet 
+        issueId={selectedIssueId} 
+        onClose={() => setSelectedIssueId(null)}
+        onNavigateToEntity={(type, id) => {
+          if (type === 'routes') {
+            onNavigate?.({ 
+              module: 'routes',
+              industryId: null,
+              storeId: null,
+              month,
+              year
+            });
+          }
+          setSelectedIssueId(null);
+        }}
+      />
     </div>
   );
 }
