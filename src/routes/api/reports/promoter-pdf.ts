@@ -91,7 +91,7 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
             storeName: r.store?.name ?? "—",
             storeChain: r.store?.chain,
             storeUf: r.store?.uf,
-            storeAddress: r.store?.address,
+            storeAddress: null,
             industryName: r.industry?.name ?? "—",
           }));
           log("Normalization OK");
