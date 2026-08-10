@@ -7,7 +7,7 @@ export const listPresenceTeams = createServerFn({ method: "GET" })
   .handler(async () => {
     const { data, error } = await supabaseAdmin
       .from('mk9_presence_teams' as any)
-      .select('*, supervisor:mk9_profiles(id, full_name)')
+      .select('*, supervisor:mk9_supervisors(id, name)')
       .eq('active', true)
       .order('name');
     
@@ -20,7 +20,7 @@ export const getPresenceTeamDetails = createServerFn({ method: "GET" })
   .handler(async ({ data: id }) => {
     const { data: team, error: tErr } = await supabaseAdmin
       .from('mk9_presence_teams' as any)
-      .select('*, supervisor:mk9_profiles(id, full_name)')
+      .select('*, supervisor:mk9_supervisors(id, name)')
       .eq('id', id)
       .single();
     
