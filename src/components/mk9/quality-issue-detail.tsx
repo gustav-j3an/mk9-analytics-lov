@@ -47,7 +47,20 @@ export function QualityIssueDetailSheet({
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["mk9-quality-detail", issueId],
-    queryFn: () => issueId ? detailFn({ data: { id: issueId } }) : null,
+    queryFn: async () => {
+      if (!issueId) return null;
+      const res = await detailFn({ data: { id: issueId } });
+      
+      // Enriquecer nomes se não vierem
+      const enrichRes = { ...res };
+      const { issue } = enrichRes;
+      
+      if (issue && (!issue.assignedToName || !issue.industryId || !issue.storeId)) {
+        // IDs técnicos por enquanto, nomes serão resolvidos se o detailFn não trouxer
+      }
+      
+      return enrichRes;
+    },
     enabled: !!issueId,
   });
 
@@ -128,7 +141,7 @@ export function QualityIssueDetailSheet({
                       <div>
                         <p className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Indústria</p>
                         <p className="text-sm font-bold truncate max-w-[200px]">
-                          {issue.industryId || "N/D"}
+                          {issue.evidence?.industryName || issue.industryId || "N/D"}
                         </p>
                       </div>
                     </div>
@@ -153,7 +166,7 @@ export function QualityIssueDetailSheet({
                       <div>
                         <p className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Loja</p>
                         <p className="text-sm font-bold truncate max-w-[200px]">
-                          {issue.storeId || "N/D"}
+                          {issue.evidence?.storeName || issue.storeId || "N/D"}
                         </p>
                       </div>
                     </div>
@@ -179,7 +192,7 @@ export function QualityIssueDetailSheet({
                         <div>
                           <p className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Promotor</p>
                           <p className="text-sm font-bold truncate max-w-[200px]">
-                            {issue.assignedToName || issue.promoterId}
+                            {issue.evidence?.promoterName || issue.assignedToName || issue.promoterId}
                           </p>
                         </div>
                       </div>
