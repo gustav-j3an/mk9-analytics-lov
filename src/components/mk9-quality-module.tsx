@@ -323,9 +323,13 @@ export function Mk9QualityModule({
         onClose={() => setSelectedIssueId(null)}
         onNavigateToEntity={(type, id) => {
           if (type === 'routes') {
-            onNavigate?.({ type: 'ROTEIROS' });
-          } else if (type === 'industry' && id) {
-             // Lógica de navegação para indústria se necessário
+            onNavigate?.({ 
+              module: 'routes',
+              industryId: null,
+              storeId: null,
+              month,
+              year
+            });
           }
           setSelectedIssueId(null);
         }}
