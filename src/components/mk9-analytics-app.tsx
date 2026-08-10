@@ -20,6 +20,8 @@ import { Mk9StoresModule } from "./mk9-stores-module";
 import { Mk9PromotersModule } from "./mk9-promoters-module";
 import { Mk9HomologationModule } from "./mk9-homologation-module";
 import { Mk9IndustryAuditModule } from "./mk9-industry-audit-module";
+import { Mk9PresenceModule } from "./mk9-presence-module";
+
 
 import {
   AlertTriangle,
@@ -73,7 +75,9 @@ type ModuleId =
   | "industrias"
   | "lojas"
   | "promotores"
+  | "presenca"
   | "auditoria_controle";
+
 
 export function Mk9AnalyticsApp() {
   const { user, roles, loading: sessionLoading, signOut } = useMk9Session();
@@ -227,6 +231,16 @@ export function Mk9AnalyticsApp() {
                 if (window.innerWidth < 768) setCollapsed(true);
               }}
             />
+            <SidebarItem
+              icon={CheckCircle2}
+              label="Presença"
+              active={activeModule === "presenca"}
+              onClick={() => {
+                setActiveModule("presenca");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
+            />
+
 
             <div className="pt-4 pb-2">
               {!collapsed && (
@@ -392,6 +406,8 @@ export function Mk9AnalyticsApp() {
               {activeModule === "homologacao" && "Saúde"}
               {activeModule === "usuarios" && "Usuários"}
               {activeModule === "auditoria_controle" && "Auditoria"}
+              {activeModule === "presenca" && "Presença"}
+
             </h2>
           </div>
           <div className="flex items-center gap-4">
@@ -471,6 +487,8 @@ export function Mk9AnalyticsApp() {
             {activeModule === "industrias" && <Mk9IndustriesModule />}
             {activeModule === "lojas" && <Mk9StoresModule />}
             {activeModule === "promotores" && <Mk9PromotersModule />}
+            {activeModule === "presenca" && <Mk9PresenceModule />}
+
             {activeModule === "roteiros" && (
               <Mk9RoutesModule
                 promoters={promotersQ.data ?? []}
