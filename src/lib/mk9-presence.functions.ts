@@ -18,7 +18,8 @@ export const getPresenceList = createServerFn({ method: "GET" })
     let promotersQuery = supabaseAdmin
       .from('mk9_promoters')
       .select('id, name, employee_number, uf, supervisor_id')
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .order('name', { ascending: true });
 
     if (data.filters?.search) {
       promotersQuery = promotersQuery.or(`name.ilike.%${data.filters.search}%,employee_number.ilike.%${data.filters.search}%`);

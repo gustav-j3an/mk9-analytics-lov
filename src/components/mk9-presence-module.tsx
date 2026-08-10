@@ -199,11 +199,11 @@ export function Mk9PresenceModule() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Mk9MetricCard label="Total Promotores" value={presenceItems?.length || 0} color="blue" />
+        <Mk9MetricCard label="Total Promotores" value={presenceItems?.length ?? 0} color="blue" />
         <Mk9MetricCard label="Presentes" value={localStats.present} color="emerald" />
         <Mk9MetricCard label="Faltas" value={localStats.absent} color="rose" />
         <Mk9MetricCard label="Atestados" value={localStats.medical} color="amber" />
-        <Mk9MetricCard label="Não Marcados" value={localStats.unmarked} color="blue" hint="Pendentes" />
+        <Mk9MetricCard label="Não Marcados" value={Math.max(0, (presenceItems?.length ?? 0) - (localStats.present + localStats.absent + localStats.medical))} color="blue" hint="Pendentes" />
       </div>
 
       <Mk9Panel>
@@ -247,9 +247,12 @@ export function Mk9PresenceModule() {
 
         <div className="rounded-xl border border-white/5 overflow-hidden">
           {listLoading ? (
-            <Mk9LoadingState />
+            <Mk9LoadingState message="Carregando promotores..." />
           ) : !presenceItems || presenceItems.length === 0 ? (
-            <Mk9EmptyState message="Nenhum promotor encontrado." />
+            <Mk9EmptyState 
+              title="Nenhum promotor encontrado"
+              message="Verifique se há promotores ativos no cadastro ou ajuste os filtros." 
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
