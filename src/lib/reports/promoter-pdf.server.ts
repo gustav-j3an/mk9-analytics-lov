@@ -14,7 +14,7 @@ const rgb = lib.rgb;
 
 type PDFPage = any;
 type PDFFont = any;
-
+type PDFDocumentType = any;
 
 const WEEKDAY_PT = [
   "DOMINGO", "SEGUNDA-FEIRA", "TERÇA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO"
