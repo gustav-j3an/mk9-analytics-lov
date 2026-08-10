@@ -459,7 +459,6 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           }}
         />
       )}
-      {/* Template oculto para exportação PDF removido */}
     </div>
   );
 }
