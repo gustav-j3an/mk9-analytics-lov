@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           log("Início da requisição");
           
           step = "auth-start";
-          const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server.js");
+          const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
           const { scope: access } = await requireMk9ReadScope(request);
           log("Auth OK", { userId: access.userId });
           
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           log("Params OK", { promoterId, referenceDate });
 
           step = "db-load-route";
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server.js");
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data: rows, error: routeError } = await supabaseAdmin
             .from("mk9_planned_routes")
             .select(`
@@ -91,7 +91,7 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           log("Promoter Loaded", { name: promoter?.name });
 
           step = "renderer-start";
-          const { renderPromoterRoutePdf, promoterPdfFileName } = await import("@/lib/reports/promoter-pdf.server.js");
+          const { renderPromoterRoutePdf, promoterPdfFileName } = await import("@/lib/reports/promoter-pdf.server");
           log("Starting render...");
           const bytes = await renderPromoterRoutePdf({
             routes,
