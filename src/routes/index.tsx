@@ -9,11 +9,11 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.19 — GESTÃO DE ROTEIROS",
+    title: "MK9 | v1.3.20 — EXPORTAÇÃO PDF",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.19: GESTÃO DE ROTEIROS. Implementação de exclusão segura de itens do roteiro e proteção contra duplicidades.",
+        content: "MK9 Analytics v1.3.20: EXPORTAÇÃO PDF. Implementação de exportação individual de roteiros em PDF com paridade total.",
       },
       { property: "og:title", content: "MK9 | v1.3.16" },
       {
@@ -85,10 +85,10 @@ function LandingPage() {
 
               <div className="mt-8 pt-6 border-t border-white/5 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-slate-500 font-medium">
-                  MK9 Analytics • <span className="text-purple-400/80">v1.3.19</span>
+                  MK9 Analytics • <span className="text-purple-400/80">v1.3.20</span>
                 </p>
                 <p className="text-[9px] text-slate-600 uppercase tracking-widest font-bold">
-                  GESTÃO DE ROTEIROS E INTEGRIDADE
+                  EXPORTAÇÃO PDF E GESTÃO DE ROTEIROS
                 </p>
               </div>
             </div>

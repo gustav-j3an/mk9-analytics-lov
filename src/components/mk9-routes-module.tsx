@@ -83,7 +83,12 @@ async function downloadPromoterPdf(
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `ROTEIRO_${promoterName.toUpperCase().replace(/\s+/g, "_")}_${month}_${year}.pdf`;
+    const cleanName = promoterName
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "_");
+    a.download = `ROTEIRO_${cleanName}.pdf`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
@@ -311,9 +316,36 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
         <p className="text-sm text-muted-foreground">
           Roteiros vigentes em <strong>{referenceDate}</strong> · {routes.length} itens
         </p>
-        <Button size="sm" onClick={() => setCreating(true)}>
-          <Plus className="h-4 w-4" /> Novo item de roteiro
-        </Button>
+        <div className="flex items-center gap-3">
+          {filterPromoter && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 border-command-purple/20 text-command-purple hover:bg-command-purple/10 text-[10px] font-black uppercase tracking-widest px-4"
+              onClick={() => {
+                const promoter = promoters.find((p) => p.id === filterPromoter);
+                if (promoter) {
+                  const d = new Date(referenceDate);
+                  downloadPromoterPdf(
+                    filterPromoter,
+                    promoter.name,
+                    d.getFullYear(),
+                    d.getMonth() + 1,
+                  );
+                }
+              }}
+            >
+              <FileText className="h-4 w-4 mr-2" /> Exportar Roteiro PDF
+            </Button>
+          )}
+          <Button
+            size="sm"
+            onClick={() => setCreating(true)}
+            className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none uppercase text-[10px] font-black tracking-widest px-6"
+          >
+            <Plus className="h-4 w-4 mr-2" /> Novo item de roteiro
+          </Button>
+        </div>
       </div>
 
       {listQ.isLoading ? (
