@@ -6,20 +6,20 @@ import { requireMk9Role, logAudit } from "@/lib/mk9-auth/require-role.server";
 export const listPresenceTeams = createServerFn({ method: "GET" })
   .handler(async () => {
     const { data, error } = await supabaseAdmin
-      .from('mk9_presence_teams')
+      .from('mk9_presence_teams' as any)
       .select('*, supervisor:mk9_profiles(id, full_name)')
       .eq('active', true)
       .order('name');
     
     if (error) throw error;
-    return data;
+    return data as any[];
   });
 
 export const getPresenceTeamDetails = createServerFn({ method: "GET" })
   .inputValidator(z.string().uuid())
   .handler(async ({ data: id }) => {
     const { data: team, error: tErr } = await supabaseAdmin
-      .from('mk9_presence_teams')
+      .from('mk9_presence_teams' as any)
       .select('*, supervisor:mk9_profiles(id, full_name)')
       .eq('id', id)
       .single();
@@ -27,7 +27,7 @@ export const getPresenceTeamDetails = createServerFn({ method: "GET" })
     if (tErr) throw tErr;
 
     const { data: members, error: mErr } = await supabaseAdmin
-      .from('mk9_promoters')
+      .from('mk9_promoters' as any)
       .select('id, name, employee_number, uf')
       .eq('presence_team_id', id)
       .eq('is_active', true)
@@ -35,7 +35,7 @@ export const getPresenceTeamDetails = createServerFn({ method: "GET" })
     
     if (mErr) throw mErr;
 
-    return { ...team, members };
+    return { ...team, members: members as any[] } as any;
   });
 
 export const createPresenceTeam = createServerFn({ method: "POST" })
@@ -46,7 +46,7 @@ export const createPresenceTeam = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN']);
     const { data: team, error } = await supabaseAdmin
-      .from('mk9_presence_teams')
+      .from('mk9_presence_teams' as any)
       .insert({
         name: data.name,
         supervisor_id: data.supervisorId
@@ -55,8 +55,8 @@ export const createPresenceTeam = createServerFn({ method: "POST" })
       .single();
     
     if (error) throw error;
-    await logAudit(ctx, 'PRESENCE_TEAM_CREATED', 'mk9_presence_teams', team.id, data);
-    return team;
+    await logAudit(ctx, 'PRESENCE_TEAM_CREATED', 'mk9_presence_teams', (team as any).id, data);
+    return team as any;
   });
 
 export const updatePresenceTeam = createServerFn({ method: "POST" })
@@ -68,7 +68,7 @@ export const updatePresenceTeam = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN']);
     const { data: team, error } = await supabaseAdmin
-      .from('mk9_presence_teams')
+      .from('mk9_presence_teams' as any)
       .update({
         name: data.name,
         supervisor_id: data.supervisorId,
@@ -80,7 +80,7 @@ export const updatePresenceTeam = createServerFn({ method: "POST" })
     
     if (error) throw error;
     await logAudit(ctx, 'PRESENCE_TEAM_UPDATED', 'mk9_presence_teams', data.id, data);
-    return team;
+    return team as any;
   });
 
 export const addPromotersToTeam = createServerFn({ method: "POST" })
@@ -91,7 +91,7 @@ export const addPromotersToTeam = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN']);
     const { error } = await supabaseAdmin
-      .from('mk9_promoters')
+      .from('mk9_promoters' as any)
       .update({ presence_team_id: data.teamId })
       .in('id', data.promoterIds);
     
@@ -107,7 +107,7 @@ export const removePromoterFromTeam = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN']);
     const { error } = await supabaseAdmin
-      .from('mk9_promoters')
+      .from('mk9_promoters' as any)
       .update({ presence_team_id: null })
       .eq('id', data.promoterId);
     
@@ -123,12 +123,12 @@ export const archivePresenceTeam = createServerFn({ method: "POST" })
     
     // First remove all members
     await supabaseAdmin
-      .from('mk9_promoters')
+      .from('mk9_promoters' as any)
       .update({ presence_team_id: null })
       .eq('presence_team_id', id);
 
     const { error } = await supabaseAdmin
-      .from('mk9_presence_teams')
+      .from('mk9_presence_teams' as any)
       .update({ active: false, updated_at: new Date().toISOString() })
       .eq('id', id);
     
@@ -140,11 +140,22 @@ export const archivePresenceTeam = createServerFn({ method: "POST" })
 export const listPotentialMembers = createServerFn({ method: "GET" })
   .handler(async () => {
     const { data, error } = await supabaseAdmin
-      .from('mk9_promoters')
+      .from('mk9_promoters' as any)
       .select('id, name, employee_number, uf, presence_team_id')
       .eq('is_active', true)
       .order('name');
     
     if (error) throw error;
-    return data;
+    return data as any[];
+  });
+
+export const listSupervisors = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const { data, error } = await supabaseAdmin
+      .from('mk9_profiles' as any)
+      .select('id, full_name')
+      .order('full_name');
+    
+    if (error) throw error;
+    return data as any[];
   });
