@@ -206,7 +206,7 @@ export function Mk9PromotersModule() {
           setDeletingPromoter(null);
         }}
         onSuccess={() => {
-          setDeletingPromoter(prev => ({ ...prev, wasDeleted: true }));
+          setDeletingPromoter((prev: any) => ({ ...prev, wasDeleted: true }));
         }}
         promoter={deletingPromoter}
       />
