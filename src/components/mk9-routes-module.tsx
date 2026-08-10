@@ -66,21 +66,25 @@ const WEEKDAY_PT = [
 async function downloadPromoterPdf(
   promoterId: string,
   promoterName: string,
-  year: number,
-  month: number,
+  referenceDate: string,
 ) {
   try {
     const { supabase } = await import("@/integrations/supabase/client");
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
 
+    const d = new Date(referenceDate);
     const res = await fetch("/api/reports/promoter-pdf", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ promoterId, year, month }),
+      body: JSON.stringify({ 
+        promoterId, 
+        year: d.getFullYear(), 
+        month: d.getMonth() + 1 
+      }),
     });
     if (!res.ok) {
       const err = await res.json();
@@ -333,12 +337,10 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                 const pName = Array.from(grouped.keys())[0];
                 const pId = filterPromoter || promoters.find(p => p.name === pName)?.id;
                 if (pId) {
-                  const d = new Date(referenceDate);
                   downloadPromoterPdf(
                     pId,
                     pName,
-                    d.getFullYear(),
-                    d.getMonth() + 1,
+                    referenceDate,
                   );
                 }
               }}
@@ -394,8 +396,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                         onClick={() => {
                           const pId = promoters.find(p => p.name === promoter)?.id;
                           if (pId) {
-                            const d = new Date(referenceDate);
-                            downloadPromoterPdf(pId, promoter, d.getFullYear(), d.getMonth() + 1);
+                            downloadPromoterPdf(pId, promoter, referenceDate);
                           }
                         }}
                       >

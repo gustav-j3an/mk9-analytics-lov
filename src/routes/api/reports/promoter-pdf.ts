@@ -26,17 +26,17 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           const raw = await request.json();
           const body = payloadSchema.parse(raw);
 
-          // ESTRATÉGIA: Carregar o OperationCore para o promotor para ter todos os dados reconciliados
-          const { loadOperationCore } = await import("@/lib/mk9-operations/core.server");
-          const core = await loadOperationCore(supabaseAdmin, {
-            year: body.year,
-            month: body.month,
-            promoterId: body.promoterId,
-            access,
+          // DADOS DO ROTEIRO: Usar a mesma fonte da tela de Roteiros
+          const { loadPromoterRouteForDisplay } = await import("@/lib/reports/promoter-route-loader.functions");
+          const routes = await loadPromoterRouteForDisplay({
+            data: {
+              promoterId: body.promoterId,
+              referenceDate: `${body.year}-${String(body.month).padStart(2, '0')}-01` // Usar o primeiro dia do mês/ano solicitado, ou considerar passar a data exata se necessário
+            }
           });
 
-          if (core.empty) {
-            return errorResponse(404, "Nenhum dado encontrado para este promotor no período.");
+          if (!routes || routes.length === 0) {
+            return errorResponse(404, "Nenhum roteiro vigente encontrado para este promotor.");
           }
 
           const { renderPromoterRoutePdf, promoterPdfFileName } =
@@ -50,15 +50,12 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
             .maybeSingle();
 
           const bytes = await renderPromoterRoutePdf({
-            core,
-            promoterId: body.promoterId,
+            routes,
             promoterName: promoter?.name ?? "Promotor",
-            promoterEmployeeNumber: promoter?.employee_number ?? null,
-            year: body.year,
-            month: body.month,
+            referenceDate: `${body.year}-${String(body.month).padStart(2, '0')}-01`,
           });
 
-          const filename = promoterPdfFileName(promoter?.name ?? "Promotor", body.year, body.month);
+          const filename = promoterPdfFileName(promoter?.name ?? "Promotor");
           const ab = bytes.buffer.slice(
             bytes.byteOffset,
             bytes.byteOffset + bytes.byteLength,
