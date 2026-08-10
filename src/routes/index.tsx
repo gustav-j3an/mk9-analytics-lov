@@ -9,11 +9,11 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.18 — PERSISTÊNCIA MENDEZ",
+    title: "MK9 | v1.3.19 — GESTÃO DE ROTEIROS",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.18: PERSISTÊNCIA MENDEZ. Foco no motor de inserção de visitas para resolver a falha de persistência identificada pela auditoria.",
+        content: "MK9 Analytics v1.3.19: GESTÃO DE ROTEIROS. Implementação de exclusão segura de itens do roteiro e proteção contra duplicidades.",
       },
       { property: "og:title", content: "MK9 | v1.3.16" },
       {
@@ -70,7 +70,7 @@ function LandingPage() {
                 MK9 ANALYTICS — REESTRUTURAÇÃO DO ESCOPO
               </h1>
               <p className="text-[10px] text-purple-500 font-black tracking-[0.3em] uppercase">
-                STATUS: v1.3.18 — PERSISTÊNCIA MENDEZ
+                STATUS: v1.3.19 — GESTÃO DE ROTEIROS
               </p>
             </div>
           </div>
@@ -128,35 +128,35 @@ function LandingPage() {
               </section>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <StatusCard icon={Activity} title="RELEASE" value="v1.3.18" sub="PERSISTENCE FIX" />
+                <StatusCard icon={Activity} title="RELEASE" value="v1.3.19" sub="ROUTE MANAGEMENT" />
                 <StatusCard icon={Zap} title="INTEGRITY" value="100%" sub="ANALYTIC" />
               </div>
 
               <div className="border-t border-white/5 pt-6 space-y-4">
                 <h3 className="text-purple-400 font-black uppercase text-[10px] tracking-widest">
-                  MK9 — BLINDAGEM DE PERSISTÊNCIA v1.3.18
+                  MK9 — GESTÃO DE ROTEIROS v1.3.19
                 </h3>
 
                 <div className="space-y-4 text-slate-400">
                   <ProtocolItem
                     id="01"
-                    title="INTEGRIDADE DE PERSISTÊNCIA"
-                    desc="Instrumentação do payload de visitas para garantir que os 21 registros identificados pelo parser sejam enviados para o comando de INSERT."
+                    title="EXCLUSÃO SEGURA"
+                    desc="Capacidade de remover um item específico do roteiro (promotor+loja+indústria+dia) sem afetar o histórico operacional."
                   />
                   <ProtocolItem
                     id="02"
-                    title="AUDITORIA DE TRANSAÇÃO"
-                    desc="Verificação de possíveis rollbacks ou limpezas indevidas após o insert bem-sucedido das visitas na tabela de visitas realizadas."
+                    title="PROTEÇÃO DE DUPLICIDADE"
+                    desc="Nova camada de trigger no banco que impede a criação de rotas idênticas sobrepostas para o mesmo promotor."
                   />
                   <ProtocolItem
                     id="03"
-                    title="UNIFICAÇÃO DE MOTORES"
-                    desc="Alinhamento entre as funções de persistência do modo individual e do modo lote para eliminar discrepâncias de comportamento."
+                    title="AUDITORIA E VERSÕES"
+                    desc="Toda exclusão é registrada em Audit Log. O sistema de versões por vigência permanece como fonte de verdade."
                   />
                   <ProtocolItem
                     id="04"
-                    title="BENCHMARK MENDEZ: 21 VISITAS"
-                    desc="Foco na persistência real dos 21 atendimentos identificados, eliminando a divergência de 8 lojas apontada pela auditoria."
+                    title="PARIDADE OPERACIONAL"
+                    desc="Ajuste fino nas contagens planejadas do dashboard após remoção manual, garantindo integridade visual imediata."
                   />
                 </div>
               </div>
@@ -175,10 +175,10 @@ function LandingPage() {
                   OPERATIONAL GATE
                 </h2>
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest">
-                  SECURE ACCESS v1.3.18
+                  SECURE ACCESS v1.3.19
                 </p>
                 <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded text-[10px] text-blue-400 leading-relaxed italic">
-                  "Diagnóstico confirmado: o parser identifica 21 visitas para a MENDEZ, mas a persistência individual está falhando. O foco agora é rastrear o INSERT/UPSERT real para garantir que as visitas identificadas cheguem ao banco."
+                  "Módulo de roteiros atualizado: agora é possível excluir ocorrências duplicadas ou planejamentos incorretos com segurança total do histórico operacional. A paridade planejada vs realizada está blindada contra duplicidades silenciosas."
                 </div>
               </div>
               <ClientOnly>

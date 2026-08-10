@@ -20,6 +20,7 @@ import {
   FileText,
   Info,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 import { Mk9PageHeader, Mk9Panel, Mk9MetricCard } from "./mk9/design-system";
 import { toast } from "sonner";
@@ -47,6 +48,7 @@ import {
   mk9RoutesListHistory,
   mk9RoutesUpsertItem,
   mk9RoutesDeactivate,
+  mk9RoutesDeleteItem,
 } from "@/lib/mk9-routes.functions";
 import { mk9PromoterRouteStats } from "@/lib/mk9-promoter-route.functions";
 import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
@@ -121,6 +123,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
   const [nameFilter, setNameFilter] = useState("");
 
   const [editing, setEditing] = useState<Route | null>(null);
+  const [deleting, setDeleting] = useState<Route | null>(null);
   const [creating, setCreating] = useState(false);
   const [historyKey, setHistoryKey] = useState<{
     storeId: string;
@@ -387,31 +390,42 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                                           className="inline-flex items-center gap-1 rounded-md bg-background border px-1.5 py-0.5 text-xs"
                                         >
                                           <span>{it.industryName}</span>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-5 w-5"
-                                            title="Editar item"
-                                            onClick={() => setEditing(it)}
-                                          >
-                                            <Pencil className="h-3 w-3" />
-                                          </Button>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-5 w-5"
-                                            title="Histórico de versões"
-                                            onClick={() =>
-                                              setHistoryKey({
-                                                storeId: it.storeId!,
-                                                industryId: it.industryId!,
-                                                weekday: it.weekday,
-                                                label: `${it.storeName} · ${it.industryName} · ${WEEKDAY_PT[it.weekday]}`,
-                                              })
-                                            }
-                                          >
-                                            <History className="h-3 w-3" />
-                                          </Button>
+                                          <div className="flex items-center gap-0.5 ml-1 border-l pl-1 border-white/10">
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-5 w-5 text-slate-400 hover:text-white"
+                                              title="Editar item"
+                                              onClick={() => setEditing(it)}
+                                            >
+                                              <Pencil className="h-3 w-3" />
+                                            </Button>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-5 w-5 text-slate-400 hover:text-destructive"
+                                              title="Excluir rota"
+                                              onClick={() => setDeleting(it)}
+                                            >
+                                              <Trash2 className="h-3 w-3" />
+                                            </Button>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-5 w-5 text-slate-400 hover:text-primary"
+                                              title="Histórico de versões"
+                                              onClick={() =>
+                                                setHistoryKey({
+                                                  storeId: it.storeId!,
+                                                  industryId: it.industryId!,
+                                                  weekday: it.weekday,
+                                                  label: `${it.storeName} · ${it.industryName} · ${WEEKDAY_PT[it.weekday]}`,
+                                                })
+                                              }
+                                            >
+                                              <History className="h-3 w-3" />
+                                            </Button>
+                                          </div>
                                         </div>
                                       ))}
                                     </div>
@@ -456,7 +470,97 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           onClose={() => setHistoryKey(null)}
         />
       )}
+      {deleting && (
+        <DeleteConfirmDialog
+          item={deleting}
+          onClose={() => setDeleting(null)}
+          onDeleted={() => {
+            setDeleting(null);
+            qc.invalidateQueries({ queryKey: ["mk9-routes-versioned"] });
+            qc.invalidateQueries({ queryKey: ["mk9-promoter-route-stats"] });
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Modal de confirmação de exclusão
+// ---------------------------------------------------------------------------
+function DeleteConfirmDialog({
+  item,
+  onClose,
+  onDeleted,
+}: {
+  item: Route;
+  onClose: () => void;
+  onDeleted: () => void;
+}) {
+  const deleteFn = useServerFn(mk9RoutesDeleteItem);
+  const mutation = useMutation({
+    mutationFn: () => deleteFn({ data: { id: item.id } }),
+    onSuccess: () => {
+      toast.success("Item removido do roteiro.");
+      onDeleted();
+    },
+    onError: (err: any) => toast.error(err.message || "Falha ao excluir."),
+  });
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-destructive">
+            <Trash2 className="h-4 w-4" /> Excluir item do roteiro?
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-2 text-xs text-slate-400 bg-white/5 p-4 rounded-lg border border-white/10">
+            <div className="flex justify-between">
+              <span className="uppercase font-bold tracking-widest text-[9px]">Promotor:</span>
+              <span className="text-white font-medium">{item.promoterName}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="uppercase font-bold tracking-widest text-[9px]">Loja:</span>
+              <span className="text-white font-medium">{item.storeName}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="uppercase font-bold tracking-widest text-[9px]">Indústria:</span>
+              <span className="text-white font-medium">{item.industryName}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="uppercase font-bold tracking-widest text-[9px]">Dia:</span>
+              <span className="text-white font-medium">{WEEKDAY_PT[item.weekday]}</span>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-500 italic">
+            "Esta ação removerá apenas este atendimento do roteiro planejado. Visitas realizadas e históricos permanecem intactos."
+          </p>
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" onClick={onClose} disabled={mutation.isPending}>
+            Cancelar
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+            className="font-black uppercase text-[10px] tracking-widest"
+          >
+            {mutation.isPending ? (
+              <Loader2 className="h-3 w-3 animate-spin mr-2" />
+            ) : (
+              <Trash2 className="h-3 w-3 mr-2" />
+            )}
+            Excluir Rota
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -269,6 +269,46 @@ export const mk9RoutesDeactivate = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
+// EXCLUIR ROTA — remove um registro específico pelo ID (Fase 4.1).
+// Proteção: o Roteiro Planejado é independente do Histórico Operacional.
+// ---------------------------------------------------------------------------
+export const mk9RoutesDeleteItem = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data }) => {
+    const ctx = await requireMk9Role(["ADMIN", "SUPERVISOR"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // 1) Antes de apagar, buscamos os metadados para o Audit Log.
+    const { data: item, error: fErr } = await supabaseAdmin
+      .from("mk9_planned_routes")
+      .select("promoter_id, store_id, industry_id, weekday")
+      .eq("id", data.id)
+      .maybeSingle();
+
+    if (fErr) throw new Error(fErr.message);
+    if (!item) throw new Error("Item do roteiro não encontrado ou já removido.");
+
+    // 2) Exclusão física do item de planejamento.
+    // O banco garante via FK (ou isolamento de lógica) que isso não afeta
+    // mk9_actual_visits, mk9_checklist_import_store_snapshots, etc.
+    const { error: dErr } = await supabaseAdmin
+      .from("mk9_planned_routes")
+      .delete()
+      .eq("id", data.id);
+
+    if (dErr) throw new Error(dErr.message);
+
+    await logAudit(ctx, "mk9_routes.delete", "mk9_planned_routes", data.id, {
+      promoterId: item.promoter_id,
+      storeId: item.store_id,
+      industryId: item.industry_id,
+      weekday: item.weekday,
+    });
+
+    return { ok: true };
+  });
+
+// ---------------------------------------------------------------------------
 // SET FREQUÊNCIA — cria nova versão MANUAL (Fase 1B.2).
 // A projeção mk9_industry_store_frequency é atualizada pelo trigger do banco.
 // Nunca sobrescreve nem apaga a versão anterior: encerra a vigência.
