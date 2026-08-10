@@ -250,8 +250,7 @@ export function Mk9PresenceModule() {
             <Mk9LoadingState message="Carregando promotores..." />
           ) : !presenceItems || presenceItems.length === 0 ? (
             <Mk9EmptyState 
-              title="Nenhum promotor encontrado"
-              message="Verifique se há promotores ativos no cadastro ou ajuste os filtros." 
+              message="Nenhum promotor encontrado. Verifique se há promotores ativos no cadastro ou ajuste os filtros." 
             />
           ) : (
             <div className="overflow-x-auto">
