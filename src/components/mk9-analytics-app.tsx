@@ -247,6 +247,15 @@ export function Mk9AnalyticsApp() {
                 if (window.innerWidth < 768) setCollapsed(true);
               }}
             />
+            <SidebarItem
+              icon={WalletCards}
+              label="Controle de Diárias"
+              active={activeModule === "diarias"}
+              onClick={() => {
+                setActiveModule("diarias");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
+            />
 
 
             <div className="pt-4 pb-2">
