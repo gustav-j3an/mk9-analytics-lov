@@ -962,7 +962,7 @@ function PromoterRouteCard({
                   className="h-8 w-8 text-primary"
                   title="Exportar Roteiro PDF"
                   onClick={() =>
-                    downloadPromoterPdf(promoterId, promoter?.name ?? "Promotor", y, m)
+                    downloadPromoterPdf(promoterId, promoter?.name ?? "Promotor", referenceDate)
                   }
                 >
                   <FileText className="h-4 w-4" />
