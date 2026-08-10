@@ -248,8 +248,19 @@ export function Mk9PresenceModule() {
                 className="pl-9 h-9 w-[220px] bg-command-deep border-white/10 text-white text-xs"
               />
             </div>
+            <Select value={supervisorFilter} onValueChange={setSupervisorFilter}>
+              <SelectTrigger className="h-9 w-[150px] bg-command-deep border-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
+                <SelectValue placeholder="SUPERVISOR" />
+              </SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10 text-white">
+                <SelectItem value="ALL">TODOS</SelectItem>
+                <SelectItem value="SUPERVISOR_A">SUPERVISOR A</SelectItem>
+                <SelectItem value="SUPERVISOR_B">SUPERVISOR B</SelectItem>
+              </SelectContent>
+            </Select>
+
             <Select value={ufFilter} onValueChange={setUfFilter}>
-              <SelectTrigger className="h-9 w-[80px] bg-command-deep border-white/10 text-white text-xs">
+              <SelectTrigger className="h-9 w-[80px] bg-command-deep border-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
                 <SelectValue placeholder="UF" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-white/10 text-white">
