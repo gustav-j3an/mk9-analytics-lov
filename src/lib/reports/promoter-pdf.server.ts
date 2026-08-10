@@ -1,10 +1,11 @@
-import {
+import * as pdfLib from "pdf-lib";
+const {
   PDFDocument,
   StandardFonts,
   rgb,
-  type PDFPage,
-  type PDFFont,
-} from "pdf-lib";
+} = pdfLib;
+type PDFPage = any;
+type PDFFont = any;
 
 const WEEKDAY_PT = [
   "DOMINGO", "SEGUNDA-FEIRA", "TERÇA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO"
