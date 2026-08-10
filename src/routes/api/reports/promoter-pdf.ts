@@ -155,7 +155,8 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           currentStep = "STEP 11 = response";
           const filename = `DIAGNOSTICO_${promoterName.replace(/\s+/g, '_')}.pdf`;
           log("Sending success response");
-          return new Response(fullBytes as Uint8Array, {
+          const ab = fullBytes.buffer.slice(fullBytes.byteOffset, fullBytes.byteOffset + fullBytes.byteLength);
+          return new Response(ab, {
             status: 200,
             headers: {
               "content-type": "application/pdf",
