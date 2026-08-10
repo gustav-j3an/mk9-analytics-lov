@@ -20,6 +20,7 @@ import {
   FileText,
   Info,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 import { Mk9PageHeader, Mk9Panel, Mk9MetricCard } from "./mk9/design-system";
 import { toast } from "sonner";
