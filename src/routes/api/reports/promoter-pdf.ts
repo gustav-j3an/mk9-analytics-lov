@@ -27,7 +27,6 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           const body = payloadSchema.parse(raw);
 
           // DADOS DO ROTEIRO: Usar a mesma fonte da tela de Roteiros
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           
           const refDateStr = `${body.year}-${String(body.month).padStart(2, '0')}-01`;
           
