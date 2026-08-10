@@ -209,10 +209,12 @@ export function PromoterDeleteDialog({
   open,
   onClose,
   promoter,
+  onSuccess,
 }: {
   open: boolean;
   onClose: () => void;
   promoter: any;
+  onSuccess?: () => void;
 }) {
   const queryClient = useQueryClient();
   const impactFn = useServerFn(mk9PromoterDeleteImpact);
@@ -232,7 +234,9 @@ export function PromoterDeleteDialog({
           ? "Promotor excluído permanentemente."
           : "Promotor removido da listagem ativa.",
       );
+      queryClient.invalidateQueries({ queryKey: ["mk9-promoters-admin"] });
       queryClient.invalidateQueries({ queryKey: ["mk9-promoters"] });
+      onSuccess?.();
       onClose();
     },
     onError: (err: any) => toast.error(err.message || "Erro ao excluir promotor."),
