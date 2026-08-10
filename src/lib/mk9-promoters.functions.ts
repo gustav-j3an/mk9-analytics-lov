@@ -111,6 +111,7 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
         uf: data.data.uf || null,
         contact: data.data.contact || null,
         notes: data.data.notes || null,
+        supervisor_id: data.data.supervisorId || null,
         updated_at: new Date().toISOString(),
         updated_by: ctx.userId,
       } as any)
