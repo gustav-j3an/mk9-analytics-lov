@@ -27,13 +27,46 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           const body = payloadSchema.parse(raw);
 
           // DADOS DO ROTEIRO: Usar a mesma fonte da tela de Roteiros
-          const { loadPromoterRouteForDisplay } = await import("@/lib/reports/promoter-route-loader.functions");
-          const routes = await loadPromoterRouteForDisplay({
-            data: {
-              promoterId: body.promoterId,
-              referenceDate: `${body.year}-${String(body.month).padStart(2, '0')}-01` // Usar o primeiro dia do mês/ano solicitado, ou considerar passar a data exata se necessário
-            }
-          });
+          
+          const refDateStr = `${body.year}-${String(body.month).padStart(2, '0')}-01`;
+          
+          const { data: rows, error: routeError } = await supabaseAdmin
+            .from("mk9_planned_routes")
+            .select(`
+              id, 
+              weekday, 
+              valid_from, 
+              valid_until, 
+              is_active,
+              promoter:mk9_promoters(id, name),
+              store:mk9_stores(id, name, chain, uf, address),
+              industry:mk9_industries(id, name)
+            `)
+            .eq("promoter_id", body.promoterId)
+            .eq("is_active", true)
+            .is("archived_at", null)
+            .lte("valid_from", refDateStr)
+            .or(`valid_until.is.null,valid_until.gte.${refDateStr}`)
+            .order("weekday", { ascending: true });
+
+          if (routeError) throw routeError;
+
+          const routes = (rows ?? []).map((r: any) => ({
+            id: r.id as string,
+            weekday: r.weekday as number,
+            validFrom: r.valid_from as string,
+            validUntil: (r.valid_until as string | null) ?? null,
+            isActive: r.is_active as boolean,
+            promoterId: r.promoter?.id ?? null,
+            promoterName: r.promoter?.name ?? "—",
+            storeId: r.store?.id ?? null,
+            storeName: r.store?.name ?? "—",
+            storeChain: r.store?.chain ?? null,
+            storeUf: r.store?.uf ?? null,
+            storeAddress: r.store?.address ?? null,
+            industryId: r.industry?.id ?? null,
+            industryName: r.industry?.name ?? "—",
+          }));
 
           if (!routes || routes.length === 0) {
             return errorResponse(404, "Nenhum roteiro vigente encontrado para este promotor.");
