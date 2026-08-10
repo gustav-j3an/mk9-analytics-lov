@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { cn } from "@/lib/utils";
+
 import { 
   Users, 
   CheckCircle2, 
@@ -198,11 +200,11 @@ export function Mk9PresenceModule() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Mk9MetricCard label="Total Promotores" value={presenceItems?.length || 0} color="slate" />
+        <Mk9MetricCard label="Total Promotores" value={presenceItems?.length || 0} color="blue" />
         <Mk9MetricCard label="Presentes" value={localStats.present} color="emerald" />
         <Mk9MetricCard label="Faltas" value={localStats.absent} color="rose" />
         <Mk9MetricCard label="Atestados" value={localStats.medical} color="amber" />
-        <Mk9MetricCard label="Não Marcados" value={localStats.unmarked} color="slate" hint="Pendentes" />
+        <Mk9MetricCard label="Não Marcados" value={localStats.unmarked} color="blue" hint="Pendentes" />
       </div>
 
       <Mk9Panel>

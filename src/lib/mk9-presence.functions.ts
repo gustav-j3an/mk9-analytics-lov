@@ -14,14 +14,14 @@ export const getPresenceList = createServerFn({ method: "GET" })
     }).optional()
   }).parse(data))
   .handler(async ({ data }) => {
-    // 1. Fetch active promoters
+    // 1. Fetch active promoters using the correct column 'is_active'
     let promotersQuery = supabaseAdmin
       .from('mk9_promoters')
-      .select('id, name, registration_number, uf, supervisor_id')
-      .eq('active', true);
+      .select('id, name, employee_number, uf, supervisor_id')
+      .eq('is_active', true);
 
     if (data.filters?.search) {
-      promotersQuery = promotersQuery.or(`name.ilike.%${data.filters.search}%,registration_number.ilike.%${data.filters.search}%`);
+      promotersQuery = promotersQuery.or(`name.ilike.%${data.filters.search}%,employee_number.ilike.%${data.filters.search}%`);
     }
     if (data.filters?.uf && data.filters.uf !== '__ALL__') {
       promotersQuery = promotersQuery.eq('uf', data.filters.uf);
@@ -30,9 +30,9 @@ export const getPresenceList = createServerFn({ method: "GET" })
     const { data: promoters, error: pError } = await promotersQuery;
     if (pError) throw pError;
 
-    // 2. Fetch presence for the date
+    // 2. Fetch presence for the date using type casting to bypass TS issues with newly created tables
     const { data: presence, error: prError } = await supabaseAdmin
-      .from('mk9_promoter_presence')
+      .from('mk9_promoter_presence' as any)
       .select('*')
       .eq('date', data.date);
     
@@ -40,9 +40,13 @@ export const getPresenceList = createServerFn({ method: "GET" })
 
     // Merge
     return promoters.map(p => {
-      const pData = presence.find(pr => pr.promoter_id === p.id);
+      const pData = (presence as any[])?.find(pr => pr.promoter_id === p.id);
       return {
-        ...p,
+        id: p.id,
+        name: p.name,
+        registration_number: p.employee_number,
+        uf: p.uf,
+        supervisor_id: p.supervisor_id,
         presenceId: pData?.id || null,
         status: (pData?.status as z.infer<typeof PresenceStatusSchema>) || null,
         observation: pData?.observation || ''
@@ -68,7 +72,7 @@ export const savePresenceBulk = createServerFn({ method: "POST" })
     }));
 
     const { error } = await supabaseAdmin
-      .from('mk9_promoter_presence')
+      .from('mk9_promoter_presence' as any)
       .upsert(records, { onConflict: 'date,promoter_id' });
 
     if (error) throw error;
@@ -81,10 +85,10 @@ export const getPresenceStats = createServerFn({ method: "GET" })
     const { count: total } = await supabaseAdmin
       .from('mk9_promoters')
       .select('*', { count: 'exact', head: true })
-      .eq('active', true);
+      .eq('is_active', true);
 
     const { data: presence } = await supabaseAdmin
-      .from('mk9_promoter_presence')
+      .from('mk9_promoter_presence' as any)
       .select('status')
       .eq('date', data.date);
 
@@ -96,7 +100,7 @@ export const getPresenceStats = createServerFn({ method: "GET" })
       unmarked: 0
     };
 
-    presence?.forEach(p => {
+    (presence as any[])?.forEach(p => {
       if (p.status === 'PRESENT') stats.present++;
       else if (p.status === 'ABSENT') stats.absent++;
       else if (p.status === 'MEDICAL_CERTIFICATE') stats.medical++;
