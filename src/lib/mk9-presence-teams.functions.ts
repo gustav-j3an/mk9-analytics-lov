@@ -159,7 +159,6 @@ export const listSupervisors = createServerFn({ method: "GET" })
       .order('name');
     
     if (error) throw error;
-    // Map 'name' to 'full_name' for compatibility with existing UI if needed, 
-    // but better to fix UI to use 'name'.
-    return data.map(s => ({ id: s.id, full_name: s.name }));
+    // Keep full_name for backward compatibility if components use it
+    return data.map(s => ({ ...s, full_name: s.name }));
   });
