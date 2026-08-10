@@ -98,15 +98,3 @@ function LandingPage() {
     </div>
   );
 }
-  return (
-    <div className="flex gap-4">
-      <span className="text-purple-500/40 font-black text-[10px] mt-0.5">{id}</span>
-      <div>
-        <h4 className="text-[11px] font-black text-slate-200 uppercase tracking-widest mb-1">
-          {title}
-        </h4>
-        <p className="text-[11px] text-slate-500 leading-tight">{desc}</p>
-      </div>
-    </div>
-  );
-}
