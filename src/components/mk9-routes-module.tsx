@@ -70,9 +70,16 @@ async function downloadPromoterPdf(
   month: number,
 ) {
   try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+
     const res = await fetch("/api/reports/promoter-pdf", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({ promoterId, year, month }),
     });
     if (!res.ok) {
