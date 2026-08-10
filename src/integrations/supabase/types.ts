@@ -1346,6 +1346,41 @@ export type Database = {
           },
         ]
       }
+      mk9_presence_teams: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          supervisor_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          supervisor_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          supervisor_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_presence_teams_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_supervisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mk9_profiles: {
         Row: {
           active: boolean
@@ -1448,6 +1483,7 @@ export type Database = {
           name: string
           name_normalized: string
           notes: string | null
+          presence_team_id: string | null
           supervisor_id: string | null
           uf: string | null
           updated_at: string
@@ -1471,6 +1507,7 @@ export type Database = {
           name: string
           name_normalized: string
           notes?: string | null
+          presence_team_id?: string | null
           supervisor_id?: string | null
           uf?: string | null
           updated_at?: string
@@ -1494,6 +1531,7 @@ export type Database = {
           name?: string
           name_normalized?: string
           notes?: string | null
+          presence_team_id?: string | null
           supervisor_id?: string | null
           uf?: string | null
           updated_at?: string
@@ -1505,6 +1543,13 @@ export type Database = {
             columns: ["mk9_supervisor_id"]
             isOneToOne: false
             referencedRelation: "mk9_supervisors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_promoters_presence_team_id_fkey"
+            columns: ["presence_team_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_presence_teams"
             referencedColumns: ["id"]
           },
           {
