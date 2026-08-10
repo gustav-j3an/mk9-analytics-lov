@@ -2,23 +2,23 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
 import { useMk9Session } from "@/lib/mk9-auth/session";
-import { Loader2, Zap, Activity, Database, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Loader2, Activity, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOnly } from "@/components/client-only";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.23 — PDF STABILIZED",
+    title: "MK9 | v1.3.23 — DIAGNÓSTICO PDF ATIVO",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.23: PDF STABILIZED. Resolvido INTERNAL_ERROR via ajuste de importação da pdf-lib no servidor.",
+        content: "MK9 Analytics v1.3.23: DIAGNÓSTICO PDF ATIVO. Instrumentação detalhada para captura de INTERNAL_ERROR.",
       },
-      { property: "og:title", content: "MK9 | v1.3.16" },
+      { property: "og:title", content: "MK9 | v1.3.23" },
       {
         property: "og:description",
-        content: "Analítico (Dashboard, Intelligence, PDF, Cockpit) com promoção resiliente e persistência blindada para MENDEZ.",
+        content: "Instrumentação de paridade e diagnóstico forense para exportação de roteiros.",
 
       },
       { name: "twitter:card", content: "summary_large_image" },
@@ -88,7 +88,7 @@ function LandingPage() {
                   MK9 Analytics • <span className="text-purple-400/80">v1.3.23</span>
                 </p>
                 <p className="text-[9px] text-slate-600 uppercase tracking-widest font-bold">
-                  EXPORTAÇÃO PDF ESTABILIZADA (INTERNAL_ERROR FIX)
+                  DIAGNÓSTICO PDF ATIVO (CAPTURA DE INTERNAL_ERROR)
                 </p>
               </div>
             </div>

@@ -88,14 +88,19 @@ async function downloadPromoterPdf(
 
     if (!res.ok) {
       let errorMessage = "Erro ao gerar PDF";
+      let technicalInfo = "";
       try {
         const err = await res.json();
         errorMessage = err.message || errorMessage;
+        technicalInfo = JSON.stringify(err, null, 2);
       } catch (e) {
         const text = await res.text();
+        technicalInfo = text;
         console.error("[downloadPromoterPdf] Raw error text:", text);
       }
-      throw new Error(errorMessage);
+      
+      console.error("[downloadPromoterPdf] Technical Details:", technicalInfo);
+      throw new Error(`${errorMessage}\n\nDetalhes técnicos disponíveis no console.`);
     }
 
     const blob = await res.blob();
