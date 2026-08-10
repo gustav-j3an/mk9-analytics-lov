@@ -17,6 +17,7 @@ const promoterSchema = z
     uf: z.string().length(2).nullable().optional(),
     contact: z.string().max(120).nullable().optional(),
     notes: z.string().max(1000).nullable().optional(),
+    supervisorId: z.string().uuid().nullable().optional(),
   })
   .strict();
 
