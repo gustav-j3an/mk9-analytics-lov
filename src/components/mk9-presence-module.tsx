@@ -239,7 +239,7 @@ export function Mk9PresenceModule() {
               <SelectContent className="bg-command-deep border-white/10 text-white">
                 <SelectItem value="__ALL__">TODAS</SelectItem>
                 {ufs.map(uf => (
-                  <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                  <SelectItem key={uf} value={uf || "N/A"}>{uf || "N/A"}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
