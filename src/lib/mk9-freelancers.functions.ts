@@ -8,7 +8,8 @@ export const listFreelancers = createServerFn({ method: "GET" })
     includeInactive: z.boolean().optional().default(false)
   }).optional())
   .handler(async ({ data }) => {
-    let query = supabaseAdmin
+    const admin = supabaseAdmin as any;
+    let query = admin
       .from('mk9_freelancers')
       .select('*')
       .order('name');
@@ -19,7 +20,7 @@ export const listFreelancers = createServerFn({ method: "GET" })
 
     const { data: freelancers, error } = await query;
     if (error) throw error;
-    return freelancers;
+    return freelancers as any[];
   });
 
 export const createFreelancer = createServerFn({ method: "POST" })
@@ -32,7 +33,8 @@ export const createFreelancer = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN', 'SUPERVISOR']);
-    const { data: row, error } = await supabaseAdmin
+    const admin = supabaseAdmin as any;
+    const { data: row, error } = await admin
       .from('mk9_freelancers')
       .insert(data)
       .select()
@@ -40,7 +42,7 @@ export const createFreelancer = createServerFn({ method: "POST" })
     
     if (error) throw error;
     await logAudit(ctx, 'FREELANCER_CREATED', 'mk9_freelancers', row.id, data);
-    return row;
+    return row as any;
   });
 
 export const updateFreelancer = createServerFn({ method: "POST" })
@@ -56,7 +58,8 @@ export const updateFreelancer = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN', 'SUPERVISOR']);
     const { id, ...updates } = data;
-    const { data: row, error } = await supabaseAdmin
+    const admin = supabaseAdmin as any;
+    const { data: row, error } = await admin
       .from('mk9_freelancers')
       .update(updates)
       .eq('id', id)
@@ -65,7 +68,7 @@ export const updateFreelancer = createServerFn({ method: "POST" })
     
     if (error) throw error;
     await logAudit(ctx, 'FREELANCER_UPDATED', 'mk9_freelancers', id, data);
-    return row;
+    return row as any;
   });
 
 export const toggleFreelancerStatus = createServerFn({ method: "POST" })
@@ -75,7 +78,8 @@ export const toggleFreelancerStatus = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN', 'SUPERVISOR']);
-    const { error } = await supabaseAdmin
+    const admin = supabaseAdmin as any;
+    const { error } = await admin
       .from('mk9_freelancers')
       .update({ active: data.active })
       .eq('id', data.id);
@@ -84,3 +88,4 @@ export const toggleFreelancerStatus = createServerFn({ method: "POST" })
     await logAudit(ctx, data.active ? 'FREELANCER_ACTIVATED' : 'FREELANCER_INACTIVATED', 'mk9_freelancers', data.id);
     return { success: true };
   });
+
