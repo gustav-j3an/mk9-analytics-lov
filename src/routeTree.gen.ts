@@ -15,7 +15,6 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CockpitRouteImport } from './routes/cockpit'
 import { Route as CleanupRouteImport } from './routes/cleanup'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RoteirosPromoterIdImprimirRouteImport } from './routes/roteiros.$promoterId.imprimir'
 import { Route as ApiReportsIndustryUnattendedPdfRouteImport } from './routes/api/reports/industry-unattended-pdf'
 import { Route as ApiReportsIndustryPdfRouteImport } from './routes/api/reports/industry-pdf'
 import { Route as ApiChecklistsPreviewRouteImport } from './routes/api/checklists/preview'
@@ -50,12 +49,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RoteirosPromoterIdImprimirRoute =
-  RoteirosPromoterIdImprimirRouteImport.update({
-    id: '/roteiros/$promoterId/imprimir',
-    path: '/roteiros/$promoterId/imprimir',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiReportsIndustryUnattendedPdfRoute =
   ApiReportsIndustryUnattendedPdfRouteImport.update({
     id: '/api/reports/industry-unattended-pdf',
@@ -83,7 +76,6 @@ export interface FileRoutesByFullPath {
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
-  '/roteiros/$promoterId/imprimir': typeof RoteirosPromoterIdImprimirRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -95,7 +87,6 @@ export interface FileRoutesByTo {
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
-  '/roteiros/$promoterId/imprimir': typeof RoteirosPromoterIdImprimirRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -108,7 +99,6 @@ export interface FileRoutesById {
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
-  '/roteiros/$promoterId/imprimir': typeof RoteirosPromoterIdImprimirRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -122,7 +112,6 @@ export interface FileRouteTypes {
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
-    | '/roteiros/$promoterId/imprimir'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -134,7 +123,6 @@ export interface FileRouteTypes {
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
-    | '/roteiros/$promoterId/imprimir'
   id:
     | '__root__'
     | '/'
@@ -146,7 +134,6 @@ export interface FileRouteTypes {
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
-    | '/roteiros/$promoterId/imprimir'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -159,7 +146,6 @@ export interface RootRouteChildren {
   ApiChecklistsPreviewRoute: typeof ApiChecklistsPreviewRoute
   ApiReportsIndustryPdfRoute: typeof ApiReportsIndustryPdfRoute
   ApiReportsIndustryUnattendedPdfRoute: typeof ApiReportsIndustryUnattendedPdfRoute
-  RoteirosPromoterIdImprimirRoute: typeof RoteirosPromoterIdImprimirRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -206,13 +192,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/roteiros/$promoterId/imprimir': {
-      id: '/roteiros/$promoterId/imprimir'
-      path: '/roteiros/$promoterId/imprimir'
-      fullPath: '/roteiros/$promoterId/imprimir'
-      preLoaderRoute: typeof RoteirosPromoterIdImprimirRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/reports/industry-unattended-pdf': {
       id: '/api/reports/industry-unattended-pdf'
       path: '/api/reports/industry-unattended-pdf'
@@ -247,18 +226,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChecklistsPreviewRoute: ApiChecklistsPreviewRoute,
   ApiReportsIndustryPdfRoute: ApiReportsIndustryPdfRoute,
   ApiReportsIndustryUnattendedPdfRoute: ApiReportsIndustryUnattendedPdfRoute,
-  RoteirosPromoterIdImprimirRoute: RoteirosPromoterIdImprimirRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
