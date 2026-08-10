@@ -19,46 +19,29 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
     handlers: {
       POST: async ({ request }) => {
         const requestId = Math.random().toString(36).substring(7);
-        let currentStep = "STEP 1 = request";
-        let promoterId = "unknown";
-        let referenceDate = "unknown";
-        let promoterName = "unknown";
-        let routeItemsCount = 0;
-        let pdfMinimalStatus = "PENDING";
-        let pdfSimpleStatus = "PENDING";
-        let pdfCompleteStatus = "PENDING";
+        let step = "request-received";
         
         const log = (msg: string, data?: any) => {
-          console.log(`[DIAG_PDF][${requestId}][${currentStep}] ${msg}`, data ? JSON.stringify(data) : "");
+          console.log(`[PDF_EXPORT][${requestId}][${step}] ${msg}`, data ? JSON.stringify(data) : "");
         };
 
         try {
-          log("Início do diagnóstico");
+          log("Início da requisição");
           
-          currentStep = "STEP 2 = auth";
+          step = "auth-start";
           const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
           const { scope: access } = await requireMk9ReadScope(request);
           log("Auth OK", { userId: access.userId });
           
-          currentStep = "STEP 3 = params";
+          step = "params-parse";
           const raw = await request.json();
           const body = payloadSchema.parse(raw);
-          promoterId = body.promoterId;
-          referenceDate = `${body.year}-${String(body.month).padStart(2, '0')}-01`;
+          const promoterId = body.promoterId;
+          const referenceDate = `${body.year}-${String(body.month).padStart(2, '0')}-01`;
           log("Params OK", { promoterId, referenceDate });
 
-          currentStep = "STEP 4 = load promoter";
+          step = "db-load-route";
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { data: promoter, error: pErr } = await supabaseAdmin
-            .from("mk9_promoters")
-            .select("name, employee_number")
-            .eq("id", body.promoterId)
-            .maybeSingle();
-          if (pErr) throw pErr;
-          promoterName = promoter?.name ?? "NÃO ENCONTRADO";
-          log("Promoter Loaded", { name: promoterName });
-
-          currentStep = "STEP 5 = load route";
           const { data: rows, error: routeError } = await supabaseAdmin
             .from("mk9_planned_routes")
             .select(`
@@ -73,127 +56,81 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
             .eq("promoter_id", body.promoterId)
             .eq("is_active", true)
             .is("archived_at", null)
-            // A regra do PDF costuma usar uma data específica. O prompt diz 2026-08-10.
-            // Aqui estamos pegando as vigentes na competência do mês.
             .lte("valid_from", referenceDate)
             .or(`valid_until.is.null,valid_until.gte.${referenceDate}`)
             .order("weekday", { ascending: true });
 
-          if (routeError) throw routeError;
-          routeItemsCount = rows?.length ?? 0;
-          log("Route Loaded", { count: routeItemsCount });
+          if (routeError) {
+            log("DB Error", routeError);
+            throw routeError;
+          }
 
-          currentStep = "STEP 6 = normalize route";
-          const routes = (rows ?? []).map((r: any) => ({
-            id: r.id,
-            weekday: r.weekday,
-            storeId: r.store?.id,
+          if (!rows || rows.length === 0) {
+            step = "no-routes";
+            return errorResponse(404, "Nenhum roteiro vigente encontrado para este promotor.");
+          }
+
+          const routes = rows.map((r: any) => ({
+            id: r.id as string,
+            weekday: r.weekday as number,
+            storeId: r.store?.id ?? null,
             storeName: r.store?.name ?? "—",
-            storeChain: r.store?.chain,
-            storeUf: r.store?.uf,
-            storeAddress: null,
+            storeChain: r.store?.chain ?? null,
+            storeUf: r.store?.uf ?? null,
+            storeAddress: null, // Coluna 'address' não existe na tabela mk9_stores
             industryName: r.industry?.name ?? "—",
           }));
-          log("Normalization OK");
+          log("Route Loaded", { count: routes.length });
 
-          currentStep = "STEP 7 = pdf create";
-          const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
-          const pdfDoc = await PDFDocument.create();
-          log("PDF Create OK");
+          step = "db-load-promoter";
+          const { data: promoter } = await supabaseAdmin
+            .from("mk9_promoters")
+            .select("name, employee_number")
+            .eq("id", body.promoterId)
+            .maybeSingle();
+          log("Promoter Loaded", { name: promoter?.name });
 
-          currentStep = "STEP 8 = font load";
-          const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-          const fontB = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-          log("Fonts Embedded OK");
-
-          currentStep = "STEP 9 = draw content (MINIMAL)";
-          const pageTest = pdfDoc.addPage([200, 200]);
-          pageTest.drawText("TESTE DIAGNOSTICO", { x: 50, y: 100, size: 10, font });
-          const minBytes = await pdfDoc.save();
-          pdfMinimalStatus = minBytes.length > 0 ? "OK" : "ERRO (EMPTY)";
-          log("Minimal PDF Test OK", { byteLength: minBytes.length });
-
-          currentStep = "STEP 9 = draw content (SIMPLE LIST)";
-          // Reset doc para teste simples com dados reais
-          const simpleDoc = await PDFDocument.create();
-          const simpleFont = await simpleDoc.embedFont(StandardFonts.Helvetica);
-          const pageSimple = simpleDoc.addPage([595, 842]);
-          let y = 800;
-          pageSimple.drawText(`PROMOTOR: ${promoterName}`, { x: 50, y, size: 12, font: simpleFont });
-          y -= 20;
-          pageSimple.drawText(`ITENS: ${routeItemsCount}`, { x: 50, y, size: 10, font: simpleFont });
-          y -= 30;
-          
-          for(const item of routes) {
-            const text = `${item.weekday} - ${item.storeName} - ${item.industryName}`;
-            // Validar string antes do drawText
-            if (typeof text !== 'string') {
-               throw new Error(`Invalid text type for item: ${JSON.stringify(item)}`);
-            }
-            pageSimple.drawText(text.substring(0, 80), { x: 50, y, size: 8, font: simpleFont });
-            y -= 12;
-            if (y < 50) break;
-          }
-          const simpleBytes = await simpleDoc.save();
-          pdfSimpleStatus = simpleBytes.length > 0 ? "OK" : "ERRO (EMPTY)";
-          log("Simple PDF Test OK", { byteLength: simpleBytes.length });
-
-          currentStep = "STEP 9 = draw content (FULL)";
-          const { renderPromoterRoutePdf } = await import("@/lib/reports/promoter-pdf.server");
-          const fullBytes = await renderPromoterRoutePdf({
+          step = "renderer-start";
+          const { renderPromoterRoutePdf, promoterPdfFileName } = await import("@/lib/reports/promoter-pdf.server");
+          log("Starting render...");
+          const bytes = await renderPromoterRoutePdf({
             routes,
-            promoterName,
+            promoterName: promoter?.name ?? "Promotor",
             referenceDate,
           });
-          pdfCompleteStatus = fullBytes.length > 0 ? "OK" : "ERRO (EMPTY)";
-          log("Full PDF Render OK", { byteLength: fullBytes.length });
+          log("Renderer Complete", { byteLength: bytes?.length });
 
-          currentStep = "STEP 10 = pdf save";
-          // Se chegamos aqui, o fullBytes é o que queremos
-          log("Final Save OK");
+          step = "response-prepare";
+          const filename = promoterPdfFileName(promoter?.name ?? "Promotor");
+          const ab = bytes.buffer.slice(
+            bytes.byteOffset,
+            bytes.byteOffset + bytes.byteLength,
+          ) as ArrayBuffer;
 
-          currentStep = "STEP 11 = response";
-          const filename = `DIAGNOSTICO_${promoterName.replace(/\s+/g, '_')}.pdf`;
-          log("Sending success response");
-          const ab = fullBytes.buffer.slice(fullBytes.byteOffset, fullBytes.byteOffset + fullBytes.byteLength) as ArrayBuffer;
+          log("Sending Response", { filename, byteLength: ab.byteLength });
           return new Response(ab, {
             status: 200,
             headers: {
               "content-type": "application/pdf",
               "content-disposition": `attachment; filename="${filename}"`,
-              "x-diag-step": currentStep,
-              "x-diag-route-count": String(routeItemsCount)
+              "cache-control": "no-store",
             },
           });
-
         } catch (error: any) {
           log("FATAL ERROR", { 
             name: error?.name, 
             message: error?.message, 
             stack: error?.stack,
-            step: currentStep 
+            step 
           });
           
-          // No ambiente Preview/Dev, retornar JSON detalhado conforme solicitado
           return new Response(JSON.stringify({
             error: "PDF_EXPORT_FAILED",
-            step: currentStep,
-            name: error?.name || "Error",
-            message: error?.message || "Unknown error",
-            stack: error?.stack,
-            requestDetails: {
-              promoterId,
-              promoterName,
-              referenceDate,
-              routeItemsCount
-            },
-            status: {
-              minimal: pdfMinimalStatus,
-              simple: pdfSimpleStatus,
-              complete: pdfCompleteStatus
-            }
+            step,
+            message: error instanceof Error ? error.message : "INTERNAL_ERROR",
+            requestId,
           }), {
-            status: 200, // Retornamos 200 para o client ler o JSON facilmente
+            status: 500,
             headers: { "content-type": "application/json" }
           });
         }
