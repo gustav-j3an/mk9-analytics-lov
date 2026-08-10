@@ -6,6 +6,7 @@ import {
   type PDFFont,
 } from "pdf-lib";
 
+
 const WEEKDAY_PT = [
   "DOMINGO", "SEGUNDA-FEIRA", "TERÇA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO"
 ];
