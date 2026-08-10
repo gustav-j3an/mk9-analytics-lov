@@ -107,7 +107,7 @@ export const getPresenceStats = createServerFn({ method: "GET" })
       else if (p.status === 'MEDICAL_CERTIFICATE') stats.medical++;
     });
 
-    stats.unmarked = stats.total - (presence?.length || 0);
+    stats.unmarked = Math.max(0, stats.total - (presence?.length || 0));
 
     return stats;
   });
