@@ -9,16 +9,16 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.23 — DIAGNÓSTICO PDF ATIVO",
+    title: "MK9 | v1.3.24 — PDF STABILIZED",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.23: DIAGNÓSTICO PDF ATIVO. Instrumentação detalhada para captura de INTERNAL_ERROR.",
+        content: "MK9 Analytics v1.3.24: PDF STABILIZED. Correção da paridade de roteiro e saneamento de schema.",
       },
-      { property: "og:title", content: "MK9 | v1.3.23" },
+      { property: "og:title", content: "MK9 | v1.3.24" },
       {
         property: "og:description",
-        content: "Instrumentação de paridade e diagnóstico forense para exportação de roteiros.",
+        content: "Sistema operacional unificado com exportação de PDF estabilizada.",
 
       },
       { name: "twitter:card", content: "summary_large_image" },

@@ -174,9 +174,8 @@ export async function renderPromoterRoutePdf(input: {
 
     let storeIdx = 1;
     for (const { store, industries } of dayStores.values()) {
-      // Estimated height: store name (12) + address? (10) + industries (12) + padding (10)
-      const hasAddress = !!store.storeAddress;
-      const needed = 35 + (hasAddress ? 12 : 0);
+      // Estimated height: store name (12) + industries (12) + padding (10)
+      const needed = 35;
       
       if (ctx.y < needed + BOTTOM_LIMIT) {
         startNewPage(ctx, promoterName, referenceDate, stats);
@@ -210,10 +209,6 @@ export async function renderPromoterRoutePdf(input: {
       ctx.page.drawText(indStr, { x: MARGIN + 25, y: ctx.y, size: 8, font: font, color: COLOR_MUTED });
       ctx.y -= 12;
 
-      if (hasAddress) {
-        ctx.page.drawText(sanitize(store.storeAddress), { x: MARGIN + 25, y: ctx.y, size: 7, font: font, color: COLOR_MUTED });
-        ctx.y -= 10;
-      }
 
       ctx.y -= 8;
       storeIdx++;

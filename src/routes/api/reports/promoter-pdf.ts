@@ -20,8 +20,6 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
       POST: async ({ request }) => {
         const requestId = Math.random().toString(36).substring(7);
         let step = "request-received";
-        let promoterId = "unknown";
-        let referenceDate = "unknown";
         
         const log = (msg: string, data?: any) => {
           console.log(`[PDF_EXPORT][${requestId}][${step}] ${msg}`, data ? JSON.stringify(data) : "");
@@ -38,8 +36,8 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
           step = "params-parse";
           const raw = await request.json();
           const body = payloadSchema.parse(raw);
-          promoterId = body.promoterId;
-          referenceDate = `${body.year}-${String(body.month).padStart(2, '0')}-01`;
+          const promoterId = body.promoterId;
+          const referenceDate = `${body.year}-${String(body.month).padStart(2, '0')}-01`;
           log("Params OK", { promoterId, referenceDate });
 
           step = "db-load-route";
@@ -52,8 +50,7 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
               valid_from, 
               valid_until, 
               is_active,
-              promoter:mk9_promoters(id, name),
-              store:mk9_stores(id, name, chain, uf, address),
+              store:mk9_stores(id, name, chain, uf),
               industry:mk9_industries(id, name)
             `)
             .eq("promoter_id", body.promoterId)
@@ -68,33 +65,22 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
             throw routeError;
           }
 
-          const routes = (rows ?? []).map((r: any) => ({
-            id: r.id as string,
-            weekday: r.weekday as number,
-            validFrom: r.valid_from as string,
-            validUntil: (r.valid_until as string | null) ?? null,
-            isActive: r.is_active as boolean,
-            promoterId: r.promoter?.id ?? null,
-            promoterName: r.promoter?.name ?? "—",
-            storeId: r.store?.id ?? null,
-            storeName: r.store?.name ?? "—",
-            storeChain: r.store?.chain ?? null,
-            storeUf: r.store?.uf ?? null,
-            storeAddress: r.store?.address ?? null,
-            industryId: r.industry?.id ?? null,
-            industryName: r.industry?.name ?? "—",
-          }));
-          log("Route Loaded", { count: routes.length });
-
-          if (!routes || routes.length === 0) {
+          if (!rows || rows.length === 0) {
             step = "no-routes";
             return errorResponse(404, "Nenhum roteiro vigente encontrado para este promotor.");
           }
 
-          step = "renderer-import";
-          const { renderPromoterRoutePdf, promoterPdfFileName } =
-            await import("@/lib/reports/promoter-pdf.server");
-          log("Renderer Imported");
+          const routes = rows.map((r: any) => ({
+            id: r.id as string,
+            weekday: r.weekday as number,
+            storeId: r.store?.id ?? null,
+            storeName: r.store?.name ?? "—",
+            storeChain: r.store?.chain ?? null,
+            storeUf: r.store?.uf ?? null,
+            storeAddress: null, // Coluna 'address' não existe na tabela mk9_stores
+            industryName: r.industry?.name ?? "—",
+          }));
+          log("Route Loaded", { count: routes.length });
 
           step = "db-load-promoter";
           const { data: promoter } = await supabaseAdmin
@@ -104,20 +90,9 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
             .maybeSingle();
           log("Promoter Loaded", { name: promoter?.name });
 
-          step = "pdf-minimal-test";
-          try {
-            const { PDFDocument } = await import("pdf-lib");
-            const testDoc = await PDFDocument.create();
-            testDoc.addPage([200, 200]);
-            const testBytes = await testDoc.save();
-            log("Minimal PDF Test OK", { byteLength: testBytes.length });
-          } catch (testErr: any) {
-            log("Minimal PDF Test FAILED", { message: testErr.message, stack: testErr.stack });
-            throw new Error(`PDF_LIB_MINIMAL_FAIL: ${testErr.message}`);
-          }
-
           step = "renderer-start";
-          log("Starting real render...");
+          const { renderPromoterRoutePdf, promoterPdfFileName } = await import("@/lib/reports/promoter-pdf.server");
+          log("Starting render...");
           const bytes = await renderPromoterRoutePdf({
             routes,
             promoterName: promoter?.name ?? "Promotor",
@@ -154,14 +129,13 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
             step,
             message: error instanceof Error ? error.message : "INTERNAL_ERROR",
             requestId,
-            promoterId,
-            referenceDate
           }), {
             status: 500,
             headers: { "content-type": "application/json" }
           });
         }
       },
+
     },
   },
 });
