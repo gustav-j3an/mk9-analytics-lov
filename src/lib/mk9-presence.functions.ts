@@ -12,13 +12,14 @@ export const getPresenceList = createServerFn({ method: "GET" })
       uf: z.string().optional(),
       status: z.string().optional(),
       teamId: z.string().optional(),
+      supervisorId: z.string().optional(),
     }).optional()
   }).parse(data))
   .handler(async ({ data }) => {
     // 1. Fetch active promoters
     let promotersQuery = supabaseAdmin
       .from('mk9_promoters' as any)
-      .select('id, name, employee_number, uf, presence_team_id')
+      .select('id, name, employee_number, uf, presence_team_id, mk9_supervisor_id' as any)
       .eq('is_active', true)
       .order('name', { ascending: true });
 
@@ -36,6 +37,13 @@ export const getPresenceList = createServerFn({ method: "GET" })
       promotersQuery = promotersQuery.eq('presence_team_id', data.filters.teamId);
     }
 
+    // Apply Supervisor Filter
+    if (data.filters?.supervisorId === 'NONE') {
+      promotersQuery = promotersQuery.is('mk9_supervisor_id', null);
+    } else if (data.filters?.supervisorId && data.filters.supervisorId !== 'ALL') {
+      promotersQuery = promotersQuery.eq('mk9_supervisor_id', data.filters.supervisorId);
+    }
+
     const { data: promoters, error: pError } = await promotersQuery;
     if (pError) throw pError;
 
@@ -49,12 +57,12 @@ export const getPresenceList = createServerFn({ method: "GET" })
 
     // Merge
     return (promoters || []).map(p => {
-      const pData = (presence as any[])?.find(pr => pr.promoter_id === p.id);
+      const pData = (presence as any[])?.find(pr => pr.promoter_id === (p as any).id);
       return {
-        id: p.id,
-        name: p.name,
-        registration_number: p.employee_number,
-        uf: p.uf,
+        id: (p as any).id,
+        name: (p as any).name,
+        registration_number: (p as any).employee_number,
+        uf: (p as any).uf,
         teamId: (p as any).presence_team_id,
         presenceId: pData?.id || null,
         status: (pData?.status as z.infer<typeof PresenceStatusSchema>) || null,
@@ -91,7 +99,8 @@ export const savePresenceBulk = createServerFn({ method: "POST" })
 export const getPresenceStats = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ 
     date: z.string(),
-    teamId: z.string().optional()
+    teamId: z.string().optional(),
+    supervisorId: z.string().optional()
   }).parse(data))
   .handler(async ({ data }) => {
     // 1. Filter Promoters first
@@ -104,6 +113,12 @@ export const getPresenceStats = createServerFn({ method: "GET" })
       promotersQuery = promotersQuery.is('presence_team_id', null);
     } else if (data.teamId && data.teamId !== 'ALL') {
       promotersQuery = promotersQuery.eq('presence_team_id', data.teamId);
+    }
+
+    if (data.supervisorId === 'NONE') {
+      promotersQuery = promotersQuery.is('mk9_supervisor_id', null);
+    } else if (data.supervisorId && data.supervisorId !== 'ALL') {
+      promotersQuery = promotersQuery.eq('mk9_supervisor_id', data.supervisorId);
     }
 
     const { count: total, data: teamPromoters } = await promotersQuery;

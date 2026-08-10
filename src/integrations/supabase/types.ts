@@ -1444,6 +1444,7 @@ export type Database = {
           inactive_from: string | null
           is_active: boolean | null
           last_import_id: string | null
+          mk9_supervisor_id: string | null
           name: string
           name_normalized: string
           notes: string | null
@@ -1466,6 +1467,7 @@ export type Database = {
           inactive_from?: string | null
           is_active?: boolean | null
           last_import_id?: string | null
+          mk9_supervisor_id?: string | null
           name: string
           name_normalized: string
           notes?: string | null
@@ -1488,6 +1490,7 @@ export type Database = {
           inactive_from?: string | null
           is_active?: boolean | null
           last_import_id?: string | null
+          mk9_supervisor_id?: string | null
           name?: string
           name_normalized?: string
           notes?: string | null
@@ -1497,6 +1500,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "mk9_promoters_mk9_supervisor_id_fkey"
+            columns: ["mk9_supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_supervisors"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mk9_promoters_supervisor_id_fkey"
             columns: ["supervisor_id"]
@@ -1606,6 +1616,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mk9_supervisors: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       mk9_user_roles: {
         Row: {

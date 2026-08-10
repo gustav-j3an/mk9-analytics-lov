@@ -29,6 +29,7 @@ import {
   mk9PromoterDeleteImpact,
 } from "@/lib/mk9-promoters.functions";
 import { listPresenceTeams } from "@/lib/mk9-presence-teams.functions";
+import { listSupervisors } from "@/lib/mk9-supervisors.functions";
 
 export function PromoterDialog({
   open,
@@ -43,10 +44,17 @@ export function PromoterDialog({
   const createFn = useServerFn(mk9CreatePromoter);
   const updateFn = useServerFn(mk9UpdatePromoter);
   const listTeamsFn = useServerFn(listPresenceTeams);
+  const listSupervisorsFn = useServerFn(listSupervisors);
   
   const { data: teams } = useQuery({
     queryKey: ["mk9-presence-teams-list"],
     queryFn: () => listTeamsFn(),
+    enabled: open
+  });
+
+  const { data: supervisors } = useQuery({
+    queryKey: ["mk9-supervisors-list"],
+    queryFn: () => listSupervisorsFn(),
     enabled: open
   });
 
@@ -58,6 +66,7 @@ export function PromoterDialog({
   const [externalId, setExternalId] = useState("");
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [presenceTeamId, setPresenceTeamId] = useState<string | null>(null);
+  const [supervisorId, setSupervisorId] = useState<string | null>(null);
 
   useEffect(() => {
     if (promoter) {
@@ -69,6 +78,7 @@ export function PromoterDialog({
       setExternalId(promoter.externalId || "");
       setEmployeeNumber(promoter.employeeNumber || "");
       setPresenceTeamId(promoter.presence_team_id || null);
+      setSupervisorId(promoter.mk9_supervisor_id || null);
     } else {
       setName("");
       setCity("");
@@ -78,6 +88,7 @@ export function PromoterDialog({
       setExternalId("");
       setEmployeeNumber("");
       setPresenceTeamId(null);
+      setSupervisorId(null);
     }
   }, [promoter, open]);
 
@@ -92,6 +103,7 @@ export function PromoterDialog({
         externalId,
         employeeNumber,
         presenceTeamId: presenceTeamId || null,
+        supervisorId: supervisorId || null,
       };
       if (promoter) {
         return updateFn({
@@ -115,7 +127,7 @@ export function PromoterDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-command-deep border-white/10 text-white max-w-lg">
+      <DialogContent className="bg-command-deep border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             {promoter ? "Editar Promotor" : "Novo Promotor"}
@@ -185,21 +197,39 @@ export function PromoterDialog({
               />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
-              Equipe de Presença
-            </Label>
-            <Select value={presenceTeamId || "NONE"} onValueChange={(val) => setPresenceTeamId(val === "NONE" ? null : val)}>
-              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white text-xs">
-                <SelectValue placeholder="Sem Equipe" />
-              </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
-                <SelectItem value="NONE">Sem Equipe (Avulso)</SelectItem>
-                {teams?.map(t => (
-                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                Supervisor MK9
+              </Label>
+              <Select value={supervisorId || "NONE"} onValueChange={(val) => setSupervisorId(val === "NONE" ? null : val)}>
+                <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white text-xs">
+                  <SelectValue placeholder="Sem Supervisor" />
+                </SelectTrigger>
+                <SelectContent className="bg-command-deep border-white/10 text-white">
+                  <SelectItem value="NONE">Sem Supervisor</SelectItem>
+                  {supervisors?.map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+                Equipe de Presença
+              </Label>
+              <Select value={presenceTeamId || "NONE"} onValueChange={(val) => setPresenceTeamId(val === "NONE" ? null : val)}>
+                <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white text-xs">
+                  <SelectValue placeholder="Sem Equipe" />
+                </SelectTrigger>
+                <SelectContent className="bg-command-deep border-white/10 text-white">
+                  <SelectItem value="NONE">Sem Equipe (Avulso)</SelectItem>
+                  {teams?.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">

@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { listSupervisors } from "@/lib/mk9-supervisors.functions";
 import { cn } from "@/lib/utils";
 import { 
   Users, 
@@ -57,16 +58,18 @@ export function Mk9PresenceModule() {
   const [search, setSearch] = useState("");
   const [ufFilter, setUfFilter] = useState("__ALL__");
   const [teamFilter, setTeamFilter] = useState("ALL");
+  const [supervisorFilter, setSupervisorFilter] = useState("ALL");
   const [localPresence, setLocalPresence] = useState<Record<string, { status: any, observation: string }>>({});
 
   const listFn = useServerFn(getPresenceList);
   const saveFn = useServerFn(savePresenceBulk);
   const statsFn = useServerFn(getPresenceStats);
   const listTeamsFn = useServerFn(listPresenceTeams);
+  const listSupervisorsFn = useServerFn(listSupervisors);
 
   const { data: presenceItems, isLoading: listLoading } = useQuery({
-    queryKey: ["mk9-presence-list", date, search, ufFilter, teamFilter],
-    queryFn: () => listFn({ data: { date, filters: { search, uf: ufFilter, teamId: teamFilter } } }),
+    queryKey: ["mk9-presence-list", date, search, ufFilter, teamFilter, supervisorFilter],
+    queryFn: () => listFn({ data: { date, filters: { search, uf: ufFilter, teamId: teamFilter, supervisorId: supervisorFilter } } }),
   });
 
   const { data: teams } = useQuery({
@@ -74,9 +77,14 @@ export function Mk9PresenceModule() {
     queryFn: () => listTeamsFn(),
   });
 
+  const { data: supervisors } = useQuery({
+    queryKey: ["mk9-supervisors-list"],
+    queryFn: () => listSupervisorsFn(),
+  });
+
   const { data: stats } = useQuery({
-    queryKey: ["mk9-presence-stats", date, teamFilter],
-    queryFn: () => statsFn({ data: { date, teamId: teamFilter } }),
+    queryKey: ["mk9-presence-stats", date, teamFilter, supervisorFilter],
+    queryFn: () => statsFn({ data: { date, teamId: teamFilter, supervisorId: supervisorFilter } }),
   });
 
   useEffect(() => {
@@ -150,9 +158,9 @@ export function Mk9PresenceModule() {
                       teamFilter === 'NONE' ? 'SEM EQUIPE' : 
                       teams?.find(t => t.id === teamFilter)?.name || 'EQUIPE';
 
-    const supervisorLabel = teamFilter !== 'ALL' && teamFilter !== 'NONE' 
-      ? teams?.find(t => t.id === teamFilter)?.supervisor?.full_name || '—'
-      : '—';
+    const supervisorLabel = supervisorFilter === 'ALL' ? 'TODOS' :
+                            supervisorFilter === 'NONE' ? 'SEM SUPERVISOR' :
+                            supervisors?.find(s => s.id === supervisorFilter)?.name || '—';
 
     const headerRows = [
       ['MK9 TRADE'],
@@ -291,6 +299,19 @@ export function Mk9PresenceModule() {
                 <SelectItem value="NONE">SEM EQUIPE (AVULSOS)</SelectItem>
                 {teams?.map(t => (
                   <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={supervisorFilter} onValueChange={setSupervisorFilter}>
+              <SelectTrigger className="h-9 w-[180px] bg-command-deep border-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
+                <SelectValue placeholder="SUPERVISOR" />
+              </SelectTrigger>
+              <SelectContent className="bg-command-deep border-white/10 text-white">
+                <SelectItem value="ALL">TODOS SUPERVISORES</SelectItem>
+                <SelectItem value="NONE">SEM SUPERVISOR</SelectItem>
+                {supervisors?.map(s => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
