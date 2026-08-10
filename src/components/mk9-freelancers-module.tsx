@@ -22,7 +22,7 @@ export function Mk9FreelancersModule() {
   });
 
   const toggleMutation = useMutation({
-    mutationFn: (id: string, active: boolean) => toggleFn({ data: { id, active } }),
+    mutationFn: ({ id, active }: { id: string, active: boolean }) => toggleFn({ data: { id, active } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mk9-freelancers"] });
       toast.success("Status atualizado");
