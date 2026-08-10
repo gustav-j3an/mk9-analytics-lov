@@ -91,9 +91,23 @@ export const addPromotersToTeam = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN']);
+    
+    // 1. Get team details to sync supervisor
+    const { data: team, error: tErr } = await supabaseAdmin
+      .from('mk9_presence_teams' as any)
+      .select('supervisor_id')
+      .eq('id', data.teamId)
+      .single();
+    
+    if (tErr) throw tErr;
+
+    // 2. Update promoters (team_id AND supervisor_id)
     const { error } = await supabaseAdmin
       .from('mk9_promoters' as any)
-      .update({ presence_team_id: data.teamId })
+      .update({ 
+        presence_team_id: data.teamId,
+        mk9_supervisor_id: (team as any).supervisor_id
+      })
       .in('id', data.promoterIds);
     
     if (error) throw error;

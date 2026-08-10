@@ -108,10 +108,14 @@ export function PresenceTeamsManager() {
 
       <div className="grid gap-3">
         {teams?.map(team => (
-          <div key={team.id} className="bg-white/[0.02] border border-white/5 rounded-xl p-4 flex items-center justify-between">
+          <div key={team.id} className="bg-white/[0.02] border border-white/5 rounded-xl p-4 flex items-center justify-between group hover:bg-white/[0.04] transition-all">
             <div>
               <p className="text-sm font-bold text-white">{team.name}</p>
-              <p className="text-[10px] uppercase text-slate-500">Supervisor: {team.supervisor?.name || team.supervisor?.full_name || "Não definido"}</p>
+              <div className="flex items-center gap-3 mt-1">
+                <p className="text-[10px] uppercase text-slate-500">Supervisor: {team.supervisor?.name || "Não definido"}</p>
+                <div className="w-1 h-1 rounded-full bg-slate-700" />
+                <p className="text-[10px] uppercase text-command-purple font-bold">18 promotores</p>
+              </div>
             </div>
             <div className="flex gap-2">
               <Button 
