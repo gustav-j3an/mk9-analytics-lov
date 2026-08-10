@@ -92,17 +92,42 @@ export const savePresenceBulk = createServerFn({ method: "POST" })
   });
 
 export const getPresenceStats = createServerFn({ method: "GET" })
-  .inputValidator((data) => z.object({ date: z.string() }).parse(data))
+  .inputValidator((data) => z.object({ 
+    date: z.string(),
+    supervisor: z.string().optional()
+  }).parse(data))
   .handler(async ({ data }) => {
-    const { count: total } = await supabaseAdmin
+    const supervisorAId = '3765698f-3d6b-4d75-a6a4-ddc48686318c';
+
+    // 1. Filter Promoters first to get the correct total count for the team
+    let promotersQuery = supabaseAdmin
       .from('mk9_promoters')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .eq('is_active', true);
 
-    const { data: presence } = await supabaseAdmin
+    if (data.supervisor === 'SUPERVISOR_A') {
+      promotersQuery = promotersQuery.eq('supervisor_id', supervisorAId);
+    } else if (data.supervisor === 'SUPERVISOR_B') {
+      promotersQuery = promotersQuery.or(`supervisor_id.is.null,supervisor_id.neq.${supervisorAId}`);
+    }
+
+    const { count: total, data: teamPromoters } = await promotersQuery;
+    const teamIds = teamPromoters?.map(p => p.id) || [];
+
+    // 2. Fetch presence only for these promoters
+    let presenceQuery = supabaseAdmin
       .from('mk9_promoter_presence')
-      .select('status')
+      .select('status, promoter_id')
       .eq('date', data.date);
+    
+    if (teamIds.length > 0) {
+      presenceQuery = presenceQuery.in('promoter_id', teamIds);
+    } else if (data.supervisor) {
+      // If team is empty and filtering by supervisor, stats should be zero
+      return { total: 0, present: 0, absent: 0, medical: 0, unmarked: 0 };
+    }
+
+    const { data: presence } = await presenceQuery;
 
     const stats = {
       total: total || 0,
