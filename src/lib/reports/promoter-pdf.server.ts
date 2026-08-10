@@ -133,10 +133,11 @@ export async function renderPromoterRoutePdf(input: {
   for (const r of routes) {
     if (!grouped.has(r.weekday)) grouped.set(r.weekday, new Map());
     const dayMap = grouped.get(r.weekday)!;
-    if (!dayMap.has(r.storeId)) {
-      dayMap.set(r.storeId, { store: r, industries: [] });
+    const storeKey = r.storeId || r.storeName;
+    if (!dayMap.has(storeKey)) {
+      dayMap.set(storeKey, { store: r, industries: [] });
     }
-    dayMap.get(r.storeId)!.industries.push(r.industryName);
+    dayMap.get(storeKey)!.industries.push(r.industryName);
   }
 
   const sortedDays = Array.from(grouped.keys()).sort((a, b) => {
@@ -175,8 +176,8 @@ export async function renderPromoterRoutePdf(input: {
 
     let storeIdx = 1;
     for (const { store, industries } of dayStores.values()) {
-      // Estimated height: store name (12) + industries (12) + padding (10)
-      const needed = 35;
+      // Estimated height: store name (10) + industries (10) + padding (10)
+      const needed = 30;
       
       if (ctx.y < needed + BOTTOM_LIMIT) {
         startNewPage(ctx, promoterName, referenceDate, stats);
@@ -185,12 +186,12 @@ export async function renderPromoterRoutePdf(input: {
         ctx.y -= 20;
       }
 
-      // Store Row
+      // Store Row - Formato compacto
       const idxStr = String(storeIdx).padStart(2, '0');
       ctx.page.drawText(idxStr, { x: MARGIN, y: ctx.y, size: 9, font: fontB, color: COLOR_BLUE });
       
       const storeName = sanitize(`${store.storeChain ? `${store.storeChain} · ` : ""}${store.storeName}`);
-      ctx.page.drawText(storeName, { x: MARGIN + 25, y: ctx.y, size: 9, font: fontB, color: COLOR_TEXT });
+      ctx.page.drawText(storeName.substring(0, 65), { x: MARGIN + 25, y: ctx.y, size: 9, font: fontB, color: COLOR_TEXT });
       
       const uf = sanitize(store.storeUf || "");
       if (uf) {
@@ -203,12 +204,17 @@ export async function renderPromoterRoutePdf(input: {
         });
       }
       
-      ctx.y -= 12;
+      ctx.y -= 11;
 
-      // Industries (compact line)
+      // Industries (compact line) - Sem "INDÚSTRIAS:" extra
       const indStr = industries.map(sanitize).join(" • ");
-      ctx.page.drawText(indStr, { x: MARGIN + 25, y: ctx.y, size: 8, font: font, color: COLOR_MUTED });
-      ctx.y -= 12;
+      ctx.page.drawText(indStr.substring(0, 100), { x: MARGIN + 25, y: ctx.y, size: 8, font: font, color: COLOR_MUTED });
+      
+      ctx.y -= 15;
+      storeIdx++;
+    }
+    ctx.y -= 5;
+  }
 
 
       ctx.y -= 8;
