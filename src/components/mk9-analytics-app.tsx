@@ -22,7 +22,9 @@ import { Mk9SupervisorsModule } from "./mk9-supervisors-module";
 import { Mk9HomologationModule } from "./mk9-homologation-module";
 import { Mk9IndustryAuditModule } from "./mk9-industry-audit-module";
 import { Mk9PresenceModule } from "./mk9-presence-module";
-import { UserCheck } from "lucide-react";
+import { UserCheck, WalletCards } from "lucide-react";
+import { Mk9FreelancersModule } from "./mk9-freelancers-module";
+import { Mk9DailiesModule } from "./mk9-dailies-module";
 
 
 import {
@@ -79,6 +81,8 @@ type ModuleId =
   | "promotores"
   | "supervisores"
   | "presenca"
+  | "freelancers"
+  | "diarias"
   | "auditoria_controle";
 
 
@@ -323,6 +327,15 @@ export function Mk9AnalyticsApp() {
                 if (window.innerWidth < 768) setCollapsed(true);
               }}
             />
+            <SidebarItem
+              icon={UserCheck}
+              label="Freelancers"
+              active={activeModule === "freelancers"}
+              onClick={() => {
+                setActiveModule("freelancers");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
+            />
 
             {isAdmin && (
               <>
@@ -500,7 +513,9 @@ export function Mk9AnalyticsApp() {
             {activeModule === "lojas" && <Mk9StoresModule />}
             {activeModule === "promotores" && <Mk9PromotersModule />}
             {activeModule === "supervisores" && <Mk9SupervisorsModule />}
-            {activeModule === "presenca" && <Mk9PresenceModule />}
+        {activeModule === "presenca" && <Mk9PresenceModule />}
+        {activeModule === "diarias" && <Mk9DailiesModule />}
+        {activeModule === "freelancers" && <Mk9FreelancersModule />}
 
             {activeModule === "roteiros" && (
               <Mk9RoutesModule
