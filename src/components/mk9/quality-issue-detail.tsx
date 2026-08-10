@@ -223,12 +223,37 @@ export function QualityIssueDetailSheet({
                 </div>
               )}
 
-              {/* ID Técnico para Auditoria */}
-              <div className="pt-4">
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-1 text-center">ID de Auditoria</p>
-                <p className="text-[10px] font-mono text-slate-600 text-center select-all break-all">
-                  {issue.id}
-                </p>
+              {/* Dados Técnicos */}
+              <div className="pt-8 pb-4 space-y-4">
+                <Separator className="bg-white/5" />
+                <h5 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600">Dados Técnicos</h5>
+                
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="space-y-1">
+                    <p className="text-[8px] font-black uppercase text-slate-700">Issue ID</p>
+                    <p className="text-[10px] font-mono text-slate-600 break-all bg-black/20 p-2 rounded border border-white/5 select-all">
+                      {issue.id}
+                    </p>
+                  </div>
+                  
+                  {issue.industryId && (
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-slate-700">Industry ID</p>
+                      <p className="text-[10px] font-mono text-slate-600 break-all">
+                        {issue.industryId}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {issue.storeId && (
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-slate-700">Store ID</p>
+                      <p className="text-[10px] font-mono text-slate-600 break-all">
+                        {issue.storeId}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ) : null}
