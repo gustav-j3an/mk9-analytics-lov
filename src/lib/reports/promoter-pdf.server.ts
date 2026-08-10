@@ -15,9 +15,9 @@ const MARGIN = 40;
 const CONTENT_W = PAGE.w - MARGIN * 2;
 const BOTTOM_LIMIT = 50;
 
-// Paleta MK9 Trade (White/Gray scale for printing with Purple/Blue accents)
-const COLOR_BRAND = rgb(0.42, 0.21, 0.97); // Purple (#6D35F7 approx)
-const COLOR_BLUE = rgb(0.23, 0.51, 0.96);  // Blue (#3B82F6 approx)
+// Paleta MK9 Trade
+const COLOR_BRAND = rgb(0.42, 0.21, 0.97); // Purple
+const COLOR_BLUE = rgb(0.23, 0.51, 0.96);  // Blue
 const COLOR_TEXT = rgb(0.06, 0.09, 0.16);
 const COLOR_MUTED = rgb(0.39, 0.45, 0.55);
 const COLOR_LINE = rgb(0.9, 0.92, 0.95);
@@ -49,8 +49,9 @@ function drawHeader(ctx: PdfCtx, promoterName: string, refDate: string, stats: {
 
   ctx.y = PAGE.h - 55;
   
-  // Promoter & Ref
+  // Promoter
   ctx.page.drawText(sanitize(promoterName), { x: MARGIN, y: ctx.y, size: 14, font: ctx.fontB, color: COLOR_TEXT });
+  
   const refStr = `Referência: ${refDate.split('-').reverse().join('/')}`;
   ctx.page.drawText(refStr, { 
     x: PAGE.w - MARGIN - ctx.font.widthOfTextAtSize(refStr, 9), 
@@ -62,7 +63,7 @@ function drawHeader(ctx: PdfCtx, promoterName: string, refDate: string, stats: {
   
   ctx.y -= 20;
 
-  // Stats Line
+  // Stats Line - Formato solicitado: 5 DIAS | 9 PARADAS | 19 ITENS
   const statsStr = `${stats.days} DIAS | ${stats.stops} PARADAS | ${stats.items} ITENS`;
   ctx.page.drawText(statsStr, { x: MARGIN, y: ctx.y, size: 8, font: ctx.fontB, color: COLOR_BLUE });
   
