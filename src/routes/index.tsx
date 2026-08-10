@@ -98,35 +98,6 @@ function LandingPage() {
     </div>
   );
 }
-
-function StatusCard({
-  icon: Icon,
-  title,
-  value,
-  sub,
-}: {
-  icon: any;
-  title: string;
-  value: string;
-  sub: string;
-}) {
-  return (
-    <div className="bg-white/[0.02] border border-white/5 p-4 rounded-xl flex items-center gap-4">
-      <div className="p-2 bg-purple-500/10 rounded">
-        <Icon className="w-4 h-4 text-purple-400" />
-      </div>
-      <div>
-        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{title}</p>
-        <div className="flex items-baseline gap-2">
-          <span className="text-sm font-black text-white italic">{value}</span>
-          <span className="text-[8px] text-purple-500/60 uppercase font-black">{sub}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ProtocolItem({ id, title, desc }: { id: string; title: string; desc: string }) {
   return (
     <div className="flex gap-4">
       <span className="text-purple-500/40 font-black text-[10px] mt-0.5">{id}</span>
