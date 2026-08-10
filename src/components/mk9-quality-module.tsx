@@ -277,30 +277,42 @@ export function Mk9QualityModule({
                       )}
                     />
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-black text-white uppercase tracking-tight">
+                      <div className="flex flex-col gap-1.5 mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-black text-white uppercase tracking-tighter">
+                            {String(item.evidence?.industryName ?? item.industryId ?? "SISTEMA")}
+                          </span>
+                          <span className="text-[10px] text-slate-500">•</span>
+                          <span className="text-[11px] font-bold text-slate-300 uppercase tracking-tighter">
+                            {String(item.evidence?.storeName ?? item.storeId ?? "-")}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                            {item.evidence?.uf ? `${item.evidence.uf} • ` : ""}{dateTimeLabel(item.lastSeenAt)}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-black text-command-purple uppercase tracking-tight">
                           {issueTypeLabel(item.issueType)}
                         </span>
                         <Mk9Badge
                           variant={
-                            item.severity === "BLOQUEANTE"
+                            item.severity === "BLOQUEANTE" || item.severity === "CRITICO"
                               ? "danger"
-                              : item.severity === "CRITICO"
-                                ? "danger"
-                                : "warning"
+                              : "warning"
                           }
+                          className="text-[8px] px-1.5 h-4"
                         >
                           {item.severity}
                         </Mk9Badge>
                       </div>
-                      <p className="text-[10px] text-slate-400 font-medium leading-relaxed max-w-2xl">
+                      
+                      <p className="mt-2 text-[10px] text-slate-400 font-medium leading-relaxed max-w-2xl border-l-2 border-white/5 pl-3">
                         {item.description}
                       </p>
-                      <div className="flex items-center gap-3 mt-2 text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                        <span>{item.industryId || "Sistema"}</span>
-                        <span>•</span>
-                        <span>{dateTimeLabel(item.lastSeenAt)}</span>
-                      </div>
                     </div>
                   </div>
                   <Button
