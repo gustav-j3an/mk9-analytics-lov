@@ -17,7 +17,7 @@ const WEEKDAY_PT = [
   "SÁBADO",
 ];
 
-export const Route = createFileRoute("/roteiros/\$promoterId/imprimir")({
+export const Route = createFileRoute("/roteiros/$promoterId/imprimir")({
   validateSearch: (search) => z.object({
     date: z.string().optional(),
   }).parse(search),
@@ -39,7 +39,7 @@ function PromoterPrintView() {
 
   const stats = useMemo(() => {
     const days = new Set(routes.map(r => r.weekday));
-    const stops = new Set(routes.map(r => \`\${r.weekday}-\${r.storeId}\`));
+    const stops = new Set(routes.map(r => `${r.weekday}-${r.storeId}`));
     return {
       days: days.size,
       stops: stops.size,
@@ -76,7 +76,7 @@ function PromoterPrintView() {
 
   useEffect(() => {
     if (promoterName) {
-      document.title = \`ROTEIRO - \${promoterName.toUpperCase()}\`;
+      document.title = `ROTEIRO - ${promoterName.toUpperCase()}`;
     }
   }, [promoterName]);
 
@@ -154,7 +154,7 @@ function PromoterPrintView() {
                       <div className="flex-1">
                         <div className="flex items-baseline justify-between gap-2">
                           <h4 className="text-sm font-bold text-slate-900 leading-tight">
-                            {stop.storeChain ? \`\${stop.storeChain} - \` : ''}{stop.storeName}
+                            {stop.storeChain ? `${stop.storeChain} - ` : ''}{stop.storeName}
                           </h4>
                           {stop.uf && (
                             <span className="text-[10px] font-black text-slate-400">{stop.uf}</span>
@@ -177,7 +177,7 @@ function PromoterPrintView() {
         </div>
       </div>
 
-      <style>{\`
+      <style>{`
         @media print {
           @page {
             size: A4;
@@ -187,11 +187,11 @@ function PromoterPrintView() {
             background-color: white !important;
             -webkit-print-color-adjust: exact;
           }
-          .print\\\\:hidden {
+          .print\\:hidden {
             display: none !important;
           }
         }
-      \`}</style>
+      `}</style>
     </div>
   );
 }
