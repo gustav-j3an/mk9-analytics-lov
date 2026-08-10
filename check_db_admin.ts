@@ -13,7 +13,9 @@ async function run() {
       valid_from,
       valid_until,
       is_active,
-      archived_at
+      archived_at,
+      store:mk9_stores(name),
+      industry:mk9_industries(name)
     `)
     .eq("promoter_id", promoterId);
 
@@ -39,7 +41,12 @@ async function run() {
     dias: days.size,
     paradas: stops.size,
     itens: active.length,
-    ids: active.map(r => r.id).sort()
+    ids: active.map(r => r.id).sort(),
+    sample: active.slice(0, 2).map(r => ({
+      wd: r.weekday,
+      store: r.store.name,
+      ind: r.industry.name
+    }))
   }, null, 2));
   console.log("RESULT_END");
 }
