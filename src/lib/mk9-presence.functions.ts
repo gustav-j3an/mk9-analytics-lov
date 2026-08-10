@@ -11,9 +11,12 @@ export const getPresenceList = createServerFn({ method: "GET" })
       search: z.string().optional(),
       uf: z.string().optional(),
       status: z.string().optional(),
+      supervisor: z.string().optional(), // Added supervisor filter
     }).optional()
   }).parse(data))
   .handler(async ({ data }) => {
+    const supervisorAId = '3765698f-3d6b-4d75-a6a4-ddc48686318c';
+
     // 1. Fetch active promoters using the correct column 'is_active'
     let promotersQuery = supabaseAdmin
       .from('mk9_promoters')
@@ -28,6 +31,14 @@ export const getPresenceList = createServerFn({ method: "GET" })
       promotersQuery = promotersQuery.eq('uf', data.filters.uf);
     }
 
+    // Apply Supervisor Filter
+    if (data.filters?.supervisor === 'SUPERVISOR_A') {
+      promotersQuery = promotersQuery.eq('supervisor_id', supervisorAId);
+    } else if (data.filters?.supervisor === 'SUPERVISOR_B') {
+      // B = All actives that are NOT A
+      promotersQuery = promotersQuery.or(`supervisor_id.is.null,supervisor_id.neq.${supervisorAId}`);
+    }
+
     const { data: promoters, error: pError } = await promotersQuery;
     if (pError) throw pError;
 
@@ -40,7 +51,7 @@ export const getPresenceList = createServerFn({ method: "GET" })
     if (prError) throw prError;
 
     // Merge
-    return promoters.map(p => {
+    return (promoters || []).map(p => {
       const pData = (presence as any[])?.find(pr => pr.promoter_id === p.id);
       return {
         id: p.id,
