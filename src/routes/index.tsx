@@ -85,10 +85,10 @@ function LandingPage() {
 
               <div className="mt-8 pt-6 border-t border-white/5 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-slate-500 font-medium">
-                  MK9 Analytics • <span className="text-purple-400/80">v1.3.28</span>
+                  MK9 Analytics • <span className="text-purple-400/80">v1.3.29</span>
                 </p>
                 <p className="text-[9px] text-slate-600 uppercase tracking-widest font-bold">
-                  QUALITY LOG FIX (ACTION STABILIZED)
+                  QUALITY UX REFACTOR (CLEAN LIST)
                 </p>
               </div>
             </div>
