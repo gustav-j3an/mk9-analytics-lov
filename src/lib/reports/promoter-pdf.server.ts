@@ -217,12 +217,6 @@ export async function renderPromoterRoutePdf(input: {
   }
 
 
-      ctx.y -= 8;
-      storeIdx++;
-    }
-    ctx.y -= 10;
-  }
-
   // Finalize all pages with footers
   const totalPages = pdf.getPageCount();
   pdf.getPages().forEach((p, i) => {
