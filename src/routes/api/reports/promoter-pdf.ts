@@ -18,16 +18,32 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const requestId = Math.random().toString(36).substring(7);
+        let step = "request-received";
+        let promoterId = "unknown";
+        let referenceDate = "unknown";
+        
+        const log = (msg: string, data?: any) => {
+          console.log(`[PDF_EXPORT][${requestId}][${step}] ${msg}`, data ? JSON.stringify(data) : "");
+        };
+
         try {
+          log("Início da requisição");
+          
+          step = "auth-start";
           const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
           const { scope: access } = await requireMk9ReadScope(request);
-
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          log("Auth OK", { userId: access.userId });
+          
+          step = "params-parse";
           const raw = await request.json();
           const body = payloadSchema.parse(raw);
+          promoterId = body.promoterId;
+          referenceDate = `${body.year}-${String(body.month).padStart(2, '0')}-01`;
+          log("Params OK", { promoterId, referenceDate });
 
-          const refDateStr = `${body.year}-${String(body.month).padStart(2, '0')}-01`;
-          
+          step = "db-load-route";
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data: rows, error: routeError } = await supabaseAdmin
             .from("mk9_planned_routes")
             .select(`
@@ -43,11 +59,14 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
             .eq("promoter_id", body.promoterId)
             .eq("is_active", true)
             .is("archived_at", null)
-            .lte("valid_from", refDateStr)
-            .or(`valid_until.is.null,valid_until.gte.${refDateStr}`)
+            .lte("valid_from", referenceDate)
+            .or(`valid_until.is.null,valid_until.gte.${referenceDate}`)
             .order("weekday", { ascending: true });
 
-          if (routeError) throw routeError;
+          if (routeError) {
+            log("DB Error", routeError);
+            throw routeError;
+          }
 
           const routes = (rows ?? []).map((r: any) => ({
             id: r.id as string,
@@ -65,32 +84,55 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
             industryId: r.industry?.id ?? null,
             industryName: r.industry?.name ?? "—",
           }));
+          log("Route Loaded", { count: routes.length });
 
           if (!routes || routes.length === 0) {
+            step = "no-routes";
             return errorResponse(404, "Nenhum roteiro vigente encontrado para este promotor.");
           }
 
+          step = "renderer-import";
           const { renderPromoterRoutePdf, promoterPdfFileName } =
             await import("@/lib/reports/promoter-pdf.server");
+          log("Renderer Imported");
 
+          step = "db-load-promoter";
           const { data: promoter } = await supabaseAdmin
             .from("mk9_promoters")
             .select("name, employee_number")
             .eq("id", body.promoterId)
             .maybeSingle();
+          log("Promoter Loaded", { name: promoter?.name });
 
+          step = "pdf-minimal-test";
+          try {
+            const { PDFDocument } = await import("pdf-lib");
+            const testDoc = await PDFDocument.create();
+            testDoc.addPage([200, 200]);
+            const testBytes = await testDoc.save();
+            log("Minimal PDF Test OK", { byteLength: testBytes.length });
+          } catch (testErr: any) {
+            log("Minimal PDF Test FAILED", { message: testErr.message, stack: testErr.stack });
+            throw new Error(`PDF_LIB_MINIMAL_FAIL: ${testErr.message}`);
+          }
+
+          step = "renderer-start";
+          log("Starting real render...");
           const bytes = await renderPromoterRoutePdf({
             routes,
             promoterName: promoter?.name ?? "Promotor",
-            referenceDate: refDateStr,
+            referenceDate,
           });
+          log("Renderer Complete", { byteLength: bytes?.length });
 
+          step = "response-prepare";
           const filename = promoterPdfFileName(promoter?.name ?? "Promotor");
           const ab = bytes.buffer.slice(
             bytes.byteOffset,
             bytes.byteOffset + bytes.byteLength,
           ) as ArrayBuffer;
 
+          log("Sending Response", { filename, byteLength: ab.byteLength });
           return new Response(ab, {
             status: 200,
             headers: {
@@ -99,10 +141,25 @@ export const Route = createFileRoute("/api/reports/promoter-pdf")({
               "cache-control": "no-store",
             },
           });
-        } catch (error) {
-          console.error("[promoter-pdf]", error);
-          const status = (error as any)?.statusCode || 500;
-          return errorResponse(status, error instanceof Error ? error.message : "INTERNAL_ERROR");
+        } catch (error: any) {
+          log("FATAL ERROR", { 
+            name: error?.name, 
+            message: error?.message, 
+            stack: error?.stack,
+            step 
+          });
+          
+          return new Response(JSON.stringify({
+            error: "PDF_EXPORT_FAILED",
+            step,
+            message: error instanceof Error ? error.message : "INTERNAL_ERROR",
+            requestId,
+            promoterId,
+            referenceDate
+          }), {
+            status: 500,
+            headers: { "content-type": "application/json" }
+          });
         }
       },
     },
