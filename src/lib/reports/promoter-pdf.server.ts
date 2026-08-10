@@ -221,7 +221,7 @@ export async function renderPromoterRoutePdf(input: {
 
   // Finalize all pages with footers
   const totalPages = pdf.getPageCount();
-  pdf.getPages().forEach((p, i) => {
+  pdf.getPages().forEach((p: any, i: number) => {
     ctx.page = p;
     ctx.pageNum = i + 1;
     drawFooter(ctx, totalPages);
