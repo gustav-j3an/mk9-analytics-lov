@@ -72,7 +72,7 @@ export function Mk9FreelancersModule() {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={() => toggleMutation.mutate(f.id, !f.active)}
+                    onClick={() => toggleMutation.mutate({ id: f.id, active: !f.active })}
                     className={f.active ? "text-red-400 hover:text-red-300" : "text-green-400 hover:text-green-300"}
                   >
                     <Power className="w-4 h-4" />
