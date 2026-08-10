@@ -55,36 +55,6 @@ import { mk9PromoterRouteStats } from "@/lib/mk9-promoter-route.functions";
 import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
 import { PromoterRouteExportTemplate } from "./mk9/PromoterRouteExportTemplate";
 import { exportToPdf } from "@/lib/mk9-pdf-client";
-import { Mk9PageHeader, Mk9Panel, Mk9MetricCard } from "./mk9/design-system";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  mk9RoutesListVersioned,
-  mk9RoutesListHistory,
-  mk9RoutesUpsertItem,
-  mk9RoutesDeactivate,
-  mk9RoutesDeleteItem,
-} from "@/lib/mk9-routes.functions";
-import { mk9PromoterRouteStats } from "@/lib/mk9-promoter-route.functions";
-import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
 
 const WEEKDAY_PT = [
   "Domingo",
