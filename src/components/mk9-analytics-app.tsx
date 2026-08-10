@@ -306,6 +306,15 @@ export function Mk9AnalyticsApp() {
                   }}
             />
             <SidebarItem
+              icon={UserCheck}
+              label="Supervisores"
+              active={activeModule === "supervisores"}
+              onClick={() => {
+                setActiveModule("supervisores");
+                if (window.innerWidth < 768) setCollapsed(true);
+              }}
+            />
+            <SidebarItem
               icon={Users}
               label="Promotores"
               active={activeModule === "promotores"}
