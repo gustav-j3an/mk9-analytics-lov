@@ -4,7 +4,7 @@
 // (nunca "hoje" automaticamente). Conflitos de sobreposição retornam
 // a rota conflitante e bloqueiam o salvamento até correção.
 
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
