@@ -74,22 +74,33 @@ async function downloadPromoterPdf(
     const token = data.session?.access_token;
 
     const d = new Date(referenceDate);
+    const year = d.getFullYear();
+    const month = d.getMonth() + 1;
+
+    console.log("[downloadPromoterPdf] Requesting PDF for:", { promoterId, promoterName, year, month });
+
     const res = await fetch("/api/reports/promoter-pdf", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ 
-        promoterId, 
-        year: d.getFullYear(), 
-        month: d.getMonth() + 1 
-      }),
+      body: JSON.stringify({ promoterId, year, month }),
     });
+
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || "Erro ao gerar PDF");
+      let errorMessage = "Erro ao gerar PDF";
+      try {
+        const err = await res.json();
+        errorMessage = err.message || errorMessage;
+      } catch (e) {
+        // Fallback for non-json errors
+        const text = await res.text();
+        console.error("[downloadPromoterPdf] Raw error text:", text);
+      }
+      throw new Error(errorMessage);
     }
+
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -106,6 +117,7 @@ async function downloadPromoterPdf(
     document.body.removeChild(a);
     toast.success("PDF gerado com sucesso!");
   } catch (err: any) {
+    console.error("[downloadPromoterPdf] Failed:", err);
     toast.error(err.message);
   }
 }
