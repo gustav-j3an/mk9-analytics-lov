@@ -9,13 +9,13 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.24 — PDF STABILIZED",
+    title: "MK9 | v1.3.25 — PDF ESM-FIX",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.24: PDF STABILIZED. Correção da paridade de roteiro e saneamento de schema.",
+        content: "MK9 Analytics v1.3.25: PDF ESM-FIX. Eliminação de imports dinâmicos e saneamento do grafo de dependências.",
       },
-      { property: "og:title", content: "MK9 | v1.3.24" },
+      { property: "og:title", content: "MK9 | v1.3.25" },
       {
         property: "og:description",
         content: "Sistema operacional unificado com exportação de PDF estabilizada.",
@@ -85,10 +85,10 @@ function LandingPage() {
 
               <div className="mt-8 pt-6 border-t border-white/5 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-slate-500 font-medium">
-                  MK9 Analytics • <span className="text-purple-400/80">v1.3.23</span>
+                  MK9 Analytics • <span className="text-purple-400/80">v1.3.25</span>
                 </p>
                 <p className="text-[9px] text-slate-600 uppercase tracking-widest font-bold">
-                  DIAGNÓSTICO PDF ATIVO (CAPTURA DE INTERNAL_ERROR)
+                  PDF ESM-FIX (ZERO DYNAMIC IMPORTS)
                 </p>
               </div>
             </div>
