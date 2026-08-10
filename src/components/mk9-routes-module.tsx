@@ -77,7 +77,14 @@ async function downloadPromoterPdf(
     const year = d.getFullYear();
     const month = d.getMonth() + 1;
 
-    console.log("[downloadPromoterPdf] Requesting PDF for:", { promoterId, promoterName, year, month });
+    console.log("[downloadPromoterPdf] Requesting PDF:", { 
+      promoterId, 
+      promoterName, 
+      year, 
+      month,
+      endpoint: "/api/reports/promoter-pdf",
+      method: "POST"
+    });
 
     const res = await fetch("/api/reports/promoter-pdf", {
       method: "POST",
@@ -88,15 +95,21 @@ async function downloadPromoterPdf(
       body: JSON.stringify({ promoterId, year, month }),
     });
 
+    console.log("[downloadPromoterPdf] Response received:", {
+      status: res.status,
+      statusText: res.statusText,
+      contentType: res.headers.get("content-type")
+    });
+
     if (!res.ok) {
       let errorMessage = "Erro ao gerar PDF";
       try {
         const err = await res.json();
+        console.error("[downloadPromoterPdf] Error body (JSON):", err);
         errorMessage = err.message || errorMessage;
       } catch (e) {
-        // Fallback for non-json errors
         const text = await res.text();
-        console.error("[downloadPromoterPdf] Raw error text:", text);
+        console.error("[downloadPromoterPdf] Error body (Text):", text);
       }
       throw new Error(errorMessage);
     }
