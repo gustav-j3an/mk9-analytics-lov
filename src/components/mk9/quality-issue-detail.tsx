@@ -141,7 +141,7 @@ export function QualityIssueDetailSheet({
                       <div>
                         <p className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Indústria</p>
                         <p className="text-sm font-bold truncate max-w-[200px]">
-                          {issue.evidence?.industryName || issue.industryId || "N/D"}
+                          {String(issue.evidence?.industryName || issue.industryId || "N/D")}
                         </p>
                       </div>
                     </div>
@@ -166,7 +166,7 @@ export function QualityIssueDetailSheet({
                       <div>
                         <p className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Loja</p>
                         <p className="text-sm font-bold truncate max-w-[200px]">
-                          {issue.evidence?.storeName || issue.storeId || "N/D"}
+                          {String(issue.evidence?.storeName || issue.storeId || "N/D")}
                         </p>
                       </div>
                     </div>
@@ -191,9 +191,9 @@ export function QualityIssueDetailSheet({
                         </div>
                         <div>
                           <p className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Promotor</p>
-                          <p className="text-sm font-bold truncate max-w-[200px]">
-                            {issue.evidence?.promoterName || issue.assignedToName || issue.promoterId}
-                          </p>
+                            <p className="text-sm font-bold truncate max-w-[200px]">
+                              {String(issue.evidence?.promoterName || issue.assignedToName || issue.promoterId || "N/D")}
+                            </p>
                         </div>
                       </div>
                     </div>
