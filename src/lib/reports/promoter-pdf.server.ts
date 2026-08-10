@@ -4,8 +4,10 @@ const {
   StandardFonts,
   rgb,
 } = pdfLib;
+
 type PDFPage = any;
 type PDFFont = any;
+type PDFDocType = any;
 
 const WEEKDAY_PT = [
   "DOMINGO", "SEGUNDA-FEIRA", "TERÇA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO"
@@ -29,7 +31,7 @@ function sanitize(s: string): string {
 }
 
 interface PdfCtx {
-  pdf: PDFDocument;
+  pdf: PDFDocType;
   page: PDFPage;
   y: number;
   font: PDFFont;
