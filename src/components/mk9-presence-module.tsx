@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { cn } from "@/lib/utils";
-
 import { 
   Users, 
   CheckCircle2, 
@@ -162,7 +161,7 @@ export function Mk9PresenceModule() {
   const ufs = useMemo(() => {
     if (!presenceItems) return [];
     const set = new Set(presenceItems.map(p => p.uf).filter(Boolean));
-    return Array.from(set).sort();
+    return Array.from(set).sort() as string[];
   }, [presenceItems]);
 
   return (
@@ -239,7 +238,7 @@ export function Mk9PresenceModule() {
               <SelectContent className="bg-command-deep border-white/10 text-white">
                 <SelectItem value="__ALL__">TODAS</SelectItem>
                 {ufs.map(uf => (
-                  <SelectItem key={uf} value={uf || "N/A"}>{uf || "N/A"}</SelectItem>
+                  <SelectItem key={uf} value={uf}>{uf}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
