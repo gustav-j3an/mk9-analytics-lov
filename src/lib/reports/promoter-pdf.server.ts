@@ -351,25 +351,11 @@ export async function renderPromoterRoutePdf(input: {
   return pdf.save();
 }
 
-export function promoterPdfFileName(name: string, year: number, month: number): string {
+export function promoterPdfFileName(name: string, _year: number, _month: number): string {
   const clean = name
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toUpperCase()
     .replace(/[^A-Z0-9]+/g, "_");
-  const meses = [
-    "JANEIRO",
-    "FEVEREIRO",
-    "MARCO",
-    "ABRIL",
-    "MAIO",
-    "JUNHO",
-    "JULHO",
-    "AGOSTO",
-    "SETEMBRO",
-    "OUTUBRO",
-    "NOVEMBRO",
-    "DEZEMBRO",
-  ];
-  return `ROTEIRO_${clean}_${meses[month - 1]}_${year}.pdf`;
+  return `ROTEIRO_${clean}.pdf`;
 }
