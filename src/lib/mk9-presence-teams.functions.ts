@@ -35,7 +35,8 @@ export const getPresenceTeamDetails = createServerFn({ method: "GET" })
     
     if (mErr) throw mErr;
 
-    return { ...team, members: members as any[] } as any;
+    const teamData = team as any;
+    return { ...teamData, members: members as any[] };
   });
 
 export const createPresenceTeam = createServerFn({ method: "POST" })
