@@ -323,56 +323,6 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                         <Users className="h-4 w-4 text-primary" />
                         {promoter}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={isExporting}
-                        className="h-7 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white"
-                        onClick={() => {
-                          const pId = promoters.find(p => p.name === promoter)?.id;
-                          if (pId) {
-                            const promoterRoutes = routes.filter(r => r.promoterName === promoter);
-                            const days = new Set(promoterRoutes.map(r => r.weekday));
-                            const stopsCount = new Set(promoterRoutes.map(r => `${r.weekday}-${r.storeId}`)).size;
-                            
-                            const groupedForPdf = Array.from(new Set(promoterRoutes.map(r => r.weekday)))
-                              .sort((a, b) => a - b)
-                              .map(wd => {
-                                const dayRoutes = promoterRoutes.filter(r => r.weekday === wd);
-                                const storesInDay = Array.from(new Set(dayRoutes.map(r => r.storeId || r.storeName)));
-                                
-                                return {
-                                  weekday: wd,
-                                  stops: storesInDay.map(sId => {
-                                    const items = dayRoutes.filter(r => (r.storeId || r.storeName) === sId);
-                                    return {
-                                      storeName: items[0].storeName,
-                                      storeChain: items[0].storeChain,
-                                      uf: items[0].storeUf,
-                                      industries: items.map(it => it.industryName)
-                                    };
-                                  })
-                                };
-                              });
-
-                            setExportData({
-                              promoterName: promoter,
-                              referenceDate,
-                              stats: {
-                                days: days.size,
-                                stops: stopsCount,
-                                items: promoterRoutes.length
-                              },
-                              groupedByDay: groupedForPdf
-                            });
-
-                            handleExportPdf(pId, promoter, referenceDate, promoterRoutes, setIsExporting);
-                          }
-                        }}
-                      >
-                        {isExporting ? <Loader2 className="h-3 w-3 mr-1.5 animate-spin" /> : <Download className="h-3 w-3 mr-1.5" />}
-                        PDF
-                      </Button>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
@@ -509,8 +459,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           }}
         />
       )}
-      {/* Template oculto para exportação PDF */}
-      {exportData && <PromoterRouteExportTemplate data={exportData} />}
+      {/* Template oculto para exportação PDF removido */}
     </div>
   );
 }
@@ -882,14 +831,10 @@ function PromoterRouteCard({
   promoterId,
   referenceDate,
   promoters,
-  onExport,
-  isExporting,
 }: {
   promoterId: string;
   referenceDate: string;
   promoters: any[];
-  onExport: (pId: string, pName: string) => void;
-  isExporting: boolean;
 }) {
   const [y, m] = referenceDate.split("-").map(Number);
   const promoter = promoters.find((p) => p.id === promoterId);
@@ -933,18 +878,6 @@ function PromoterRouteCard({
               </p>
               <div className="flex items-center gap-2">
                 <p className="text-lg font-bold truncate">{promoter?.name ?? "—"}</p>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-primary"
-                  title="Exportar Roteiro PDF"
-                  disabled={isExporting}
-                  onClick={() =>
-                    onExport(promoterId, promoter?.name ?? "Promotor")
-                  }
-                >
-                  {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                </Button>
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="outline" className="bg-background/50">
