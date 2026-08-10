@@ -1,9 +1,8 @@
 import * as pdfLib from "pdf-lib";
-const {
-  PDFDocument,
-  StandardFonts,
-  rgb,
-} = pdfLib;
+
+const PDFDocument = (pdfLib as any).PDFDocument || pdfLib.PDFDocument;
+const StandardFonts = (pdfLib as any).StandardFonts || pdfLib.StandardFonts;
+const rgb = (pdfLib as any).rgb || pdfLib.rgb;
 
 type PDFPage = any;
 type PDFFont = any;
