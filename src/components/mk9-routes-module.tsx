@@ -21,7 +21,6 @@ import {
   Info,
   RefreshCw,
   Trash2,
-  Download,
 } from "lucide-react";
 import { Mk9PageHeader, Mk9Panel, Mk9MetricCard } from "./mk9/design-system";
 import { toast } from "sonner";
@@ -53,8 +52,6 @@ import {
 } from "@/lib/mk9-routes.functions";
 import { mk9PromoterRouteStats } from "@/lib/mk9-promoter-route.functions";
 import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
-import { PromoterRouteExportTemplate } from "./mk9/PromoterRouteExportTemplate";
-import { exportToPdf } from "@/lib/mk9-pdf-client";
 
 const WEEKDAY_PT = [
   "Domingo",
@@ -66,36 +63,6 @@ const WEEKDAY_PT = [
   "Sábado",
 ];
 
-async function handleExportPdf(
-  promoterId: string,
-  promoterName: string,
-  referenceDate: string,
-  routes: any[],
-  setIsExporting: (v: boolean) => void
-) {
-  if (routes.length === 0) {
-    toast.error("Não há itens no roteiro para exportar.");
-    return;
-  }
-
-  setIsExporting(true);
-  const tid = toast.loading(`Gerando PDF para ${promoterName}...`);
-
-  try {
-    // Parar um pouco para garantir que o template oculto renderizou com os dados
-    await new Promise(r => setTimeout(r, 100));
-    
-    const filename = `ROTEIRO - ${promoterName.toUpperCase()} - ${referenceDate}.pdf`.replace(/[/\\?%*:|"<>]/g, '-');
-    await exportToPdf("mk9-pdf-template", filename);
-    
-    toast.success("PDF exportado com sucesso!", { id: tid });
-  } catch (err) {
-    console.error("PDF Export Error:", err);
-    toast.error("Erro ao gerar PDF. Tente novamente.", { id: tid });
-  } finally {
-    setIsExporting(false);
-  }
-}
 
 type Route = Awaited<ReturnType<typeof mk9RoutesListVersioned>>[number];
 
@@ -124,8 +91,6 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
   const [filterUf, setFilterUf] = useState<string>("");
   const [filterWeekday, setFilterWeekday] = useState<string>("");
   const [nameFilter, setNameFilter] = useState("");
-  const [isExporting, setIsExporting] = useState(false);
-  const [exportData, setExportData] = useState<any>(null);
 
   const [editing, setEditing] = useState<Route | null>(null);
   const [deleting, setDeleting] = useState<Route | null>(null);
@@ -317,63 +282,6 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           Roteiros vigentes em <strong>{referenceDate}</strong> · {routes.length} itens
         </p>
         <div className="flex items-center gap-3">
-          {(filterPromoter || (grouped.size === 1)) ? (
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={isExporting}
-              className="h-9 border-command-purple/20 text-command-purple hover:bg-command-purple/10 text-[10px] font-black uppercase tracking-widest px-4"
-              onClick={() => {
-                const pName = filterPromoter 
-                  ? promoters.find(p => p.id === filterPromoter)?.name || Array.from(grouped.keys())[0]
-                  : Array.from(grouped.keys())[0];
-                const pId = filterPromoter || promoters.find(p => p.name === pName)?.id;
-                
-                if (pId && pName) {
-                  // Preparar dados para o template
-                  const promoterRoutes = routes.filter(r => r.promoterName === pName);
-                  const days = new Set(promoterRoutes.map(r => r.weekday));
-                  const stopsCount = new Set(promoterRoutes.map(r => `${r.weekday}-${r.storeId}`)).size;
-                  
-                  const groupedForPdf = Array.from(new Set(promoterRoutes.map(r => r.weekday)))
-                    .sort((a, b) => a - b)
-                    .map(wd => {
-                      const dayRoutes = promoterRoutes.filter(r => r.weekday === wd);
-                      const storesInDay = Array.from(new Set(dayRoutes.map(r => r.storeId || r.storeName)));
-                      
-                      return {
-                        weekday: wd,
-                        stops: storesInDay.map(sId => {
-                          const items = dayRoutes.filter(r => (r.storeId || r.storeName) === sId);
-                          return {
-                            storeName: items[0].storeName,
-                            storeChain: items[0].storeChain,
-                            uf: items[0].storeUf,
-                            industries: items.map(it => it.industryName)
-                          };
-                        })
-                      };
-                    });
-
-                  setExportData({
-                    promoterName: pName,
-                    referenceDate,
-                    stats: {
-                      days: days.size,
-                      stops: stopsCount,
-                      items: promoterRoutes.length
-                    },
-                    groupedByDay: groupedForPdf
-                  });
-
-                  handleExportPdf(pId, pName, referenceDate, promoterRoutes, setIsExporting);
-                }
-              }}
-            >
-              {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
-              Exportar Roteiro PDF
-            </Button>
-          ) : null}
           <Button
             size="sm"
             onClick={() => setCreating(true)}
@@ -401,47 +309,6 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
               promoterId={filterPromoter}
               referenceDate={referenceDate}
               promoters={promoters}
-              isExporting={isExporting}
-              onExport={(pId, pName) => {
-                const promoterRoutes = routes.filter(r => r.promoterName === pName);
-                if (promoterRoutes.length === 0) return;
-                
-                const days = new Set(promoterRoutes.map(r => r.weekday));
-                const stopsCount = new Set(promoterRoutes.map(r => `${r.weekday}-${r.storeId}`)).size;
-                
-                const groupedForPdf = Array.from(new Set(promoterRoutes.map(r => r.weekday)))
-                  .sort((a, b) => a - b)
-                  .map(wd => {
-                    const dayRoutes = promoterRoutes.filter(r => r.weekday === wd);
-                    const storesInDay = Array.from(new Set(dayRoutes.map(r => r.storeId || r.storeName)));
-                    
-                    return {
-                      weekday: wd,
-                      stops: storesInDay.map(sId => {
-                        const items = dayRoutes.filter(r => (r.storeId || r.storeName) === sId);
-                        return {
-                          storeName: items[0].storeName,
-                          storeChain: items[0].storeChain,
-                          uf: items[0].storeUf,
-                          industries: items.map(it => it.industryName)
-                        };
-                      })
-                    };
-                  });
-
-                setExportData({
-                  promoterName: pName,
-                  referenceDate,
-                  stats: {
-                    days: days.size,
-                    stops: stopsCount,
-                    items: promoterRoutes.length
-                  },
-                  groupedByDay: groupedForPdf
-                });
-
-                handleExportPdf(pId, pName, referenceDate, promoterRoutes, setIsExporting);
-              }}
             />
           )}
           {Array.from(grouped.keys())
