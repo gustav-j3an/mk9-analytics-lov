@@ -197,7 +197,8 @@ export function Mk9PresenceModule() {
       item.uf || "-",
       localPresence[item.id]?.status === 'PRESENT' ? 'PRESENTE' :
       localPresence[item.id]?.status === 'ABSENT' ? 'FALTA' :
-      localPresence[item.id]?.status === 'MEDICAL_CERTIFICATE' ? 'ATESTADO' : 'NÃO MARCADO',
+      localPresence[item.id]?.status === 'MEDICAL_CERTIFICATE' ? 'ATESTADO' : 
+      localPresence[item.id]?.status === 'VACATION' ? 'FÉRIAS' : 'NÃO MARCADO',
       localPresence[item.id]?.observation || "-"
     ]);
 
