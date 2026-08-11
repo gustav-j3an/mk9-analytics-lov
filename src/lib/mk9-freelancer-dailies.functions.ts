@@ -23,7 +23,7 @@ export const listDailies = createServerFn({ method: "GET" })
         items:mk9_freelancer_daily_items(
           *,
           store:mk9_stores(*),
-          industry:mk9_industries(*)
+          industry:mk9_industries(id,name)
         )
       `)
       .order('date', { ascending: false });
@@ -51,8 +51,8 @@ export const createDaily = createServerFn({ method: "POST" })
     notes: z.string().optional().nullable(),
     items: z.array(z.object({
       storeId: z.string().uuid(),
-      industryIds: z.array(z.string().uuid())
-    }))
+      industryIds: z.array(z.string().uuid()).min(1, "Selecione pelo menos uma indústria para esta loja")
+    })).min(1, "Adicione pelo menos um atendimento")
   }))
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN', 'SUPERVISOR']);
@@ -117,8 +117,8 @@ export const updateDaily = createServerFn({ method: "POST" })
     notes: z.string().optional().nullable(),
     items: z.array(z.object({
       storeId: z.string().uuid(),
-      industryIds: z.array(z.string().uuid())
-    }))
+      industryIds: z.array(z.string().uuid()).min(1, "Selecione pelo menos uma indústria para esta loja")
+    })).min(1, "Adicione pelo menos um atendimento")
   }))
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN', 'SUPERVISOR']);
@@ -245,7 +245,7 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
         items:mk9_freelancer_daily_items(
           *,
           store:mk9_stores(*),
-          industry:mk9_industries(*)
+          industry:mk9_industries(id,name)
         )
       `)
       .gte('date', data.startDate)

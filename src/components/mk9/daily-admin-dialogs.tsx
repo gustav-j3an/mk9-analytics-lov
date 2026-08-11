@@ -362,7 +362,10 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                   </Button>
 
                   <div className="space-y-2 pr-8">
-                    <Label>Loja*</Label>
+                    <Label className="flex items-center gap-1.5">
+                      Loja*
+                      <Badge variant="outline" className="text-[9px] px-1 h-4 bg-blue-500/10 text-blue-500 border-none">UNIDADE OPERACIONAL</Badge>
+                    </Label>
                     <Mk9StoreAutocomplete 
                       value={item.storeId} 
                       onChange={(store) => updateItem(idx, { storeId: store.id })}
@@ -371,7 +374,10 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Indústrias*</Label>
+                    <Label className="flex items-center gap-1.5">
+                      Indústrias*
+                      <Badge variant="outline" className="text-[9px] px-1 h-4 bg-emerald-500/10 text-emerald-500 border-none">CONTRATANTES</Badge>
+                    </Label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-background/40 rounded-md">
                       {industriesQ.data?.map((ind: any) => (
                         <div key={ind.id} className="flex items-center space-x-2">
