@@ -72,6 +72,8 @@ export interface OperationStoreRow {
   industryName: string;
   weeklyFrequency: number | null;
   monthlyFrequency: number | null;
+  frequencyLabel: string | null;
+
   contratadas: number;
   expectedToDate: number;
   realizadas: number;
