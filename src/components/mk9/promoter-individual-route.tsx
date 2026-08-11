@@ -242,13 +242,18 @@ export function PromoterIndividualRoute() {
 
           <Button
             variant="outline"
-            onClick={handlePrint}
-            disabled={matrix.length === 0}
-            className="h-10 border-primary/20 hover:bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
+            onClick={handleExportPdf}
+            disabled={matrix.length === 0 || isExporting}
+            className="h-10 border-primary/20 hover:bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 min-w-[140px]"
           >
-            <Printer className="h-4 w-4 mr-2" />
-            Imprimir PDF
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <FileDown className="h-4 w-4 mr-2" />
+            )}
+            {isExporting ? "Gerando PDF..." : "Baixar PDF"}
           </Button>
+
 
 
         </div>
