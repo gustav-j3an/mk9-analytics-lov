@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as InteligenciaRouteImport } from './routes/inteligencia'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CockpitRouteImport } from './routes/cockpit'
 import { Route as CleanupRouteImport } from './routes/cleanup'
@@ -27,6 +28,11 @@ const UsersRoute = UsersRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InteligenciaRoute = InteligenciaRouteImport.update({
+  id: '/inteligencia',
+  path: '/inteligencia',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/cleanup': typeof CleanupRoute
   '/cockpit': typeof CockpitRoute
   '/dashboard': typeof DashboardRoute
+  '/inteligencia': typeof InteligenciaRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/cleanup': typeof CleanupRoute
   '/cockpit': typeof CockpitRoute
   '/dashboard': typeof DashboardRoute
+  '/inteligencia': typeof InteligenciaRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/cleanup': typeof CleanupRoute
   '/cockpit': typeof CockpitRoute
   '/dashboard': typeof DashboardRoute
+  '/inteligencia': typeof InteligenciaRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/cleanup'
     | '/cockpit'
     | '/dashboard'
+    | '/inteligencia'
     | '/reset-password'
     | '/users'
     | '/api/checklists/preview'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/cleanup'
     | '/cockpit'
     | '/dashboard'
+    | '/inteligencia'
     | '/reset-password'
     | '/users'
     | '/api/checklists/preview'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/cleanup'
     | '/cockpit'
     | '/dashboard'
+    | '/inteligencia'
     | '/reset-password'
     | '/users'
     | '/api/checklists/preview'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   CleanupRoute: typeof CleanupRoute
   CockpitRoute: typeof CockpitRoute
   DashboardRoute: typeof DashboardRoute
+  InteligenciaRoute: typeof InteligenciaRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   UsersRoute: typeof UsersRoute
   ApiChecklistsPreviewRoute: typeof ApiChecklistsPreviewRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inteligencia': {
+      id: '/inteligencia'
+      path: '/inteligencia'
+      fullPath: '/inteligencia'
+      preLoaderRoute: typeof InteligenciaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   CleanupRoute: CleanupRoute,
   CockpitRoute: CockpitRoute,
   DashboardRoute: DashboardRoute,
+  InteligenciaRoute: InteligenciaRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   UsersRoute: UsersRoute,
   ApiChecklistsPreviewRoute: ApiChecklistsPreviewRoute,

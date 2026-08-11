@@ -200,7 +200,7 @@ export function Mk9AnalyticsApp() {
                 { title: "Visão Geral", items: [
                   { id: "dashboard", icon: BarChart3, label: "Dashboard" },
                   { id: "cockpit", icon: Gauge, label: "Cockpit" },
-                  { id: "dashboard", icon: Layers, label: "Inteligência" },
+
                 ]},
                 { title: "Operação", items: [
                   { id: "importacoes", icon: Settings2, label: "Gestão Operacional" },
