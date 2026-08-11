@@ -461,7 +461,7 @@ function SidebarItem({
       className={cn(
         "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 relative group",
         active
-          ? "bg-command-purple/10 text-white shadow-[0_0_20px_rgba(168,85,247,0.15)] neon-border-purple"
+          ? "bg-command-purple/10 text-white shadow-[0_0_20px_rgba(168,85,247,0.15)] neon-border-primary"
           : "text-slate-400 hover:bg-white/5 hover:text-white",
         collapsed && "justify-center px-0"
       )}
