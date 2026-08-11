@@ -113,7 +113,9 @@ export function buildStoreRows(input: {
         industryName: ctx.name,
         weeklyFrequency: b.weekly,
         monthlyFrequency: b.monthly,
+        frequencyLabel: b.frequencyLabel ?? null,
         contratadas,
+
         expectedToDate,
         realizadas,
         pendentes: Math.max(0, contratadas - realizadas),
