@@ -188,11 +188,13 @@ export function Mk9CockpitModule({
                 <SelectItem value={ALL} className="text-[10px] font-bold uppercase">
                   Todas as Indústrias
                 </SelectItem>
-                {industries.map((i: any) => (
-                  <SelectItem key={i.id} value={i.id} className="text-[10px] font-bold uppercase">
-                    {i.name}
-                  </SelectItem>
-                ))}
+                {industries
+                  .filter((i: any) => i?.id)
+                  .map((i: any) => (
+                    <SelectItem key={i.id} value={String(i.id)} className="text-[10px] font-bold uppercase">
+                      {i.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
