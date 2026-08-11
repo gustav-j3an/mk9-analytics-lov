@@ -133,7 +133,7 @@ export const getPresenceStats = createServerFn({ method: "GET" })
     if (teamIds.length > 0) {
       presenceQuery = presenceQuery.in('promoter_id', teamIds);
     } else if (data.teamId && data.teamId !== 'ALL') {
-      return { total: 0, present: 0, absent: 0, medical: 0, unmarked: 0 };
+      return { total: 0, present: 0, absent: 0, medical: 0, vacation: 0, unmarked: 0 };
     }
 
     const { data: presence } = await presenceQuery;
@@ -143,6 +143,7 @@ export const getPresenceStats = createServerFn({ method: "GET" })
       present: 0,
       absent: 0,
       medical: 0,
+      vacation: 0,
       unmarked: 0
     };
 
@@ -150,6 +151,7 @@ export const getPresenceStats = createServerFn({ method: "GET" })
       if (p.status === 'PRESENT') stats.present++;
       else if (p.status === 'ABSENT') stats.absent++;
       else if (p.status === 'MEDICAL_CERTIFICATE') stats.medical++;
+      else if (p.status === 'VACATION') stats.vacation++;
     });
 
     stats.unmarked = Math.max(0, stats.total - (presence?.length || 0));
