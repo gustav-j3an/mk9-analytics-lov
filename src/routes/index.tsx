@@ -1,50 +1,34 @@
 /*
-# Contexto do Projeto — MK9 Command Center (ex-MK9 Analytics)
+# Inventário de Módulos — MK9 Command Center
 
-Use este prompt para me dar (ou dar a outra IA, ex: Lovable) o contexto completo do projeto antes de pedir qualquer ajuste ou nova feature.
+## 1. Módulo Inteligência (Auditado)
+- **Status:** Consolidado e Removido da Navegação.
+- **Rota:** `/inteligencia` (Redirecionada para `/dashboard`).
+- **Análise:**
+  - A — JÁ EXISTE NO DASHBOARD: Indicadores de cobertura, totalizadores de previstas/realizadas por indústria.
+  - B — DEVE SER INCORPORADA AO DASHBOARD: Drill-down por loja (Incorporado na v2.1.0).
+  - D — NÃO TEM MAIS UTILIDADE: Gráficos de barra redundantes que não permitiam ação imediata.
+- **Impacto:** Redução de complexidade e carregamento de queries agregadas pesadas no início da sessão.
 
-## O que é o projeto
-Sistema interno de gestão de promotores de campo (trade marketing), usado para controlar roteiros, checklists de visitas, indústrias atendidas, lojas, promotores e relatórios financeiros/operacionais. Rebatizado de "MK9 Analytics" para "MK9 Command Center" (identidade visual do dashboard), mas ainda é chamado de MK9 Analytics internamente.
-
-## Stack atual
-React, TypeScript, TanStack Start, Supabase, Postgres, Tailwind, shadcn/ui, Server Functions, SSR.
-
-**Regra importante: não reconstruir do zero, não trocar stack, não redesenhar arquitetura sem necessidade real. O objetivo é continuidade, correção de regressões e evolução seguindo o que já existe.**
-
-## Design system
-Personalização global de temas (Light/Dark) com tokens oklch semânticos. Accent roxo neon (Command Purple), suporte azul/ciano, visual SaaS enterprise moderno.
-
-## Módulos do sistema
-- **Operação:** Cockpit (Visão Geral), Conciliação/Auditoria, Qualidade, Gestão Operacional, Importar Checklist, Roteiros, Presença, Equipes, Freelancers e Diárias.
-- **Relatórios:** Indústrias PDF.
-- **Financeiro:** Fechamento de Diárias, Gestão de Pagamentos.
-- **Cadastros:** Indústrias, Lojas, Promotores, Supervisores, Freelancers.
-- **Administração:** Limpeza Manual, Usuários.
-
-## Dados de referência
-- 27 indústrias no banco (26 ativas, 1 arquivada) — ex: KING, COPRA, COOPATOS, AO QUADRADO, EMBAVI, RB ALIMENTOS.
-- KING tem competência operacional própria (não é mês calendário) — ex: 23/mês anterior a 22/mês atual.
-
-## Funcionalidades Recentes (v1.6.0 - v1.8.0)
-- **Personalização Global (v1.6.0):** Tema claro/escuro nativo com cores personalizáveis.
-- **Sidebar Optimized (v1.7.0):** Recolhimento persistente, tooltips e design compacto.
-- **Light Mode Corrected (v1.8.1):** Correção sistêmica de contraste em Selects, Inputs, Dropdowns e DatePickers, eliminando textos brancos sobre fundo claro.
-- **Freelancers & Global UI (v1.8.4):** Estabilização do módulo de Freelancers, botões globais e componentes de Empty State para legibilidade total no tema claro.
-- **Dashboard Optimized (v1.8.7):** Matriz de Execução recolhível por padrão e correção de reatividade na sidebar.
-- **Diárias Integradas (v1.9.2):** Atendimentos (Loja + N Indústrias) persistidos e validados no backend. Edição resiliente com re-sincronização de itens.
-
-## Processo obrigatório de conclusão de tarefa
-Reproduzir -> achar causa raiz -> identificar arquivo/função -> corrigir -> validar no preview (login, dashboard, sidebar, rota afetada, refresh) — só então considerar concluído.
-
-## Prioridades atuais
-- Estabilizar o fluxo financeiro de Freelancers.
-- Manter paridade entre Dashboard/Cockpit/PDF.
-- Garantir reatividade total (invalidação de cache) em todos os CRUDs.
+## 2. Inventário dos Módulos Atuais
+- **Dashboard:** Central de monitoramento em tempo real por indústria e loja. (MANTER - Core)
+- **Cockpit:** Visão geral rápida da operação. (MANTER - Core)
+- **Gestão Operacional:** Controle de vigências e meses operacionais. (MANTER)
+- **Importar Checklist:** Motor de ingestão de dados. (MANTER)
+- **Roteiros:** Planejamento e execução de promotores. (MANTER)
+- **Presença:** Controle de ponto e equipes. (MANTER)
+- **Controle de Diárias:** Gestão financeira de freelancers. (MANTER)
+- **Conciliação / Auditoria / Qualidade:** Módulos de hardening e verificação. (MANTER)
 
 ---
 
-**Peça específico de hoje:** [descreva aqui o que você quer resolver ou construir agora]
+# MISSÃO — CONSOLIDAR INTELIGÊNCIA NO DASHBOARD E REDUZIR MÓDULOS
+MK9 COMMAND CENTER
+
+A Inteligência foi oficialmente consolidada no novo Dashboard v2.1.0.
+A rota antiga foi redirecionada e o item removido da sidebar para simplificar a UX.
 */
+
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
