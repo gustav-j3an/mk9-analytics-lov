@@ -274,8 +274,8 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
             <div className="space-y-2">
               <Label>Supervisor Responsável</Label>
               <Select 
-                value={formData.supervisorId} 
-                onValueChange={(val) => setFormData({ ...formData, supervisorId: val })}
+                value={formData.supervisorId || "__none__"} 
+                onValueChange={(val) => setFormData({ ...formData, supervisorId: val === "__none__" ? "" : val })}
               >
                 <SelectTrigger className="bg-muted/50 border-border">
                   <SelectValue placeholder="Nenhum" />
