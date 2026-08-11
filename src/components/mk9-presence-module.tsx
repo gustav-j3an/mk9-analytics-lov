@@ -266,32 +266,34 @@ export function Mk9PresenceModule() {
       </div>
 
       <Mk9Panel>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
-             <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
-               Lista de Presença
-             </h3>
-             <Button 
-               variant="outline" 
-               size="sm"
-               onClick={markAllPresent}
-               className="h-7 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10 text-[9px] font-black uppercase tracking-widest"
-             >
-               Marcar todos como Presente
-             </Button>
+        <div className="space-y-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground whitespace-nowrap">
+              Lista de Presença
+            </h3>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={markAllPresent}
+              className="h-9 sm:h-7 w-full sm:w-auto border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/10 text-[9px] font-black uppercase tracking-widest"
+            >
+              Marcar todos como Presente
+            </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Nome ou matrícula..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-9 w-[220px] bg-popover border-border text-foreground text-xs"
+                className="pl-9 h-9 w-full bg-popover border-border text-foreground text-xs"
               />
             </div>
+            
             <Select value={teamFilter} onValueChange={setTeamFilter}>
-              <SelectTrigger className="h-9 w-[180px] bg-popover border-border text-foreground text-[10px] font-bold uppercase tracking-wider">
+              <SelectTrigger className="h-9 w-full bg-popover border-border text-foreground text-[10px] font-bold uppercase tracking-wider">
                 <SelectValue placeholder="EQUIPE" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border text-foreground">
@@ -304,7 +306,7 @@ export function Mk9PresenceModule() {
             </Select>
             
             <Select value={supervisorFilter} onValueChange={setSupervisorFilter}>
-              <SelectTrigger className="h-9 w-[180px] bg-popover border-border text-foreground text-[10px] font-bold uppercase tracking-wider">
+              <SelectTrigger className="h-9 w-full bg-popover border-border text-foreground text-[10px] font-bold uppercase tracking-wider">
                 <SelectValue placeholder="SUPERVISOR" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border text-foreground">
@@ -317,7 +319,7 @@ export function Mk9PresenceModule() {
             </Select>
 
             <Select value={ufFilter} onValueChange={setUfFilter}>
-              <SelectTrigger className="h-9 w-[80px] bg-popover border-border text-foreground text-[10px] font-bold uppercase tracking-wider">
+              <SelectTrigger className="h-9 w-full bg-popover border-border text-foreground text-[10px] font-bold uppercase tracking-wider">
                 <SelectValue placeholder="UF" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border text-foreground">
