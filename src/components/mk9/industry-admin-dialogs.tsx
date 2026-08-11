@@ -139,8 +139,9 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg bg-popover border-border text-foreground">
-        <DialogHeader>
+      <DialogContent className="max-w-lg max-h-[100dvh] bg-popover border-border text-foreground flex flex-col p-0 overflow-hidden">
+
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             Nova indústria
           </DialogTitle>
@@ -149,7 +150,9 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 pt-4">
+
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+
           <div className="space-y-1.5">
             <Label
               htmlFor="ind-name"
@@ -312,7 +315,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
           )}
         </div>
 
-        <DialogFooter className="mt-6 border-t border-border/50 pt-4">
+        <DialogFooter className="p-6 pt-4 border-t border-border/50 flex sm:justify-end items-center gap-2">
           <Button variant="ghost" className="text-muted-foreground hover:text-foreground" onClick={onClose}>
             CANCELAR
           </Button>
@@ -404,8 +407,8 @@ export function IndustryEditDialog({
 
   return (
     <Dialog open={!!industry} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg bg-popover border-border text-foreground">
-        <DialogHeader>
+      <DialogContent className="max-w-lg max-h-[100dvh] bg-popover border-border text-foreground flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             Editar indústria
           </DialogTitle>
@@ -413,7 +416,8 @@ export function IndustryEditDialog({
             {industry?.name}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 pt-4">
+
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
           <div className="space-y-1.5">
             <Label
               htmlFor="edit-name"
@@ -557,7 +561,7 @@ export function IndustryEditDialog({
             <Label className="text-xs text-foreground/80">Utilizar mês anterior como referência</Label>
           </div>
         </div>
-        <DialogFooter className="mt-6 border-t border-border/50 pt-4 flex sm:justify-between items-center gap-4">
+        <DialogFooter className="p-6 pt-4 border-t border-border/50 flex sm:justify-between items-center gap-4">
           <Button
             variant="ghost"
             className="text-rose-500 hover:bg-rose-500/10 hover:text-rose-500"

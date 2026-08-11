@@ -232,14 +232,17 @@ export function BulkExportModal() {
           Exportar não atendidas em massa
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
+      <DialogContent className="max-w-3xl max-h-[100dvh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle>Exportar lojas não atendidas em massa</DialogTitle>
           <DialogDescription>
             Gere relatórios de lojas sem visitas (contratadas {">"} 0 e realizadas = 0) para
             múltiplas indústrias.
           </DialogDescription>
         </DialogHeader>
+        
+        <div className="flex-1 overflow-y-auto px-6">
+
 
         {step === "setup" && (
           <div className="space-y-6 py-4">
@@ -359,7 +362,9 @@ export function BulkExportModal() {
               </ScrollArea>
             </div>
 
-            <DialogFooter>
+            </div>
+            <DialogFooter className="p-6 pt-4 border-t">
+
               <Button
                 className="w-full"
                 onClick={() => handleGeneratePreview()}
@@ -373,7 +378,9 @@ export function BulkExportModal() {
               </Button>
             </DialogFooter>
           </div>
+          </div>
         )}
+
 
         {step === "preview" && preview && (
           <div className="space-y-6 py-4">
@@ -507,7 +514,9 @@ export function BulkExportModal() {
                                       </div>
                                     </div>
                                   </div>
-                                  <DialogFooter>
+          </div>
+          <DialogFooter className="p-6 pt-4 border-t">
+
                                     <Button
                                       className="w-full"
                                       onClick={() => handleGeneratePreview([item.industryId])}

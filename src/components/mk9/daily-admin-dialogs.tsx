@@ -216,12 +216,14 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-popover border-border text-foreground">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[700px] max-h-[100dvh] bg-popover border-border text-foreground flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle>{daily ? "Editar Diária" : "Nova Diária"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Freelancer*</Label>
@@ -430,7 +432,9 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
             />
           </div>
 
-          <DialogFooter className="sticky bottom-0 bg-popover pt-4 border-t border-border">
+          </div>
+          <DialogFooter className="p-6 pt-4 border-t border-border bg-popover">
+
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
