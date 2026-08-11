@@ -140,9 +140,7 @@ function LoginContent() {
                   MK9 Command Center • <span className="text-primary/80">v3.1.5</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  ROTA PDF
-
-
+                  ROTA ESTÁVEL
                 </p>
               </div>
             </div>
