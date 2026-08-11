@@ -58,7 +58,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.8.4 — FREELANCERS & GLOBAL UI",
+    title: "MK9 | v1.8.5 — DIÁRIAS DATA FIX",
     meta: [
       {
         name: "description",
@@ -149,10 +149,10 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v1.8.4</span>
+                  MK9 Command Center • <span className="text-primary/80">v1.8.5</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  FREELANCERS & GLOBAL UI
+                  DIÁRIAS DATA FIX
                 </p>
               </div>
             </div>
