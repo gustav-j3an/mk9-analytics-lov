@@ -37,24 +37,54 @@ function NotFoundComponent() {
   );
 }
 
+function isAuthError(error: unknown): boolean {
+  const err = error as { statusCode?: number; name?: string; message?: string } | null;
+  if (!err) return false;
+  if (err.statusCode === 401) return true;
+  if (err.name === "Mk9UnauthenticatedError") return true;
+  const msg = String(err.message ?? "");
+  return msg.includes("Mk9UnauthenticatedError") || msg.includes("Sessão expirada");
+}
+
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
   const router = useRouter();
+  const authError = isAuthError(error);
 
   useEffect(() => {
+    // Sessão expirada é um estado esperado: não reportar como runtime error.
+    if (authError) return;
+    console.error(error);
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
+  }, [error, authError]);
 
-  // Se o erro for de autenticação (401), redireciona para a home (login) e limpa sessão
-  if ((error as any)?.statusCode === 401 || (error as any)?.name === "Mk9UnauthenticatedError") {
-    if (typeof window !== "undefined") {
-      // Pequeno atraso para garantir que o erro não loop imediatamente se o redirecionamento falhar
-      setTimeout(() => {
-        window.location.href = "/?session_expired=true";
-      }, 100);
-    }
-    return null;
+  useEffect(() => {
+    if (!authError || typeof window === "undefined") return;
+    const target = "/?session_expired=true";
+    if (window.location.pathname + window.location.search === target) return;
+    window.location.replace(target);
+  }, [authError]);
+
+  // Estado visível (nunca tela branca) enquanto a sessão é limpa.
+  if (authError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="max-w-md text-center">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Sessão expirada</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Sua sessão expirou. Redirecionando para a tela de login…
+          </p>
+          <a
+            href="/?session_expired=true"
+            className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Ir para o login
+          </a>
+        </div>
+      </div>
+    );
   }
+
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
