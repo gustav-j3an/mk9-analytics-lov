@@ -12,6 +12,9 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
  * 4. Visitas operacionais (mk9_actual_visits)
  */
 export const mk9RunIndustryAudit = createServerFn({ method: "POST" }).handler(async () => {
+  const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+  await requireMk9Role(["ADMIN"]);
+
   // 1. Listar todas as indústrias
   // Nota: Usando 'any' temporariamente para evitar erros de tipos enquanto o schema cache não atualiza localmente
   const { data: industries, error: indErr } = await supabaseAdmin
