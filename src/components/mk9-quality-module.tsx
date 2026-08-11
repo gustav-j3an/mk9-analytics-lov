@@ -179,10 +179,10 @@ export function Mk9QualityModule({
               value={String(filters.month)}
               onValueChange={(v) => setFilters((f) => ({ ...f, month: Number(v) }))}
             >
-              <SelectTrigger className="h-8 w-[120px] bg-input/50 border-border/50 text-[10px] font-bold text-white uppercase tracking-wider">
+              <SelectTrigger className="h-8 w-[120px] bg-input/50 border-border/50 text-[10px] font-bold text-foreground uppercase tracking-wider">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-card border-border text-white">
+              <SelectContent className="bg-popover border-border text-popover-foreground">
                 {MONTHS_PT.map((m, i) => (
                   <SelectItem
                     key={m}
@@ -197,7 +197,7 @@ export function Mk9QualityModule({
             <Button
               onClick={handleRun}
               disabled={running}
-              className="h-8 gap-2 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest px-4"
+              className="h-8 gap-2 bg-command-purple hover:bg-command-purple/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest px-4"
             >
               {running ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -249,7 +249,7 @@ export function Mk9QualityModule({
                 placeholder="Buscar por ocorrência..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-9 h-9 w-[280px] bg-card border-border text-white text-xs"
+                className="pl-9 h-9 w-[280px] bg-popover border-border text-popover-foreground text-xs"
               />
             </div>
           </div>
@@ -265,7 +265,7 @@ export function Mk9QualityModule({
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="p-4 border-b border-border/50 last:border-0 hover:bg-white/[0.02] transition-colors flex items-center justify-between group"
+                  className="p-4 border-b border-border/50 last:border-0 hover:bg-muted/10 transition-colors flex items-center justify-between group"
                 >
                   <div className="flex items-start gap-4">
                     <div
@@ -279,11 +279,11 @@ export function Mk9QualityModule({
                     <div>
                       <div className="flex flex-col gap-1.5 mb-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-black text-white uppercase tracking-tighter">
+                          <span className="text-[11px] font-black text-foreground uppercase tracking-tighter">
                             {String(item.evidence?.industryName ?? item.industryId ?? "SISTEMA")}
                           </span>
                           <span className="text-[10px] text-muted-foreground">•</span>
-                          <span className="text-[11px] font-bold text-white/80 uppercase tracking-tighter">
+                          <span className="text-[11px] font-bold text-foreground/80 uppercase tracking-tighter">
                             {String(item.evidence?.storeName ?? item.storeId ?? "-")}
                           </span>
                         </div>

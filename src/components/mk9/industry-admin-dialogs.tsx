@@ -139,7 +139,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg bg-popover border-border text-white">
+      <DialogContent className="max-w-lg bg-popover border-border text-foreground">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             Nova indústria
@@ -159,7 +159,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
             </Label>
             <Input
               id="ind-name"
-              className="bg-input/50 border-border h-10 text-white"
+              className="bg-input/50 border-border h-10 text-foreground"
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
@@ -177,7 +177,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
             </Label>
             <Input
               id="ind-display"
-              className="bg-input/50 border-border h-10 text-white"
+              className="bg-input/50 border-border h-10 text-foreground"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={120}
@@ -192,7 +192,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
             </Label>
             <Input
               id="ind-cnpj"
-              className="bg-input/50 border-border h-10 text-white"
+              className="bg-input/50 border-border h-10 text-foreground"
               value={cnpj}
               onChange={(e) => setCnpj(e.target.value)}
               placeholder="00.000.000/0000-00"
@@ -207,7 +207,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
             </Label>
             <Textarea
               id="ind-notes"
-              className="bg-input/50 border-border text-white min-h-[80px]"
+              className="bg-input/50 border-border text-foreground min-h-[80px]"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               maxLength={1000}
@@ -216,7 +216,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
           </div>
           <div className="flex items-center justify-between rounded-xl bg-muted/50 border border-border/50 p-4 transition-colors hover:bg-white/[0.08]">
             <div className="space-y-1">
-              <p className="text-xs font-bold text-white uppercase tracking-tight">
+              <p className="text-xs font-bold text-foreground uppercase tracking-tight">
                 Exige checklist
               </p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
@@ -230,7 +230,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
               Modelo de Controle
             </Label>
             <Select value={controlMode} onValueChange={(v) => setControlMode(v as any)}>
-              <SelectTrigger className="bg-input/50 border-border h-10 text-white">
+              <SelectTrigger className="bg-input/50 border-border h-10 text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
@@ -244,7 +244,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
               Tipo de período
             </Label>
             <Select value={periodType} onValueChange={(v) => setPeriodType(v as any)}>
-              <SelectTrigger className="bg-input/50 border-border h-10 text-white">
+              <SelectTrigger className="bg-input/50 border-border h-10 text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
@@ -267,7 +267,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
                   type="number"
                   min={1}
                   max={31}
-                  className="bg-input/50 border-border h-10 text-white"
+                  className="bg-input/50 border-border h-10 text-foreground"
                   value={startDay}
                   onChange={(e) => setStartDay(e.target.value)}
                 />
@@ -284,7 +284,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
                   type="number"
                   min={1}
                   max={31}
-                  className="bg-input/50 border-border h-10 text-white"
+                  className="bg-input/50 border-border h-10 text-foreground"
                   value={endDay}
                   onChange={(e) => setEndDay(e.target.value)}
                 />
@@ -313,11 +313,11 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
         </div>
 
         <DialogFooter className="mt-6 border-t border-border/50 pt-4">
-          <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
+          <Button variant="ghost" className="text-muted-foreground hover:text-foreground" onClick={onClose}>
             CANCELAR
           </Button>
           <Button
-            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold px-8 shadow-lg shadow-mk9-accent-primary/20"
+            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-foreground font-bold px-8 shadow-lg shadow-mk9-accent-primary/20"
             disabled={name.trim().length < 2 || mut.isPending}
             onClick={() => mut.mutate(Boolean(candidates))}
           >
@@ -404,7 +404,7 @@ export function IndustryEditDialog({
 
   return (
     <Dialog open={!!industry} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg bg-popover border-border text-white">
+      <DialogContent className="max-w-lg bg-popover border-border text-foreground">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             Editar indústria
@@ -423,7 +423,7 @@ export function IndustryEditDialog({
             </Label>
             <Input
               id="edit-name"
-              className="bg-input/50 border-border h-10 text-white"
+              className="bg-input/50 border-border h-10 text-foreground"
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={120}
@@ -438,7 +438,7 @@ export function IndustryEditDialog({
             </Label>
             <Input
               id="edit-display"
-              className="bg-input/50 border-border h-10 text-white"
+              className="bg-input/50 border-border h-10 text-foreground"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={120}
@@ -453,7 +453,7 @@ export function IndustryEditDialog({
             </Label>
             <Input
               id="edit-cnpj"
-              className="bg-input/50 border-border h-10 text-white"
+              className="bg-input/50 border-border h-10 text-foreground"
               value={cnpj}
               onChange={(e) => setCnpj(e.target.value)}
               placeholder="00.000.000/0000-00"
@@ -468,7 +468,7 @@ export function IndustryEditDialog({
             </Label>
             <Textarea
               id="edit-notes"
-              className="bg-input/50 border-border text-white min-h-[80px]"
+              className="bg-input/50 border-border text-foreground min-h-[80px]"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               maxLength={1000}
@@ -477,7 +477,7 @@ export function IndustryEditDialog({
           </div>
           <div className="flex items-center justify-between rounded-xl bg-muted/50 border border-border/50 p-4 transition-colors hover:bg-white/[0.08]">
             <div className="space-y-1">
-              <p className="text-xs font-bold text-white uppercase tracking-tight">
+              <p className="text-xs font-bold text-foreground uppercase tracking-tight">
                 Exige checklist
               </p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
@@ -491,7 +491,7 @@ export function IndustryEditDialog({
               Modelo de Controle
             </Label>
             <Select value={controlMode} onValueChange={(v) => setControlMode(v as any)}>
-              <SelectTrigger className="bg-input/50 border-border h-10 text-white">
+              <SelectTrigger className="bg-input/50 border-border h-10 text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
@@ -505,7 +505,7 @@ export function IndustryEditDialog({
               Tipo de período
             </Label>
             <Select value={periodType} onValueChange={(v) => setPeriodType(v as any)}>
-              <SelectTrigger className="bg-input/50 border-border h-10 text-white">
+              <SelectTrigger className="bg-input/50 border-border h-10 text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
@@ -528,7 +528,7 @@ export function IndustryEditDialog({
                   type="number"
                   min={1}
                   max={31}
-                  className="bg-input/50 border-border h-10 text-white"
+                  className="bg-input/50 border-border h-10 text-foreground"
                   value={startDay}
                   onChange={(e) => setStartDay(e.target.value)}
                 />
@@ -545,7 +545,7 @@ export function IndustryEditDialog({
                   type="number"
                   min={1}
                   max={31}
-                  className="bg-input/50 border-border h-10 text-white"
+                  className="bg-input/50 border-border h-10 text-foreground"
                   value={endDay}
                   onChange={(e) => setEndDay(e.target.value)}
                 />
@@ -554,7 +554,7 @@ export function IndustryEditDialog({
           )}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
             <Switch checked={usesPreviousMonth} onCheckedChange={setUsesPreviousMonth} />
-            <Label className="text-xs text-white/80">Utilizar mês anterior como referência</Label>
+            <Label className="text-xs text-foreground/80">Utilizar mês anterior como referência</Label>
           </div>
         </div>
         <DialogFooter className="mt-6 border-t border-border/50 pt-4 flex sm:justify-between items-center gap-4">
@@ -567,11 +567,11 @@ export function IndustryEditDialog({
             EXCLUIR
           </Button>
           <div className="flex gap-2">
-            <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
+            <Button variant="ghost" className="text-muted-foreground hover:text-foreground" onClick={onClose}>
               CANCELAR
             </Button>
             <Button
-              className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold px-8"
+              className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-foreground font-bold px-8"
               disabled={name.trim().length < 2 || mut.isPending}
               onClick={() => mut.mutate()}
             >
@@ -763,15 +763,15 @@ export function IndustryArchiveDialog({
               <ul className="space-y-0.5 text-muted-foreground">
                 <li>
                   Frequências vigentes:{" "}
-                  <span className="tabular-nums text-white">{impact.activeFrequencies}</span>
+                  <span className="tabular-nums text-foreground">{impact.activeFrequencies}</span>
                 </li>
                 <li>
                   Roteiros ativos:{" "}
-                  <span className="tabular-nums text-white">{impact.activeRoutes}</span>
+                  <span className="tabular-nums text-foreground">{impact.activeRoutes}</span>
                 </li>
                 <li>
                   Visitas registradas:{" "}
-                  <span className="tabular-nums text-white">{impact.visits}</span>
+                  <span className="tabular-nums text-foreground">{impact.visits}</span>
                 </li>
               </ul>
             )}

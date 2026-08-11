@@ -28,7 +28,7 @@ Personalização global de temas (Light/Dark) com tokens oklch semânticos. Acce
 ## Funcionalidades Recentes (v1.6.0 - v1.8.0)
 - **Personalização Global (v1.6.0):** Tema claro/escuro nativo com cores personalizáveis.
 - **Sidebar Optimized (v1.7.0):** Recolhimento persistente, tooltips e design compacto.
-- **Native Light Mode (v1.8.0):** Overhaul completo de contraste e legibilidade para o modo claro, eliminando hardcodes dark-themed.
+- **Light Mode Corrected (v1.8.1):** Correção sistêmica de contraste em Selects, Inputs, Dropdowns e DatePickers, eliminando textos brancos sobre fundo claro.
 
 ## Processo obrigatório de conclusão de tarefa
 Reproduzir -> achar causa raiz -> identificar arquivo/função -> corrigir -> validar no preview (login, dashboard, sidebar, rota afetada, refresh) — só então considerar concluído.
@@ -57,11 +57,11 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.8.0 — NATIVE LIGHT MODE",
+    title: "MK9 | v1.8.1 — LIGHT MODE CORRECTED",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v1.8.0: NATIVE LIGHT MODE. Experiência refinada com suporte total a temas claro/escuro e contraste aprimorado.",
+        content: "MK9 Command Center v1.8.1: LIGHT MODE CORRECTED. Todas as superfícies interativas e campos de filtro agora possuem contraste perfeito em ambos os temas.",
       },
       { property: "og:title", content: "MK9 | v1.8.0" },
       {
@@ -148,10 +148,10 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v1.8.0</span>
+                  MK9 Command Center • <span className="text-primary/80">v1.8.1</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  NATIVE LIGHT MODE
+                  LIGHT MODE CORRECTED
                 </p>
               </div>
             </div>

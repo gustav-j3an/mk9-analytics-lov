@@ -151,10 +151,10 @@ export function Mk9CockpitModule({
         actions={
           <div className="glass-command p-1 md:p-1.5 rounded-xl flex flex-wrap items-center gap-1.5 md:gap-2 border border-border/50">
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-8 min-w-[110px] md:min-w-[130px] bg-input/50 border-border/50 text-[9px] md:text-[10px] font-bold text-white uppercase tracking-wider px-2 md:px-3 gap-1 md:gap-2 shrink-0">
+              <SelectTrigger className="h-8 min-w-[110px] md:min-w-[130px] bg-input/50 border-border/50 text-[9px] md:text-[10px] font-bold text-foreground uppercase tracking-wider px-2 md:px-3 gap-1 md:gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-popover border-border text-foreground">
                 {MONTHS_PT.map((m, i) => (
                   <SelectItem
                     key={m}
@@ -168,10 +168,10 @@ export function Mk9CockpitModule({
             </Select>
 
             <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="h-8 w-[70px] md:w-[80px] bg-input/50 border-border/50 text-[9px] md:text-[10px] font-bold text-white">
+              <SelectTrigger className="h-8 w-[70px] md:w-[80px] bg-input/50 border-border/50 text-[9px] md:text-[10px] font-bold text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-popover border-border text-foreground">
                 {[year - 1, year, year + 1].map((y) => (
                   <SelectItem key={y} value={String(y)} className="text-[10px] font-bold">
                     {y}
@@ -181,10 +181,10 @@ export function Mk9CockpitModule({
             </Select>
 
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-8 w-[140px] md:w-[160px] bg-input/50 border-border/50 text-[9px] md:text-[10px] font-bold text-white uppercase">
+              <SelectTrigger className="h-8 w-[140px] md:w-[160px] bg-input/50 border-border/50 text-[9px] md:text-[10px] font-bold text-foreground uppercase">
                 <SelectValue placeholder="Indústria" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-popover border-border text-foreground">
                 <SelectItem value={ALL} className="text-[10px] font-bold uppercase">
                   Todas as Indústrias
                 </SelectItem>
@@ -199,10 +199,10 @@ export function Mk9CockpitModule({
             </Select>
 
             <Select value={promoterId} onValueChange={setPromoterId}>
-              <SelectTrigger className="h-8 w-[140px] md:w-[160px] bg-input/50 border-border/50 text-[9px] md:text-[10px] font-bold text-white uppercase">
+              <SelectTrigger className="h-8 w-[140px] md:w-[160px] bg-input/50 border-border/50 text-[9px] md:text-[10px] font-bold text-foreground uppercase">
                 <SelectValue placeholder="Promotor" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-popover border-border text-foreground">
                 <SelectItem value={ALL} className="text-[10px] font-bold uppercase">
                   Todos os Promotores
                 </SelectItem>
@@ -219,7 +219,7 @@ export function Mk9CockpitModule({
             <Button
               size="icon"
               variant="ghost"
-              className="h-8 w-8 text-muted-foreground hover:text-white hover:bg-accent"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
               onClick={() => q.refetch()}
               disabled={q.isFetching}
             >
@@ -300,11 +300,11 @@ export function Mk9CockpitModule({
                 />
                 <RTooltip
                   contentStyle={{
-                    backgroundColor: "#111122",
-                    border: "1px solid rgba(255,255,255,0.1)",
+                    backgroundColor: "var(--popover)",
+                    border: "1px solid var(--border)",
                     borderRadius: "8px",
                   }}
-                  itemStyle={{ fontSize: "12px", color: "#fff" }}
+                  itemStyle={{ fontSize: "12px", color: "var(--popover-foreground)" }}
                 />
                 <Line
                   type="monotone"
@@ -336,14 +336,14 @@ export function Mk9CockpitModule({
               {data.priorities.map((p: any, idx: number) => (
                 <div
                   key={p.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-xl bg-white/[0.02] border border-border/50 hover:border-border transition-colors group gap-3"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-xl bg-muted/20 border border-border/50 hover:border-border transition-colors group gap-3"
                 >
                   <div className="flex items-center gap-3 md:gap-4">
                     <span className="h-7 w-7 md:h-8 md:w-8 shrink-0 rounded-lg bg-muted/50 flex items-center justify-center text-[9px] md:text-[10px] font-black text-muted-foreground">
                       {idx + 1}
                     </span>
                     <div>
-                      <p className="text-sm font-black text-white uppercase tracking-tight">
+                      <p className="text-sm font-black text-foreground uppercase tracking-tight">
                         {p.title}
                       </p>
                       <p className="text-xs text-muted-foreground font-medium">{p.description}</p>
@@ -378,10 +378,10 @@ export function Mk9CockpitModule({
                   <button
                     key={a.id}
                     onClick={() => go(a.target)}
-                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/[0.03] border border-border/50 hover:bg-command-purple/10 hover:border-command-purple/30 transition-all group"
+                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-muted/30 border border-border/50 hover:bg-command-purple/10 hover:border-command-purple/30 transition-all group"
                   >
                     <Icon className="h-6 w-6 text-muted-foreground group-hover:text-command-purple mb-2 transition-colors" />
-                    <span className="text-[9px] font-black text-muted-foreground group-hover:text-white uppercase tracking-widest text-center">
+                    <span className="text-[9px] font-black text-muted-foreground group-hover:text-foreground uppercase tracking-widest text-center">
                       {a.label}
                     </span>
                   </button>
