@@ -111,7 +111,7 @@ export function Mk9IndustryAuditModule() {
               size="sm"
               onClick={() => setFilter("all")}
               className={cn(
-                "text-[10px] font-black uppercase tracking-widest border-white/5",
+                "text-[10px] font-black uppercase tracking-widest border-border/50",
                 filter === "all" ? "bg-white/10 text-white" : "text-muted-foreground"
               )}
             >
@@ -122,7 +122,7 @@ export function Mk9IndustryAuditModule() {
               size="sm"
               onClick={() => setFilter("suggested_fixed")}
               className={cn(
-                "text-[10px] font-black uppercase tracking-widest border-white/5",
+                "text-[10px] font-black uppercase tracking-widest border-border/50",
                 filter === "suggested_fixed" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" : "text-muted-foreground"
               )}
             >
@@ -133,7 +133,7 @@ export function Mk9IndustryAuditModule() {
               size="sm"
               onClick={() => setFilter("suggested_visit")}
               className={cn(
-                "text-[10px] font-black uppercase tracking-widest border-white/5",
+                "text-[10px] font-black uppercase tracking-widest border-border/50",
                 filter === "suggested_visit" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "text-muted-foreground"
               )}
             >
@@ -142,10 +142,10 @@ export function Mk9IndustryAuditModule() {
           </div>
         </div>
 
-        <div className="bg-black/20 border border-white/5 rounded-xl overflow-hidden">
+        <div className="bg-black/20 border border-border/50 rounded-xl overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="border-white/5 hover:bg-transparent">
+              <TableRow className="border-border/50 hover:bg-transparent">
                 <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Indústria</TableHead>
                 <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Histórico Checklist</TableHead>
                 <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Roteiro</TableHead>
@@ -157,7 +157,7 @@ export function Mk9IndustryAuditModule() {
             </TableHeader>
             <TableBody>
               {filteredReport.map((r: any) => (
-                <TableRow key={r.id} className="border-white/5 group hover:bg-white/[0.02]">
+                <TableRow key={r.id} className="border-border/50 group hover:bg-white/[0.02]">
                   <TableCell className="py-4">
                     <div className="flex flex-col">
                       <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">{r.name}</span>

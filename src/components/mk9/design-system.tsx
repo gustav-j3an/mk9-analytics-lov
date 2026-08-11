@@ -12,7 +12,7 @@ export const Mk9Panel = React.forwardRef<HTMLDivElement, Mk9PanelProps>(
       <div
         ref={ref}
         className={cn(
-          glass ? "glass-command" : "bg-command-card border border-white/5",
+          glass ? "glass-command" : "bg-command-card border border-border/50",
           "p-6 rounded-2xl shadow-2xl",
           className,
         )}
@@ -40,7 +40,7 @@ export function Mk9PageHeader({ title, subtitle, icon: Icon, actions }: Mk9PageH
           </div>
         )}
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase">{title}</h1>
+          <h1 className="text-xl md:text-2xl font-black text-foreground tracking-tighter uppercase">{title}</h1>
           {subtitle && (
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">
               {subtitle}
@@ -96,7 +96,7 @@ export function Mk9MetricCard({
           <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">
             {label}
           </p>
-          <h3 className="text-xl md:text-2xl font-black text-white tracking-tighter">{value}</h3>
+          <h3 className="text-xl md:text-2xl font-black text-foreground tracking-tighter">{value}</h3>
           {hint && (
             <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
               {hint}
@@ -160,7 +160,7 @@ export function Mk9EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 gap-4 border border-dashed border-white/5 rounded-2xl bg-white/[0.01]">
+    <div className="flex flex-col items-center justify-center py-20 gap-4 border border-dashed border-border/50 rounded-2xl bg-white/[0.01]">
       <Inbox className="h-10 w-10 text-slate-700" />
       <p className="text-sm font-medium text-muted-foreground italic">{message}</p>
       {action && <div className="mt-2">{action}</div>}

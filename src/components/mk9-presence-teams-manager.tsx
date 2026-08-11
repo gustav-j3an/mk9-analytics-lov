@@ -108,7 +108,7 @@ export function PresenceTeamsManager() {
 
       <div className="grid gap-3">
         {teams?.map(team => (
-          <div key={team.id} className="bg-white/[0.02] border border-white/5 rounded-xl p-4 flex items-center justify-between group hover:bg-white/[0.04] transition-all">
+          <div key={team.id} className="bg-white/[0.02] border border-border/50 rounded-xl p-4 flex items-center justify-between group hover:bg-white/[0.04] transition-all">
             <div>
               <p className="text-sm font-bold text-white">{team.name}</p>
               <div className="flex items-center gap-3 mt-1">
@@ -266,7 +266,7 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="bg-command-deep border-border text-white max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="border-b border-white/5 pb-4">
+        <DialogHeader className="border-b border-border/50 pb-4">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-command-purple" />
             <DialogTitle className="text-xl font-black uppercase tracking-tight">
@@ -280,7 +280,7 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
 
         <div className="flex-1 overflow-hidden grid grid-cols-2 gap-6 py-6">
           {/* Members List */}
-          <div className="flex flex-col space-y-4 overflow-hidden border-r border-white/5 pr-6">
+          <div className="flex flex-col space-y-4 overflow-hidden border-r border-border/50 pr-6">
             <div className="flex items-center justify-between">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-emerald-500">
                 Membros da Equipe ({team?.members?.length || 0})
@@ -289,13 +289,13 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
 
             <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2">
               {team?.members?.length === 0 ? (
-                <div className="h-40 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-xl bg-white/[0.01]">
+                <div className="h-40 flex flex-col items-center justify-center border border-dashed border-border/50 rounded-xl bg-white/[0.01]">
                   <Users className="w-8 h-8 text-slate-700 mb-2" />
                   <p className="text-[10px] text-muted-foreground font-bold uppercase">Nenhum membro</p>
                 </div>
               ) : (
                 team?.members?.map((member: any) => (
-                  <div key={member.id} className="bg-white/[0.03] border border-white/5 rounded-lg p-3 flex items-center justify-between group">
+                  <div key={member.id} className="bg-white/[0.03] border border-border/50 rounded-lg p-3 flex items-center justify-between group">
                     <div className="flex flex-col">
                       <span className="text-[11px] font-black text-white uppercase tracking-tight">
                         {member.employee_number && <span className="text-muted-foreground mr-2">{member.employee_number} |</span>}
@@ -338,7 +338,7 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
 
             <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2">
               {availableMembers.length === 0 ? (
-                <div className="h-40 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-xl bg-white/[0.01]">
+                <div className="h-40 flex flex-col items-center justify-center border border-dashed border-border/50 rounded-xl bg-white/[0.01]">
                   <Search className="w-8 h-8 text-slate-700 mb-2" />
                   <p className="text-[10px] text-muted-foreground font-bold uppercase">Nada encontrado</p>
                 </div>
@@ -352,7 +352,7 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
                       key={member.id} 
                       className={cn(
                         "bg-white/[0.03] border rounded-lg p-3 flex items-center justify-between cursor-pointer transition-all",
-                        isSelected ? "border-command-purple/50 bg-command-purple/5" : "border-white/5 hover:border-white/20",
+                        isSelected ? "border-command-purple/50 bg-command-purple/5" : "border-border/50 hover:border-white/20",
                         inOtherTeam && !isSelected && "opacity-70"
                       )}
                       onClick={() => toggleSelect(member.id)}
@@ -400,7 +400,7 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
           </div>
         </div>
 
-        <DialogFooter className="border-t border-white/5 pt-4">
+        <DialogFooter className="border-t border-border/50 pt-4">
           <Button variant="ghost" className="text-muted-foreground hover:text-white font-bold text-[10px] uppercase" onClick={onClose}>
             FECHAR GERENCIAMENTO
           </Button>

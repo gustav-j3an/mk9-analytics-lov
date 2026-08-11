@@ -256,7 +256,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                 </TabsList>
 
                 <TabsContent value="visits">
-                  <div className="max-h-[400px] overflow-auto border border-white/5 rounded-xl divide-y divide-white/[0.02] bg-black/20">
+                  <div className="max-h-[400px] overflow-auto border border-border/50 rounded-xl divide-y divide-white/[0.02] bg-black/20">
                     {diagnosis.sources.visits.map((v: any) => (
                       <div
                         key={v.id}
@@ -293,7 +293,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                 </TabsContent>
 
                 <TabsContent value="frequencies">
-                  <div className="max-h-[400px] overflow-auto border border-white/5 rounded-xl divide-y divide-white/[0.02] bg-black/20">
+                  <div className="max-h-[400px] overflow-auto border border-border/50 rounded-xl divide-y divide-white/[0.02] bg-black/20">
                     {diagnosis.sources.frequencies.map((f: any) => (
                       <div
                         key={f.id}
@@ -330,7 +330,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                 </TabsContent>
 
                 <TabsContent value="imports">
-                  <div className="max-h-[400px] overflow-auto border border-white/5 rounded-xl divide-y divide-white/[0.02] bg-black/20">
+                  <div className="max-h-[400px] overflow-auto border border-border/50 rounded-xl divide-y divide-white/[0.02] bg-black/20">
                     {diagnosis.sources.imports.map((i: any) => (
                       <div
                         key={i.id}
@@ -411,7 +411,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
               </div>
 
               <div className="space-y-4 mb-8">
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                <div className="flex justify-between items-center border-b border-border/50 pb-2">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                     Visitas
                   </span>
@@ -419,7 +419,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                     {selections.visitIds.length}
                   </span>
                 </div>
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                <div className="flex justify-between items-center border-b border-border/50 pb-2">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                     Frequências
                   </span>
@@ -427,7 +427,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                     {selections.frequencyIds.length}
                   </span>
                 </div>
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                <div className="flex justify-between items-center border-b border-border/50 pb-2">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                     Importações
                   </span>

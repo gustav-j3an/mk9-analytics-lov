@@ -214,7 +214,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
               rows={3}
             />
           </div>
-          <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/5 p-4 transition-colors hover:bg-white/[0.08]">
+          <div className="flex items-center justify-between rounded-xl bg-white/5 border border-border/50 p-4 transition-colors hover:bg-white/[0.08]">
             <div className="space-y-1">
               <p className="text-xs font-bold text-white uppercase tracking-tight">
                 Exige checklist
@@ -312,7 +312,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
           )}
         </div>
 
-        <DialogFooter className="mt-6 border-t border-white/5 pt-4">
+        <DialogFooter className="mt-6 border-t border-border/50 pt-4">
           <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
             CANCELAR
           </Button>
@@ -475,7 +475,7 @@ export function IndustryEditDialog({
               rows={3}
             />
           </div>
-          <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/5 p-4 transition-colors hover:bg-white/[0.08]">
+          <div className="flex items-center justify-between rounded-xl bg-white/5 border border-border/50 p-4 transition-colors hover:bg-white/[0.08]">
             <div className="space-y-1">
               <p className="text-xs font-bold text-white uppercase tracking-tight">
                 Exige checklist
@@ -552,12 +552,12 @@ export function IndustryEditDialog({
               </div>
             </div>
           )}
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-border/50">
             <Switch checked={usesPreviousMonth} onCheckedChange={setUsesPreviousMonth} />
             <Label className="text-xs text-slate-300">Utilizar mês anterior como referência</Label>
           </div>
         </div>
-        <DialogFooter className="mt-6 border-t border-white/5 pt-4 flex sm:justify-between items-center gap-4">
+        <DialogFooter className="mt-6 border-t border-border/50 pt-4 flex sm:justify-between items-center gap-4">
           <Button
             variant="ghost"
             className="text-rose-500 hover:bg-rose-500/10 hover:text-rose-500"

@@ -325,7 +325,7 @@ export function Mk9AuditModule({
       <Mk9Panel>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
           <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="w-full lg:w-auto overflow-x-auto">
-            <TabsList className="flex md:flex-wrap h-auto bg-command-deep border border-white/5 p-1 w-max md:w-auto">
+            <TabsList className="flex md:flex-wrap h-auto bg-command-deep border border-border/50 p-1 w-max md:w-auto">
               <TabsTrigger
                 value="industry"
                 className="data-[state=active]:bg-command-purple data-[state=active]:text-white uppercase text-[10px] font-black tracking-widest"
@@ -375,7 +375,7 @@ export function Mk9AuditModule({
           )}
         </div>
 
-        <div className="rounded-xl border border-white/5 overflow-hidden">
+        <div className="rounded-xl border border-border/50 overflow-hidden">
           {tab === "industry" && <IndustryTable q={industryQ} />}
           {tab === "store" && <StoreTable q={storeQ} search={search} />}
           {tab === "promoter" && <PromoterTable q={promoterQ} search={search} />}
@@ -398,7 +398,7 @@ function IndustryTable({ q }: { q: any }) {
   return (
     <Table>
       <TableHeader className="bg-white/5">
-        <TableRow className="border-white/5 hover:bg-transparent">
+        <TableRow className="border-border/50 hover:bg-transparent">
           <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Indústria
           </TableHead>
@@ -420,7 +420,7 @@ function IndustryTable({ q }: { q: any }) {
         {rows.map((r) => (
           <TableRow
             key={r.industryId}
-            className="border-white/5 hover:bg-white/[0.02] transition-colors"
+            className="border-border/50 hover:bg-white/[0.02] transition-colors"
           >
             <TableCell className="font-bold text-white">{r.industryName}</TableCell>
             <TableCell className="text-[10px] text-muted-foreground font-medium">
@@ -460,7 +460,7 @@ function StoreTable({ q, search }: { q: any; search: string }) {
   return (
     <Table>
       <TableHeader className="bg-white/5">
-        <TableRow className="border-white/5 hover:bg-transparent">
+        <TableRow className="border-border/50 hover:bg-transparent">
           <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Loja / Rede
           </TableHead>
@@ -482,7 +482,7 @@ function StoreTable({ q, search }: { q: any; search: string }) {
         {rows.map((r) => (
           <TableRow
             key={`${r.industryId}-${r.storeId}`}
-            className="border-white/5 hover:bg-white/[0.02] transition-colors"
+            className="border-border/50 hover:bg-white/[0.02] transition-colors"
           >
             <TableCell>
               <div className="font-bold text-white uppercase tracking-tight">{r.storeName}</div>
@@ -527,7 +527,7 @@ function PromoterTable({ q, search }: { q: any; search: string }) {
   return (
     <Table>
       <TableHeader className="bg-white/5">
-        <TableRow className="border-white/5 hover:bg-transparent">
+        <TableRow className="border-border/50 hover:bg-transparent">
           <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Promotor
           </TableHead>
@@ -549,7 +549,7 @@ function PromoterTable({ q, search }: { q: any; search: string }) {
         {rows.map((r) => (
           <TableRow
             key={r.promoterId ?? "none"}
-            className="border-white/5 hover:bg-white/[0.02] transition-colors"
+            className="border-border/50 hover:bg-white/[0.02] transition-colors"
           >
             <TableCell className="font-bold text-white">{r.promoterName}</TableCell>
             <TableCell className="text-right font-medium text-muted-foreground">{r.storesCount}</TableCell>

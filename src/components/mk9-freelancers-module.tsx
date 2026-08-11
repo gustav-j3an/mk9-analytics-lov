@@ -57,7 +57,7 @@ export function Mk9FreelancersModule() {
           </TableHeader>
           <TableBody>
             {freelancers?.map((f: any) => (
-              <TableRow key={f.id} className="border-white/5 hover:bg-white/5">
+              <TableRow key={f.id} className="border-border/50 hover:bg-white/5">
                 <TableCell className="text-white font-medium">{f.name}</TableCell>
                 <TableCell className="text-slate-300">{f.city ? `${f.city}/${f.uf}` : "-"}</TableCell>
                 <TableCell className="text-slate-300">{f.phone || "-"}</TableCell>

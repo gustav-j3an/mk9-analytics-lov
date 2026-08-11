@@ -215,12 +215,12 @@ export function Mk9PresenceModule() {
         subtitle="Registro operacional diário de comparecimento"
         icon={CheckCircle2}
         actions={
-          <div className="flex items-center gap-2 glass-command p-1.5 rounded-xl border border-white/5">
+          <div className="flex items-center gap-2 glass-command p-1.5 rounded-xl border border-border/50">
             <Input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="h-8 w-[140px] bg-input/50 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider"
+              className="h-8 w-[140px] bg-input/50 border-border/50 text-[10px] font-bold text-white uppercase tracking-wider"
             />
             <Sheet>
               <SheetTrigger asChild>
@@ -330,7 +330,7 @@ export function Mk9PresenceModule() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/5 overflow-hidden">
+        <div className="rounded-xl border border-border/50 overflow-hidden">
           {listLoading ? (
             <Mk9LoadingState message="Carregando promotores..." />
           ) : !presenceItems || presenceItems.length === 0 ? (
@@ -341,7 +341,7 @@ export function Mk9PresenceModule() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/5 bg-white/[0.02]">
+                  <tr className="border-b border-border/50 bg-white/[0.02]">
                     <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Promotor</th>
                     <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Matrícula</th>
                     <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center w-[300px]">Status</th>
@@ -352,7 +352,7 @@ export function Mk9PresenceModule() {
                   {presenceItems.map((item) => {
                     const local = localPresence[item.id] || { status: null, observation: "" };
                     return (
-                      <tr key={item.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors group">
+                      <tr key={item.id} className="border-b border-border/50 last:border-0 hover:bg-white/[0.02] transition-colors group">
                         <td className="px-4 py-3">
                           <div className="flex flex-col">
                             <span className="text-[11px] font-black text-white uppercase tracking-tighter">{item.name}</span>
@@ -386,7 +386,7 @@ export function Mk9PresenceModule() {
                             placeholder="..."
                             value={local.observation}
                             onChange={(e) => handleObservationChange(item.id, e.target.value)}
-                            className="h-7 text-[10px] bg-transparent border-white/5 focus:border-white/20 text-slate-300 w-full"
+                            className="h-7 text-[10px] bg-transparent border-border/50 focus:border-white/20 text-slate-300 w-full"
                           />
                         </td>
                       </tr>

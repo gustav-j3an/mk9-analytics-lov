@@ -254,7 +254,7 @@ export function PromoterDialog({
             />
           </div>
         </div>
-        <DialogFooter className="mt-4 border-t border-white/5 pt-4">
+        <DialogFooter className="mt-4 border-t border-border/50 pt-4">
           <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
             CANCELAR
           </Button>
@@ -330,7 +330,7 @@ export function PromoterDeleteDialog({
           </div>
         ) : (
           <div className="space-y-6 py-4">
-            <div className="bg-white/5 border border-white/5 rounded-xl p-4 transition-all">
+            <div className="bg-white/5 border border-border/50 rounded-xl p-4 transition-all">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-0.5">
                   <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
@@ -382,7 +382,7 @@ export function PromoterDeleteDialog({
           </div>
         )}
 
-        <DialogFooter className="mt-4 border-t border-white/5 pt-4">
+        <DialogFooter className="mt-4 border-t border-border/50 pt-4">
           <Button
             variant="ghost"
             className="text-muted-foreground hover:text-white"

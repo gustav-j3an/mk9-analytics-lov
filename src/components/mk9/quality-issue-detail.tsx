@@ -70,7 +70,7 @@ export function QualityIssueDetailSheet({
   return (
     <Sheet open={!!issueId} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-[400px] sm:w-[540px] bg-command-deep border-border text-white p-0">
-        <SheetHeader className="p-6 border-b border-white/5">
+        <SheetHeader className="p-6 border-b border-border/50">
           <div className="flex items-center gap-2 mb-2">
              <Badge 
                className={cn(
@@ -133,7 +133,7 @@ export function QualityIssueDetailSheet({
                 
                 <div className="space-y-3">
                   {/* Indústria */}
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/5 group">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-border/50 group">
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded bg-command-purple/20 flex items-center justify-center text-command-purple">
                         <Building2 className="h-4 w-4" />
@@ -158,7 +158,7 @@ export function QualityIssueDetailSheet({
                   </div>
 
                   {/* Loja */}
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/5 group">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-border/50 group">
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded bg-emerald-500/20 flex items-center justify-center text-emerald-500">
                         <Store className="h-4 w-4" />
@@ -184,7 +184,7 @@ export function QualityIssueDetailSheet({
 
                   {/* Promotor (se houver) */}
                   {issue.promoterId && (
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/5 group">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-border/50 group">
                       <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded bg-sky-500/20 flex items-center justify-center text-sky-500">
                           <UserIcon className="h-4 w-4" />
@@ -231,7 +231,7 @@ export function QualityIssueDetailSheet({
                 <div className="grid grid-cols-1 gap-3">
                   <div className="space-y-1">
                     <p className="text-[8px] font-black uppercase text-slate-700">Issue ID</p>
-                    <p className="text-[10px] font-mono text-slate-600 break-all bg-black/20 p-2 rounded border border-white/5 select-all">
+                    <p className="text-[10px] font-mono text-slate-600 break-all bg-black/20 p-2 rounded border border-border/50 select-all">
                       {issue.id}
                     </p>
                   </div>

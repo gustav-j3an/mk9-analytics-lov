@@ -100,7 +100,7 @@ export function Mk9StoresModule() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+              <tr className="border-b border-border/50 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                 <th className="px-4 py-4 text-left font-black">Unidade / Loja</th>
                 <th className="px-4 py-4 text-left font-black">Rede / Bandeira</th>
                 <th className="px-4 py-4 text-left font-black">Localização</th>

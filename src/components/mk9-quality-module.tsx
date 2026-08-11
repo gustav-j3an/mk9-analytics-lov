@@ -174,12 +174,12 @@ export function Mk9QualityModule({
         subtitle="Integridade analítica e monitoramento de inconsistências"
         icon={ShieldCheck}
         actions={
-          <div className="flex items-center gap-2 glass-command p-1.5 rounded-xl border border-white/5">
+          <div className="flex items-center gap-2 glass-command p-1.5 rounded-xl border border-border/50">
             <Select
               value={String(filters.month)}
               onValueChange={(v) => setFilters((f) => ({ ...f, month: Number(v) }))}
             >
-              <SelectTrigger className="h-8 w-[120px] bg-input/50 border-white/5 text-[10px] font-bold text-foreground uppercase tracking-wider">
+              <SelectTrigger className="h-8 w-[120px] bg-input/50 border-border/50 text-[10px] font-bold text-foreground uppercase tracking-wider">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-card border-border text-foreground">
@@ -255,7 +255,7 @@ export function Mk9QualityModule({
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/5 overflow-hidden">
+        <div className="rounded-xl border border-border/50 overflow-hidden">
           {listQ.isLoading ? (
             <Mk9LoadingState />
           ) : items.length === 0 ? (
@@ -265,7 +265,7 @@ export function Mk9QualityModule({
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="p-4 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors flex items-center justify-between group"
+                  className="p-4 border-b border-border/50 last:border-0 hover:bg-white/[0.02] transition-colors flex items-center justify-between group"
                 >
                   <div className="flex items-start gap-4">
                     <div
@@ -310,7 +310,7 @@ export function Mk9QualityModule({
                         </Mk9Badge>
                       </div>
                       
-                      <p className="mt-2 text-[10px] text-muted-foreground font-medium leading-relaxed max-w-2xl border-l-2 border-white/5 pl-3">
+                      <p className="mt-2 text-[10px] text-muted-foreground font-medium leading-relaxed max-w-2xl border-l-2 border-border/50 pl-3">
                         {item.description}
                       </p>
                     </div>

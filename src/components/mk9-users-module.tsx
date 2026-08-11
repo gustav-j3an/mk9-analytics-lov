@@ -223,7 +223,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-2 flex justify-end gap-3 pt-4 border-t border-white/5">
+            <div className="md:col-span-2 flex justify-end gap-3 pt-4 border-t border-border/50">
               <Button
                 type="button"
                 variant="ghost"
@@ -260,7 +260,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+              <tr className="border-b border-border/50 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                 <th className="px-4 py-4 text-left font-black">Usuário / Identidade</th>
                 <th className="px-4 py-4 text-left font-black">Papéis Atribuídos</th>
                 <th className="px-4 py-4 text-left font-black">Status</th>

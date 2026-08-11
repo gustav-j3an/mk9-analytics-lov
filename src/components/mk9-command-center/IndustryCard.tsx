@@ -27,7 +27,7 @@ export function IndustryCard({ industries }: IndustryCardProps) {
         {industries.map((industry) => (
           <div
             key={industry.name}
-            className="bg-command-card-alt/50 border border-white/5 p-4 rounded-xl hover:bg-command-card-alt transition-colors"
+            className="bg-command-card-alt/50 border border-border/50 p-4 rounded-xl hover:bg-command-card-alt transition-colors"
           >
             <div className="flex justify-between items-start mb-3">
               <span className="text-white text-sm font-bold">{industry.name}</span>

@@ -45,7 +45,7 @@ export function DashboardHero({ percentage, label, status }: DashboardHeroProps)
               <span>Execução Acumulada</span>
               <span>Meta: 100%</span>
             </div>
-            <div className="h-4 w-full bg-white/5 rounded-full p-1 border border-white/5">
+            <div className="h-4 w-full bg-white/5 rounded-full p-1 border border-border/50">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-command-purple to-command-blue shadow-[0_0_10px_rgba(168,85,247,0.5)] transition-all duration-1000"
                 style={{ width: `${percentage}%` }}

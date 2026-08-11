@@ -341,7 +341,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
           </div>
 
           <div className="space-y-4">
-            <div className="flex justify-between items-center border-b border-white/5 pb-2">
+            <div className="flex justify-between items-center border-b border-border/50 pb-2">
               <Label className="text-lg font-bold">Atendimentos</Label>
               <Button type="button" variant="outline" size="sm" onClick={addItem} className="border-border hover:bg-white/5">
                 <Plus className="w-4 h-4 mr-1" /> Adicionar Loja
@@ -395,7 +395,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
               ))}
               
               {formData.items.length === 0 && (
-                <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-lg text-muted-foreground italic">
+                <div className="text-center py-8 border-2 border-dashed border-border/50 rounded-lg text-muted-foreground italic">
                   Nenhuma loja adicionada.
                 </div>
               )}

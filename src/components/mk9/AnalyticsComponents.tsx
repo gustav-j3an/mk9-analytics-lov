@@ -55,7 +55,7 @@ export function AnalyticsMetricCard({
             {label}
           </p>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-2xl md:text-3xl font-black text-white tracking-tighter italic">{value}</h3>
+            <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tighter italic">{value}</h3>
           </div>
           {hint && (
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mt-1">
@@ -134,7 +134,7 @@ export function AnalyticsChartCard({
   return (
     <div className={cn("glass-command p-6 rounded-2xl flex flex-col h-full", className)}>
       <div className="mb-6">
-        <div className="text-sm font-black text-white uppercase tracking-[0.1em]">{title}</div>
+        <div className="text-sm font-black text-foreground uppercase tracking-[0.1em]">{title}</div>
 
         {subtitle && (
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
@@ -183,7 +183,7 @@ export function AnalyticsTable({
                 <td
                   key={j}
                   className={cn(
-                    "px-4 py-3 text-xs bg-white/[0.02] border-y border-white/5 transition-colors group-hover:bg-white/[0.04]",
+                    "px-4 py-3 text-xs bg-white/[0.02] border-y border-border/50 transition-colors group-hover:bg-white/[0.04]",
                     j === 0 && "rounded-l-xl border-l text-left",
                     j > 0 && "text-right",
                     j === row.length - 1 && "rounded-r-xl border-r",

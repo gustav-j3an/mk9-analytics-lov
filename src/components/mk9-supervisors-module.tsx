@@ -119,7 +119,7 @@ export function Mk9SupervisorsModule() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+              <tr className="border-b border-border/50 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                 <th className="px-4 py-4 text-left font-black">Nome</th>
                 <th className="px-4 py-4 text-left font-black">Status</th>
                 <th className="px-4 py-4 text-right font-black">Ações</th>
@@ -350,7 +350,7 @@ function SupervisorDetailsSheet({ id, onClose }: { id: string | null, onClose: (
                   <p className="text-sm text-muted-foreground text-center py-8">Nenhum promotor vinculado.</p>
                 ) : (
                   details?.members?.map((m: any) => (
-                    <div key={m.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                    <div key={m.id} className="p-3 rounded-xl bg-white/[0.02] border border-border/50 flex items-center justify-between">
                       <div>
                         <p className="text-sm font-bold">{m.name}</p>
                         <p className="text-[10px] text-muted-foreground uppercase">{m.employee_number} • {m.uf}</p>

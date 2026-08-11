@@ -134,7 +134,7 @@ export function StoreDialog({
             </div>
           </div>
         </div>
-        <DialogFooter className="mt-4 border-t border-white/5 pt-4">
+        <DialogFooter className="mt-4 border-t border-border/50 pt-4">
           <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
             CANCELAR
           </Button>
@@ -209,11 +209,11 @@ export function StoreArchiveDialog({
                 Impacto Detectado na Unidade:
               </p>
               <ul className="space-y-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                <li className="flex justify-between border-b border-white/5 pb-1">
+                <li className="flex justify-between border-b border-border/50 pb-1">
                   <span>Frequências vigentes:</span>{" "}
                   <span className="text-white">{impact?.activeFrequencies || 0}</span>
                 </li>
-                <li className="flex justify-between border-b border-white/5 pb-1">
+                <li className="flex justify-between border-b border-border/50 pb-1">
                   <span>Roteiros ativos:</span>{" "}
                   <span className="text-white">{impact?.activeRoutes || 0}</span>
                 </li>
@@ -238,7 +238,7 @@ export function StoreArchiveDialog({
           </div>
         )}
 
-        <DialogFooter className="mt-4 border-t border-white/5 pt-4">
+        <DialogFooter className="mt-4 border-t border-border/50 pt-4">
           <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
             CANCELAR
           </Button>

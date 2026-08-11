@@ -351,7 +351,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               Ano
             </label>
             <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="h-9 min-w-[100px] bg-input/50 border-white/5 text-xs text-white px-3 gap-2 shrink-0">
+              <SelectTrigger className="h-9 min-w-[100px] bg-input/50 border-border/50 text-xs text-white px-3 gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -368,7 +368,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               Mês
             </label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-9 min-w-[130px] bg-input/50 border-white/5 text-xs text-white uppercase px-3 gap-2 shrink-0">
+              <SelectTrigger className="h-9 min-w-[130px] bg-input/50 border-border/50 text-xs text-white uppercase px-3 gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -385,7 +385,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               Indústria
             </label>
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-9 bg-input/50 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-white">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -403,7 +403,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               Promotor
             </label>
             <Select value={promoterId} onValueChange={setPromoterId}>
-              <SelectTrigger className="h-9 bg-input/50 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-white">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -421,7 +421,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               UF
             </label>
             <Select value={uf} onValueChange={setUf}>
-              <SelectTrigger className="h-9 bg-input/50 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-white">
                 <SelectValue placeholder="—" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -439,7 +439,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               Checklist
             </label>
             <Select value={importId} onValueChange={setImportId}>
-              <SelectTrigger className="h-9 bg-input/50 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-white">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -477,7 +477,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
         </div>
 
         {s && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-white/5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-border/50">
             <Mk9MetricCard label="Contratadas" value={s.metrics.contratadas} color="purple" />
             <Mk9MetricCard label="Executadas" value={s.metrics.executadas} color="blue" />
             <Mk9MetricCard label="Válidas" value={s.metrics.validas} color="emerald" />
@@ -515,7 +515,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
         </div>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mb-6 overflow-x-auto">
-          <TabsList className="flex md:flex-wrap h-auto bg-black/20 border border-white/5 p-1 w-max md:w-auto">
+          <TabsList className="flex md:flex-wrap h-auto bg-black/20 border border-border/50 p-1 w-max md:w-auto">
             <TabsTrigger
               value="all"
               className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white"
@@ -564,10 +564,10 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
             conciliação.
           </div>
         ) : (
-          <div className="overflow-auto max-h-[640px] border border-white/5 rounded-xl bg-white/[0.01] custom-scrollbar-horizontal">
+          <div className="overflow-auto max-h-[640px] border border-border/50 rounded-xl bg-white/[0.01] custom-scrollbar-horizontal">
             <Table>
               <TableHeader>
-                <TableRow className="border-b border-white/5 hover:bg-transparent">
+                <TableRow className="border-b border-border/50 hover:bg-transparent">
                   <TableHead className="w-8"></TableHead>
                   <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4">
                     Status

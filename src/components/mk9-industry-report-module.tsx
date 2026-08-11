@@ -380,7 +380,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
               <div className="overflow-x-auto custom-scrollbar-horizontal">
                 <table className="w-full">
                   <thead>
-                    <tr className="text-left text-[10px] uppercase tracking-widest text-muted-foreground border-b border-white/5">
+                    <tr className="text-left text-[10px] uppercase tracking-widest text-muted-foreground border-b border-border/50">
                       <th className="pb-3 font-bold text-left">UF</th>
                       <th className="pb-3 font-bold text-right">Lojas</th>
                       <th className="pb-3 font-bold text-right">Contratadas</th>
@@ -416,7 +416,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
             <div className="overflow-x-auto custom-scrollbar-horizontal">
               <table className="w-full">
                 <thead>
-                  <tr className="text-left text-[10px] uppercase tracking-widest text-muted-foreground border-b border-white/5">
+                  <tr className="text-left text-[10px] uppercase tracking-widest text-muted-foreground border-b border-border/50">
                     <th className="pb-3 font-bold text-left">Loja</th>
                     <th className="pb-3 font-bold text-left">UF</th>
                     <th className="pb-3 font-bold text-left">Freq.</th>
@@ -581,7 +581,7 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-border/50">
               <Switch
                 checked={current.usesPreviousMonth}
                 onCheckedChange={(v) => setForm({ ...current, usesPreviousMonth: v })}
@@ -617,7 +617,7 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
             )}
           </div>
         )}
-        <DialogFooter className="mt-6 border-t border-white/5 pt-4">
+        <DialogFooter className="mt-6 border-t border-border/50 pt-4">
           <Button
             variant="ghost"
             className="text-muted-foreground hover:text-white"

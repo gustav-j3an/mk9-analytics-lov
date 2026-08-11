@@ -233,7 +233,7 @@ export function Mk9DashboardModule({
       <div className="space-y-8 animate-fade-up">
         <DashboardHeader month={month} year={year} />
 
-        <div className="glass-command p-6 rounded-2xl shadow-2xl border border-white/5">
+        <div className="glass-command p-6 rounded-2xl shadow-2xl border border-border/50">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
               Parâmetros de Comando
@@ -566,7 +566,7 @@ function DashboardIntegrityCheck({ params }: { params: any }) {
           </span>
         </Button>
       </SheetTrigger>
-      <SheetContent className="sm:max-w-md bg-background text-foreground border-white/5">
+      <SheetContent className="sm:max-w-md bg-background text-foreground border-border/50">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2 text-foreground uppercase font-black tracking-tighter">
             <ShieldCheck className="h-5 w-5 text-command-purple" />
@@ -620,7 +620,7 @@ function DashboardIntegrityCheck({ params }: { params: any }) {
                   {data.issues.map((f: any, i: number) => (
                     <div
                       key={i}
-                      className="glass-command p-4 rounded-xl border border-white/5 flex gap-4 items-start group hover:border-border transition-colors"
+                      className="glass-command p-4 rounded-xl border border-border/50 flex gap-4 items-start group hover:border-border transition-colors"
                     >
                       <div className="h-8 w-8 rounded-lg bg-muted/30 flex items-center justify-center shrink-0 group-hover:bg-white/10 transition-colors">
                         <Info className="h-4 w-4 text-muted-foreground" />

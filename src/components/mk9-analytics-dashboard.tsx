@@ -156,7 +156,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
     <div className="space-y-8 animate-fade-in pb-20 selection:bg-purple-500/30">
       {/* Performance Debug (Visible in Dev) */}
       {data.perf && (
-        <div className="flex items-center gap-4 text-[9px] font-mono text-muted-foreground uppercase tracking-widest border-b border-white/5 pb-2 mb-4">
+        <div className="flex items-center gap-4 text-[9px] font-mono text-muted-foreground uppercase tracking-widest border-b border-border/50 pb-2 mb-4">
           <span className="flex items-center gap-1">
             <Zap className="h-3 w-3 text-amber-500" /> Core: {data.perf.coreMs}ms
           </span>
@@ -171,7 +171,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
 
       {/* Visão de Risco, Projeção e Monitoramento (Executive View) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="glass-command p-4 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col justify-between">
+        <div className="glass-command p-4 rounded-2xl border border-border/50 bg-card/50 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
               Indústrias Monitoradas
@@ -181,14 +181,14 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                 <TooltipTrigger asChild>
                   <Info className="h-3 w-3 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
-                <TooltipContent className="bg-command-deep border-border text-white text-[10px] max-w-[200px]">
+                <TooltipContent className="bg-popover border-border text-foreground text-[10px] max-w-[200px]">
                   {data.perf?.monitoredWithChecklistCount ?? 0} importadas · {data.perf?.monitoredPendingChecklistCount ?? 0} pendentes de checklist.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-white italic">
+            <span className="text-2xl font-black text-foreground italic">
               {data.perf?.monitoredIndustriesCount ?? 0}
             </span>
             <span className="text-[10px] font-bold text-muted-foreground uppercase">
@@ -202,7 +202,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             "glass-command p-5 rounded-2xl border flex flex-col justify-between transition-all duration-300",
             projection?.riskStatus === "CRITICAL"
               ? "border-rose-500/30 bg-rose-500/10 glow-rose shadow-[0_0_20px_rgba(244,63,94,0.1)]"
-              : "border-white/5 bg-white/[0.02]",
+              : "border-border/50 bg-card/50",
           )}
         >
           <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
@@ -222,7 +222,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             <span
               className={cn(
                 "text-xl font-black italic uppercase",
-                projection?.riskStatus === "CRITICAL" ? "text-rose-500" : "text-white",
+                projection?.riskStatus === "CRITICAL" ? "text-rose-500" : "text-foreground",
               )}
             >
               {projection?.riskStatus || "N/D"}
@@ -230,12 +230,12 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </div>
         </div>
 
-        <div className="glass-command p-4 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col justify-between">
+        <div className="glass-command p-4 rounded-2xl border border-border/50 bg-card/50 flex flex-col justify-between">
           <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
             Projeção Final
           </span>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-white italic">
+            <span className="text-2xl font-black text-foreground italic">
               {nf(projection.projected)}
             </span>
             <span className="text-[10px] font-bold text-muted-foreground">
@@ -244,13 +244,13 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </div>
         </div>
 
-        <div className="glass-command p-4 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col justify-between">
+        <div className="glass-command p-4 rounded-2xl border border-border/50 bg-card/50 flex flex-col justify-between">
           <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
             Meta Proporcional
           </span>
           <div className="flex flex-col">
             <div className="flex justify-between items-end mb-1">
-              <span className="text-lg font-black text-white italic">
+              <span className="text-lg font-black text-foreground italic">
                 {rawExecutive?.coverage ? formatPercentage(executive.coverage.current) : "N/D"}
               </span>
               <span className="text-[9px] font-bold text-muted-foreground">
@@ -258,7 +258,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               </span>
             </div>
 
-            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+            <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden">
               <div
                 className="h-full bg-command-purple rounded-full transition-all duration-1000"
                 style={{ width: `${executive.coverage.current}%` }}
@@ -267,11 +267,11 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </div>
         </div>
 
-        <div className="glass-command p-4 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col justify-between">
+        <div className="glass-command p-4 rounded-2xl border border-border/50 bg-card/50 flex flex-col justify-between">
           <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
             Última Atualização
           </span>
-          <div className="flex items-center gap-2 text-white/70">
+          <div className="flex items-center gap-2 text-foreground/70">
             <Clock className="h-4 w-4 text-command-purple" />
             <span className="text-xs font-bold uppercase">
               {lastUpdate ? new Date(lastUpdate).toLocaleTimeString("pt-BR") : "—"}
@@ -285,7 +285,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
         <div>
           <div className="flex items-center gap-3 mb-1">
             <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" />
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tighter uppercase italic">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-foreground tracking-tighter uppercase italic">
               MK9 <span className="text-command-purple">ANALYTICS</span>
             </h1>
           </div>
@@ -295,8 +295,8 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
 
         </div>
 
-        <div className="glass-command p-1.5 md:p-2 rounded-2xl flex flex-wrap items-center gap-1.5 md:gap-2 border border-white/5">
-          <div className="flex items-center gap-2 px-2 border-r border-white/5 mr-2 hidden sm:flex">
+        <div className="glass-command p-1.5 md:p-2 rounded-2xl flex flex-wrap items-center gap-1.5 md:gap-2 border border-border/50">
+          <div className="flex items-center gap-2 px-2 border-r border-border/50 mr-2 hidden sm:flex">
             <Filter className="h-3 w-3 text-muted-foreground" />
             <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
               Filtros
@@ -304,10 +304,10 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </div>
 
           <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-            <SelectTrigger className="h-8 min-w-[110px] md:min-w-[130px] bg-input/50 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase tracking-wider px-2 md:px-3 gap-1 md:gap-2 shrink-0">
+            <SelectTrigger className="h-8 min-w-[110px] md:min-w-[130px] bg-input/50 border-border/50 text-[9px] md:text-[10px] font-bold text-foreground uppercase tracking-wider px-2 md:px-3 gap-1 md:gap-2 shrink-0">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-command-deep border-border text-white">
+            <SelectContent className="bg-popover border-border text-foreground">
               {MONTHS_PT.map((m, i) => (
                 <SelectItem
                   key={m}
@@ -321,10 +321,10 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </Select>
 
           <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-            <SelectTrigger className="h-8 min-w-[70px] md:min-w-[90px] bg-input/50 border-white/5 text-[9px] md:text-[10px] font-bold text-white">
+            <SelectTrigger className="h-8 min-w-[70px] md:min-w-[90px] bg-input/50 border-border/50 text-[9px] md:text-[10px] font-bold text-foreground">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-command-deep border-border text-white">
+            <SelectContent className="bg-popover border-border text-foreground">
               {years.map((y) => (
                 <SelectItem key={y} value={String(y)} className="text-[10px] font-bold">
                   {y}
@@ -334,10 +334,10 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </Select>
 
           <Select value={industryId} onValueChange={setIndustryId}>
-            <SelectTrigger className="h-8 min-w-[140px] md:min-w-[160px] bg-input/50 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase">
+            <SelectTrigger className="h-8 min-w-[140px] md:min-w-[160px] bg-input/50 border-border/50 text-[9px] md:text-[10px] font-bold text-foreground uppercase">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-command-deep border-border text-white">
+            <SelectContent className="bg-popover border-border text-foreground">
               <SelectItem value="__ALL__" className="text-[10px] font-bold uppercase">
                 Todas as Indústrias
               </SelectItem>
@@ -350,10 +350,10 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </Select>
 
           <Select value={uf} onValueChange={setUf}>
-            <SelectTrigger className="h-8 min-w-[60px] md:min-w-[80px] bg-input/50 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase">
+            <SelectTrigger className="h-8 min-w-[60px] md:min-w-[80px] bg-input/50 border-border/50 text-[9px] md:text-[10px] font-bold text-foreground uppercase">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-command-deep border-border text-white">
+            <SelectContent className="bg-popover border-border text-foreground">
               <SelectItem value="__ALL__" className="text-[10px] font-bold uppercase">
                 UF
               </SelectItem>
@@ -396,7 +396,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-white hover:bg-white/5"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/30"
             onClick={() => refetch()}
             disabled={isFetching}
           >
@@ -418,7 +418,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               </Mk9Badge>
               <AlertTriangle className="h-4 w-4 text-rose-500" />
             </div>
-            <span className="text-xs font-black text-white uppercase tracking-tighter truncate">
+            <span className="text-xs font-black text-foreground uppercase tracking-tighter truncate">
               {p.storeName}
             </span>
             <span className="text-[9px] font-bold text-muted-foreground uppercase mt-1">{p.reason}</span>
@@ -518,12 +518,12 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                   <TooltipTrigger asChild>
                     <Info className="h-3 w-3 text-muted-foreground cursor-help" />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-command-deep border-border text-white text-[10px] max-w-[250px] p-3 space-y-2">
+                  <TooltipContent className="bg-popover border-border text-foreground text-[10px] max-w-[250px] p-3 space-y-2">
                     <p className="font-black text-command-purple uppercase tracking-widest text-[9px]">O que é isso?</p>
                     <p>Mostra quantas lojas existem em cada faixa de execução, agrupadas pela frequência mensal contratada.</p>
-                    <div className="pt-2 border-t border-white/5">
+                    <div className="pt-2 border-t border-border/50">
                       <p className="text-muted-foreground italic">Exemplo:</p>
-                      <p><span className="text-white font-bold">4x/mês + 0%</span> → lojas com 4 visitas mensais contratadas que ainda não tiveram nenhuma visita realizada.</p>
+                      <p><span className="text-foreground font-bold">4x/mês + 0%</span> → lojas com 4 visitas mensais contratadas que ainda não tiveram nenhuma visita realizada.</p>
                     </div>
                   </TooltipContent>
                 </Tooltip>
@@ -544,7 +544,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               ].map((faixa) => (
                 <div
                   key={faixa.label}
-                  className="flex flex-col items-center justify-center p-2 rounded-lg bg-white/[0.02] border border-white/5"
+                  className="flex flex-col items-center justify-center p-2 rounded-lg bg-card/50 border border-border/50"
                 >
                   <span className={cn("text-[10px] font-black uppercase tracking-tighter", faixa.color)}>
                     {faixa.label}
@@ -568,7 +568,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                             "group flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-300 relative overflow-hidden",
                             cell.count > 0 
                               ? "bg-white/[0.03] border-border hover:border-white/30 cursor-help" 
-                              : "bg-black/20 border-white/5 opacity-30 select-none"
+                              : "bg-black/20 border-border/50 opacity-30 select-none"
                           )}
                         >
                           {cell.count > 0 && (
@@ -580,36 +580,36 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                           
                           <span className={cn(
                             "text-xl font-black italic transition-transform group-hover:scale-110",
-                            cell.count > 0 ? "text-white" : "text-slate-700"
+                            cell.count > 0 ? "text-foreground" : "text-slate-700"
                           )}>
                             {cell.count}
                           </span>
                           <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
                             LOJAS
                           </span>
-                          <div className="mt-2 px-1.5 py-0.5 rounded bg-input/50 border border-white/5">
+                          <div className="mt-2 px-1.5 py-0.5 rounded bg-input/50 border border-border/50">
                             <span className="text-[8px] font-black text-command-purple uppercase">
                               {cell.frequency}x/mês
                             </span>
                           </div>
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-command-deep border-border text-white text-[10px] p-3 shadow-2xl space-y-2">
-                        <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
+                      <TooltipContent className="bg-popover border-border text-foreground text-[10px] p-3 shadow-2xl space-y-2">
+                        <div className="flex justify-between gap-4 border-b border-border/50 pb-2">
                           <span className="text-muted-foreground uppercase font-black">Frequência:</span>
                           <span className="text-command-purple font-black">{cell.frequency}x/mês</span>
                         </div>
-                        <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
+                        <div className="flex justify-between gap-4 border-b border-border/50 pb-2">
                           <span className="text-muted-foreground uppercase font-black">Cobertura:</span>
-                          <span className={cn("font-black", isCritical ? "text-rose-500" : isHealthy ? "text-emerald-500" : "text-white")}>
+                          <span className={cn("font-black", isCritical ? "text-rose-500" : isHealthy ? "text-emerald-500" : "text-foreground")}>
                             {cell.coverageLabel === ">100%" ? "Acima de 100%" : cell.coverageLabel}
                           </span>
                         </div>
                         <div className="flex justify-between gap-4">
                           <span className="text-muted-foreground uppercase font-black">Lojas:</span>
-                          <span className="text-white font-black">{cell.count}</span>
+                          <span className="text-foreground font-black">{cell.count}</span>
                         </div>
-                        <p className="text-muted-foreground italic mt-2 border-t border-white/5 pt-2 leading-relaxed">
+                        <p className="text-muted-foreground italic mt-2 border-t border-border/50 pt-2 leading-relaxed">
                           {cell.coverageLabel === "0%" && `Estas lojas possuem ${cell.frequency} visitas mensais contratadas e ainda não tiveram visitas realizadas.`}
                           {cell.coverageLabel === "1-49%" && `Estas lojas estão com execução parcial baixa em relação às ${cell.frequency} visitas contratadas.`}
                           {cell.coverageLabel === "50-99%" && `Estas lojas estão em progresso para cumprir as ${cell.frequency} visitas contratadas.`}
@@ -637,7 +637,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                   <TooltipTrigger asChild>
                     <Info className="h-3 w-3 text-muted-foreground cursor-help" />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-command-deep border-border text-white text-[10px] max-w-[200px]">
+                  <TooltipContent className="bg-popover border-border text-foreground text-[10px] max-w-[200px]">
                     Mostra quantas lojas estão contratadas em cada frequência mensal de visitas.
                   </TooltipContent>
                 </Tooltip>
@@ -668,15 +668,15 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                     const data = payload[0].payload;
                     const isManual = String(label).toLowerCase() === "manual";
                     return (
-                      <div className="bg-command-deep border border-border p-3 rounded-xl shadow-2xl min-w-[120px]">
-                        <p className="text-[10px] font-black text-white uppercase tracking-widest mb-1">
+                      <div className="bg-popover border border-border p-3 rounded-xl shadow-2xl min-w-[120px]">
+                        <p className="text-[10px] font-black text-foreground uppercase tracking-widest mb-1">
                           {label}x/mês
                         </p>
                         <p className="text-xs font-bold text-slate-300">
                           {data.stores} {data.stores === 1 ? "loja" : "lojas"}
                         </p>
                         {isManual && (
-                          <p className="text-[8px] text-muted-foreground italic mt-2 border-t border-white/5 pt-1">
+                          <p className="text-[8px] text-muted-foreground italic mt-2 border-t border-border/50 pt-1">
                             Frequência definida por configuração específica.
                           </p>
                         )}
@@ -701,7 +701,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
         <Mk9Panel className="xl:col-span-1">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">
+              <h3 className="text-sm font-black text-foreground uppercase tracking-[0.1em]">
                 Top Prioridades
               </h3>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
@@ -714,7 +714,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             headers={["Loja", "Indústria", "Score", "Motivo"]}
             rows={topPriorities.slice(0, 8).map((p) => [
               <div key={p.storeId} className="flex flex-col">
-                <span className="font-bold text-white uppercase tracking-tighter truncate w-32">
+                <span className="font-bold text-foreground uppercase tracking-tighter truncate w-32">
                   {p.storeName}
                 </span>
               </div>,
@@ -747,7 +747,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             <div className="flex items-center gap-3 mb-6">
               <History className="h-5 w-5 text-rose-500" />
               <div>
-                <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">
+                <h3 className="text-sm font-black text-foreground uppercase tracking-[0.1em]">
                   Lojas Reincidentes
                 </h3>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
@@ -760,7 +760,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               headers={["Loja", "Indústria", "Histórico", "Status"]}
               rows={data.recurrence.slice(0, 6).map((r) => [
                 <div key={`${r.storeId}-${r.industryName}`} className="flex flex-col">
-                  <span className="font-bold text-white uppercase tracking-tighter truncate w-32">
+                  <span className="font-bold text-foreground uppercase tracking-tighter truncate w-32">
                     {r.storeName}
                   </span>
                   <span className="text-[9px] text-muted-foreground font-bold uppercase">{r.uf}</span>
@@ -775,13 +775,13 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                   {r.history.map((h, i) => (
                     <div
                       key={i}
-                      className="flex flex-col items-center p-1 rounded bg-white/[0.03] border border-white/5 min-w-[35px]"
+                      className="flex flex-col items-center p-1 rounded bg-white/[0.03] border border-border/50 min-w-[35px]"
                     >
                       <span className="text-[6px] font-black text-muted-foreground">{h.period}</span>
                       <span
                         className={cn(
                           "text-[8px] font-black",
-                          h.realized === 0 ? "text-rose-500" : "text-white",
+                          h.realized === 0 ? "text-rose-500" : "text-foreground",
                         )}
                       >
                         {h.realized}
@@ -804,7 +804,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
         <Mk9Panel className="xl:col-span-1" id="industry-analysis">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">
+              <h3 className="text-sm font-black text-foreground uppercase tracking-[0.1em]">
                 Análise por Indústria
               </h3>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
@@ -817,12 +817,12 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             {industries.slice(0, 6).map((ind) => (
               <div
                 key={ind.industryId}
-                className="p-4 rounded-xl bg-white/[0.02] border border-white/5 group hover:bg-white/[0.04] transition-all cursor-pointer"
+                className="p-4 rounded-xl bg-card/50 border border-border/50 group hover:bg-white/[0.04] transition-all cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Building2 className="h-3.5 w-3.5 text-command-purple" />
-                    <span className="text-[11px] font-black text-white uppercase tracking-tight">
+                    <span className="text-[11px] font-black text-foreground uppercase tracking-tight">
                       {ind.industryName}
                     </span>
                   </div>
@@ -902,7 +902,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               <TrendingUp className="h-6 w-6 text-command-purple" />
             </div>
             <div>
-              <h3 className="text-lg font-black text-white uppercase italic">
+              <h3 className="text-lg font-black text-foreground uppercase italic">
                 Projeção de Fechamento
               </h3>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
@@ -915,7 +915,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               <span className="block text-[10px] font-black text-muted-foreground uppercase">
                 Realizado
               </span>
-              <span className="text-2xl font-black text-white italic">
+              <span className="text-2xl font-black text-foreground italic">
                 {nf(projection.realized)}
               </span>
             </div>
@@ -955,7 +955,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
       <Mk9Panel>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">
+            <h3 className="text-sm font-black text-foreground uppercase tracking-[0.1em]">
               Análise por UF
             </h3>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
@@ -971,7 +971,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               <div className="h-6 w-6 rounded bg-command-purple/10 flex items-center justify-center text-[10px] font-black text-command-purple border border-command-purple/20">
                 {u.uf}
               </div>
-              <span className="font-black text-white">{u.uf}</span>
+              <span className="font-black text-foreground">{u.uf}</span>
             </div>,
             <span key={u.uf} className="font-bold text-muted-foreground">
               {u.stores}
@@ -979,7 +979,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             <span key={u.uf} className="font-bold text-muted-foreground">
               {u.contracted}
             </span>,
-            <span key={u.uf} className="font-bold text-white">
+            <span key={u.uf} className="font-bold text-foreground">
               {u.realized}
             </span>,
             <div key={u.uf} className="flex items-center gap-2">
@@ -992,7 +992,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                 {formatPercentage(u.coverage)}
               </span>
 
-              <div className="flex-1 h-1 bg-white/5 rounded-full min-w-[60px] hidden md:block">
+              <div className="flex-1 h-1 bg-muted/30 rounded-full min-w-[60px] hidden md:block">
 
                 <div
                   className="h-full bg-command-purple rounded-full"

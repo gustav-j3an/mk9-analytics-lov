@@ -546,7 +546,7 @@ export function Mk9ImportModule({
                 const isOpen = !!expanded[imp.id];
                 const hasError = !!imp.errorMessage;
                 return (
-                  <div key={imp.id} className="text-sm rounded-lg border border-white/5 bg-white/5 p-3">
+                  <div key={imp.id} className="text-sm rounded-lg border border-border/50 bg-white/5 p-3">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-white truncate">{imp.filename}</p>

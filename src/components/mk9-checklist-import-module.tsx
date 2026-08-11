@@ -561,7 +561,7 @@ export function Mk9ChecklistImportModule({
         icon={FileUp}
       />
 
-      <div className="flex items-center gap-2 glass-command p-1.5 rounded-xl border border-white/5 w-fit">
+      <div className="flex items-center gap-2 glass-command p-1.5 rounded-xl border border-border/50 w-fit">
         <Button
           variant="ghost"
           onClick={() => setViewMode("individual")}
@@ -1338,7 +1338,7 @@ function IndividualImport({
             )}
           </div>
         )}
-        <div className="pt-6 border-t border-white/5 flex justify-end gap-2">
+        <div className="pt-6 border-t border-border/50 flex justify-end gap-2">
           {preview && (
             <Button
               variant="outline"
@@ -1737,7 +1737,7 @@ function IndividualImport({
               return (
                 <div
                   key={imp.id}
-                  className="text-sm rounded-lg border border-white/5 bg-white/5 p-3"
+                  className="text-sm rounded-lg border border-border/50 bg-white/5 p-3"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
