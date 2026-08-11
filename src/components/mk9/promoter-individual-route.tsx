@@ -137,6 +137,8 @@ export function PromoterIndividualRoute() {
       // Pequeno delay para garantir que o estado de carregamento reflita na UI
       await new Promise(resolve => setTimeout(resolve, 100));
       
+      const { generatePromoterRoutePdf } = await import("../../lib/mk9-promoter-route-pdf-v2.client");
+
       const success = await generatePromoterRoutePdf({
         promoterName: promoter?.name || "PROMOTOR",
         referenceDate,
