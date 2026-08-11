@@ -1,6 +1,6 @@
 
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 interface MatrixRow {
   industryName: string;
@@ -86,7 +86,7 @@ export async function generatePromoterRoutePdf({
     ]);
 
     // 5. Gerar Tabela com autoTable
-    (doc as any).autoTable({
+    autoTable(doc, {
       head,
       body,
       startY: 55,
