@@ -568,8 +568,8 @@ export function Mk9ChecklistImportModule({
           className={cn(
             "h-8 px-4 text-[10px] font-black uppercase tracking-widest transition-all",
             viewMode === "individual"
-              ? "bg-command-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.2)]"
-              : "text-muted-foreground hover:text-white",
+              ? "bg-command-purple text-foreground shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           Individual
@@ -580,8 +580,8 @@ export function Mk9ChecklistImportModule({
           className={cn(
             "h-8 px-4 text-[10px] font-black uppercase tracking-widest transition-all",
             viewMode === "batch"
-              ? "bg-command-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.2)]"
-              : "text-muted-foreground hover:text-white",
+              ? "bg-command-purple text-foreground shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           Em Lote
@@ -861,14 +861,14 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
           <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
             <Files className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+          <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
             Importação em Lote (Máx. 30)
           </h3>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Mês de competência</label>
+            <label className="text-sm font-semibold text-foreground mb-1.5 block drop-shadow-sm">Mês de competência</label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
               <SelectTrigger>
                 <SelectValue />
@@ -883,7 +883,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
             </Select>
           </div>
           <div>
-            <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Ano</label>
+            <label className="text-sm font-semibold text-foreground mb-1.5 block drop-shadow-sm">Ano</label>
             <Input
               type="number"
               value={year}
@@ -1204,14 +1204,14 @@ function IndividualImport({
           <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
             <ClipboardCheck className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+          <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
             Configuração da Importação
           </h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div className="md:col-span-2">
-            <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">
+            <label className="text-sm font-semibold text-foreground mb-1.5 block drop-shadow-sm">
               Arquivo .xlsx (checklist mensal da indústria)
             </label>
             <div className="flex gap-2">
@@ -1251,7 +1251,7 @@ function IndividualImport({
             </div>
           </div>
           <div>
-            <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Mês</label>
+            <label className="text-sm font-semibold text-foreground mb-1.5 block drop-shadow-sm">Mês</label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
               <SelectTrigger>
                 <SelectValue />
@@ -1266,7 +1266,7 @@ function IndividualImport({
             </Select>
           </div>
           <div>
-            <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Ano</label>
+            <label className="text-sm font-semibold text-foreground mb-1.5 block drop-shadow-sm">Ano</label>
             <Input
               type="number"
               value={year}
@@ -1277,7 +1277,7 @@ function IndividualImport({
           </div>
         </div>
         <div>
-          <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Indústria</label>
+          <label className="text-sm font-semibold text-foreground mb-1.5 block drop-shadow-sm">Indústria</label>
           <Select value={industryId} onValueChange={setIndustryId}>
             <SelectTrigger>
               <SelectValue
@@ -1342,7 +1342,7 @@ function IndividualImport({
           {preview && (
             <Button
               variant="outline"
-              className="h-9 border-border text-muted-foreground hover:text-white hover:bg-accent text-[10px] font-black uppercase tracking-widest px-6"
+              className="h-9 border-border text-muted-foreground hover:text-foreground hover:bg-accent text-[10px] font-black uppercase tracking-widest px-6"
               onClick={() => discardMut.mutate()}
             >
               Descartar
@@ -1351,7 +1351,7 @@ function IndividualImport({
           <Button
             onClick={() => previewMut.mutate()}
             disabled={!file || !industryId || previewMut.isPending}
-            className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] text-[10px] font-black uppercase tracking-widest px-8"
+            className="h-9 bg-command-purple hover:bg-command-purple/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] text-[10px] font-black uppercase tracking-widest px-8"
           >
             {previewMut.isPending ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -1369,7 +1369,7 @@ function IndividualImport({
             <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
               <Activity className="h-5 w-5" />
             </div>
-            <h3 className="text-sm font-black text-white uppercase tracking-widest">
+            <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
               Resumo Analítico
             </h3>
           </div>
@@ -1470,7 +1470,7 @@ function IndividualImport({
                 <FileCheck className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-white uppercase tracking-widest">
+                <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
                   Prévia da Importação
                 </h3>
                 <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">
@@ -1583,7 +1583,7 @@ function IndividualImport({
                 } text-amber-800 dark:text-amber-300`}
               >
                 <Checkbox
-                  className="mt-0.5 border-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:text-white"
+                  className="mt-0.5 border-amber-500 data-[state=checked]:bg-amber-500 data-[state=checked]:text-foreground"
                   checked={ackNewStores}
                   onCheckedChange={(checked) => setAckNewStores(checked === true)}
                 />
@@ -1717,7 +1717,7 @@ function IndividualImport({
           <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
             <Clock className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+          <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
             Histórico de Checklists
           </h3>
         </div>
@@ -1741,7 +1741,7 @@ function IndividualImport({
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-white truncate">{imp.filename}</p>
+                      <p className="font-medium text-foreground truncate">{imp.filename}</p>
                       <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">
                         {imp.industryName} · {MONTHS[imp.operationMonth - 1]} {imp.operationYear}
                         {c.persisted != null &&
@@ -1773,7 +1773,7 @@ function IndividualImport({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-white"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
                             title="Corrigir competência"
                             onClick={() => setCorrectDialogOpen({ id: imp.id })}
                           >
@@ -1930,7 +1930,7 @@ function PhaseRow({ active, done, label }: { active: boolean; done: boolean; lab
           done
             ? "text-muted-foreground line-through"
             : active
-              ? "font-black text-white"
+              ? "font-black text-foreground"
               : "text-muted-foreground font-bold",
         )}
       >

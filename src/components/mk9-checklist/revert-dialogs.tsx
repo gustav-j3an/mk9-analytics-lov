@@ -414,7 +414,7 @@ export function CompetenceConflictDialog({
           {isConflict ? (
             <AlertDialogAction
               onClick={() => onConfirm(fileMonth, fileYear)}
-              className="bg-amber-600 hover:bg-amber-700 text-white"
+              className="bg-amber-600 hover:bg-amber-700 text-foreground"
             >
               Corrigir para {fileCompetence}
             </AlertDialogAction>
@@ -426,7 +426,7 @@ export function CompetenceConflictDialog({
                   Number(selectedCompetence.split("/")[1]),
                 )
               }
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-foreground"
             >
               Manter {selectedCompetence}
             </AlertDialogAction>

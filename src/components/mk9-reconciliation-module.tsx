@@ -351,7 +351,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               Ano
             </label>
             <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="h-9 min-w-[100px] bg-input/50 border-border/50 text-xs text-white px-3 gap-2 shrink-0">
+              <SelectTrigger className="h-9 min-w-[100px] bg-input/50 border-border/50 text-xs text-foreground px-3 gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -368,7 +368,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               Mês
             </label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-9 min-w-[130px] bg-input/50 border-border/50 text-xs text-white uppercase px-3 gap-2 shrink-0">
+              <SelectTrigger className="h-9 min-w-[130px] bg-input/50 border-border/50 text-xs text-foreground uppercase px-3 gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -385,7 +385,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               Indústria
             </label>
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-white">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-foreground">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -403,7 +403,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               Promotor
             </label>
             <Select value={promoterId} onValueChange={setPromoterId}>
-              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-white">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-foreground">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -421,7 +421,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               UF
             </label>
             <Select value={uf} onValueChange={setUf}>
-              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-white">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-foreground">
                 <SelectValue placeholder="—" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -439,7 +439,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               Checklist
             </label>
             <Select value={importId} onValueChange={setImportId}>
-              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-white">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-foreground">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -456,7 +456,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
             <Button
               onClick={() => runMut.mutate()}
               disabled={runMut.isPending}
-              className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] flex-1 text-[10px] font-black uppercase tracking-widest"
+              className="h-9 bg-command-purple hover:bg-command-purple/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] flex-1 text-[10px] font-black uppercase tracking-widest"
             >
               {runMut.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -469,7 +469,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               variant="outline"
               onClick={exportCsv}
               disabled={rows.length === 0}
-              className="h-9 border-border text-muted-foreground hover:text-white hover:bg-accent text-[10px] font-black uppercase tracking-widest"
+              className="h-9 border-border text-muted-foreground hover:text-foreground hover:bg-accent text-[10px] font-black uppercase tracking-widest"
             >
               <Download className="h-4 w-4 mr-2" /> Exportar
             </Button>
@@ -509,7 +509,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               placeholder="Buscar loja, promotor, indústria…"
               value={rawSearch}
               onChange={(e) => setRawSearch(e.target.value)}
-              className="pl-9 h-9 bg-command-deep border-border text-white text-xs w-full"
+              className="pl-9 h-9 bg-command-deep border-border text-foreground text-xs w-full"
             />
           </div>
         </div>
@@ -518,37 +518,37 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
           <TabsList className="flex md:flex-wrap h-auto bg-background/40 border border-border/50 p-1 w-max md:w-auto">
             <TabsTrigger
               value="all"
-              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white"
+              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-foreground"
             >
               Geral
             </TabsTrigger>
             <TabsTrigger
               value="matched"
-              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white"
+              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-foreground"
             >
               Conciliadas
             </TabsTrigger>
             <TabsTrigger
               value="pending"
-              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white"
+              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-foreground"
             >
               Pendências
             </TabsTrigger>
             <TabsTrigger
               value="unplanned"
-              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white"
+              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-foreground"
             >
               Fora Roteiro
             </TabsTrigger>
             <TabsTrigger
               value="manual"
-              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white"
+              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-foreground"
             >
               Manual
             </TabsTrigger>
             <TabsTrigger
               value="not_completed"
-              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white"
+              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-foreground"
             >
               Não Realizadas
             </TabsTrigger>

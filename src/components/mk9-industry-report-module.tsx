@@ -216,10 +216,10 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
               Indústria
             </Label>
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
+              <SelectTrigger className="h-9 bg-command-deep border-border text-foreground">
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-command-deep border-border text-foreground">
                 {(industriesQ.data ?? []).map((i) => (
                   <SelectItem key={i.id} value={i.id}>
                     {i.name}
@@ -233,10 +233,10 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
               Mês
             </Label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-9 min-w-[130px] bg-command-deep border-border text-white uppercase px-3 gap-2 shrink-0">
+              <SelectTrigger className="h-9 min-w-[130px] bg-command-deep border-border text-foreground uppercase px-3 gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-command-deep border-border text-foreground">
                 {MONTHS_PT.map((m, i) => (
                   <SelectItem key={m} value={String(i + 1)}>
                     {m}
@@ -251,7 +251,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
             </Label>
             <Input
               type="number"
-              className="h-9 bg-command-deep border-border text-white"
+              className="h-9 bg-command-deep border-border text-foreground"
               value={year}
               onChange={(e) => setYear(Number(e.target.value) || year)}
             />
@@ -261,10 +261,10 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
               UF
             </Label>
             <Select value={uf || "__all"} onValueChange={(v) => setUf(v === "__all" ? "" : v)}>
-              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
+              <SelectTrigger className="h-9 bg-command-deep border-border text-foreground">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-command-deep border-border text-foreground">
                 <SelectItem value="__all">Todas</SelectItem>
                 {ufOptions.map((u) => (
                   <SelectItem key={u} value={u}>
@@ -334,7 +334,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 Período de Competência
               </p>
-              <p className="text-white font-medium">
+              <p className="text-foreground font-medium">
                 {fmtBR(report.window.startDate)} a {fmtBR(report.window.endDate)}{" "}
                 <span className="text-muted-foreground ml-2">· {report.window.totalDays} dias</span>
               </p>
@@ -345,7 +345,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                 onClick={() => downloadPdf("full")}
                 disabled={!!downloading}
                 variant="outline"
-                className="h-9 w-full sm:w-auto border-border text-muted-foreground hover:text-white hover:bg-accent uppercase text-[10px] font-black tracking-widest"
+                className="h-9 w-full sm:w-auto border-border text-muted-foreground hover:text-foreground hover:bg-accent uppercase text-[10px] font-black tracking-widest"
               >
                 {downloading === "full" ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -357,7 +357,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
               <Button
                 onClick={() => downloadPdf("unattended")}
                 disabled={!!downloading}
-                className="h-9 w-full sm:w-auto bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest"
+                className="h-9 w-full sm:w-auto bg-command-purple hover:bg-command-purple/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest"
               >
                 {downloading === "unattended" ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -393,10 +393,10 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                   <tbody className="divide-y divide-white/5 whitespace-nowrap lg:whitespace-normal">
                     {report.ufs.map((u) => (
                       <tr key={u.uf} className="group hover:bg-white/[0.02]">
-                        <td className="py-3 text-white font-medium">{u.uf}</td>
+                        <td className="py-3 text-foreground font-medium">{u.uf}</td>
                         <td className="py-3 text-foreground/80 text-right">{u.stores}</td>
                         <td className="py-3 text-foreground/80 text-right">{u.expected}</td>
-                        <td className="py-3 text-white text-right">{u.actual}</td>
+                        <td className="py-3 text-foreground text-right">{u.actual}</td>
                         <td className="py-3 text-muted-foreground text-right">{u.pending}</td>
                         <td className="py-3 text-muted-foreground text-right">{u.extra}</td>
                         <td className="py-3 text-right">
@@ -439,7 +439,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                     return (
                       <tr key={s.storeId} className="group hover:bg-white/[0.02]">
                         <td className="py-3">
-                          <div className="text-white font-medium">{s.storeName}</div>
+                          <div className="text-foreground font-medium">{s.storeName}</div>
                           {s.chain && (
                             <div className="text-[10px] text-muted-foreground uppercase tracking-tighter">
                               {s.chain}
@@ -449,7 +449,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                         <td className="py-3 text-muted-foreground font-mono">{s.uf ?? "—"}</td>
                         <td className="py-3 text-muted-foreground text-xs">{freqLabel}</td>
                         <td className="py-3 text-foreground/80 font-medium text-right">{s.expected}</td>
-                        <td className="py-3 text-white font-bold text-right">{s.actual}</td>
+                        <td className="py-3 text-foreground font-bold text-right">{s.actual}</td>
                         <td className="py-3 text-right">
                           <Mk9Badge
                             variant={
@@ -523,7 +523,7 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
           <Settings2 className="mr-2 h-4 w-4" /> CONFIGURAR PERÍODO
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-command-deep border-border text-white max-w-md">
+      <DialogContent className="bg-command-deep border-border text-foreground max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary">
             Configuração de Competência
@@ -620,13 +620,13 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
         <DialogFooter className="mt-6 border-t border-border/50 pt-4">
           <Button
             variant="ghost"
-            className="text-muted-foreground hover:text-white"
+            className="text-muted-foreground hover:text-foreground"
             onClick={() => setOpen(false)}
           >
             CANCELAR
           </Button>
           <Button
-            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold"
+            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-foreground font-bold"
             onClick={() =>
               mut.mutate({
                 industryId,
