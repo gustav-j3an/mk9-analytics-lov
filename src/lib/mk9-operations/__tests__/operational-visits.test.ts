@@ -28,15 +28,15 @@ describe("getOperationalVisits", () => {
     mockSupabase.from.mockImplementation((table: string) => {
       if (table === "mk9_checklist_imports") {
         return {
-          select: () => ({
-            eq: () => ({
-              eq: () => ({
-                is: () => Promise.resolve({ data: [{ id: "imp-123" }], error: null }),
-              }),
-            }),
-          }),
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          gte: vi.fn().mockReturnThis(),
+          is: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [{ id: "imp-123" }], error: null }),
         } as any;
       }
+
       return mockSupabase;
     });
 
@@ -58,15 +58,15 @@ describe("getOperationalVisits", () => {
     mockSupabase.from.mockImplementation((table: string) => {
       if (table === "mk9_checklist_imports") {
         return {
-          select: () => ({
-            eq: () => ({
-              eq: () => ({
-                is: () => Promise.resolve({ data: [], error: null }),
-              }),
-            }),
-          }),
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          gte: vi.fn().mockReturnThis(),
+          is: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
         } as any;
       }
+
       return mockSupabase;
     });
 
@@ -85,15 +85,15 @@ describe("getOperationalVisits", () => {
     mockSupabase.from.mockImplementation((table: string) => {
       if (table === "mk9_checklist_imports") {
         return {
-          select: () => ({
-            eq: () => ({
-              eq: () => ({
-                is: () => Promise.resolve({ data: [{ id: "outra-imp" }], error: null }),
-              }),
-            }),
-          }),
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          gte: vi.fn().mockReturnThis(),
+          is: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [{ id: "outra-imp" }], error: null }),
         } as any;
       }
+
       return mockSupabase;
     });
 
