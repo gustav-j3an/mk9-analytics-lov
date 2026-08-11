@@ -41,16 +41,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.9.2 — ATENDIMENTOS INTEGRADOS",
+    title: "MK9 | v2.4.0 — FINANCEIRO STABILIZED",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v1.9.2: ATENDIMENTOS INTEGRADOS. Atendimentos das Diárias (Loja + N Indústrias) persistidos e validados no backend.",
+        content: "MK9 Command Center v2.4.0: FINANCEIRO STABILIZED. Cálculo de diárias por indústria atendida e correções de contraste no Light Mode.",
       },
-      { property: "og:title", content: "MK9 | v1.9.2" },
+      { property: "og:title", content: "MK9 | v2.4.0" },
       {
         property: "og:description",
-        content: "MK9 Command Center v1.9.2: ATENDIMENTOS INTEGRADOS. Atendimentos das Diárias (Loja + N Indústrias) persistidos e validados no backend.",
+        content: "MK9 Command Center v2.4.0: FINANCEIRO STABILIZED. Cálculo de diárias por indústria atendida e correções de contraste no Light Mode.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -136,10 +136,10 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v1.9.2</span>
+                  MK9 Command Center • <span className="text-primary/80">v2.4.0</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  ATENDIMENTOS INTEGRADOS
+                  FINANCEIRO STABILIZED
                 </p>
               </div>
             </div>

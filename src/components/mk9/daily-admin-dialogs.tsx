@@ -434,7 +434,15 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" className="bg-command-purple hover:bg-command-purple/80" disabled={mutation.isPending}>
+            <Button 
+              type="submit" 
+              className={cn(
+                "font-bold transition-all",
+                "bg-primary text-primary-foreground hover:bg-primary/90", // Forced theme-compliant primary
+                "disabled:opacity-50 disabled:bg-muted disabled:text-muted-foreground" // Explicit contrast for disabled
+              )} 
+              disabled={mutation.isPending}
+            >
               {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {daily ? "Salvar Alterações" : "Criar Diária"}
             </Button>

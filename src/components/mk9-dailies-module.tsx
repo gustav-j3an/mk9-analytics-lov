@@ -114,11 +114,21 @@ export function Mk9DailiesModule() {
   const kpis = useMemo(() => {
     if (!dailies) return { count: 0, total: 0, freelancers: 0, stores: 0, toPay: 0, paid: 0 };
     const realized = dailies.filter((d: any) => d.status === 'REALIZADA');
-    const total = realized.reduce((acc: number, d: any) => acc + Number(d.amount), 0);
-    const toPay = dailies.filter((d: any) => d.payment_status === 'A PAGAR').reduce((acc: number, d: any) => acc + Number(d.amount), 0);
-    const paid = dailies.filter((d: any) => d.payment_status === 'PAGO').reduce((acc: number, d: any) => acc + Number(d.amount), 0);
+    
+    // REGRA MK9 v2.4.0: Total = Soma(Valor Unitário * Quantidade de Indústrias)
+    const calculateTotal = (dailyList: any[]) => dailyList.reduce((acc: number, d: any) => {
+      const industryCount = d.items?.length || 0;
+      const unitRate = Number(d.amount) || 0;
+      return acc + (unitRate * industryCount);
+    }, 0);
+
+    const total = calculateTotal(realized);
+    const toPay = calculateTotal(dailies.filter((d: any) => d.payment_status === 'A PAGAR'));
+    const paid = calculateTotal(dailies.filter((d: any) => d.payment_status === 'PAGO'));
+    
     const uniqueFreelancers = new Set(dailies.map((d: any) => d.freelancer_id)).size;
     const uniqueStores = new Set(dailies.flatMap((d: any) => d.items?.map((it: any) => it.store_id) || [])).size;
+    
     return { count: dailies.length, total, freelancers: uniqueFreelancers, stores: uniqueStores, toPay, paid };
   }, [dailies]);
 
@@ -260,7 +270,7 @@ export function Mk9DailiesModule() {
               <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Data</TableHead>
               <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Freelancer</TableHead>
               <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Atendimentos</TableHead>
-              <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Valor</TableHead>
+              <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Total</TableHead>
               <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Status</TableHead>
               <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Financeiro</TableHead>
               <TableHead className="text-right text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-6">Ações</TableHead>
@@ -291,7 +301,12 @@ export function Mk9DailiesModule() {
                     </div>
                   </TableCell>
                   <TableCell className="text-foreground font-mono text-xs">
-                    R$ {Number(d.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    <div className="flex flex-col">
+                      <span className="font-bold">R$ {(Number(d.amount) * (d.items?.length || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      <span className="text-[9px] text-muted-foreground uppercase">
+                        {d.items?.length || 0} × R$ {Number(d.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={cn(
@@ -355,8 +370,9 @@ export function Mk9DailiesModule() {
                   <p className="text-sm font-bold text-foreground">{viewing.date ? new Date(viewing.date + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Valor</label>
-                  <p className="text-sm font-bold text-emerald-400">R$ {Number(viewing.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Valor Total</label>
+                  <p className="text-sm font-bold text-emerald-400">R$ {(Number(viewing.amount) * viewing.items.length).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <p className="text-[9px] text-muted-foreground uppercase">{viewing.items.length} indústrias × R$ {Number(viewing.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Status</label>
@@ -445,7 +461,7 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
     if (!dailies) return { count: 0, amount: 0 };
     return {
       count: dailies.length,
-      amount: dailies.reduce((acc: number, d: any) => acc + Number(d.amount), 0)
+      amount: dailies.reduce((acc: number, d: any) => acc + (Number(d.amount) * (d.items?.length || 0)), 0)
     };
   }, [dailies]);
 
