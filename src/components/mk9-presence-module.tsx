@@ -89,14 +89,29 @@ export function Mk9PresenceModule() {
 
   useEffect(() => {
     if (presenceItems) {
-      const newState: Record<string, { status: any, observation: string }> = {};
-      presenceItems.forEach(item => {
-        newState[item.id] = { 
-          status: item.status || null, 
-          observation: item.observation || "" 
-        };
+      setLocalPresence(prev => {
+        const newState: Record<string, { status: any, observation: string }> = { ...prev };
+        presenceItems.forEach(item => {
+          // Só atualiza se o item ainda não estiver no estado local (inicialização)
+          // ou se for uma mudança real vinda do servidor que não estamos editando
+          if (!prev[item.id] || (prev[item.id].status === null && item.status !== null)) {
+            newState[item.id] = { 
+              status: item.status || null, 
+              observation: item.observation || "" 
+            };
+          } else {
+            // Se já existe no estado local, preservamos a observação local se estivermos editando
+            // mas podemos atualizar o status se ele mudar no servidor?
+            // Para resolver o bug da observação sumindo, a chave é NÃO sobrescrever
+            // o que o usuário acabou de digitar se o query disparar um refetch.
+            newState[item.id] = {
+              status: prev[item.id].status,
+              observation: prev[item.id].observation || item.observation || ""
+            };
+          }
+        });
+        return newState;
       });
-      setLocalPresence(newState);
     }
   }, [presenceItems]);
 
@@ -130,7 +145,10 @@ export function Mk9PresenceModule() {
     if (!presenceItems) return;
     const newState = { ...localPresence };
     presenceItems.forEach(item => {
-      newState[item.id] = { ...newState[item.id], status: 'PRESENT' };
+      // Somente quem está "Não Marcado" recebe Presente
+      if (!newState[item.id] || newState[item.id].status === null) {
+        newState[item.id] = { ...newState[item.id], status: 'PRESENT' };
+      }
     });
     setLocalPresence(newState);
   };
@@ -179,7 +197,8 @@ export function Mk9PresenceModule() {
       item.uf || "-",
       localPresence[item.id]?.status === 'PRESENT' ? 'PRESENTE' :
       localPresence[item.id]?.status === 'ABSENT' ? 'FALTA' :
-      localPresence[item.id]?.status === 'MEDICAL_CERTIFICATE' ? 'ATESTADO' : 'NÃO MARCADO',
+      localPresence[item.id]?.status === 'MEDICAL_CERTIFICATE' ? 'ATESTADO' : 
+      localPresence[item.id]?.status === 'VACATION' ? 'FÉRIAS' : 'NÃO MARCADO',
       localPresence[item.id]?.observation || "-"
     ]);
 
@@ -192,11 +211,12 @@ export function Mk9PresenceModule() {
   };
 
   const localStats = useMemo(() => {
-    const s = { present: 0, absent: 0, medical: 0, unmarked: 0 };
+    const s = { present: 0, absent: 0, medical: 0, vacation: 0, unmarked: 0 };
     Object.values(localPresence).forEach(p => {
       if (p.status === 'PRESENT') s.present++;
       else if (p.status === 'ABSENT') s.absent++;
       else if (p.status === 'MEDICAL_CERTIFICATE') s.medical++;
+      else if (p.status === 'VACATION') s.vacation++;
       else s.unmarked++;
     });
     return s;
@@ -259,12 +279,13 @@ export function Mk9PresenceModule() {
         }
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         <Mk9MetricCard label="Total Promotores" value={presenceItems?.length ?? 0} color="blue" />
         <Mk9MetricCard label="Presentes" value={localStats.present} color="emerald" />
         <Mk9MetricCard label="Faltas" value={localStats.absent} color="rose" />
         <Mk9MetricCard label="Atestados" value={localStats.medical} color="amber" />
-        <Mk9MetricCard label="Não Marcados" value={Math.max(0, (presenceItems?.length ?? 0) - (localStats.present + localStats.absent + localStats.medical))} color="blue" hint="Pendentes" />
+        <Mk9MetricCard label="Férias" value={localStats.vacation} color="purple" />
+        <Mk9MetricCard label="Não Marcados" value={Math.max(0, (presenceItems?.length ?? 0) - (localStats.present + localStats.absent + localStats.medical + localStats.vacation))} color="blue" hint="Pendentes" />
       </div>
 
       <Mk9Panel>
@@ -325,6 +346,7 @@ export function Mk9PresenceModule() {
                 <SelectValue placeholder="UF" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border text-foreground">
+                <SelectItem value="VACATION">FÉRIAS</SelectItem>
                 <SelectItem value="__ALL__">TODAS</SelectItem>
                 {ufs.map(uf => (
                   <SelectItem key={uf} value={uf}>{uf}</SelectItem>
@@ -383,6 +405,11 @@ export function Mk9PresenceModule() {
                               onClick={() => handleStatusChange(item.id, 'MEDICAL_CERTIFICATE')}
                               variant="medical"
                             />
+                            <PresenceButton 
+                              active={local.status === 'VACATION'} 
+                              onClick={() => handleStatusChange(item.id, 'VACATION')}
+                              variant="vacation"
+                            />
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -406,11 +433,12 @@ export function Mk9PresenceModule() {
   );
 }
 
-function PresenceButton({ active, onClick, variant }: { active: boolean, onClick: () => void, variant: 'present' | 'absent' | 'medical' }) {
+function PresenceButton({ active, onClick, variant }: { active: boolean, onClick: () => void, variant: 'present' | 'absent' | 'medical' | 'vacation' }) {
   const configs = {
     present: { label: 'Presente', icon: Check, activeClass: 'bg-emerald-500 text-white shadow-sm', inactiveClass: 'text-emerald-500 hover:bg-emerald-500/10 border-emerald-500/20' },
     absent: { label: 'Falta', icon: X, activeClass: 'bg-rose-500 text-white shadow-sm', inactiveClass: 'text-rose-500 hover:bg-rose-500/10 border-rose-500/20' },
-    medical: { label: 'Atestado', icon: Plus, activeClass: 'bg-amber-500 text-white shadow-sm', inactiveClass: 'text-amber-500 hover:bg-amber-500/10 border-amber-500/20' }
+    medical: { label: 'Atestado', icon: Plus, activeClass: 'bg-amber-500 text-white shadow-sm', inactiveClass: 'text-amber-500 hover:bg-amber-500/10 border-amber-500/20' },
+    vacation: { label: 'Férias', icon: Users, activeClass: 'bg-purple-500 text-white shadow-sm', inactiveClass: 'text-purple-500 hover:bg-purple-500/10 border-purple-500/20' }
   };
   
   const config = configs[variant];
