@@ -5,10 +5,10 @@ import { Mk9PortalDashboard } from '@/components/mk9-portal-dashboard';
 export const Route = createFileRoute('/mk9-portal')({
   beforeLoad: async () => {
     // Garante que apenas PROMOTOR (ou ADMIN/SUPERVISOR testando) acesse
-    await requireMk9RoleScope(['PROMOTOR', 'ADMIN', 'SUPERVISOR']);
+    await requireMk9RoleScope(['PROMOTOR', 'ADMIN', 'SUPERVISOR'], undefined);
   },
   loader: async () => {
-    const { scope } = await requireMk9RoleScope();
+    const { scope } = await requireMk9RoleScope(['PROMOTOR', 'ADMIN', 'SUPERVISOR'], undefined);
     
     // Se for um PROMOTOR sem promoter_id vinculado no escopo, algo está errado
     if (scope.role === 'PROMOTOR' && (!scope.allowedPromoterIds || scope.allowedPromoterIds.length === 0)) {

@@ -58,7 +58,7 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
-  const { session, loading, signOut } = useMk9Session();
+  const { session, loading, roles, signOut } = useMk9Session();
   const search = Route.useSearch() as { session_expired?: string };
   const navigate = useNavigate();
 
