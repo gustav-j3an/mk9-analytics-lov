@@ -482,17 +482,22 @@ function SidebarItem({
     </button>
   );
 
-  // IMPORTANTE: a estrutura do Tooltip é sempre a mesma para evitar que o Radix
-  // remonte a árvore (Presence) quando a sidebar recolhe/expande — isso causava
-  // um loop infinito de atualização de refs ("Maximum update depth exceeded").
+  // Tooltip TOTALMENTE controlado e com estrutura fixa: alternar entre
+  // controlado/não-controlado (open={false} ↔ undefined) e montar/desmontar o
+  // TooltipContent causava loop de refs no Radix Presence
+  // ("Maximum update depth exceeded").
+  const [open, setOpen] = useState(false);
+
   return (
-    <Tooltip open={collapsed ? undefined : false}>
+    <Tooltip open={collapsed && open} onOpenChange={setOpen}>
       <TooltipTrigger asChild>{content}</TooltipTrigger>
-      {collapsed && (
-        <TooltipContent side="right" className="bg-popover border-border text-popover-foreground">
-          {label}
-        </TooltipContent>
-      )}
+      <TooltipContent
+        side="right"
+        className="bg-popover border-border text-popover-foreground"
+      >
+        {label}
+      </TooltipContent>
     </Tooltip>
   );
 }
+
