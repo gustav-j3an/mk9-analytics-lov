@@ -1,3 +1,4 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -75,146 +76,54 @@ export function PromoterIndividualRoute() {
         return matrix.reduce((acc, row) => acc + row.days.size, 0);
     }, [matrix]);
     if (routesQ.isLoading || promotersQ.isLoading) {
-        return (<div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary"/>
-        <p className="text-sm text-muted-foreground animate-pulse font-black uppercase tracking-widest">
-          Carregando Matriz Operacional...
-        </p>
-      </div>);
+        return (_jsxs("div", { className: "flex flex-col items-center justify-center min-h-[400px] gap-4", children: [
+                _jsx(Loader2, { className: "h-8 w-8 animate-spin text-primary" }), _jsx("p", { className: "text-sm text-muted-foreground animate-pulse font-black uppercase tracking-widest", children: "Carregando Matriz Operacional..." })
+            ] }));
     }
-    return (<div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-2 mb-2">
-        <Button variant="ghost" size="sm" onClick={() => navigate({ to: '/', search: { module: 'roteiros' } })} className="text-muted-foreground hover:text-foreground -ml-2">
-          <ArrowLeft className="h-4 w-4 mr-2"/>
-          <span className="text-[10px] font-black uppercase tracking-widest">Voltar para Gestão</span>
-        </Button>
-      </div>
-
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-              <Users className="h-5 w-5 text-primary"/>
-            </div>
-            <div>
-              <h1 className="text-2xl font-black tracking-tighter text-foreground uppercase">
-                Rota Individual
-              </h1>
-              <p className="text-sm text-muted-foreground font-medium">
-                {promoter?.name || "Promotor não encontrado"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="bg-card border border-border px-4 py-2 rounded-xl flex flex-col items-center justify-center min-w-[120px]">
-            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Total de Visitas</span>
-            <span className="text-xl font-black text-primary tracking-tighter">{totalVisits}</span>
-          </div>
-
-          <div className="flex flex-col gap-1.5 min-w-[180px]">
-            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Referência</label>
-            <div className="relative group">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-primary transition-colors"/>
-              <Input type="date" value={referenceDate} onChange={(e) => navigate({ search: { ...search, date: e.target.value } })} className="h-9 pl-9 bg-card border-border/50 text-xs font-bold uppercase tracking-tighter"/>
-            </div>
-          </div>
-
-          <Button variant="outline" disabled className="h-10 border-border text-muted-foreground text-[10px] font-black uppercase tracking-widest">
-            <Download className="h-4 w-4 mr-2"/> Exportar Excel
-          </Button>
-        </div>
-      </div>
-
-      <Mk9Panel className="p-0 overflow-hidden border-border/50">
-        <div className="p-4 border-b border-border/50 bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-            <Input placeholder="Buscar por loja ou indústria..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="h-9 pl-10 bg-background border-border/50 text-xs"/>
-          </div>
-          
-          <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-primary"/>
-              <span>Visita Programada</span>
-            </div>
-            <span>|</span>
-            <span>{filteredMatrix.length} Combinações</span>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto w-full">
-          <Table>
-            <TableHeader className="bg-muted/30 sticky top-0 z-10 backdrop-blur-sm">
-              <TableRow className="hover:bg-transparent border-border/50">
-                <TableHead className="w-[200px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground">Indústria</TableHead>
-                <TableHead className="min-w-[250px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground">Loja</TableHead>
-                <TableHead className="w-[60px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground text-center">UF</TableHead>
-                {WEEKDAYS.slice(1).map((d, i) => (<TableHead key={d} className="w-[60px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground text-center bg-primary/5">
-                    {d}
-                  </TableHead>))}
-                <TableHead className="w-[60px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground text-center bg-primary/5">
-                  DOM
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMatrix.length === 0 ? (<TableRow>
-                  <TableCell colSpan={10} className="h-32 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center gap-2">
-                      <Info className="h-5 w-5 opacity-20"/>
-                      <span className="text-xs font-medium">Nenhuma rota encontrada para os filtros.</span>
-                    </div>
-                  </TableCell>
-                </TableRow>) : (filteredMatrix.map((row, idx) => (<TableRow key={idx} className="hover:bg-primary/5 transition-colors border-border/40 group">
-                    <TableCell className="font-bold text-xs uppercase tracking-tighter text-foreground py-3">
-                      {row.industryName}
-                    </TableCell>
-                    <TableCell className="py-3">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-black text-foreground uppercase tracking-tight">
-                          {row.storeName}
-                        </span>
-                        {row.storeChain && (<span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
-                            {row.storeChain}
-                          </span>)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center py-3">
-                      <Badge variant="outline" className="text-[9px] font-black px-1.5 h-5 bg-background border-border/50">
-                        {row.uf || "—"}
-                      </Badge>
-                    </TableCell>
-                    {/* Monday to Saturday */}
-                    {[1, 2, 3, 4, 5, 6].map((day) => (<TableCell key={day} className={cn("text-center py-3 border-x border-border/20", row.days.has(day) ? "bg-primary/5" : "")}>
-                        {row.days.has(day) ? (<div className="flex justify-center">
-                            <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-[0_0_10px_rgba(168,85,247,0.2)] animate-in zoom-in duration-300">
-                              <span className="text-xs font-black">✓</span>
-                            </div>
-                          </div>) : (<span className="text-[10px] text-muted-foreground/10 font-black">•</span>)}
-                      </TableCell>))}
-                    {/* Sunday */}
-                    <TableCell className={cn("text-center py-3 border-l border-border/20", row.days.has(0) ? "bg-primary/5" : "")}>
-                      {row.days.has(0) ? (<div className="flex justify-center">
-                          <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
-                            <span className="text-xs font-black">✓</span>
-                          </div>
-                        </div>) : (<span className="text-[10px] text-muted-foreground/10 font-black">•</span>)}
-                    </TableCell>
-                  </TableRow>)))}
-            </TableBody>
-          </Table>
-        </div>
-      </Mk9Panel>
-
-      <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
-        <Info className="h-5 w-5 text-primary shrink-0"/>
-        <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
-          Esta matriz representa o roteiro planejado vigente na data de referência. 
-          As marcações <span className="text-primary font-bold tracking-tight">✓</span> indicam visitas programadas semanais. 
-          O total de <span className="text-foreground font-black tracking-tight">{totalVisits} visitas</span> é a soma de todas as ocorrências semanais.
-        </p>
-      </div>
-    </div>);
+    return (_jsxs("div", { className: "space-y-6 animate-in fade-in duration-500", children: [
+            _jsx("div", { className: "flex items-center gap-2 mb-2", children: _jsxs(Button, { variant: "ghost", size: "sm", onClick: () => navigate({ to: '/', search: { module: 'roteiros' } }), className: "text-muted-foreground hover:text-foreground -ml-2", children: [
+                        _jsx(ArrowLeft, { className: "h-4 w-4 mr-2" }), _jsx("span", { className: "text-[10px] font-black uppercase tracking-widest", children: "Voltar para Gest\u00E3o" })
+                    ] }) }), _jsxs("div", { className: "flex flex-col lg:flex-row lg:items-end justify-between gap-6", children: [
+                    _jsx("div", { className: "space-y-1", children: _jsxs("div", { className: "flex items-center gap-3", children: [
+                                _jsx("div", { className: "h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20", children: _jsx(Users, { className: "h-5 w-5 text-primary" }) }), _jsxs("div", { children: [
+                                        _jsx("h1", { className: "text-2xl font-black tracking-tighter text-foreground uppercase", children: "Rota Individual" }), _jsx("p", { className: "text-sm text-muted-foreground font-medium", children: promoter?.name || "Promotor não encontrado" })
+                                    ] })
+                            ] }) }), _jsxs("div", { className: "flex flex-wrap items-center gap-3", children: [
+                            _jsxs("div", { className: "bg-card border border-border px-4 py-2 rounded-xl flex flex-col items-center justify-center min-w-[120px]", children: [
+                                    _jsx("span", { className: "text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1", children: "Total de Visitas" }), _jsx("span", { className: "text-xl font-black text-primary tracking-tighter", children: totalVisits })
+                                ] }), _jsxs("div", { className: "flex flex-col gap-1.5 min-w-[180px]", children: [
+                                    _jsx("label", { className: "text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1", children: "Refer\u00EAncia" }), _jsxs("div", { className: "relative group", children: [
+                                            _jsx(Calendar, { className: "absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" }), _jsx(Input, { type: "date", value: referenceDate, onChange: (e) => navigate({ search: { ...search, date: e.target.value } }), className: "h-9 pl-9 bg-card border-border/50 text-xs font-bold uppercase tracking-tighter" })
+                                        ] })
+                                ] }), _jsxs(Button, { variant: "outline", disabled: true, className: "h-10 border-border text-muted-foreground text-[10px] font-black uppercase tracking-widest", children: [
+                                    _jsx(Download, { className: "h-4 w-4 mr-2" }),
+                                    " Exportar Excel"] })
+                        ] })
+                ] }), _jsxs(Mk9Panel, { className: "p-0 overflow-hidden border-border/50", children: [
+                    _jsxs("div", { className: "p-4 border-b border-border/50 bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-4", children: [
+                            _jsxs("div", { className: "relative flex-1 max-w-md", children: [
+                                    _jsx(SearchIcon, { className: "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" }), _jsx(Input, { placeholder: "Buscar por loja ou ind\u00FAstria...", value: searchTerm, onChange: (e) => setSearchTerm(e.target.value), className: "h-9 pl-10 bg-background border-border/50 text-xs" })
+                                ] }), _jsxs("div", { className: "flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2", children: [
+                                    _jsxs("div", { className: "flex items-center gap-2", children: [
+                                            _jsx("div", { className: "h-2 w-2 rounded-full bg-primary" }), _jsx("span", { children: "Visita Programada" })
+                                        ] }), _jsx("span", { children: "|" }), _jsxs("span", { children: [filteredMatrix.length, " Combina\u00E7\u00F5es"] })
+                                ] })
+                        ] }), _jsx("div", { className: "overflow-x-auto w-full", children: _jsxs(Table, { children: [
+                                _jsx(TableHeader, { className: "bg-muted/30 sticky top-0 z-10 backdrop-blur-sm", children: _jsxs(TableRow, { className: "hover:bg-transparent border-border/50", children: [
+                                            _jsx(TableHead, { className: "w-[200px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground", children: "Ind\u00FAstria" }), _jsx(TableHead, { className: "min-w-[250px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground", children: "Loja" }), _jsx(TableHead, { className: "w-[60px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground text-center", children: "UF" }), WEEKDAYS.slice(1).map((d, i) => (_jsx(TableHead, { className: "w-[60px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground text-center bg-primary/5", children: d }, d))), _jsx(TableHead, { className: "w-[60px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground text-center bg-primary/5", children: "DOM" })
+                                        ] }) }), _jsx(TableBody, { children: filteredMatrix.length === 0 ? (_jsx(TableRow, { children: _jsx(TableCell, { colSpan: 10, className: "h-32 text-center text-muted-foreground", children: _jsxs("div", { className: "flex flex-col items-center gap-2", children: [
+                                                    _jsx(Info, { className: "h-5 w-5 opacity-20" }), _jsx("span", { className: "text-xs font-medium", children: "Nenhuma rota encontrada para os filtros." })
+                                                ] }) }) })) : (filteredMatrix.map((row, idx) => (_jsxs(TableRow, { className: "hover:bg-primary/5 transition-colors border-border/40 group", children: [
+                                            _jsx(TableCell, { className: "font-bold text-xs uppercase tracking-tighter text-foreground py-3", children: row.industryName }), _jsx(TableCell, { className: "py-3", children: _jsxs("div", { className: "flex flex-col", children: [
+                                                        _jsx("span", { className: "text-xs font-black text-foreground uppercase tracking-tight", children: row.storeName }), row.storeChain && (_jsx("span", { className: "text-[9px] font-bold text-muted-foreground uppercase tracking-widest", children: row.storeChain }))] }) }), _jsx(TableCell, { className: "text-center py-3", children: _jsx(Badge, { variant: "outline", className: "text-[9px] font-black px-1.5 h-5 bg-background border-border/50", children: row.uf || "—" }) }), [1, 2, 3, 4, 5, 6].map((day) => (_jsx(TableCell, { className: cn("text-center py-3 border-x border-border/20", row.days.has(day) ? "bg-primary/5" : ""), children: row.days.has(day) ? (_jsx("div", { className: "flex justify-center", children: _jsx("div", { className: "h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-[0_0_10px_rgba(168,85,247,0.2)] animate-in zoom-in duration-300", children: _jsx("span", { className: "text-xs font-black", children: "\u2713" }) }) })) : (_jsx("span", { className: "text-[10px] text-muted-foreground/10 font-black", children: "\u2022" })) }, day))), _jsx(TableCell, { className: cn("text-center py-3 border-l border-border/20", row.days.has(0) ? "bg-primary/5" : ""), children: row.days.has(0) ? (_jsx("div", { className: "flex justify-center", children: _jsx("div", { className: "h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]", children: _jsx("span", { className: "text-xs font-black", children: "\u2713" }) }) })) : (_jsx("span", { className: "text-[10px] text-muted-foreground/10 font-black", children: "\u2022" })) })
+                                        ] }, idx)))) })
+                            ] }) })
+                ] }), _jsxs("div", { className: "flex items-center gap-3 p-4 bg-primary/5 rounded-xl border border-primary/10", children: [
+                    _jsx(Info, { className: "h-5 w-5 text-primary shrink-0" }), _jsxs("p", { className: "text-[11px] text-muted-foreground font-medium leading-relaxed", children: ["Esta matriz representa o roteiro planejado vigente na data de refer\u00EAncia. As marca\u00E7\u00F5es ",
+                            _jsx("span", { className: "text-primary font-bold tracking-tight", children: "\u2713" }),
+                            " indicam visitas programadas semanais. O total de ",
+                            _jsxs("span", { className: "text-foreground font-black tracking-tight", children: [totalVisits, " visitas"] }),
+                            " \u00E9 a soma de todas as ocorr\u00EAncias semanais."] })
+                ] })
+        ] }));
 }
