@@ -261,15 +261,16 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
     if (error) throw error;
 
     // Resumo
+    const calculateTotal = (list: any[]) => list.reduce((acc: number, d: any) => {
+      const industryCount = d.items?.length || 0;
+      const unitRate = Number(d.amount) || 0;
+      return acc + (unitRate * industryCount);
+    }, 0);
+
     const totalDailies = dailies.length;
-    const totalAmount = dailies
-      .reduce((acc: number, d: any) => acc + Number(d.amount), 0);
-    const totalPaid = dailies
-      .filter((d: any) => d.payment_status === 'PAGO')
-      .reduce((acc: number, d: any) => acc + Number(d.amount), 0);
-    const totalToPay = dailies
-      .filter((d: any) => d.payment_status === 'A PAGAR')
-      .reduce((acc: number, d: any) => acc + Number(d.amount), 0);
+    const totalAmount = calculateTotal(dailies);
+    const totalPaid = calculateTotal(dailies.filter((d: any) => d.payment_status === 'PAGO'));
+    const totalToPay = calculateTotal(dailies.filter((d: any) => d.payment_status === 'A PAGAR'));
     
     const uniqueFreelancers = new Set(dailies.map((d: any) => d.freelancer_id)).size;
     const uniqueStores = new Set(dailies.flatMap((d: any) => d.items.map((it: any) => it.store_id))).size;
@@ -291,7 +292,8 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       DATA: d.date,
       FREELANCER: d.freelancer?.name,
       SUPERVISOR: d.supervisor?.name || "-",
-      VALOR: Number(d.amount),
+      VALOR_UNITARIO: Number(d.amount),
+      VALOR_TOTAL: Number(d.amount) * d.items.length,
       STATUS: d.status,
       "STATUS FINANCEIRO": d.payment_status,
       "DATA PAGAMENTO": d.payment_date || "-",
@@ -308,7 +310,8 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       REDE: it.store?.chain || "-",
       LOJA_UF: it.store?.uf || "-",
       INDÚSTRIA: it.industry?.name,
-      "VALOR DA DIÁRIA": Number(d.amount),
+      "VALOR UNITÁRIO DA DIÁRIA": Number(d.amount),
+      "VALOR TOTAL DA DIÁRIA": Number(d.amount) * d.items.length,
       STATUS: d.status,
       "STATUS FINANCEIRO": d.payment_status,
       "DATA PAGAMENTO": d.payment_date || "-",
