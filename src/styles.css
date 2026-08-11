@@ -248,3 +248,84 @@
 .light .logo-mk9-text .text-white {
     color: var(--foreground) !important;
 }
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+  
+  body {
+    background-color: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide UI elements */
+  .print\:hidden,
+  nav,
+  aside,
+  header,
+  footer,
+  button:not(.print\:show),
+  [role="navigation"],
+  .mk9-sidebar,
+  .mk9-topbar,
+  .floating-avatar,
+  .scroll-indicator,
+  .search-container {
+    display: none !important;
+  }
+
+  /* Force light theme elements */
+  .dark {
+    color-scheme: light !important;
+  }
+
+  .print\:border-none {
+    border: none !important;
+  }
+  
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+
+  .print\:bg-white {
+    background-color: white !important;
+  }
+
+  .print\:text-black {
+    color: black !important;
+  }
+
+  .print\:border-gray-300 {
+    border: 1px solid #d1d5db !important;
+  }
+
+  /* Table Specifics */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    padding: 6px 4px !important;
+    font-size: 9pt !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  .print\:break-inside-avoid {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+

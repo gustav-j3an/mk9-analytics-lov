@@ -8,6 +8,7 @@ import {
   Download,
   Info,
   Loader2,
+  Printer,
   Search as SearchIcon,
   Users,
 } from "lucide-react";
@@ -25,9 +26,9 @@ import {
 import { Badge } from "../ui/badge";
 import { mk9RoutesListVersioned } from "../../lib/mk9-routes.functions";
 import { mk9ListPromoters } from "../../lib/mk9-data.functions";
-import { exportPromoterRouteExcel } from "../../lib/mk9-promoter-route-export.functions";
 import { cn } from "../../lib/utils";
 import { toast } from "sonner";
+
 
 
 
@@ -51,8 +52,8 @@ export function PromoterIndividualRoute() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const referenceDate = search.date || new Date().toISOString().slice(0, 10);
-  const [isExporting, setIsExporting] = useState(false);
-  const exportExcelFn = useServerFn(exportPromoterRouteExcel);
+  const [isPrinting, setIsPrinting] = useState(false);
+
 
 
   const listRoutesFn = useServerFn(mk9RoutesListVersioned);
@@ -118,36 +119,10 @@ export function PromoterIndividualRoute() {
     return matrix.reduce((acc, row) => acc + row.days.size, 0);
   }, [matrix]);
 
-  const handleExportExcel = async () => {
-    try {
-      setIsExporting(true);
-      const result = await exportExcelFn({ data: { promoterId, referenceDate } });
-      
-      const byteCharacters = atob(result.base64);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = result.filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      toast.success("Excel gerado com sucesso!");
-    } catch (error) {
-      console.error("Erro na exportação:", error);
-      toast.error("Erro ao gerar o arquivo Excel.");
-    } finally {
-      setIsExporting(false);
-    }
+  const handlePrint = () => {
+    window.print();
   };
+
 
   if (routesQ.isLoading || promotersQ.isLoading) {
 
@@ -162,8 +137,37 @@ export function PromoterIndividualRoute() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="space-y-6 animate-in fade-in duration-500 relative">
+      {/* Print-only Header */}
+      <div className="hidden print:block mb-8 border-b-2 border-primary/20 pb-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-xl font-black tracking-tight text-primary uppercase mb-1">MK9 Command Center</h1>
+            <h2 className="text-lg font-black text-foreground uppercase">Rota Individual</h2>
+          </div>
+          <div className="text-right">
+            <p className="text-xs font-black uppercase text-muted-foreground">Emissão</p>
+            <p className="text-sm font-bold">{new Date().toLocaleDateString('pt-BR')}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-3 gap-8">
+          <div className="space-y-1">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Promotor</span>
+            <span className="text-base font-bold text-foreground uppercase">{promoter?.name}</span>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Referência</span>
+            <span className="text-base font-bold text-foreground">{referenceDate.split('-').reverse().join('/')}</span>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Total de Visitas</span>
+            <span className="text-base font-bold text-primary">{totalVisits}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mb-2 print:hidden">
         <Button
           variant="ghost"
           size="sm"
@@ -175,7 +179,8 @@ export function PromoterIndividualRoute() {
         </Button>
       </div>
 
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 print:hidden">
+
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
@@ -213,23 +218,21 @@ export function PromoterIndividualRoute() {
 
           <Button
             variant="outline"
-            onClick={handleExportExcel}
-            disabled={isExporting || filteredMatrix.length === 0}
+            onClick={handlePrint}
+            disabled={matrix.length === 0}
             className="h-10 border-primary/20 hover:bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
           >
-            {isExporting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4 mr-2" />
-            )}
-            Exportar Excel
+            <Printer className="h-4 w-4 mr-2" />
+            Imprimir PDF
           </Button>
+
 
         </div>
       </div>
 
-      <Mk9Panel className="p-0 overflow-hidden border-border/50">
-        <div className="p-4 border-b border-border/50 bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <Mk9Panel className="p-0 overflow-hidden border-border/50 print:border-none print:shadow-none print:bg-white">
+        <div className="p-4 border-b border-border/50 bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
+
           <div className="relative flex-1 max-w-md">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -250,25 +253,28 @@ export function PromoterIndividualRoute() {
           </div>
         </div>
 
-        <div className="overflow-x-auto w-full">
-          <Table>
-            <TableHeader className="bg-muted/30 sticky top-0 z-10 backdrop-blur-sm">
-              <TableRow className="hover:bg-transparent border-border/50">
-                <TableHead className="w-[200px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground">Indústria</TableHead>
-                <TableHead className="min-w-[250px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground">Loja</TableHead>
-                <TableHead className="w-[60px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground text-center">UF</TableHead>
+        <div className="overflow-x-auto w-full print:overflow-visible">
+          <Table className="print:text-black">
+            <TableHeader className="bg-muted/30 sticky top-0 z-10 backdrop-blur-sm print:static print:bg-gray-100">
+              <TableRow className="hover:bg-transparent border-border/50 print:border-gray-300">
+
+                <TableHead className="w-[18%] h-10 text-[10px] font-black uppercase tracking-widest text-foreground print:text-black print:border print:border-gray-300">Indústria</TableHead>
+                <TableHead className="w-[40%] h-10 text-[10px] font-black uppercase tracking-widest text-foreground print:text-black print:border print:border-gray-300">Loja</TableHead>
+                <TableHead className="w-[5%] h-10 text-[10px] font-black uppercase tracking-widest text-foreground text-center print:text-black print:border print:border-gray-300">UF</TableHead>
                 {WEEKDAYS.slice(1).map((d, i) => (
-                  <TableHead key={d} className="w-[60px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground text-center bg-primary/5">
+                  <TableHead key={d} className="w-[5%] h-10 text-[10px] font-black uppercase tracking-widest text-foreground text-center bg-primary/5 print:bg-gray-50 print:text-black print:border print:border-gray-300">
                     {d}
                   </TableHead>
                 ))}
-                <TableHead className="w-[60px] h-10 text-[10px] font-black uppercase tracking-widest text-foreground text-center bg-primary/5">
+                <TableHead className="w-[5%] h-10 text-[10px] font-black uppercase tracking-widest text-foreground text-center bg-primary/5 print:bg-gray-50 print:text-black print:border print:border-gray-300">
                   DOM
                 </TableHead>
               </TableRow>
+
             </TableHeader>
-            <TableBody>
-              {filteredMatrix.length === 0 ? (
+            <TableBody className="print:bg-white">
+              {(isPrinting ? matrix : filteredMatrix).length === 0 ? (
+
                 <TableRow>
                   <TableCell colSpan={10} className="h-32 text-center text-muted-foreground">
                     <div className="flex flex-col items-center gap-2">
@@ -278,58 +284,64 @@ export function PromoterIndividualRoute() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredMatrix.map((row, idx) => (
-                  <TableRow key={idx} className="hover:bg-primary/5 transition-colors border-border/40 group">
-                    <TableCell className="font-bold text-xs uppercase tracking-tighter text-foreground py-3">
+                (isPrinting ? matrix : filteredMatrix).map((row, idx) => (
+                  <TableRow key={idx} className="hover:bg-primary/5 transition-colors border-border/40 group print:border-gray-300 print:break-inside-avoid print:bg-white">
+                    <TableCell className="font-bold text-xs uppercase tracking-tighter text-foreground py-3 print:text-black print:border print:border-gray-300">
                       {row.industryName}
                     </TableCell>
-                    <TableCell className="py-3">
+
+                    <TableCell className="py-3 print:border print:border-gray-300">
                       <div className="flex flex-col">
-                        <span className="text-xs font-black text-foreground uppercase tracking-tight">
+                        <span className="text-xs font-black text-foreground uppercase tracking-tight print:text-black">
                           {row.storeName}
                         </span>
+
                         {row.storeChain && (
-                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest print:text-gray-500">
                             {row.storeChain}
                           </span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-center py-3">
-                      <Badge variant="outline" className="text-[9px] font-black px-1.5 h-5 bg-background border-border/50">
+                    <TableCell className="text-center py-3 print:border print:border-gray-300">
+                      <Badge variant="outline" className="text-[9px] font-black px-1.5 h-5 bg-background border-border/50 print:border-gray-300 print:text-black">
+
                         {row.uf || "—"}
                       </Badge>
                     </TableCell>
                     {/* Monday to Saturday */}
                     {[1, 2, 3, 4, 5, 6].map((day) => (
                       <TableCell key={day} className={cn(
-                        "text-center py-3 border-x border-border/20",
-                        row.days.has(day) ? "bg-primary/5" : ""
+                        "text-center py-3 border-x border-border/20 print:border print:border-gray-300",
+                        row.days.has(day) ? "bg-primary/5 print:bg-white" : ""
                       )}>
+
                         {row.days.has(day) ? (
                           <div className="flex justify-center">
-                            <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-[0_0_10px_rgba(168,85,247,0.2)] animate-in zoom-in duration-300">
+                            <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-[0_0_10px_rgba(168,85,247,0.2)] animate-in zoom-in duration-300 print:shadow-none print:border-primary/50 print:bg-primary/10">
                               <span className="text-xs font-black">✓</span>
                             </div>
                           </div>
                         ) : (
-                          <span className="text-[10px] text-muted-foreground/10 font-black">•</span>
+                          <span className="text-[10px] text-muted-foreground/10 font-black print:hidden">•</span>
+
                         )}
                       </TableCell>
                     ))}
                     {/* Sunday */}
                     <TableCell className={cn(
-                      "text-center py-3 border-l border-border/20",
-                      row.days.has(0) ? "bg-primary/5" : ""
+                      "text-center py-3 border-l border-border/20 print:border print:border-gray-300",
+                      row.days.has(0) ? "bg-primary/5 print:bg-white" : ""
                     )}>
+
                       {row.days.has(0) ? (
                         <div className="flex justify-center">
-                          <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+                          <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-[0_0_10px_rgba(168,85,247,0.2)] print:shadow-none print:border-primary/50 print:bg-primary/10">
                             <span className="text-xs font-black">✓</span>
                           </div>
                         </div>
                       ) : (
-                        <span className="text-[10px] text-muted-foreground/10 font-black">•</span>
+                        <span className="text-[10px] text-muted-foreground/10 font-black print:hidden">•</span>
                       )}
                     </TableCell>
                   </TableRow>
