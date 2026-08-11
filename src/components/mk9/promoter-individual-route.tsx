@@ -5,19 +5,15 @@ import { useParams, useNavigate, useSearch } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Calendar,
-  ChevronLeft,
-  ChevronRight,
   Download,
   Info,
   Loader2,
   Search as SearchIcon,
-  User,
   Users,
 } from "lucide-react";
 import { Mk9PageHeader, Mk9Panel } from "@/components/mk9/design-system";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -27,17 +23,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { mk9RoutesListVersioned } from "@/lib/mk9-routes.functions";
 import { mk9ListPromoters } from "@/lib/mk9-data.functions";
 import { cn } from "@/lib/utils";
 
 const WEEKDAYS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
+
 const WEEKDAYS_FULL = [
   "Domingo",
   "Segunda-feira",
