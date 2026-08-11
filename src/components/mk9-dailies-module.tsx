@@ -520,7 +520,6 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
   );
 }
 
-function BiWeeklyClosingPanel_Old(...) { // remove old if exists
 
 function KPICard({ label, value, icon: Icon, color = "text-white" }: any) {
   return (
