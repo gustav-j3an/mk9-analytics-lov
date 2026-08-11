@@ -137,7 +137,7 @@ export function Mk9AnalyticsApp() {
 
   return (
     <TooltipProvider delayDuration={0}>
-    <main className="min-h-screen w-full bg-background text-foreground flex flex-col md:flex-row overflow-hidden font-sans">
+    <main className="min-h-screen w-full bg-background text-white flex flex-col md:flex-row overflow-hidden font-sans">
       {/* Mobile Top Header */}
       <div className="md:hidden h-14 shrink-0 bg-card border-b border-border flex items-center justify-between px-4 z-30">
         <div className="flex items-center gap-2">
@@ -175,19 +175,19 @@ export function Mk9AnalyticsApp() {
             "h-16 flex items-center border-b border-border bg-background/50 shrink-0 transition-all duration-300",
             collapsed ? "justify-center gap-1 px-2" : "justify-between px-4"
           )}>
-            <div className={cn("flex items-center gap-2 overflow-hidden transition-all duration-300", collapsed && "w-8 shrink-0")}>
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary shrink-0">
-                <ShieldCheck className="text-white h-5 w-5" />
+              <div className={cn("flex items-center gap-2 overflow-hidden transition-all duration-300", collapsed && "w-8 shrink-0")}>
+                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary shrink-0">
+                  <ShieldCheck className="text-white h-5 w-5" />
+                </div>
+                {!collapsed && (
+                  <span className="font-black tracking-tighter text-lg text-white whitespace-nowrap">
+                    MK9 <span className="text-primary">COMMAND</span>
+                  </span>
+                )}
               </div>
-              {!collapsed && (
-                <span className="font-black tracking-tighter text-lg text-white whitespace-nowrap">
-                  MK9 <span className="text-primary">COMMAND</span>
-                </span>
-              )}
-            </div>
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-white/5 transition-colors"
+              className="text-muted-foreground hover:text-white p-1 rounded-md hover:bg-accent transition-colors"
               aria-label={collapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
             >
               {collapsed ? <ChevronsRight className="h-5 w-5" /> : <ChevronsLeft className="h-5 w-5" />}
@@ -229,7 +229,7 @@ export function Mk9AnalyticsApp() {
               ].filter(Boolean).map((cat: any, i) => (
                 <div key={i} className="space-y-1">
                   {!collapsed && (
-                    <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">
+                    <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">
                       {cat.title}
                     </p>
                   )}
@@ -251,7 +251,7 @@ export function Mk9AnalyticsApp() {
             </nav>
           </div>
 
-          <div className="p-4 border-t border-white/5 shrink-0">
+          <div className="p-4 border-t border-border/50 shrink-0">
             <button
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-2 text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors rounded-lg",
@@ -272,7 +272,7 @@ export function Mk9AnalyticsApp() {
       <div className="flex-1 flex flex-col min-w-0 bg-background">
         <header className="h-16 md:h-20 border-b border-border flex items-center justify-between px-4 md:px-8 bg-background/80 backdrop-blur-md z-10 shrink-0">
           <div className="flex items-center gap-4">
-            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-3">
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center gap-3">
               <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
               {activeModule === "dashboard" && "Dashboard"}
               {activeModule === "cockpit" && "Cockpit"}
@@ -295,13 +295,13 @@ export function Mk9AnalyticsApp() {
           </div>
           <div className="flex items-center gap-4">
             <ThemeSettings />
-            <div className="flex items-center gap-1 md:gap-2 bg-white/5 p-1 rounded-lg border border-white/5">
+            <div className="flex items-center gap-1 md:gap-2 bg-muted/50 p-1 rounded-lg border border-border/50">
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
                 <SelectTrigger className="w-24 md:w-32 h-7 border-none bg-transparent shadow-none focus:ring-0 text-[9px] md:text-[10px] font-bold text-white uppercase tracking-tighter shrink-0 px-1 md:px-2 gap-0.5 md:gap-1">
                   <Calendar className="h-3 w-3 mr-1.5 text-primary" />
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-command-deep border-white/10 text-white text-xs">
+                <SelectContent className="bg-popover border-border text-white text-xs">
                   {[
                     "Janeiro",
                     "Fevereiro",
@@ -333,7 +333,7 @@ export function Mk9AnalyticsApp() {
               />
             </div>
             {user && (
-              <div className="flex items-center gap-2 md:gap-3 pl-2 md:pl-4 border-l border-white/10">
+              <div className="flex items-center gap-2 md:gap-3 pl-2 md:pl-4 border-l border-border">
                 <div className="hidden sm:flex flex-col items-end">
                   <span className="text-[9px] md:text-[10px] font-black text-white truncate max-w-[60px] md:max-w-[100px] uppercase tracking-tighter">
                     {user.email?.split("@")[0]}
@@ -465,14 +465,14 @@ function SidebarItem({
         "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 relative group",
         active
           ? "bg-command-purple/10 text-white shadow-[0_0_20px_rgba(168,85,247,0.15)] neon-border-primary"
-          : "text-slate-400 hover:bg-white/5 hover:text-white",
+          : "text-muted-foreground hover:bg-accent hover:text-white",
         collapsed && "justify-center px-0"
       )}
     >
       <Icon
         className={cn(
           "h-5 w-5 transition-transform duration-300 group-hover:scale-110 shrink-0",
-          active ? "text-command-purple" : "text-slate-500",
+          active ? "text-command-purple" : "text-muted-foreground",
         )}
       />
       {!collapsed && <span className="truncate">{label}</span>}
@@ -486,7 +486,7 @@ function SidebarItem({
     return (
       <Tooltip>
         <TooltipTrigger asChild>{content}</TooltipTrigger>
-        <TooltipContent side="right" className="bg-command-deep border-white/10 text-white">
+        <TooltipContent side="right" className="bg-popover border-border text-white">
           {label}
         </TooltipContent>
       </Tooltip>

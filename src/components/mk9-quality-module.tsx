@@ -174,15 +174,15 @@ export function Mk9QualityModule({
         subtitle="Integridade analítica e monitoramento de inconsistências"
         icon={ShieldCheck}
         actions={
-          <div className="flex items-center gap-2 glass-command p-1.5 rounded-xl border border-white/5">
+          <div className="flex items-center gap-2 glass-command p-1.5 rounded-xl border border-border/50">
             <Select
               value={String(filters.month)}
               onValueChange={(v) => setFilters((f) => ({ ...f, month: Number(v) }))}
             >
-              <SelectTrigger className="h-8 w-[120px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider">
+              <SelectTrigger className="h-8 w-[120px] bg-input/50 border-border/50 text-[10px] font-bold text-white uppercase tracking-wider">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-card border-border text-white">
                 {MONTHS_PT.map((m, i) => (
                   <SelectItem
                     key={m}
@@ -239,23 +239,23 @@ export function Mk9QualityModule({
 
       <Mk9Panel>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
             Log de Inconsistências
           </h3>
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar por ocorrência..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-9 h-9 w-[280px] bg-command-deep border-white/10 text-white text-xs"
+                className="pl-9 h-9 w-[280px] bg-card border-border text-white text-xs"
               />
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/5 overflow-hidden">
+        <div className="rounded-xl border border-border/50 overflow-hidden">
           {listQ.isLoading ? (
             <Mk9LoadingState />
           ) : items.length === 0 ? (
@@ -265,7 +265,7 @@ export function Mk9QualityModule({
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="p-4 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors flex items-center justify-between group"
+                  className="p-4 border-b border-border/50 last:border-0 hover:bg-white/[0.02] transition-colors flex items-center justify-between group"
                 >
                   <div className="flex items-start gap-4">
                     <div
@@ -282,13 +282,13 @@ export function Mk9QualityModule({
                           <span className="text-[11px] font-black text-white uppercase tracking-tighter">
                             {String(item.evidence?.industryName ?? item.industryId ?? "SISTEMA")}
                           </span>
-                          <span className="text-[10px] text-slate-500">•</span>
-                          <span className="text-[11px] font-bold text-slate-300 uppercase tracking-tighter">
+                          <span className="text-[10px] text-muted-foreground">•</span>
+                          <span className="text-[11px] font-bold text-white/80 uppercase tracking-tighter">
                             {String(item.evidence?.storeName ?? item.storeId ?? "-")}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                          <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                             {item.evidence?.uf ? `${item.evidence.uf} • ` : ""}{dateTimeLabel(item.lastSeenAt)}
                           </span>
                         </div>
@@ -310,7 +310,7 @@ export function Mk9QualityModule({
                         </Mk9Badge>
                       </div>
                       
-                      <p className="mt-2 text-[10px] text-slate-400 font-medium leading-relaxed max-w-2xl border-l-2 border-white/5 pl-3">
+                      <p className="mt-2 text-[10px] text-muted-foreground font-medium leading-relaxed max-w-2xl border-l-2 border-border/50 pl-3">
                         {item.description}
                       </p>
                     </div>
@@ -319,7 +319,7 @@ export function Mk9QualityModule({
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedIssueId(item.id)}
-                    className="h-8 gap-2 text-slate-400 group-hover:text-command-purple opacity-0 group-hover:opacity-100 transition-all"
+                    className="h-8 gap-2 text-muted-foreground group-hover:text-command-purple opacity-0 group-hover:opacity-100 transition-all"
                   >
                     Visualizar <Eye className="h-3.5 w-3.5" />
                   </Button>

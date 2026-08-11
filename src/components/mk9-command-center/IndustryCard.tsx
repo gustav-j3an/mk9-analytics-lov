@@ -20,20 +20,20 @@ export function IndustryCard({ industries }: IndustryCardProps) {
 
   return (
     <div className="glass-command p-6 rounded-2xl shadow-xl">
-      <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6">
+      <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-6">
         Performance por Indústria
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {industries.map((industry) => (
           <div
             key={industry.name}
-            className="bg-command-card-alt/50 border border-white/5 p-4 rounded-xl hover:bg-command-card-alt transition-colors"
+            className="bg-command-card-alt/50 border border-border/50 p-4 rounded-xl hover:bg-command-card-alt transition-colors"
           >
             <div className="flex justify-between items-start mb-3">
-              <span className="text-white text-sm font-bold">{industry.name}</span>
+              <span className="text-foreground text-sm font-bold">{industry.name}</span>
               <span
                 className={cn(
-                  "text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5",
+                  "text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted/50",
                   industry.percentage > 85
                     ? "text-emerald-500"
                     : industry.percentage > 60
@@ -45,7 +45,7 @@ export function IndustryCard({ industries }: IndustryCardProps) {
               </span>
             </div>
             <div className="space-y-2">
-              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+              <div className="h-1.5 w-full bg-muted/50 rounded-full overflow-hidden">
                 <div
                   className={cn(
                     "h-full transition-all duration-500",

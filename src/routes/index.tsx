@@ -12,7 +12,7 @@ React, TypeScript, TanStack Start, Supabase, Postgres, Tailwind, shadcn/ui, Serv
 **Regra importante: não reconstruir do zero, não trocar stack, não redesenhar arquitetura sem necessidade real. O objetivo é continuidade, correção de regressões e evolução seguindo o que já existe.**
 
 ## Design system
-Tema dark premium, accent roxo neon, suporte azul/ciano, visual SaaS enterprise moderno. Esse padrão vale para TODOS os módulos, não só o dashboard.
+Personalização global de temas (Light/Dark) com tokens oklch semânticos. Accent roxo neon (Command Purple), suporte azul/ciano, visual SaaS enterprise moderno.
 
 ## Módulos do sistema
 - **Operação:** Cockpit (Visão Geral), Conciliação/Auditoria, Qualidade, Gestão Operacional, Importar Checklist, Roteiros, Presença, Equipes, Freelancers e Diárias.
@@ -25,11 +25,10 @@ Tema dark premium, accent roxo neon, suporte azul/ciano, visual SaaS enterprise 
 - 27 indústrias no banco (26 ativas, 1 arquivada) — ex: KING, COPRA, COOPATOS, AO QUADRADO, EMBAVI, RB ALIMENTOS.
 - KING tem competência operacional própria (não é mês calendário) — ex: 23/mês anterior a 22/mês atual.
 
-## Funcionalidades Recentes (v1.4.0 - v1.5.1)
-- **Gestão de Supervisores:** Cadastro centralizado e vínculo com promotores/equipes.
-- **Controle de Presença:** Registro diário, KPIs por equipe e exportação Excel.
-- **Freelancers & Diárias:** Cadastro com valor padrão (SST), registro de itens da diária (lojas/indústrias).
-- **Fechamento Financeiro:** Painel de fechamento quinzenal com status A PAGAR/PAGO e marcação em lote.
+## Funcionalidades Recentes (v1.6.0 - v1.8.0)
+- **Personalização Global (v1.6.0):** Tema claro/escuro nativo com cores personalizáveis.
+- **Sidebar Optimized (v1.7.0):** Recolhimento persistente, tooltips e design compacto.
+- **Native Light Mode (v1.8.0):** Overhaul completo de contraste e legibilidade para o modo claro, eliminando hardcodes dark-themed.
 
 ## Processo obrigatório de conclusão de tarefa
 Reproduzir -> achar causa raiz -> identificar arquivo/função -> corrigir -> validar no preview (login, dashboard, sidebar, rota afetada, refresh) — só então considerar concluído.
@@ -58,17 +57,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.5.1 — FINANCEIRO FREELANCERS",
+    title: "MK9 | v1.8.0 — NATIVE LIGHT MODE",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.5.1: FINANCEIRO FREELANCERS. Integração definitiva entre gestão de prestadores e controle de diárias com fechamento quinzenal.",
+        content: "MK9 Command Center v1.8.0: NATIVE LIGHT MODE. Experiência refinada com suporte total a temas claro/escuro e contraste aprimorado.",
       },
-      { property: "og:title", content: "MK9 | v1.3.26" },
+      { property: "og:title", content: "MK9 | v1.8.0" },
       {
         property: "og:description",
-        content: "Sistema operacional unificado com exportação de PDF estabilizada.",
-
+        content: "Sistema operacional unificado com suporte nativo a temas claro e escuro.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -126,7 +124,7 @@ function LoginContent() {
 
       <div className="max-w-md w-full z-10 flex flex-col items-center">
         <div className="w-full flex flex-col justify-center space-y-6">
-          <div className="bg-black/40 border border-white/5 p-8 rounded-2xl shadow-2xl relative overflow-hidden backdrop-blur-xl">
+          <div className="bg-card/40 border border-border/50 p-8 rounded-2xl shadow-2xl relative overflow-hidden backdrop-blur-xl">
             <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
               <ShieldCheck className="w-16 h-16 text-primary" />
             </div>
@@ -136,10 +134,10 @@ function LoginContent() {
                 <div className="p-3 bg-primary/20 rounded-xl border border-primary/30 mb-4 shadow-[0_0_20px_rgba(var(--primary-rgb),0.2)]">
                   <Activity className="w-8 h-8 text-primary" />
                 </div>
-                <h1 className="text-2xl font-black text-white tracking-[0.2em] uppercase text-center">
-                  MK9 ANALYTICS
+                <h1 className="text-2xl font-black text-foreground tracking-[0.2em] uppercase text-center">
+                  MK9 COMMAND CENTER
                 </h1>
-                <p className="text-[10px] text-slate-500 font-bold tracking-[0.4em] uppercase mt-1">
+                <p className="text-[10px] text-muted-foreground font-bold tracking-[0.4em] uppercase mt-1">
                   OPERATIONAL GATEWAY
                 </p>
               </div>
@@ -148,12 +146,12 @@ function LoginContent() {
                 <Mk9LoginForm />
               </ClientOnly>
 
-              <div className="mt-8 pt-6 border-t border-white/5 flex flex-col items-center gap-1 text-center">
-                <p className="text-[10px] text-slate-500 font-medium">
-                  MK9 Analytics • <span className="text-primary/80">v1.5.1</span>
+              <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  MK9 Command Center • <span className="text-primary/80">v1.8.0</span>
                 </p>
-                <p className="text-[9px] text-slate-600 uppercase tracking-widest font-bold">
-                  FINANCEIRO FREELANCERS
+                <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
+                  NATIVE LIGHT MODE
                 </p>
               </div>
             </div>

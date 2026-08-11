@@ -108,11 +108,11 @@ export function PresenceTeamsManager() {
 
       <div className="grid gap-3">
         {teams?.map(team => (
-          <div key={team.id} className="bg-white/[0.02] border border-white/5 rounded-xl p-4 flex items-center justify-between group hover:bg-white/[0.04] transition-all">
+          <div key={team.id} className="bg-white/[0.02] border border-border/50 rounded-xl p-4 flex items-center justify-between group hover:bg-white/[0.04] transition-all">
             <div>
               <p className="text-sm font-bold text-white">{team.name}</p>
               <div className="flex items-center gap-3 mt-1">
-                <p className="text-[10px] uppercase text-slate-500">Supervisor: {team.supervisor?.name || "Não definido"}</p>
+                <p className="text-[10px] uppercase text-muted-foreground">Supervisor: {team.supervisor?.name || "Não definido"}</p>
                 <div className="w-1 h-1 rounded-full bg-slate-700" />
                 <p className="text-[10px] uppercase text-command-purple font-bold">{team.member_count || 0} promotores</p>
               </div>
@@ -128,7 +128,7 @@ export function PresenceTeamsManager() {
                 <span className="text-[10px] font-bold">GERENCIAR</span>
               </Button>
               <Button variant="ghost" size="sm" onClick={() => { setEditingTeam(team); setTeamName(team.name); setSupervisorId(team.supervisor_id); setIsDialogOpen(true); }}>
-                <Edit2 className="w-4 h-4 text-slate-400" />
+                <Edit2 className="w-4 h-4 text-muted-foreground" />
               </Button>
               <Button variant="ghost" size="sm" onClick={() => archiveMutation.mutate(team.id)}>
                 <Trash2 className="w-4 h-4 text-rose-500" />
@@ -152,7 +152,7 @@ export function PresenceTeamsManager() {
       )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-command-deep border-white/10 text-white">
+        <DialogContent className="bg-command-deep border-border text-white">
           <DialogHeader>
             <DialogTitle>{editingTeam ? "Editar Equipe" : "Nova Equipe"}</DialogTitle>
           </DialogHeader>
@@ -265,22 +265,22 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-command-deep border-white/10 text-white max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="border-b border-white/5 pb-4">
+      <DialogContent className="bg-command-deep border-border text-white max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="border-b border-border/50 pb-4">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-command-purple" />
             <DialogTitle className="text-xl font-black uppercase tracking-tight">
               Gerenciar Promotores — <span className="text-command-purple">{team?.name}</span>
             </DialogTitle>
           </div>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
             {team?.supervisor?.name || "Sem Supervisor"} • {team?.members?.length || 0} promotores
           </p>
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden grid grid-cols-2 gap-6 py-6">
           {/* Members List */}
-          <div className="flex flex-col space-y-4 overflow-hidden border-r border-white/5 pr-6">
+          <div className="flex flex-col space-y-4 overflow-hidden border-r border-border/50 pr-6">
             <div className="flex items-center justify-between">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-emerald-500">
                 Membros da Equipe ({team?.members?.length || 0})
@@ -289,19 +289,19 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
 
             <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2">
               {team?.members?.length === 0 ? (
-                <div className="h-40 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-xl bg-white/[0.01]">
+                <div className="h-40 flex flex-col items-center justify-center border border-dashed border-border/50 rounded-xl bg-white/[0.01]">
                   <Users className="w-8 h-8 text-slate-700 mb-2" />
-                  <p className="text-[10px] text-slate-500 font-bold uppercase">Nenhum membro</p>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase">Nenhum membro</p>
                 </div>
               ) : (
                 team?.members?.map((member: any) => (
-                  <div key={member.id} className="bg-white/[0.03] border border-white/5 rounded-lg p-3 flex items-center justify-between group">
+                  <div key={member.id} className="bg-white/[0.03] border border-border/50 rounded-lg p-3 flex items-center justify-between group">
                     <div className="flex flex-col">
                       <span className="text-[11px] font-black text-white uppercase tracking-tight">
-                        {member.employee_number && <span className="text-slate-500 mr-2">{member.employee_number} |</span>}
+                        {member.employee_number && <span className="text-muted-foreground mr-2">{member.employee_number} |</span>}
                         {member.name}
                       </span>
-                      <span className="text-[9px] text-slate-500 font-bold">{member.uf || "-"}</span>
+                      <span className="text-[9px] text-muted-foreground font-bold">{member.uf || "-"}</span>
                     </div>
                     <Button 
                       variant="ghost" 
@@ -321,26 +321,26 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
           {/* Available Promoters */}
           <div className="flex flex-col space-y-4 overflow-hidden">
             <div className="flex items-center justify-between">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Promotores Disponíveis
               </h3>
             </div>
 
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nome ou matrícula..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-8 bg-black/40 border-white/10 text-[10px] font-bold text-white uppercase"
+                className="pl-9 h-8 bg-input/50 border-border text-[10px] font-bold text-white uppercase"
               />
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2">
               {availableMembers.length === 0 ? (
-                <div className="h-40 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-xl bg-white/[0.01]">
+                <div className="h-40 flex flex-col items-center justify-center border border-dashed border-border/50 rounded-xl bg-white/[0.01]">
                   <Search className="w-8 h-8 text-slate-700 mb-2" />
-                  <p className="text-[10px] text-slate-500 font-bold uppercase">Nada encontrado</p>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase">Nada encontrado</p>
                 </div>
               ) : (
                 availableMembers.map((member: any) => {
@@ -352,7 +352,7 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
                       key={member.id} 
                       className={cn(
                         "bg-white/[0.03] border rounded-lg p-3 flex items-center justify-between cursor-pointer transition-all",
-                        isSelected ? "border-command-purple/50 bg-command-purple/5" : "border-white/5 hover:border-white/20",
+                        isSelected ? "border-command-purple/50 bg-command-purple/5" : "border-border/50 hover:border-white/20",
                         inOtherTeam && !isSelected && "opacity-70"
                       )}
                       onClick={() => toggleSelect(member.id)}
@@ -361,17 +361,17 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
                         <div className="flex items-center gap-2">
                           <div className={cn(
                             "w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors",
-                            isSelected ? "bg-command-purple border-command-purple" : "border-white/20 bg-black/20"
+                            isSelected ? "bg-command-purple border-command-purple" : "border-white/20 bg-background/40"
                           )}>
                             {isSelected && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
                           </div>
                           <span className="text-[11px] font-black text-white uppercase tracking-tight">
-                            {member.employee_number && <span className="text-slate-500 mr-2">{member.employee_number} |</span>}
+                            {member.employee_number && <span className="text-muted-foreground mr-2">{member.employee_number} |</span>}
                             {member.name}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[9px] text-slate-500 font-bold">{member.uf || "-"}</span>
+                          <span className="text-[9px] text-muted-foreground font-bold">{member.uf || "-"}</span>
                           {inOtherTeam && (
                             <Badge variant="outline" className="h-3 text-[7px] border-amber-500/30 text-amber-500 uppercase tracking-widest bg-amber-500/5">
                               EM OUTRA EQUIPE
@@ -400,8 +400,8 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
           </div>
         </div>
 
-        <DialogFooter className="border-t border-white/5 pt-4">
-          <Button variant="ghost" className="text-slate-400 hover:text-white font-bold text-[10px] uppercase" onClick={onClose}>
+        <DialogFooter className="border-t border-border/50 pt-4">
+          <Button variant="ghost" className="text-muted-foreground hover:text-white font-bold text-[10px] uppercase" onClick={onClose}>
             FECHAR GERENCIAMENTO
           </Button>
         </DialogFooter>

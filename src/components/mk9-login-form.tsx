@@ -48,7 +48,7 @@ export function Mk9LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-md shadow-xl border-border/50 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-sm">
+    <Card className="w-full max-w-md shadow-xl border-border/50 bg-card/80 backdrop-blur-sm">
       <CardHeader className="space-y-2 text-center">
         <div className="flex justify-center mb-2">
           <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">

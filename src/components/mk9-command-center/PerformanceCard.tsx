@@ -21,7 +21,7 @@ export function PerformanceCard({ label, percentage, status, comparison }: Perfo
           {label}
         </h3>
         <span
-          className={cn("text-xs font-bold px-2 py-1 rounded-full bg-white/5", statusColor[status])}
+          className={cn("text-xs font-bold px-2 py-1 rounded-full bg-muted/50", statusColor[status])}
         >
           {status}
         </span>
@@ -37,7 +37,7 @@ export function PerformanceCard({ label, percentage, status, comparison }: Perfo
               stroke="currentColor"
               strokeWidth="8"
               fill="transparent"
-              className="text-white/5"
+              className="text-foreground/5"
             />
             <circle
               cx="48"
@@ -52,13 +52,13 @@ export function PerformanceCard({ label, percentage, status, comparison }: Perfo
               strokeLinecap="round"
             />
           </svg>
-          <div className="absolute inset-0 flex items-center justify-center font-bold text-lg text-white">
+          <div className="absolute inset-0 flex items-center justify-center font-bold text-lg text-foreground">
             {percentage}%
           </div>
         </div>
 
         <div className="flex-1 space-y-1">
-          <p className="text-white text-3xl font-bold tracking-tight">{percentage}%</p>
+          <p className="text-foreground text-3xl font-bold tracking-tight">{percentage}%</p>
           <p className="text-muted-foreground text-xs">{comparison}</p>
         </div>
       </div>

@@ -12,7 +12,7 @@ export const Mk9Panel = React.forwardRef<HTMLDivElement, Mk9PanelProps>(
       <div
         ref={ref}
         className={cn(
-          glass ? "glass-command" : "bg-command-card border border-white/5",
+          glass ? "glass-command" : "bg-command-card border border-border/50",
           "p-6 rounded-2xl shadow-2xl",
           className,
         )}
@@ -40,9 +40,9 @@ export function Mk9PageHeader({ title, subtitle, icon: Icon, actions }: Mk9PageH
           </div>
         )}
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase">{title}</h1>
+          <h1 className="text-xl md:text-2xl font-black text-foreground tracking-tighter uppercase">{title}</h1>
           {subtitle && (
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">
               {subtitle}
             </p>
           )}
@@ -73,13 +73,13 @@ export function Mk9MetricCard({
   className,
 }: Mk9MetricCardProps) {
   const colorMap = {
-    purple: "text-purple-400 bg-purple-500/10 border-purple-500/20 shadow-purple-500/5",
-    blue: "text-blue-400 bg-blue-500/10 border-blue-500/20 shadow-blue-500/5",
-    emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/5",
-    amber: "text-amber-400 bg-amber-500/10 border-amber-500/20 shadow-amber-500/5",
-    rose: "text-rose-400 bg-rose-500/10 border-rose-500/20 shadow-rose-500/5",
-    sky: "text-sky-400 bg-sky-500/10 border-sky-500/20 shadow-sky-500/5",
-    orange: "text-orange-400 bg-orange-500/10 border-orange-500/20 shadow-orange-500/5",
+    purple: "text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20 shadow-purple-500/5",
+    blue: "text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20 shadow-blue-500/5",
+    emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/5",
+    amber: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20 shadow-amber-500/5",
+    rose: "text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20 shadow-rose-500/5",
+    sky: "text-sky-600 dark:text-sky-400 bg-sky-500/10 border-sky-500/20 shadow-sky-500/5",
+    orange: "text-orange-600 dark:text-orange-400 bg-orange-500/10 border-orange-500/20 shadow-orange-500/5",
   };
 
   return (
@@ -93,12 +93,12 @@ export function Mk9MetricCard({
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">
             {label}
           </p>
-          <h3 className="text-xl md:text-2xl font-black text-white tracking-tighter">{value}</h3>
+          <h3 className="text-xl md:text-2xl font-black text-foreground tracking-tighter">{value}</h3>
           {hint && (
-            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">
+            <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
               {hint}
             </p>
           )}
@@ -123,11 +123,11 @@ export function Mk9Badge({
   variant?: "default" | "success" | "warning" | "danger" | "info";
 }) {
   const variants = {
-    default: "border-white/10 bg-white/5 text-slate-300",
-    success: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
-    warning: "border-amber-500/20 bg-amber-500/10 text-amber-400",
-    danger: "border-rose-500/20 bg-rose-500/10 text-rose-400",
-    info: "border-blue-500/20 bg-blue-500/10 text-blue-400",
+    default: "border-border bg-muted/50 text-foreground/80",
+    success: "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    warning: "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    danger: "border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400",
+    info: "border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400",
   };
 
   return (
@@ -147,7 +147,7 @@ export function Mk9LoadingState({ message = "Carregando dados..." }: { message?:
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-4">
       <Loader2 className="h-10 w-10 animate-spin text-command-purple/20" />
-      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{message}</p>
+      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{message}</p>
     </div>
   );
 }
@@ -160,9 +160,9 @@ export function Mk9EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 gap-4 border border-dashed border-white/5 rounded-2xl bg-white/[0.01]">
+    <div className="flex flex-col items-center justify-center py-20 gap-4 border border-dashed border-border/50 rounded-2xl bg-muted/10">
       <Inbox className="h-10 w-10 text-slate-700" />
-      <p className="text-sm font-medium text-slate-500 italic">{message}</p>
+      <p className="text-sm font-medium text-muted-foreground italic">{message}</p>
       {action && <div className="mt-2">{action}</div>}
     </div>
   );

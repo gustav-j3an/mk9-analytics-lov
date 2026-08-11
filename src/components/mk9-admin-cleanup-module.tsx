@@ -148,14 +148,14 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Indústria Alvo
             </label>
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white">
+              <SelectTrigger className="bg-input/50 border-border h-10 text-white">
                 <SelectValue placeholder="Selecione a indústria" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 {(industriesQ.data ?? []).map((i) => (
                   <SelectItem key={i.id} value={i.id}>
                     {i.name}
@@ -165,14 +165,14 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Competência (Mês)
             </label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white uppercase px-3 gap-2 shrink-0 min-w-[130px]">
+              <SelectTrigger className="bg-input/50 border-border h-10 text-white uppercase px-3 gap-2 shrink-0 min-w-[130px]">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 {MONTHS.map((m, i) => (
                   <SelectItem key={i} value={String(i + 1)}>
                     {m}
@@ -182,14 +182,14 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Ano
             </label>
             <Input
               type="number"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="bg-black/40 border-white/10 h-10 text-white"
+              className="bg-input/50 border-border h-10 text-white"
             />
           </div>
         </div>
@@ -234,7 +234,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
 
             <Mk9Panel>
               <Tabs defaultValue="visits">
-                <TabsList className="bg-white/5 border-white/10 p-1 h-12 mb-6">
+                <TabsList className="bg-muted/50 border-border p-1 h-12 mb-6">
                   <TabsTrigger
                     value="visits"
                     className="data-[state=active]:bg-mk9-accent-primary data-[state=active]:text-white font-bold uppercase text-[10px] tracking-widest"
@@ -256,7 +256,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                 </TabsList>
 
                 <TabsContent value="visits">
-                  <div className="max-h-[400px] overflow-auto border border-white/5 rounded-xl divide-y divide-white/[0.02] bg-black/20">
+                  <div className="max-h-[400px] overflow-auto border border-border/50 rounded-xl divide-y divide-white/[0.02] bg-background/40">
                     {diagnosis.sources.visits.map((v: any) => (
                       <div
                         key={v.id}
@@ -279,12 +279,12 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                             <span className="text-sm font-bold text-white uppercase tracking-tight">
                               {v.scheduled_date}
                             </span>
-                            <span className="text-[9px] text-slate-500 font-mono">
+                            <span className="text-[9px] text-muted-foreground font-mono">
                               ID: {v.id.slice(0, 13)}
                             </span>
                           </div>
                         </div>
-                        <Mk9Badge className="bg-white/5 border-white/10 text-slate-400">
+                        <Mk9Badge className="bg-muted/50 border-border text-muted-foreground">
                           LOJA: {v.store_id.slice(0, 8)}
                         </Mk9Badge>
                       </div>
@@ -293,7 +293,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                 </TabsContent>
 
                 <TabsContent value="frequencies">
-                  <div className="max-h-[400px] overflow-auto border border-white/5 rounded-xl divide-y divide-white/[0.02] bg-black/20">
+                  <div className="max-h-[400px] overflow-auto border border-border/50 rounded-xl divide-y divide-white/[0.02] bg-background/40">
                     {diagnosis.sources.frequencies.map((f: any) => (
                       <div
                         key={f.id}
@@ -316,7 +316,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                             <span className="text-sm font-bold text-white uppercase tracking-tight">
                               VIGÊNCIA: {f.valid_from}
                             </span>
-                            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+                            <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">
                               {f.source_type}
                             </span>
                           </div>
@@ -330,7 +330,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                 </TabsContent>
 
                 <TabsContent value="imports">
-                  <div className="max-h-[400px] overflow-auto border border-white/5 rounded-xl divide-y divide-white/[0.02] bg-black/20">
+                  <div className="max-h-[400px] overflow-auto border border-border/50 rounded-xl divide-y divide-white/[0.02] bg-background/40">
                     {diagnosis.sources.imports.map((i: any) => (
                       <div
                         key={i.id}
@@ -353,7 +353,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                             <span className="text-sm font-bold text-white uppercase tracking-tight truncate max-w-[300px]">
                               {i.filename}
                             </span>
-                            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+                            <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">
                               Início: {new Date(i.started_at).toLocaleDateString()}
                             </span>
                           </div>
@@ -411,24 +411,24 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
               </div>
 
               <div className="space-y-4 mb-8">
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <div className="flex justify-between items-center border-b border-border/50 pb-2">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                     Visitas
                   </span>
                   <span className="text-sm font-black text-white">
                     {selections.visitIds.length}
                   </span>
                 </div>
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <div className="flex justify-between items-center border-b border-border/50 pb-2">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                     Frequências
                   </span>
                   <span className="text-sm font-black text-white">
                     {selections.frequencyIds.length}
                   </span>
                 </div>
-                <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <div className="flex justify-between items-center border-b border-border/50 pb-2">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                     Importações
                   </span>
                   <span className="text-sm font-black text-white">
@@ -454,29 +454,29 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
       )}
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent className="bg-command-deep border-white/10 text-white">
+        <AlertDialogContent className="bg-command-deep border-border text-white">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-rose-500 font-black tracking-tighter uppercase flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" /> Confirmação de Segurança
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400 text-xs mt-2">
+            <AlertDialogDescription className="text-muted-foreground text-xs mt-2">
               Você está prestes a remover dados operacionais reais. Esta ação será registrada em log
               de auditoria e impactará todos os relatórios da indústria.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4 space-y-3">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               Justificativa Operacional *
             </label>
             <Input
               value={justification}
               onChange={(e) => setJustification(e.target.value)}
               placeholder="Ex: Correção de erro na planilha de origem..."
-              className="bg-black/40 border-white/10 text-white h-10"
+              className="bg-input/50 border-border text-white h-10"
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white/5 border-white/10 text-slate-400 hover:text-white">
+            <AlertDialogCancel className="bg-muted/50 border-border text-muted-foreground hover:text-white">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction

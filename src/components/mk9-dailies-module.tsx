@@ -162,13 +162,13 @@ export function Mk9DailiesModule() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-black text-white tracking-tighter uppercase">Controle de Diárias</h2>
-          <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Gestão de Freelancers e Atendimentos Avulsos</p>
+          <p className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Gestão de Freelancers e Atendimentos Avulsos</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <Button variant="outline" className="flex-1 md:flex-none border-command-purple/50 text-command-purple hover:bg-command-purple/10" onClick={() => setShowClosing(true)}>
             <TrendingUp className="w-4 h-4 mr-2" /> [ FECHAMENTO ]
           </Button>
-          <Button variant="outline" className="flex-1 md:flex-none border-white/10 hover:bg-white/5 text-slate-300" onClick={handleExport} disabled={isExporting}>
+          <Button variant="outline" className="flex-1 md:flex-none border-border hover:bg-muted/50 text-white/80" onClick={handleExport} disabled={isExporting}>
             {isExporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
             Exportar Excel
           </Button>
@@ -181,26 +181,26 @@ export function Mk9DailiesModule() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <KPICard label="Total no Período" value={kpis.count} icon={ArrowUpRight} />
-        <KPICard label="Valor Total" value={`R$ ${kpis.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-emerald-400" />
-        <KPICard label="A PAGAR" value={`R$ ${kpis.toPay.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-amber-400" />
-        <KPICard label="PAGO" value={`R$ ${kpis.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-blue-400" />
+        <KPICard label="Valor Total" value={`R$ ${kpis.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-emerald-600 dark:text-emerald-400" />
+        <KPICard label="A PAGAR" value={`R$ ${kpis.toPay.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-amber-600 dark:text-amber-400" />
+        <KPICard label="PAGO" value={`R$ ${kpis.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-blue-600 dark:text-blue-400" />
         <KPICard label="Freelancers" value={kpis.freelancers} icon={Users} />
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 p-4 bg-white/5 border border-white/10 rounded-xl">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 p-4 bg-muted/50 border border-border rounded-xl">
         <div className="space-y-1.5">
-          <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Início</label>
-          <Input type="date" value={filters.startDate} onChange={(e) => setFilters({ ...filters, startDate: e.target.value })} className="h-9 bg-black/40 border-white/10 text-xs" />
+          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Início</label>
+          <Input type="date" value={filters.startDate} onChange={(e) => setFilters({ ...filters, startDate: e.target.value })} className="h-9 bg-background/60 border-border text-xs" />
         </div>
         <div className="space-y-1.5">
-          <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Fim</label>
-          <Input type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value })} className="h-9 bg-black/40 border-white/10 text-xs" />
+          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Fim</label>
+          <Input type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value })} className="h-9 bg-background/60 border-border text-xs" />
         </div>
         <div className="space-y-1.5">
-          <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Freelancer</label>
+          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Freelancer</label>
           <Select value={filters.freelancerId} onValueChange={(val) => setFilters({ ...filters, freelancerId: val })}>
-            <SelectTrigger className="h-9 bg-black/40 border-white/10 text-xs">
+            <SelectTrigger className="h-9 bg-background/60 border-border text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -212,9 +212,9 @@ export function Mk9DailiesModule() {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Status</label>
+          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Status</label>
           <Select value={filters.status} onValueChange={(val) => setFilters({ ...filters, status: val })}>
-            <SelectTrigger className="h-9 bg-black/40 border-white/10 text-xs">
+            <SelectTrigger className="h-9 bg-background/60 border-border text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -226,9 +226,9 @@ export function Mk9DailiesModule() {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Financeiro</label>
+          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Financeiro</label>
           <Select value={filters.paymentStatus} onValueChange={(val) => setFilters({ ...filters, paymentStatus: val })}>
-            <SelectTrigger className="h-9 bg-black/40 border-white/10 text-xs">
+            <SelectTrigger className="h-9 bg-background/60 border-border text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -239,53 +239,53 @@ export function Mk9DailiesModule() {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Buscar</label>
+          <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Buscar</label>
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="Freelancer, loja ou indústria..." 
               value={filters.search} 
               onChange={(e) => setFilters({ ...filters, search: e.target.value })} 
-              className="pl-9 h-9 bg-black/40 border-white/10 text-xs"
+              className="pl-9 h-9 bg-background/60 border-border text-xs"
             />
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="border border-white/10 rounded-xl bg-[#111122] overflow-hidden">
+      <div className="border border-border rounded-xl bg-card overflow-hidden">
         <Table>
-          <TableHeader className="bg-white/5">
-            <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Data</TableHead>
-              <TableHead className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Freelancer</TableHead>
-              <TableHead className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Atendimentos</TableHead>
-              <TableHead className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Valor</TableHead>
-              <TableHead className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Status</TableHead>
-              <TableHead className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Financeiro</TableHead>
-              <TableHead className="text-right text-slate-400 font-bold text-[10px] uppercase tracking-widest px-6">Ações</TableHead>
+          <TableHeader className="bg-muted/50">
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Data</TableHead>
+              <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Freelancer</TableHead>
+              <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Atendimentos</TableHead>
+              <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Valor</TableHead>
+              <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Status</TableHead>
+              <TableHead className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Financeiro</TableHead>
+              <TableHead className="text-right text-muted-foreground font-bold text-[10px] uppercase tracking-widest px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-slate-500 italic">Carregando diárias...</TableCell>
+                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground italic">Carregando diárias...</TableCell>
               </TableRow>
             ) : filteredDailies.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-slate-500 italic">Nenhuma diária encontrada para os filtros aplicados.</TableCell>
+                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground italic">Nenhuma diária encontrada para os filtros aplicados.</TableCell>
               </TableRow>
             ) : (
               filteredDailies.map((d: any) => (
-                <TableRow key={d.id} className="border-white/5 hover:bg-white/5 transition-colors group">
-                  <TableCell className="text-slate-300 font-medium py-4">{new Date(d.date).toLocaleDateString('pt-BR')}</TableCell>
+                <TableRow key={d.id} className="border-border/50 hover:bg-muted/50 transition-colors group">
+                  <TableCell className="text-white/80 font-medium py-4">{new Date(d.date).toLocaleDateString('pt-BR')}</TableCell>
                   <TableCell className="text-white font-bold">{d.freelancer?.name}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-muted-foreground">
                         {new Set(d.items?.map((it: any) => it.store_id)).size} lojas
                       </span>
-                      <span className="text-[10px] text-slate-500">
+                      <span className="text-[10px] text-muted-foreground">
                         {d.items?.length} indústrias
                       </span>
                     </div>
@@ -312,14 +312,14 @@ export function Mk9DailiesModule() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right px-6 space-x-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white" onClick={() => setViewing(d)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white" onClick={() => setViewing(d)}>
                       <Eye className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white" onClick={() => { setEditing(d); setOpen(true); }}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white" onClick={() => { setEditing(d); setOpen(true); }}>
                       <Pencil className="w-4 h-4" />
                     </Button>
                     {d.status !== 'CANCELADA' && (
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-400" onClick={() => {
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-rose-400" onClick={() => {
                         if (confirm("Deseja realmente cancelar esta diária?")) cancelMutation.mutate(d.id);
                       }}>
                         <XCircle className="w-4 h-4" />
@@ -337,41 +337,41 @@ export function Mk9DailiesModule() {
       
       {/* Detail Sheet */}
       <Sheet open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
-        <SheetContent className="sm:max-w-md bg-command-deep border-white/10 text-white overflow-y-auto">
+        <SheetContent className="sm:max-w-md bg-background border-border text-white overflow-y-auto">
           <SheetHeader>
             <SheetTitle className="text-xl font-black text-white tracking-tighter uppercase">Detalhe da Diária</SheetTitle>
-            <SheetDescription className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Visualização completa do atendimento</SheetDescription>
+            <SheetDescription className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Visualização completa do atendimento</SheetDescription>
           </SheetHeader>
           
           {viewing && (
             <div className="mt-8 space-y-8 pb-12">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Freelancer</label>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Freelancer</label>
                   <p className="text-sm font-bold text-white">{viewing.freelancer?.name}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Data</label>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Data</label>
                   <p className="text-sm font-bold text-white">{new Date(viewing.date).toLocaleDateString('pt-BR')}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Valor</label>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Valor</label>
                   <p className="text-sm font-bold text-emerald-400">R$ {Number(viewing.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Status</label>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Status</label>
                   <p className="text-sm font-bold">{viewing.status}</p>
                 </div>
                 <div className="space-y-1 col-span-2">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Supervisor</label>
-                  <p className="text-sm font-bold text-slate-300">{viewing.supervisor?.name || "Não informado"}</p>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Supervisor</label>
+                  <p className="text-sm font-bold text-white/80">{viewing.supervisor?.name || "Não informado"}</p>
                 </div>
               </div>
 
               {viewing.notes && (
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Observações</label>
-                  <p className="text-xs text-slate-400 leading-relaxed italic">"{viewing.notes}"</p>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Observações</label>
+                  <p className="text-xs text-muted-foreground leading-relaxed italic">"{viewing.notes}"</p>
                 </div>
               )}
 
@@ -384,9 +384,9 @@ export function Mk9DailiesModule() {
                     acc[it.store_id].industries.push(it.industry);
                     return acc;
                   }, {})).map((group: any, idx: number) => (
-                    <div key={idx} className="p-4 bg-white/5 border border-white/5 rounded-xl space-y-2">
+                    <div key={idx} className="p-4 bg-muted/50 border border-border/50 rounded-xl space-y-2">
                       <div className="flex items-center gap-2">
-                        <Store className="w-3.5 h-3.5 text-slate-400" />
+                        <Store className="w-3.5 h-3.5 text-muted-foreground" />
                         <span className="text-xs font-bold text-white">{group.store?.name}</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5 pl-5">
@@ -451,21 +451,21 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg bg-command-deep border-white/10 text-white overflow-y-auto">
+      <SheetContent className="sm:max-w-lg bg-background border-border text-white overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="text-2xl font-black text-white tracking-tighter uppercase">Fechamento Financeiro</SheetTitle>
-          <SheetDescription className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Liquidação de diárias em lote</SheetDescription>
+          <SheetDescription className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Liquidação de diárias em lote</SheetDescription>
         </SheetHeader>
 
         <div className="mt-8 space-y-6">
-          <div className="grid grid-cols-2 gap-4 p-4 bg-white/5 border border-white/10 rounded-xl">
+          <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 border border-border rounded-xl">
             <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Início do Período</label>
-              <Input type="date" value={closingFilters.startDate} onChange={(e) => setClosingFilters({ ...closingFilters, startDate: e.target.value })} className="h-9 bg-black/40 border-white/10 text-xs" />
+              <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Início do Período</label>
+              <Input type="date" value={closingFilters.startDate} onChange={(e) => setClosingFilters({ ...closingFilters, startDate: e.target.value })} className="h-9 bg-background/60 border-border text-xs" />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Fim do Período</label>
-              <Input type="date" value={closingFilters.endDate} onChange={(e) => setClosingFilters({ ...closingFilters, endDate: e.target.value })} className="h-9 bg-black/40 border-white/10 text-xs" />
+              <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Fim do Período</label>
+              <Input type="date" value={closingFilters.endDate} onChange={(e) => setClosingFilters({ ...closingFilters, endDate: e.target.value })} className="h-9 bg-background/60 border-border text-xs" />
             </div>
           </div>
 
@@ -478,7 +478,7 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Data do Pagamento</Label>
-              <Input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} className="bg-white/5 border-white/10" />
+              <Input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} className="bg-muted/50 border-border" />
             </div>
 
             <Button 
@@ -495,19 +495,19 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
           </div>
 
           <div className="space-y-4">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Resumo por Freelancer</label>
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Resumo por Freelancer</label>
             <div className="space-y-2">
-              {isLoading ? <p className="text-xs text-slate-500 italic">Carregando...</p> : 
+              {isLoading ? <p className="text-xs text-muted-foreground italic">Carregando...</p> : 
                Object.values((dailies || []).reduce((acc: any, d: any) => {
                  if(!acc[d.freelancer_id]) acc[d.freelancer_id] = { name: d.freelancer.name, count: 0, amount: 0 };
                  acc[d.freelancer_id].count++;
                  acc[d.freelancer_id].amount += Number(d.amount);
                  return acc;
                }, {}) || {}).map((f: any, i: number) => (
-                 <div key={i} className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
+                 <div key={i} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg border border-border/50">
                    <div>
                      <p className="text-xs font-bold text-white">{f.name}</p>
-                     <p className="text-[10px] text-slate-500">{f.count} diárias</p>
+                     <p className="text-[10px] text-muted-foreground">{f.count} diárias</p>
                    </div>
                    <p className="text-sm font-mono font-bold text-amber-400">R$ {f.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                  </div>
@@ -524,11 +524,11 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
 
 function KPICard({ label, value, icon: Icon, color = "text-white" }: any) {
   return (
-    <div className="p-5 bg-[#111122] border border-white/5 rounded-2xl relative overflow-hidden group">
+    <div className="p-5 bg-card border border-border/50 rounded-2xl relative overflow-hidden group">
       <div className="absolute top-0 right-0 p-3 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">
         <Icon size={48} />
       </div>
-      <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
       <p className={cn("text-xl font-black tracking-tighter", color)}>{value}</p>
     </div>
   );

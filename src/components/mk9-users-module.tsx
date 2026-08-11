@@ -169,7 +169,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
 
           <form className="grid gap-6 md:grid-cols-2" onSubmit={createUser}>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                 E-mail de Login *
               </label>
               <Input
@@ -177,21 +177,21 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                 required
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="bg-black/40 border-white/10 text-white h-10"
+                className="bg-input/50 border-border text-white h-10"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                 Nome Completo
               </label>
               <Input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="bg-black/40 border-white/10 text-white h-10"
+                className="bg-input/50 border-border text-white h-10"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                 Senha Temporária (Mín. 8 caracteres)
               </label>
               <Input
@@ -200,21 +200,21 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                 required
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="bg-black/40 border-white/10 text-white h-10"
+                className="bg-input/50 border-border text-white h-10"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                 Papel Inicial
               </label>
               <Select
                 value={form.role}
                 onValueChange={(v) => setForm({ ...form, role: v as Role })}
               >
-                <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white">
+                <SelectTrigger className="bg-input/50 border-border h-10 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-command-deep border-white/10">
+                <SelectContent className="bg-command-deep border-border">
                   {ROLES.map((r) => (
                     <SelectItem key={r} value={r}>
                       {r}
@@ -223,12 +223,12 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-2 flex justify-end gap-3 pt-4 border-t border-white/5">
+            <div className="md:col-span-2 flex justify-end gap-3 pt-4 border-t border-border/50">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setShowNew(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-muted-foreground hover:text-white"
               >
                 Cancelar
               </Button>
@@ -247,10 +247,10 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
       <Mk9Panel>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nome ou e-mail..."
-              className="pl-10 bg-white/[0.03] border-white/10 text-white placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
+              className="pl-10 bg-white/[0.03] border-border text-white placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -260,7 +260,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+              <tr className="border-b border-border/50 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                 <th className="px-4 py-4 text-left font-black">Usuário / Identidade</th>
                 <th className="px-4 py-4 text-left font-black">Papéis Atribuídos</th>
                 <th className="px-4 py-4 text-left font-black">Status</th>
@@ -283,7 +283,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                         <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">
                           {u.name || "Sem Nome"}
                         </span>
-                        <span className="text-[10px] text-slate-500 font-mono tracking-tight uppercase">
+                        <span className="text-[10px] text-muted-foreground font-mono tracking-tight uppercase">
                           {u.email}
                         </span>
                       </div>
@@ -304,10 +304,10 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                           </Mk9Badge>
                         ))}
                         <Select onValueChange={(v) => addRole(u, v as Role)}>
-                          <SelectTrigger className="h-6 w-24 bg-white/5 border-white/10 text-[9px] font-black uppercase tracking-widest px-2">
+                          <SelectTrigger className="h-6 w-24 bg-muted/50 border-border text-[9px] font-black uppercase tracking-widest px-2">
                             <SelectValue placeholder="+ PAPEL" />
                           </SelectTrigger>
-                          <SelectContent className="bg-command-deep border-white/10">
+                          <SelectContent className="bg-command-deep border-border">
                             {ROLES.filter((r) => !u.roles.includes(r)).map((r) => (
                               <SelectItem
                                 key={r}
@@ -333,7 +333,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <div className="flex items-center gap-2 text-slate-500">
+                      <div className="flex items-center gap-2 text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         <span className="text-[10px] font-mono">
                           {u.lastLoginAt
@@ -348,19 +348,19 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-white"
                           >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="bg-command-deep border-white/10 text-white"
+                          className="bg-command-deep border-border text-white"
                         >
                           <DropdownMenuItem
                             onClick={() => toggleActive(u)}
                             disabled={u.userId === currentUserId}
-                            className="gap-2 cursor-pointer hover:bg-white/5"
+                            className="gap-2 cursor-pointer hover:bg-accent"
                           >
                             {u.active ? (
                               <Ban className="h-3.5 w-3.5 text-rose-400" />
@@ -369,7 +369,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                             )}
                             {u.active ? "Desativar Acesso" : "Reativar Acesso"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer hover:bg-white/5">
+                          <DropdownMenuItem className="gap-2 cursor-pointer hover:bg-accent">
                             <Key className="h-3.5 w-3.5" /> Resetar Senha
                           </DropdownMenuItem>
                         </DropdownMenuContent>

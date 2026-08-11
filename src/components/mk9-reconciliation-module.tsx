@@ -347,14 +347,14 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
       <Mk9Panel>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 items-end">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Ano
             </label>
             <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="h-9 min-w-[100px] bg-black/40 border-white/5 text-xs text-white px-3 gap-2 shrink-0">
+              <SelectTrigger className="h-9 min-w-[100px] bg-input/50 border-border/50 text-xs text-white px-3 gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 {[2024, 2025, 2026, 2027].map((y) => (
                   <SelectItem key={y} value={String(y)}>
                     {y}
@@ -364,14 +364,14 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Mês
             </label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-9 min-w-[130px] bg-black/40 border-white/5 text-xs text-white uppercase px-3 gap-2 shrink-0">
+              <SelectTrigger className="h-9 min-w-[130px] bg-input/50 border-border/50 text-xs text-white uppercase px-3 gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 {MONTHS_PT.map((m, i) => (
                   <SelectItem key={m} value={String(i + 1)}>
                     {m}
@@ -381,14 +381,14 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
             </Select>
           </div>
           <div className="sm:col-span-2 space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Indústria
             </label>
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-white">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 <SelectItem value="__ALL__">Todas as indústrias</SelectItem>
                 {(industriesQ.data ?? []).map((i: any) => (
                   <SelectItem key={i.id} value={i.id}>
@@ -399,14 +399,14 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
             </Select>
           </div>
           <div className="sm:col-span-2 space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Promotor
             </label>
             <Select value={promoterId} onValueChange={setPromoterId}>
-              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-white">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 <SelectItem value="__ALL__">Todos os promotores</SelectItem>
                 {(promotersQ.data ?? []).map((p: any) => (
                   <SelectItem key={p.id} value={p.id}>
@@ -417,14 +417,14 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               UF
             </label>
             <Select value={uf} onValueChange={setUf}>
-              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-white">
                 <SelectValue placeholder="—" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 <SelectItem value="__ALL__">Todas</SelectItem>
                 {UFS.map((u) => (
                   <SelectItem key={u} value={u}>
@@ -435,14 +435,14 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
             </Select>
           </div>
           <div className="sm:col-span-2 space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Checklist
             </label>
             <Select value={importId} onValueChange={setImportId}>
-              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-white">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 <SelectItem value="__ALL__">Todos os checklists</SelectItem>
                 {(importsQ.data ?? []).map((i: any) => (
                   <SelectItem key={i.id} value={i.id}>
@@ -469,7 +469,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               variant="outline"
               onClick={exportCsv}
               disabled={rows.length === 0}
-              className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest"
+              className="h-9 border-border text-muted-foreground hover:text-white hover:bg-accent text-[10px] font-black uppercase tracking-widest"
             >
               <Download className="h-4 w-4 mr-2" /> Exportar
             </Button>
@@ -477,7 +477,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
         </div>
 
         {s && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-white/5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-border/50">
             <Mk9MetricCard label="Contratadas" value={s.metrics.contratadas} color="purple" />
             <Mk9MetricCard label="Executadas" value={s.metrics.executadas} color="blue" />
             <Mk9MetricCard label="Válidas" value={s.metrics.validas} color="emerald" />
@@ -500,22 +500,22 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
 
       <Mk9Panel>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
             Registros de Conciliação ({total})
           </h3>
           <div className="relative w-full md:w-[280px]">
-            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar loja, promotor, indústria…"
               value={rawSearch}
               onChange={(e) => setRawSearch(e.target.value)}
-              className="pl-9 h-9 bg-command-deep border-white/10 text-white text-xs w-full"
+              className="pl-9 h-9 bg-command-deep border-border text-white text-xs w-full"
             />
           </div>
         </div>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mb-6 overflow-x-auto">
-          <TabsList className="flex md:flex-wrap h-auto bg-black/20 border border-white/5 p-1 w-max md:w-auto">
+          <TabsList className="flex md:flex-wrap h-auto bg-background/40 border border-border/50 p-1 w-max md:w-auto">
             <TabsTrigger
               value="all"
               className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white"
@@ -564,36 +564,36 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
             conciliação.
           </div>
         ) : (
-          <div className="overflow-auto max-h-[640px] border border-white/5 rounded-xl bg-white/[0.01] custom-scrollbar-horizontal">
+          <div className="overflow-auto max-h-[640px] border border-border/50 rounded-xl bg-white/[0.01] custom-scrollbar-horizontal">
             <Table>
               <TableHeader>
-                <TableRow className="border-b border-white/5 hover:bg-transparent">
+                <TableRow className="border-b border-border/50 hover:bg-transparent">
                   <TableHead className="w-8"></TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4">
                     Status
                   </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4">
                     Planejada
                   </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4">
                     Realizada
                   </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4 text-right">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 text-right">
                     Δ Dias
                   </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4">
                     Promotor
                   </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4">
                     Loja
                   </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4">
                     UF
                   </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4">
                     Indústria
                   </TableHead>
-                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500 py-4 text-right">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 text-right">
                     Ações
                   </TableHead>
                 </TableRow>

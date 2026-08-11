@@ -106,10 +106,10 @@ export function Mk9SupervisorsModule() {
       <Mk9Panel>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar supervisor..."
-              className="pl-10 bg-white/[0.03] border-white/10 text-white placeholder:text-slate-600"
+              className="pl-10 bg-white/[0.03] border-border text-white placeholder:text-slate-600"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -119,7 +119,7 @@ export function Mk9SupervisorsModule() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+              <tr className="border-b border-border/50 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                 <th className="px-4 py-4 text-left font-black">Nome</th>
                 <th className="px-4 py-4 text-left font-black">Status</th>
                 <th className="px-4 py-4 text-right font-black">Ações</th>
@@ -154,11 +154,11 @@ export function Mk9SupervisorsModule() {
                     <td className="px-4 py-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-command-deep border-white/10 text-white">
+                        <DropdownMenuContent align="end" className="bg-command-deep border-border text-white">
                           <DropdownMenuItem onClick={() => setDetailId(s.id)} className="gap-2 cursor-pointer">
                             <Users className="h-3.5 w-3.5" /> Ver Equipe
                           </DropdownMenuItem>
@@ -237,7 +237,7 @@ function SupervisorFormDialog({ open, onClose, supervisor }: { open: boolean, on
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-command-deep border-white/10 text-white">
+      <DialogContent className="bg-command-deep border-border text-white">
         <DialogHeader>
           <DialogTitle>{supervisor ? "Editar Supervisor" : "Novo Supervisor"}</DialogTitle>
         </DialogHeader>
@@ -249,7 +249,7 @@ function SupervisorFormDialog({ open, onClose, supervisor }: { open: boolean, on
               onChange={(e) => setName(e.target.value)} 
               placeholder="Digite o nome..."
               required
-              className="bg-white/[0.03] border-white/10"
+              className="bg-white/[0.03] border-border"
             />
           </div>
           <DialogFooter>
@@ -298,7 +298,7 @@ function SupervisorDetailsSheet({ id, onClose }: { id: string | null, onClose: (
 
   return (
     <Sheet open={!!id} onOpenChange={onClose}>
-      <SheetContent className="bg-command-deep border-white/10 text-white sm:max-w-md overflow-y-auto">
+      <SheetContent className="bg-command-deep border-border text-white sm:max-w-md overflow-y-auto">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-white flex items-center gap-2">
             <UserCheck className="h-5 w-5 text-command-purple" />
@@ -311,11 +311,11 @@ function SupervisorDetailsSheet({ id, onClose }: { id: string | null, onClose: (
         ) : (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Membros da Equipe ({details?.members?.length || 0})</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Membros da Equipe ({details?.members?.length || 0})</h3>
               <Button 
                 size="sm" 
                 variant="outline" 
-                className="h-7 text-[10px] border-white/10"
+                className="h-7 text-[10px] border-border"
                 onClick={() => setIsAssigning(!isAssigning)}
               >
                 {isAssigning ? "Cancelar" : <><UserPlus className="h-3 w-3 mr-1" /> Gerenciar</>}
@@ -326,7 +326,7 @@ function SupervisorDetailsSheet({ id, onClose }: { id: string | null, onClose: (
               <div className="space-y-4">
                 <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                   {allPromoters.filter((p: any) => p.isActive).map((p: any) => (
-                    <div key={p.id} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
+                    <div key={p.id} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-accent transition-colors">
                       <Checkbox 
                         id={p.id} 
                         checked={selectedPromoters.includes(p.id) || (details?.members?.some((m: any) => m.id === p.id) && !selectedPromoters.includes(p.id))}
@@ -337,7 +337,7 @@ function SupervisorDetailsSheet({ id, onClose }: { id: string | null, onClose: (
                       />
                       <label htmlFor={p.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1">
                         {p.name}
-                        <span className="block text-[10px] text-slate-500">{p.employeeNumber} | {p.uf}</span>
+                        <span className="block text-[10px] text-muted-foreground">{p.employeeNumber} | {p.uf}</span>
                       </label>
                     </div>
                   ))}
@@ -347,18 +347,18 @@ function SupervisorDetailsSheet({ id, onClose }: { id: string | null, onClose: (
             ) : (
               <div className="space-y-2">
                 {details?.members?.length === 0 ? (
-                  <p className="text-sm text-slate-500 text-center py-8">Nenhum promotor vinculado.</p>
+                  <p className="text-sm text-muted-foreground text-center py-8">Nenhum promotor vinculado.</p>
                 ) : (
                   details?.members?.map((m: any) => (
-                    <div key={m.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                    <div key={m.id} className="p-3 rounded-xl bg-white/[0.02] border border-border/50 flex items-center justify-between">
                       <div>
                         <p className="text-sm font-bold">{m.name}</p>
-                        <p className="text-[10px] text-slate-500 uppercase">{m.employee_number} • {m.uf}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase">{m.employee_number} • {m.uf}</p>
                       </div>
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-7 w-7 p-0 text-slate-500 hover:text-rose-400"
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-rose-400"
                         onClick={async () => {
                           if (confirm(`Remover ${m.name} da equipe?`)) {
                              await assignFn({ data: { supervisorId: null, promoterIds: [m.id] } });

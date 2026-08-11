@@ -20,7 +20,7 @@ export function DashboardHero({ percentage, label, status }: DashboardHeroProps)
             <h2 className="text-muted-foreground text-sm font-bold uppercase tracking-widest">
               {label}
             </h2>
-            <p className="text-white text-5xl font-black tracking-tighter">{percentage}%</p>
+            <p className="text-foreground text-5xl font-black tracking-tighter">{percentage}%</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -45,7 +45,7 @@ export function DashboardHero({ percentage, label, status }: DashboardHeroProps)
               <span>Execução Acumulada</span>
               <span>Meta: 100%</span>
             </div>
-            <div className="h-4 w-full bg-white/5 rounded-full p-1 border border-white/5">
+            <div className="h-4 w-full bg-muted/50 rounded-full p-1 border border-border/50">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-command-purple to-command-blue shadow-[0_0_10px_rgba(168,85,247,0.5)] transition-all duration-1000"
                 style={{ width: `${percentage}%` }}

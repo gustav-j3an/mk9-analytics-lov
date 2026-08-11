@@ -32,12 +32,12 @@ export function AnalyticsMetricCard({
   className,
 }: AnalyticsMetricCardProps) {
   const colorMap = {
-    purple: "text-purple-400 bg-purple-500/10 border-purple-500/20",
-    blue: "text-blue-400 bg-blue-500/10 border-blue-500/20",
-    emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-    amber: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-    rose: "text-rose-400 bg-rose-500/10 border-rose-500/20",
-    cyan: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
+    purple: "text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20",
+    blue: "text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20",
+    emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+    amber: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20",
+    rose: "text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20",
+    cyan: "text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
   };
 
   return (
@@ -45,20 +45,20 @@ export function AnalyticsMetricCard({
       onClick={onClick}
       className={cn(
         "glass-command p-5 rounded-2xl group transition-all duration-300 relative overflow-hidden",
-        onClick && "cursor-pointer hover:border-white/20 active:scale-[0.98]",
+        onClick && "cursor-pointer hover:border-primary/30 active:scale-[0.98]",
         className,
       )}
     >
       <div className="flex items-start justify-between relative z-10">
         <div className="space-y-0.5">
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">
             {label}
           </p>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-2xl md:text-3xl font-black text-white tracking-tighter italic">{value}</h3>
+            <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tighter italic">{value}</h3>
           </div>
           {hint && (
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mt-1">
               {hint}
             </p>
           )}
@@ -76,10 +76,10 @@ export function AnalyticsMetricCard({
             className={cn(
               "flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-black",
               comparison.trend === "up"
-                ? "text-emerald-400 bg-emerald-500/10"
+                ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
                 : comparison.trend === "down"
-                  ? "text-rose-400 bg-rose-500/10"
-                  : "text-slate-400 bg-white/5",
+                  ? "text-rose-600 dark:text-rose-400 bg-rose-500/10"
+                  : "text-muted-foreground bg-muted/50",
             )}
           >
             {comparison.trend === "up" && <ArrowUpRight className="h-3 w-3" />}
@@ -97,7 +97,7 @@ export function AnalyticsMetricCard({
             )}
 
           </div>
-          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
+          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">
             {comparison.label}
           </span>
         </div>
@@ -134,10 +134,10 @@ export function AnalyticsChartCard({
   return (
     <div className={cn("glass-command p-6 rounded-2xl flex flex-col h-full", className)}>
       <div className="mb-6">
-        <div className="text-sm font-black text-white uppercase tracking-[0.1em]">{title}</div>
+        <div className="text-sm font-black text-foreground uppercase tracking-[0.1em]">{title}</div>
 
         {subtitle && (
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
             {subtitle}
           </p>
         )}
@@ -167,7 +167,7 @@ export function AnalyticsTable({
               <th
                 key={i}
                 className={cn(
-                  "px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest",
+                  "px-4 py-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest",
                   i > 0 && "text-right",
                 )}
               >
@@ -183,7 +183,7 @@ export function AnalyticsTable({
                 <td
                   key={j}
                   className={cn(
-                    "px-4 py-3 text-xs bg-white/[0.02] border-y border-white/5 transition-colors group-hover:bg-white/[0.04]",
+                    "px-4 py-3 text-xs bg-muted/20 border-y border-border/50 transition-colors group-hover:bg-muted/40",
                     j === 0 && "rounded-l-xl border-l text-left",
                     j > 0 && "text-right",
                     j === row.length - 1 && "rounded-r-xl border-r",

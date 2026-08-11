@@ -76,33 +76,33 @@ export function StoreDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-command-deep border-white/10 text-white max-w-md">
+      <DialogContent className="bg-popover border-border text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             {store ? "Editar Loja" : "Nova Loja"}
           </DialogTitle>
-          <DialogDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+          <DialogDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
             {store ? "Atualizar dados da unidade" : "Cadastro de nova unidade operacional"}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Nome da Loja *
             </Label>
             <Input
-              className="bg-black/40 border-white/10 h-10 text-white"
+              className="bg-input/50 border-border h-10 text-white"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex: Supermercado Central"
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Rede / Bandeira
             </Label>
             <Input
-              className="bg-black/40 border-white/10 h-10 text-white"
+              className="bg-input/50 border-border h-10 text-white"
               value={chain}
               onChange={(e) => setChain(e.target.value)}
               placeholder="Ex: Carrefour, Pão de Açúcar"
@@ -110,22 +110,22 @@ export function StoreDialog({
           </div>
           <div className="grid grid-cols-4 gap-4">
             <div className="col-span-3 space-y-1.5">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                 Cidade
               </Label>
               <Input
-                className="bg-black/40 border-white/10 h-10 text-white"
+                className="bg-input/50 border-border h-10 text-white"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Ex: São Paulo"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                 UF
               </Label>
               <Input
-                className="bg-black/40 border-white/10 h-10 text-white font-mono"
+                className="bg-input/50 border-border h-10 text-white font-mono"
                 value={uf}
                 onChange={(e) => setUf(e.target.value.toUpperCase())}
                 maxLength={2}
@@ -134,8 +134,8 @@ export function StoreDialog({
             </div>
           </div>
         </div>
-        <DialogFooter className="mt-4 border-t border-white/5 pt-4">
-          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>
+        <DialogFooter className="mt-4 border-t border-border/50 pt-4">
+          <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
             CANCELAR
           </Button>
           <Button
@@ -184,19 +184,19 @@ export function StoreArchiveDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-command-deep border-white/10 text-white max-w-md">
+      <DialogContent className="bg-popover border-border text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-rose-500 uppercase font-black tracking-tighter">
             <AlertTriangle className="h-5 w-5" />
             Arquivar Loja
           </DialogTitle>
-          <DialogDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+          <DialogDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
             Esta ação é uma exclusão lógica reversível.
           </DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
-          <div className="py-20 flex flex-col items-center justify-center gap-4 text-slate-500">
+          <div className="py-20 flex flex-col items-center justify-center gap-4 text-muted-foreground">
             <Loader2 className="h-8 w-8 animate-spin text-mk9-accent-primary/20" />
             <p className="text-[10px] font-bold uppercase tracking-widest">
               Analisando impacto operacional...
@@ -208,28 +208,28 @@ export function StoreArchiveDialog({
               <p className="text-xs font-bold text-rose-400 uppercase tracking-tight">
                 Impacto Detectado na Unidade:
               </p>
-              <ul className="space-y-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                <li className="flex justify-between border-b border-white/5 pb-1">
+              <ul className="space-y-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <li className="flex justify-between border-b border-border/50 pb-1">
                   <span>Frequências vigentes:</span>{" "}
                   <span className="text-white">{impact?.activeFrequencies || 0}</span>
                 </li>
-                <li className="flex justify-between border-b border-white/5 pb-1">
+                <li className="flex justify-between border-b border-border/50 pb-1">
                   <span>Roteiros ativos:</span>{" "}
                   <span className="text-white">{impact?.activeRoutes || 0}</span>
                 </li>
                 <li className="flex justify-between">
                   <span>Visitas históricas:</span>{" "}
-                  <span className="text-slate-500">{impact?.visits || 0} (Preservadas)</span>
+                  <span className="text-muted-foreground">{impact?.visits || 0} (Preservadas)</span>
                 </li>
               </ul>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
                 Motivo do Arquivamento (Opcional)
               </Label>
               <Textarea
-                className="bg-black/40 border-white/10 text-white min-h-[80px]"
+                className="bg-input/50 border-border text-white min-h-[80px]"
                 placeholder="Ex: Loja fechada definitivamente..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
@@ -238,8 +238,8 @@ export function StoreArchiveDialog({
           </div>
         )}
 
-        <DialogFooter className="mt-4 border-t border-white/5 pt-4">
-          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>
+        <DialogFooter className="mt-4 border-t border-border/50 pt-4">
+          <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
             CANCELAR
           </Button>
           <Button

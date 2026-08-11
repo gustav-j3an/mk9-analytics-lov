@@ -154,10 +154,10 @@ export function Mk9DashboardModule({
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       <FilterField label="Mês">
         <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-          <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+          <SelectTrigger className="h-9 bg-card border-border text-foreground">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-command-deep border-white/10 text-white">
+          <SelectContent className="bg-card border-border text-foreground">
             {MONTHS_PT.map((m, i) => (
               <SelectItem key={m} value={String(i + 1)}>
                 {m}
@@ -168,10 +168,10 @@ export function Mk9DashboardModule({
       </FilterField>
       <FilterField label="Ano">
         <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-          <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+          <SelectTrigger className="h-9 bg-card border-border text-foreground">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-command-deep border-white/10 text-white">
+          <SelectContent className="bg-card border-border text-foreground">
             {years.map((y) => (
               <SelectItem key={y} value={String(y)}>
                 {y}
@@ -182,10 +182,10 @@ export function Mk9DashboardModule({
       </FilterField>
       <FilterField label="Indústria">
         <Select value={industryId} onValueChange={setIndustryId}>
-          <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+          <SelectTrigger className="h-9 bg-card border-border text-foreground">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-command-deep border-white/10 text-white">
+          <SelectContent className="bg-card border-border text-foreground">
             <SelectItem value={ALL}>Todas as indústrias</SelectItem>
             {(industriesQ.data ?? []).map((i: any) => (
               <SelectItem key={i.id} value={i.id}>
@@ -197,10 +197,10 @@ export function Mk9DashboardModule({
       </FilterField>
       <FilterField label="UF">
         <Select value={uf} onValueChange={setUf}>
-          <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+          <SelectTrigger className="h-9 bg-card border-border text-foreground">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-command-deep border-white/10 text-white">
+          <SelectContent className="bg-card border-border text-foreground">
             <SelectItem value={ALL}>Todas as UFs</SelectItem>
             {(data?.availableUfs ?? []).map((u) => (
               <SelectItem key={u} value={u}>
@@ -212,10 +212,10 @@ export function Mk9DashboardModule({
       </FilterField>
       <FilterField label="Promotor">
         <Select value={promoterId} onValueChange={setPromoterId}>
-          <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+          <SelectTrigger className="h-9 bg-card border-border text-foreground">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-command-deep border-white/10 text-white">
+          <SelectContent className="bg-card border-border text-foreground">
             <SelectItem value={ALL}>Todos os promotores</SelectItem>
             {(promotersQ.data ?? []).map((p: any) => (
               <SelectItem key={p.id} value={p.id}>
@@ -233,9 +233,9 @@ export function Mk9DashboardModule({
       <div className="space-y-8 animate-fade-up">
         <DashboardHeader month={month} year={year} />
 
-        <div className="glass-command p-6 rounded-2xl shadow-2xl border border-white/5">
+        <div className="glass-command p-6 rounded-2xl shadow-2xl border border-border/50">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
               Parâmetros de Comando
             </h3>
             <div className="flex items-center gap-3">
@@ -243,7 +243,7 @@ export function Mk9DashboardModule({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                className="h-8 text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"
                 onClick={() => overviewQ.refetch()}
                 disabled={overviewQ.isFetching}
               >
@@ -535,7 +535,7 @@ export function Mk9DashboardModule({
 function FilterField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
         {label}
       </label>
       {children}
@@ -558,7 +558,7 @@ function DashboardIntegrityCheck({ params }: { params: any }) {
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 gap-2 text-slate-400 hover:text-command-purple hover:bg-white/5 transition-colors"
+          className="h-8 gap-2 text-muted-foreground hover:text-command-purple hover:bg-muted/30 transition-colors"
         >
           <ShieldAlert className="h-4 w-4" />
           <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">
@@ -566,22 +566,22 @@ function DashboardIntegrityCheck({ params }: { params: any }) {
           </span>
         </Button>
       </SheetTrigger>
-      <SheetContent className="sm:max-w-md bg-[#080812] text-white border-white/5">
+      <SheetContent className="sm:max-w-md bg-background text-foreground border-border/50">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2 text-white uppercase font-black tracking-tighter">
+          <SheetTitle className="flex items-center gap-2 text-foreground uppercase font-black tracking-tighter">
             <ShieldCheck className="h-5 w-5 text-command-purple" />
             Diagnóstico de Sistema
           </SheetTitle>
         </SheetHeader>
         <div className="mt-8 space-y-6">
-          <div className="text-xs text-slate-400 font-medium leading-relaxed">
+          <div className="text-xs text-muted-foreground font-medium leading-relaxed">
             Varredura heurística em tempo real para detecção de anomalias na malha operacional.
           </div>
 
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <RefreshCw className="h-10 w-10 animate-spin text-command-purple/20" />
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                 Processando Matriz...
               </p>
             </div>
@@ -614,22 +614,22 @@ function DashboardIntegrityCheck({ params }: { params: any }) {
 
               {!data.ok && data.issues && (
                 <div className="space-y-3 mt-8">
-                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1">
+                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">
                     Relatório de Anomalias
                   </h4>
                   {data.issues.map((f: any, i: number) => (
                     <div
                       key={i}
-                      className="glass-command p-4 rounded-xl border border-white/5 flex gap-4 items-start group hover:border-white/10 transition-colors"
+                      className="glass-command p-4 rounded-xl border border-border/50 flex gap-4 items-start group hover:border-border transition-colors"
                     >
-                      <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-white/10 transition-colors">
-                        <Info className="h-4 w-4 text-slate-500" />
+                      <div className="h-8 w-8 rounded-lg bg-muted/30 flex items-center justify-center shrink-0 group-hover:bg-white/10 transition-colors">
+                        <Info className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div className="space-y-1 flex-1">
                         <p className="text-xs font-black text-slate-200 uppercase tracking-tight">
                           {f.kind}
                         </p>
-                        <p className="text-[10px] text-slate-500 font-medium leading-normal">
+                        <p className="text-[10px] text-muted-foreground font-medium leading-normal">
                           {f.detail}
                         </p>
                       </div>

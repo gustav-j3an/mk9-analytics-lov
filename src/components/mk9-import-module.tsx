@@ -533,9 +533,9 @@ export function Mk9ImportModule({
         </div>
         <div>
           {historyQ.isLoading ? (
-            <p className="text-sm text-slate-500 italic">Carregando…</p>
+            <p className="text-sm text-muted-foreground italic">Carregando…</p>
           ) : (historyQ.data ?? []).length === 0 ? (
-            <p className="text-sm text-slate-500 italic">Nenhuma importação registrada.</p>
+            <p className="text-sm text-muted-foreground italic">Nenhuma importação registrada.</p>
           ) : (
             <div className="space-y-2">
               {(historyQ.data ?? []).map((imp) => {
@@ -546,11 +546,11 @@ export function Mk9ImportModule({
                 const isOpen = !!expanded[imp.id];
                 const hasError = !!imp.errorMessage;
                 return (
-                  <div key={imp.id} className="text-sm rounded-lg border border-white/5 bg-white/5 p-3">
+                  <div key={imp.id} className="text-sm rounded-lg border border-border/50 bg-muted/50 p-3">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-white truncate">{imp.filename}</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">
                           {MONTHS[imp.operationMonth - 1]} {imp.operationYear} ·{" "}
                           {SYNC_MODE_LABEL[imp.syncMode] ?? imp.syncMode} ·{" "}
                           {imp.sheetsAnalyzed.length} abas
@@ -568,7 +568,7 @@ export function Mk9ImportModule({
                             size="sm"
                             variant="ghost"
                             onClick={() => setExpanded((s) => ({ ...s, [imp.id]: !s[imp.id] }))}
-                            className="h-8 text-slate-400 hover:text-white"
+                            className="h-8 text-muted-foreground hover:text-white"
                           >
                             {isOpen ? (
                               <ChevronDown className="h-4 w-4 mr-1" />
@@ -583,7 +583,7 @@ export function Mk9ImportModule({
                           variant="ghost"
                           onClick={() => deleteMut.mutate(imp.id)}
                           disabled={deleteMut.isPending}
-                          className="h-8 w-8 p-0 text-slate-400 hover:text-red-400 hover:bg-red-400/10"
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-red-400 hover:bg-red-400/10"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -598,7 +598,7 @@ export function Mk9ImportModule({
                           <p className="text-[11px] whitespace-pre-wrap break-words text-rose-400/90 font-mono">
                             {imp.errorMessage}
                           </p>
-                          <p className="text-[10px] text-slate-500 uppercase font-black">
+                          <p className="text-[10px] text-muted-foreground uppercase font-black">
                             Iniciada em {new Date(imp.startedAt).toLocaleString("pt-BR")}
                             {imp.finishedAt &&
                               ` · Falhou em ${new Date(imp.finishedAt).toLocaleString("pt-BR")}`}
