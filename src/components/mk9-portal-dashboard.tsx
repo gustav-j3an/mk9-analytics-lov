@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -16,20 +17,25 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { ThemeSettings } from "@/lib/mk9-theme/ThemeToggle";
 
 export function Mk9PortalDashboard() {
-  const { user, profile, signOut } = useMk9Session();
+  const { session, loading, profile, signOut } = useMk9Session();
+  const navigate = useNavigate();
   const listRoutesFn = useServerFn(mk9ListRoutesDetailed);
-  
+
+  useEffect(() => {
+    if (!loading && !session) navigate({ to: "/", replace: true });
+  }, [loading, session, navigate]);
+
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
 
   const { data: routes, isLoading } = useQuery({
     queryKey: ["mk9-portal-routes", month, year],
-    queryFn: () => listRoutesFn({ data: { month, year } })
+    queryFn: () => listRoutesFn({ data: { month, year } }),
+    enabled: !!session,
   });
 
   const today = now.getDay(); // 0-6 (Sun-Sat)
