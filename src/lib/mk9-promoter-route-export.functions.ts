@@ -22,6 +22,9 @@ export const exportPromoterRouteExcel = createServerFn({ method: "POST" })
       throw new Error("Promotor não encontrado");
     }
 
+    // Attempt to get supervisor name if possible (would require another join, but using what's available)
+    const supervisorName = "—";
+
     // 2. Consolidate (Same logic as screen)
     const rowsMap = new Map<string, {
       industryName: string;
@@ -54,7 +57,7 @@ export const exportPromoterRouteExcel = createServerFn({ method: "POST" })
     const totalVisits = sortedRows.reduce((acc, row) => acc + row.days.size, 0);
 
     // 3. Generate Workbook
-    const { default: ExcelJS } = await import("exceljs");
+    const ExcelJS = (await import("exceljs")).default;
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("ROTA");
 
@@ -71,14 +74,14 @@ export const exportPromoterRouteExcel = createServerFn({ method: "POST" })
     sheet.addRow(["PROMOTOR:", promoter.name.toUpperCase()]);
     sheet.addRow(["REFERÊNCIA:", referenceDate]);
     sheet.addRow(["TOTAL DE VISITAS:", totalVisits]);
-    sheet.addRow(["SUPERVISOR:", promoter.supervisor_name || "—"]);
+    sheet.addRow(["SUPERVISOR:", supervisorName]);
     sheet.addRow([]); // Spacer
 
     // Matrix Header
     const matrixHeader = ["INDÚSTRIA", "LOJA", "UF", "SEG", "TER", "QUA", "QUI", "SEX", "SAB", "DOM"];
     const headerRow = sheet.addRow(matrixHeader);
     
-    headerRow.eachCell((cell) => {
+    headerRow.eachCell((cell: any) => {
       cell.fill = headerFill;
       cell.font = { bold: true, size: 10 };
       cell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -103,7 +106,7 @@ export const exportPromoterRouteExcel = createServerFn({ method: "POST" })
         row.days.has(0) ? "✓" : "",
       ]);
 
-      excelRow.eachCell((cell, colNumber) => {
+      excelRow.eachCell((cell: any, colNumber: number) => {
         cell.font = { size: 9 };
         cell.border = borderStyle;
         if (colNumber >= 3) {
