@@ -60,16 +60,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.8.8 — DIÁRIAS STABILIZED",
+    title: "MK9 | v1.8.9 — MODULAR DASHBOARD",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v1.8.8: DIÁRIAS STABILIZED. Correção do crash no formulário de diárias e melhoria na visibilidade da loja selecionada.",
+        content: "MK9 Command Center v1.8.9: MODULAR DASHBOARD. Seções recolhíveis, persistentes e otimizadas para monitoramento de alta densidade.",
       },
-      { property: "og:title", content: "MK9 | v1.8.8" },
+      { property: "og:title", content: "MK9 | v1.8.9" },
       {
         property: "og:description",
-        content: "MK9 Command Center v1.8.8: DIÁRIAS STABILIZED. Correção do crash no formulário de diárias e melhoria na visibilidade da loja selecionada.",
+        content: "MK9 Command Center v1.8.9: MODULAR DASHBOARD. Seções recolhíveis, persistentes e otimizadas para monitoramento de alta densidade.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -151,10 +151,10 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v1.8.8</span>
+                  MK9 Command Center • <span className="text-primary/80">v1.8.9</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  DIÁRIAS STABILIZED
+                  MODULAR DASHBOARD
                 </p>
               </div>
             </div>
