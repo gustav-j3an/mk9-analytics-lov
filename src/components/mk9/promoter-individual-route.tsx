@@ -25,7 +25,10 @@ import {
 import { Badge } from "../ui/badge";
 import { mk9RoutesListVersioned } from "../../lib/mk9-routes.functions";
 import { mk9ListPromoters } from "../../lib/mk9-data.functions";
+import { exportPromoterRouteExcel } from "../../lib/mk9-promoter-route-export.functions";
 import { cn } from "../../lib/utils";
+import { toast } from "sonner";
+
 
 
 const WEEKDAYS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
@@ -41,12 +44,16 @@ const WEEKDAYS_FULL = [
 ];
 
 export function PromoterIndividualRoute() {
-  const { promoterId } = useParams({ from: '/roteiros/promotor/$promoterId' });
+  const { promoterId } = useParams({ from: "/roteiros/promotor/$promoterId" }) as any;
   const navigate = useNavigate();
-  const search = useSearch({ from: '/roteiros/promotor/$promoterId' });
+  const search = useSearch({ from: "/roteiros/promotor/$promoterId" }) as any;
+
   
   const [searchTerm, setSearchTerm] = useState("");
   const referenceDate = search.date || new Date().toISOString().slice(0, 10);
+  const [isExporting, setIsExporting] = useState(false);
+  const exportExcelFn = useServerFn(exportPromoterRouteExcel);
+
 
   const listRoutesFn = useServerFn(mk9RoutesListVersioned);
   const listPromotersFn = useServerFn(mk9ListPromoters);
@@ -111,7 +118,39 @@ export function PromoterIndividualRoute() {
     return matrix.reduce((acc, row) => acc + row.days.size, 0);
   }, [matrix]);
 
+  const handleExportExcel = async () => {
+    try {
+      setIsExporting(true);
+      const result = await exportExcelFn({ data: { promoterId, referenceDate } });
+      
+      const byteCharacters = atob(result.base64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success("Excel gerado com sucesso!");
+    } catch (error) {
+      console.error("Erro na exportação:", error);
+      toast.error("Erro ao gerar o arquivo Excel.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (routesQ.isLoading || promotersQ.isLoading) {
+
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -174,11 +213,18 @@ export function PromoterIndividualRoute() {
 
           <Button
             variant="outline"
-            disabled
-            className="h-10 border-border text-muted-foreground text-[10px] font-black uppercase tracking-widest"
+            onClick={handleExportExcel}
+            disabled={isExporting || filteredMatrix.length === 0}
+            className="h-10 border-primary/20 hover:bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
           >
-            <Download className="h-4 w-4 mr-2" /> Exportar Excel
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            Exportar Excel
           </Button>
+
         </div>
       </div>
 

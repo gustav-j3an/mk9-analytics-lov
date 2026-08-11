@@ -337,8 +337,9 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                         params={{
                           promoterId: pData.id,
                         }}
-                        search={{ date: referenceDate }}
+                        search={{ date: referenceDate } as any}
                       >
+
                         <Button
                           variant="outline"
                           size="sm"
