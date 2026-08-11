@@ -405,6 +405,11 @@ export function Mk9PresenceModule() {
                               onClick={() => handleStatusChange(item.id, 'MEDICAL_CERTIFICATE')}
                               variant="medical"
                             />
+                            <PresenceButton 
+                              active={local.status === 'VACATION'} 
+                              onClick={() => handleStatusChange(item.id, 'VACATION')}
+                              variant="vacation"
+                            />
                           </div>
                         </td>
                         <td className="px-4 py-3">
