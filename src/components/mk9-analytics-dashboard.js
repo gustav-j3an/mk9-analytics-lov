@@ -1,176 +1,106 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-} from "recharts";
-import {
-  Activity,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  MapPin,
-  Building2,
-  LayoutDashboard,
-  ArrowRight,
-  Filter,
-  RefreshCw,
-  Search,
-  ExternalLink,
-  Zap,
-  Database,
-  Cpu,
-  History,
-  TrendingDown,
-  Target,
-  Info,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, } from "recharts";
+import { Activity, TrendingUp, AlertTriangle, CheckCircle2, Clock, Building2, Filter, RefreshCw, Zap, Database, Cpu, History, Info, ChevronDown, ChevronUp, } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatPercentage } from "@/lib/mk9/normalization";
 import { Mk9Panel, Mk9Badge, Mk9LoadingState, Mk9ErrorState } from "./mk9/design-system";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AnalyticsMetricCard, AnalyticsChartCard, AnalyticsTable } from "./mk9/AnalyticsComponents";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { getMk9AnalyticsDashboardFn } from "@/lib/mk9-analytics/analytics.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
-
 const MONTHS_PT = [
-  "Janeiro",
-  "Fevereiro",
-  "Março",
-  "Abril",
-  "Maio",
-  "Junho",
-  "Julho",
-  "Agosto",
-  "Setembro",
-  "Outubro",
-  "Novembro",
-  "Dezembro",
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
 ];
-
-function nf(v: number) {
-  return new Intl.NumberFormat("pt-BR").format(v);
+function nf(v) {
+    return new Intl.NumberFormat("pt-BR").format(v);
 }
-
-export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMonth?: number; initialYear?: number }) {
-  const [month, setMonth] = useState(initialMonth || new Date().getMonth() + 1);
-  const [year, setYear] = useState(initialYear || new Date().getFullYear());
-  const [industryId, setIndustryId] = useState("__ALL__");
-  const [uf, setUf] = useState("__ALL__");
-  const [matrixCollapsed, setMatrixCollapsed] = useState(true);
-
-  const analyticsFn = useServerFn(getMk9AnalyticsDashboardFn);
-  const industriesFn = useServerFn(mk9ListIndustries);
-
-  useEffect(() => {
-    if (initialMonth) setMonth(initialMonth);
-  }, [initialMonth]);
-
-  useEffect(() => {
-    if (initialYear) setYear(initialYear);
-  }, [initialYear]);
-
-  const industriesQ = useQuery({
-    queryKey: ["mk9-industries-list"],
-    queryFn: () => industriesFn(),
-    staleTime: 300000,
-  });
-
-  const params = {
-    year,
-    month,
-    industryId: industryId === "__ALL__" ? null : industryId,
-    uf: uf === "__ALL__" ? null : uf,
-  };
-
-  const { data, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ["mk9-analytics-data", year, month, industryId, uf],
-    queryFn: () => analyticsFn({ data: params }),
-    staleTime: 60000,
-  });
-
-  const years = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    return [currentYear - 1, currentYear, currentYear + 1];
-  }, []);
-
-  if (isLoading) return <Mk9LoadingState message="Inicializando Comando Analítico..." />;
-  if (error)
-    return <Mk9ErrorState message="Erro ao carregar matriz analítica." onRetry={() => refetch()} />;
-  if (!data)
-    return (
-      <Mk9ErrorState message="Nenhum dado retornado para este período." onRetry={() => refetch()} />
-    );
-
-  const {
-    executive: rawExecutive,
-    industries = [],
-    ufs = [],
-    frequencies = [],
-    matrix = [],
-    projection: rawProjection,
-    topPriorities = [],
-    lastUpdate,
-  } = data;
-
-  // HOTFIX v1.0.2: Normalização robusta para evitar crashes de undefined (.coverage, .riskStatus, etc)
-  const executive = {
-    coverage: rawExecutive?.coverage ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
-    pending: rawExecutive?.pending ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
-    extras: rawExecutive?.extras ?? { current: 0 },
-    zeroVisits: rawExecutive?.zeroVisits ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
-    contracted: rawExecutive?.contracted ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
-    realized: rawExecutive?.realized ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
-  };
-
-  const projection = {
-    realized: rawProjection?.realized ?? 0,
-    projected: rawProjection?.projected ?? 0,
-    contracted: rawProjection?.contracted ?? 0,
-    riskStatus: (rawProjection?.riskStatus ?? "N/D") as string,
-    daysRemaining: rawProjection?.daysRemaining ?? 0,
-  };
-
-  return (
-    <div className="space-y-8 animate-fade-in pb-20 selection:bg-purple-500/30">
+export function Mk9AnalyticsDashboard({ initialMonth, initialYear }) {
+    const [month, setMonth] = useState(initialMonth || new Date().getMonth() + 1);
+    const [year, setYear] = useState(initialYear || new Date().getFullYear());
+    const [industryId, setIndustryId] = useState("__ALL__");
+    const [uf, setUf] = useState("__ALL__");
+    const [matrixCollapsed, setMatrixCollapsed] = useState(true);
+    const analyticsFn = useServerFn(getMk9AnalyticsDashboardFn);
+    const industriesFn = useServerFn(mk9ListIndustries);
+    useEffect(() => {
+        if (initialMonth)
+            setMonth(initialMonth);
+    }, [initialMonth]);
+    useEffect(() => {
+        if (initialYear)
+            setYear(initialYear);
+    }, [initialYear]);
+    const industriesQ = useQuery({
+        queryKey: ["mk9-industries-list"],
+        queryFn: () => industriesFn(),
+        staleTime: 300000,
+    });
+    const params = {
+        year,
+        month,
+        industryId: industryId === "__ALL__" ? null : industryId,
+        uf: uf === "__ALL__" ? null : uf,
+    };
+    const { data, isLoading, error, refetch, isFetching } = useQuery({
+        queryKey: ["mk9-analytics-data", year, month, industryId, uf],
+        queryFn: () => analyticsFn({ data: params }),
+        staleTime: 60000,
+    });
+    const years = useMemo(() => {
+        const currentYear = new Date().getFullYear();
+        return [currentYear - 1, currentYear, currentYear + 1];
+    }, []);
+    if (isLoading)
+        return <Mk9LoadingState message="Inicializando Comando Analítico..."/>;
+    if (error)
+        return <Mk9ErrorState message="Erro ao carregar matriz analítica." onRetry={() => refetch()}/>;
+    if (!data)
+        return (<Mk9ErrorState message="Nenhum dado retornado para este período." onRetry={() => refetch()}/>);
+    const { executive: rawExecutive, industries = [], ufs = [], frequencies = [], matrix = [], projection: rawProjection, topPriorities = [], lastUpdate, } = data;
+    // HOTFIX v1.0.2: Normalização robusta para evitar crashes de undefined (.coverage, .riskStatus, etc)
+    const executive = {
+        coverage: rawExecutive?.coverage ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+        pending: rawExecutive?.pending ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+        extras: rawExecutive?.extras ?? { current: 0 },
+        zeroVisits: rawExecutive?.zeroVisits ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+        contracted: rawExecutive?.contracted ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+        realized: rawExecutive?.realized ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
+    };
+    const projection = {
+        realized: rawProjection?.realized ?? 0,
+        projected: rawProjection?.projected ?? 0,
+        contracted: rawProjection?.contracted ?? 0,
+        riskStatus: (rawProjection?.riskStatus ?? "N/D"),
+        daysRemaining: rawProjection?.daysRemaining ?? 0,
+    };
+    return (<div className="space-y-8 animate-fade-in pb-20 selection:bg-purple-500/30">
       {/* Performance Debug (Visible in Dev) */}
-      {data.perf && (
-        <div className="flex items-center gap-4 text-[9px] font-mono text-muted-foreground uppercase tracking-widest border-b border-border/50 pb-2 mb-4">
+      {data.perf && (<div className="flex items-center gap-4 text-[9px] font-mono text-muted-foreground uppercase tracking-widest border-b border-border/50 pb-2 mb-4">
           <span className="flex items-center gap-1">
-            <Zap className="h-3 w-3 text-amber-500" /> Core: {data.perf.coreMs}ms
+            <Zap className="h-3 w-3 text-amber-500"/> Core: {data.perf.coreMs}ms
           </span>
           <span className="flex items-center gap-1">
-            <Database className="h-3 w-3 text-blue-500" /> Queries: {data.perf.queryCount}
+            <Database className="h-3 w-3 text-blue-500"/> Queries: {data.perf.queryCount}
           </span>
           <span className="flex items-center gap-1">
-            <Cpu className="h-3 w-3 text-purple-500" /> Payload: Consolidade
+            <Cpu className="h-3 w-3 text-purple-500"/> Payload: Consolidade
           </span>
-        </div>
-      )}
+        </div>)}
 
       {/* Visão de Risco, Projeção e Monitoramento (Executive View) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -182,7 +112,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                  <Info className="h-3 w-3 text-muted-foreground cursor-help"/>
                 </TooltipTrigger>
                 <TooltipContent className="bg-popover border-border text-foreground text-[10px] max-w-[200px]">
                   {data.perf?.monitoredWithChecklistCount ?? 0} importadas · {data.perf?.monitoredPendingChecklistCount ?? 0} pendentes de checklist.
@@ -200,34 +130,19 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </div>
         </div>
 
-        <div
-          className={cn(
-            "glass-command p-5 rounded-2xl border flex flex-col justify-between transition-all duration-300",
-            projection?.riskStatus === "CRITICAL"
-              ? "border-rose-500/30 bg-rose-500/10 glow-rose shadow-[0_0_20px_rgba(244,63,94,0.1)]"
-              : "border-border/50 bg-card/50",
-          )}
-        >
+        <div className={cn("glass-command p-5 rounded-2xl border flex flex-col justify-between transition-all duration-300", projection?.riskStatus === "CRITICAL"
+            ? "border-rose-500/30 bg-rose-500/10 glow-rose shadow-[0_0_20px_rgba(244,63,94,0.1)]"
+            : "border-border/50 bg-card/50")}>
           <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
             Status de Risco
           </span>
           <div className="flex items-center gap-2">
-            <div
-              className={cn(
-                "h-3 w-3 rounded-full animate-pulse",
-                projection?.riskStatus === "CRITICAL"
-                  ? "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]"
-                  : projection?.riskStatus === "HIGH"
-                    ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
-                    : "bg-emerald-500",
-              )}
-            />
-            <span
-              className={cn(
-                "text-xl font-black italic uppercase",
-                projection?.riskStatus === "CRITICAL" ? "text-rose-500" : "text-foreground",
-              )}
-            >
+            <div className={cn("h-3 w-3 rounded-full animate-pulse", projection?.riskStatus === "CRITICAL"
+            ? "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]"
+            : projection?.riskStatus === "HIGH"
+                ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
+                : "bg-emerald-500")}/>
+            <span className={cn("text-xl font-black italic uppercase", projection?.riskStatus === "CRITICAL" ? "text-rose-500" : "text-foreground")}>
               {projection?.riskStatus || "N/D"}
             </span>
           </div>
@@ -262,10 +177,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             </div>
 
             <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary rounded-full transition-all duration-1000"
-                style={{ width: `${executive.coverage.current}%` }}
-              />
+              <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${executive.coverage.current}%` }}/>
             </div>
           </div>
         </div>
@@ -275,7 +187,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             Última Atualização
           </span>
           <div className="flex items-center gap-2 text-foreground/70">
-            <Clock className="h-4 w-4 text-command-purple" />
+            <Clock className="h-4 w-4 text-command-purple"/>
             <span className="text-xs font-bold uppercase">
               {lastUpdate ? new Date(lastUpdate).toLocaleTimeString("pt-BR") : "—"}
             </span>
@@ -287,7 +199,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" />
+            <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse"/>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-foreground tracking-tighter uppercase italic logo-mk9-text">
               MK9 <span className="text-command-purple">ANALYTICS</span>
             </h1>
@@ -300,7 +212,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
 
         <div className="glass-command p-1.5 md:p-2 rounded-2xl flex flex-wrap items-center gap-1.5 md:gap-2 border border-border/50">
           <div className="flex items-center gap-2 px-2 border-r border-border/50 mr-2 hidden sm:flex">
-            <Filter className="h-3 w-3 text-muted-foreground" />
+            <Filter className="h-3 w-3 text-muted-foreground"/>
             <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
               Filtros
             </span>
@@ -311,15 +223,9 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-popover border-border text-foreground">
-              {MONTHS_PT.map((m, i) => (
-                <SelectItem
-                  key={m}
-                  value={String(i + 1)}
-                  className="text-[10px] font-bold uppercase"
-                >
+              {MONTHS_PT.map((m, i) => (<SelectItem key={m} value={String(i + 1)} className="text-[10px] font-bold uppercase">
                   {m}
-                </SelectItem>
-              ))}
+                </SelectItem>))}
             </SelectContent>
           </Select>
 
@@ -328,11 +234,9 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-popover border-border text-foreground">
-              {years.map((y) => (
-                <SelectItem key={y} value={String(y)} className="text-[10px] font-bold">
+              {years.map((y) => (<SelectItem key={y} value={String(y)} className="text-[10px] font-bold">
                   {y}
-                </SelectItem>
-              ))}
+                </SelectItem>))}
             </SelectContent>
           </Select>
 
@@ -344,11 +248,9 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               <SelectItem value="__ALL__" className="text-[10px] font-bold uppercase">
                 Todas as Indústrias
               </SelectItem>
-              {(industriesQ.data ?? []).map((i: any) => (
-                <SelectItem key={i.id} value={i.id} className="text-[10px] font-bold uppercase">
+              {(industriesQ.data ?? []).map((i) => (<SelectItem key={i.id} value={i.id} className="text-[10px] font-bold uppercase">
                   {i.name}
-                </SelectItem>
-              ))}
+                </SelectItem>))}
             </SelectContent>
           </Select>
 
@@ -361,172 +263,114 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                 UF
               </SelectItem>
               {[
-                "AC",
-                "AL",
-                "AP",
-                "AM",
-                "BA",
-                "CE",
-                "DF",
-                "ES",
-                "GO",
-                "MA",
-                "MT",
-                "MS",
-                "MG",
-                "PA",
-                "PB",
-                "PR",
-                "PE",
-                "PI",
-                "RJ",
-                "RN",
-                "RS",
-                "RO",
-                "RR",
-                "SC",
-                "SP",
-                "SE",
-                "TO",
-              ].map((u) => (
-                <SelectItem key={u} value={u} className="text-[10px] font-bold">
+            "AC",
+            "AL",
+            "AP",
+            "AM",
+            "BA",
+            "CE",
+            "DF",
+            "ES",
+            "GO",
+            "MA",
+            "MT",
+            "MS",
+            "MG",
+            "PA",
+            "PB",
+            "PR",
+            "PE",
+            "PI",
+            "RJ",
+            "RN",
+            "RS",
+            "RO",
+            "RR",
+            "SC",
+            "SP",
+            "SE",
+            "TO",
+        ].map((u) => (<SelectItem key={u} value={u} className="text-[10px] font-bold">
                   {u}
-                </SelectItem>
-              ))}
+                </SelectItem>))}
             </SelectContent>
           </Select>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/30"
-            onClick={() => refetch()}
-            disabled={isFetching}
-          >
-            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/30" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")}/>
           </Button>
         </div>
       </div>
 
       {/* Top 3 Prioridades Críticas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {topPriorities.slice(0, 3).map((p) => (
-          <div
-            key={`${p.storeId}-${p.industryName}`}
-            className="glass-command p-4 rounded-2xl border border-rose-500/20 bg-rose-500/5 flex flex-col justify-between"
-          >
+        {topPriorities.slice(0, 3).map((p) => (<div key={`${p.storeId}-${p.industryName}`} className="glass-command p-4 rounded-2xl border border-rose-500/20 bg-rose-500/5 flex flex-col justify-between">
             <div className="flex items-center justify-between mb-2">
               <Mk9Badge variant="danger" className="text-[8px]">
                 PRIORIDADE {p.score}
               </Mk9Badge>
-              <AlertTriangle className="h-4 w-4 text-rose-500" />
+              <AlertTriangle className="h-4 w-4 text-rose-500"/>
             </div>
             <span className="text-xs font-black text-foreground uppercase tracking-tighter truncate">
               {p.storeName}
             </span>
             <span className="text-[9px] font-bold text-muted-foreground uppercase mt-1">{p.reason}</span>
-          </div>
-        ))}
+          </div>))}
       </div>
 
       {/* Main KPIs Row */}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-        <AnalyticsMetricCard
-          label="Visitas Contratadas"
-          value={nf(executive.contracted.current)}
-          icon={Activity}
-          color="blue"
-          hint="Detalhamento por Indústria"
-          onClick={() => {
+        <AnalyticsMetricCard label="Visitas Contratadas" value={nf(executive.contracted.current)} icon={Activity} color="blue" hint="Detalhamento por Indústria" onClick={() => {
             const el = document.getElementById("industry-analysis");
-            if (el) el.scrollIntoView({ behavior: "smooth" });
-          }}
-          comparison={{
+            if (el)
+                el.scrollIntoView({ behavior: "smooth" });
+        }} comparison={{
             value: executive.contracted.previous,
             label: "anterior",
             trend: executive.contracted.delta >= 0 ? "up" : "down",
             percentChange: executive.contracted.percentChange,
-          }}
-        />
-        <AnalyticsMetricCard
-          label="Visitas Realizadas"
-          value={nf(executive.realized.current)}
-          icon={CheckCircle2}
-          color="emerald"
-          hint="Detalhamento por Indústria"
-          onClick={() => {
+        }}/>
+        <AnalyticsMetricCard label="Visitas Realizadas" value={nf(executive.realized.current)} icon={CheckCircle2} color="emerald" hint="Detalhamento por Indústria" onClick={() => {
             const el = document.getElementById("industry-analysis");
-            if (el) el.scrollIntoView({ behavior: "smooth" });
-          }}
-          comparison={{
+            if (el)
+                el.scrollIntoView({ behavior: "smooth" });
+        }} comparison={{
             value: executive.realized.previous,
             label: "anterior",
             trend: executive.realized.delta >= 0 ? "up" : "down",
             percentChange: executive.realized.percentChange,
-          }}
-        />
-        <AnalyticsMetricCard
-          label="Visitas Pendentes"
-          value={nf(executive.pending.current)}
-          icon={Clock}
-          color="amber"
-          comparison={{
+        }}/>
+        <AnalyticsMetricCard label="Visitas Pendentes" value={nf(executive.pending.current)} icon={Clock} color="amber" comparison={{
             value: executive.pending.previous,
             label: "anterior",
             trend: executive.pending.delta <= 0 ? "up" : "down",
             percentChange: executive.pending.percentChange,
-          }}
-        />
-        <AnalyticsMetricCard
-          label="Extras Realizadas"
-          value={nf(executive.extras.current)}
-          icon={TrendingUp}
-          color="purple"
-        />
-        <AnalyticsMetricCard
-          label="Cobertura Geral"
-          value={rawExecutive?.coverage ? formatPercentage(executive.coverage.current) : "N/D"}
-          icon={Activity}
-          color="cyan"
-          comparison={rawExecutive?.coverage ? {
+        }}/>
+        <AnalyticsMetricCard label="Extras Realizadas" value={nf(executive.extras.current)} icon={TrendingUp} color="purple"/>
+        <AnalyticsMetricCard label="Cobertura Geral" value={rawExecutive?.coverage ? formatPercentage(executive.coverage.current) : "N/D"} icon={Activity} color="cyan" comparison={rawExecutive?.coverage ? {
             value: executive.coverage.previous,
             label: "anterior",
             trend: executive.coverage.delta >= 0 ? "up" : "down",
             percentChange: executive.coverage.delta,
-          } : undefined}
-        />
-        <AnalyticsMetricCard
-          label="Lojas Zero Visitas"
-          value={nf(executive.zeroVisits.current)}
-          icon={AlertTriangle}
-          color="rose"
-          comparison={{
+        } : undefined}/>
+        <AnalyticsMetricCard label="Lojas Zero Visitas" value={nf(executive.zeroVisits.current)} icon={AlertTriangle} color="rose" comparison={{
             value: executive.zeroVisits.previous,
             label: "anterior",
             trend: executive.zeroVisits.delta <= 0 ? "up" : "down",
             percentChange: executive.zeroVisits.percentChange,
-          }}
-        />
+        }}/>
       </div>
 
       {/* Charts & Matrix Section */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <AnalyticsChartCard
-          title={
-            <div 
-              className="flex items-center justify-between w-full cursor-pointer group/title"
-              onClick={() => setMatrixCollapsed(!matrixCollapsed)}
-              role="button"
-              aria-expanded={!matrixCollapsed}
-              aria-controls="execution-matrix-content"
-            >
+        <AnalyticsChartCard title={<div className="flex items-center justify-between w-full cursor-pointer group/title" onClick={() => setMatrixCollapsed(!matrixCollapsed)} role="button" aria-expanded={!matrixCollapsed} aria-controls="execution-matrix-content">
               <div className="flex items-center gap-2">
                 <span>Matriz de Execução</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                      <Info className="h-3 w-3 text-muted-foreground cursor-help"/>
                     </TooltipTrigger>
                     <TooltipContent className="bg-popover border-border text-foreground text-[10px] max-w-[250px] p-3 space-y-2">
                       <p className="font-black text-command-purple uppercase tracking-widest text-[9px]">O que é isso?</p>
@@ -543,73 +387,38 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                 <span className="text-[9px] font-black text-primary uppercase tracking-tighter opacity-0 group-hover/title:opacity-100 transition-opacity">
                   {matrixCollapsed ? "Ver matriz" : "Ocultar matriz"}
                 </span>
-                {matrixCollapsed ? (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-hover/title:text-primary" />
-                ) : (
-                  <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform group-hover/title:text-primary" />
-                )}
+                {matrixCollapsed ? (<ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-hover/title:text-primary"/>) : (<ChevronUp className="h-4 w-4 text-muted-foreground transition-transform group-hover/title:text-primary"/>)}
               </div>
-            </div>
-          }
-          subtitle="Lojas por frequência contratada e cobertura"
-          className={cn("xl:col-span-2 transition-all duration-500 ease-in-out", matrixCollapsed ? "h-fit" : "h-full")}
-          height={matrixCollapsed ? 0 : 300}
-        >
-          <div 
-            id="execution-matrix-content"
-            className={cn(
-              "flex flex-col gap-4 overflow-hidden transition-all duration-500 ease-in-out",
-              matrixCollapsed ? "max-h-0 opacity-0 pointer-events-none" : "max-h-[1000px] opacity-100 pt-4"
-            )}
-          >
+            </div>} subtitle="Lojas por frequência contratada e cobertura" className={cn("xl:col-span-2 transition-all duration-500 ease-in-out", matrixCollapsed ? "h-fit" : "h-full")} height={matrixCollapsed ? 0 : 300}>
+          <div id="execution-matrix-content" className={cn("flex flex-col gap-4 overflow-hidden transition-all duration-500 ease-in-out", matrixCollapsed ? "max-h-0 opacity-0 pointer-events-none" : "max-h-[1000px] opacity-100 pt-4")}>
             <div className="grid grid-cols-5 gap-2 min-w-[600px]">
               {[
-                { label: "0%", sub: "SEM VISITA", color: "text-rose-500" },
-                { label: "1-49%", sub: "BAIXA EXEC.", color: "text-rose-400" },
-                { label: "50-99%", sub: "PARCIAL", color: "text-amber-400" },
-                { label: "100%", sub: "COMPLETA", color: "text-emerald-400" },
-                { label: ">100%", sub: "ACIMA META", color: "text-blue-400" }
-              ].map((faixa) => (
-                <div
-                  key={faixa.label}
-                  className="flex flex-col items-center justify-center p-2 rounded-lg bg-card/50 border border-border/50"
-                >
+            { label: "0%", sub: "SEM VISITA", color: "text-rose-500" },
+            { label: "1-49%", sub: "BAIXA EXEC.", color: "text-rose-400" },
+            { label: "50-99%", sub: "PARCIAL", color: "text-amber-400" },
+            { label: "100%", sub: "COMPLETA", color: "text-emerald-400" },
+            { label: ">100%", sub: "ACIMA META", color: "text-blue-400" }
+        ].map((faixa) => (<div key={faixa.label} className="flex flex-col items-center justify-center p-2 rounded-lg bg-card/50 border border-border/50">
                   <span className={cn("text-[10px] font-black uppercase tracking-tighter", faixa.color)}>
                     {faixa.label}
                   </span>
                   <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest mt-0.5 whitespace-nowrap">
                     {faixa.sub}
                   </span>
-                </div>
-              ))}
+                </div>))}
               {matrix.map((cell, idx) => {
-                const isCritical = cell.count > 0 && (cell.coverageLabel === "0%" || cell.coverageLabel === "1-49%");
-                const isHealthy = cell.count > 0 && cell.coverageLabel === "100%";
-                const isAbove = cell.count > 0 && cell.coverageLabel === ">100%";
-                
-                return (
-                  <TooltipProvider key={idx}>
+            const isCritical = cell.count > 0 && (cell.coverageLabel === "0%" || cell.coverageLabel === "1-49%");
+            const isHealthy = cell.count > 0 && cell.coverageLabel === "100%";
+            const isAbove = cell.count > 0 && cell.coverageLabel === ">100%";
+            return (<TooltipProvider key={idx}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div
-                          className={cn(
-                            "group flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-300 relative overflow-hidden",
-                            cell.count > 0 
-                              ? "bg-white/[0.03] border-border hover:border-white/30 cursor-help" 
-                              : "bg-background/40 border-border/50 opacity-30 select-none"
-                          )}
-                        >
-                          {cell.count > 0 && (
-                            <div className={cn(
-                              "absolute top-0 left-0 w-full h-0.5",
-                              isCritical ? "bg-rose-500" : isHealthy ? "bg-emerald-500" : isAbove ? "bg-blue-500" : "bg-white/10"
-                            )} />
-                          )}
+                        <div className={cn("group flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-300 relative overflow-hidden", cell.count > 0
+                    ? "bg-white/[0.03] border-border hover:border-white/30 cursor-help"
+                    : "bg-background/40 border-border/50 opacity-30 select-none")}>
+                          {cell.count > 0 && (<div className={cn("absolute top-0 left-0 w-full h-0.5", isCritical ? "bg-rose-500" : isHealthy ? "bg-emerald-500" : isAbove ? "bg-blue-500" : "bg-white/10")}/>)}
                           
-                          <span className={cn(
-                            "text-xl font-black italic transition-transform group-hover:scale-110",
-                            cell.count > 0 ? "text-foreground" : "text-slate-700"
-                          )}>
+                          <span className={cn("text-xl font-black italic transition-transform group-hover:scale-110", cell.count > 0 ? "text-foreground" : "text-slate-700")}>
                             {cell.count}
                           </span>
                           <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
@@ -646,9 +455,8 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                         </p>
                       </TooltipContent>
                     </Tooltip>
-                  </TooltipProvider>
-                );
-              })}
+                  </TooltipProvider>);
+        })}
             </div>
             <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest italic text-center">
               Ex.: 126 lojas em 4x/mês e 0% ainda não tiveram nenhuma visita realizada.
@@ -656,68 +464,44 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </div>
         </AnalyticsChartCard>
 
-        <AnalyticsChartCard
-          title={
-            <div className="flex items-center gap-2">
+        <AnalyticsChartCard title={<div className="flex items-center gap-2">
               <span>Distribuição de Frequência</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                    <Info className="h-3 w-3 text-muted-foreground cursor-help"/>
                   </TooltipTrigger>
                   <TooltipContent className="bg-popover border-border text-foreground text-[10px] max-w-[200px]">
                     Mostra quantas lojas estão contratadas em cada frequência mensal de visitas.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            </div>
-          }
-          subtitle="Lojas por frequência contratada"
-        >
+            </div>} subtitle="Lojas por frequência contratada">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={frequencies} layout="vertical" margin={{ left: 20 }}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--border)"
-                horizontal={false}
-              />
-              <XAxis type="number" hide />
-              <YAxis
-                dataKey="frequency"
-                type="category"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 10, fill: "#fff", fontWeight: "bold" }}
-              />
-              <RechartsTooltip
-                cursor={{ fill: "rgba(255,255,255,0.02)" }}
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    const data = payload[0].payload;
-                    const isManual = String(label).toLowerCase() === "manual";
-                    return (
-                      <div className="bg-popover border border-border p-3 rounded-xl shadow-2xl min-w-[120px]">
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false}/>
+              <XAxis type="number" hide/>
+              <YAxis dataKey="frequency" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#fff", fontWeight: "bold" }}/>
+              <RechartsTooltip cursor={{ fill: "rgba(255,255,255,0.02)" }} content={({ active, payload, label }) => {
+            if (active && payload && payload.length) {
+                const data = payload[0].payload;
+                const isManual = String(label).toLowerCase() === "manual";
+                return (<div className="bg-popover border border-border p-3 rounded-xl shadow-2xl min-w-[120px]">
                         <p className="text-[10px] font-black text-foreground uppercase tracking-widest mb-1">
                           {label}x/mês
                         </p>
                         <p className="text-xs font-bold text-foreground/80">
                           {data.stores} {data.stores === 1 ? "loja" : "lojas"}
                         </p>
-                        {isManual && (
-                          <p className="text-[8px] text-muted-foreground italic mt-2 border-t border-border/50 pt-1">
+                        {isManual && (<p className="text-[8px] text-muted-foreground italic mt-2 border-t border-border/50 pt-1">
                             Frequência definida por configuração específica.
-                          </p>
-                        )}
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
+                          </p>)}
+                      </div>);
+            }
+            return null;
+        }}/>
               <Bar dataKey="stores" radius={[0, 4, 4, 0]} name="Lojas">
-                {frequencies.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "#3B82F6" : "#A855F7"} />
-                ))}
+                {frequencies.map((_, index) => (<Cell key={`cell-${index}`} fill={index % 2 === 0 ? "#3B82F6" : "#A855F7"}/>))}
               </Bar>
             </BarChart>
 
@@ -738,42 +522,32 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             </div>
           </div>
 
-          <AnalyticsTable
-            headers={["Loja", "Indústria", "Score", "Motivo"]}
-            rows={topPriorities.slice(0, 8).map((p) => [
-              <div key={p.storeId} className="flex flex-col">
+          <AnalyticsTable headers={["Loja", "Indústria", "Score", "Motivo"]} rows={topPriorities.slice(0, 8).map((p) => [
+            <div key={p.storeId} className="flex flex-col">
                 <span className="font-bold text-foreground uppercase tracking-tighter truncate w-32">
                   {p.storeName}
                 </span>
               </div>,
-              <span key={p.storeId} className="text-[10px] font-bold text-muted-foreground uppercase">
+            <span key={p.storeId} className="text-[10px] font-bold text-muted-foreground uppercase">
                 {p.industryName}
               </span>,
-              <span
-                key={p.storeId}
-                className={cn(
-                  "font-black",
-                  p.score > 80
+            <span key={p.storeId} className={cn("font-black", p.score > 80
                     ? "text-rose-500"
                     : p.score > 50
-                      ? "text-amber-500"
-                      : "text-emerald-500",
-                )}
-              >
+                        ? "text-amber-500"
+                        : "text-emerald-500")}>
                 {p.score}
               </span>,
-              <span key={p.storeId} className="text-[9px] font-bold text-muted-foreground uppercase">
+            <span key={p.storeId} className="text-[9px] font-bold text-muted-foreground uppercase">
                 {p.reason}
               </span>,
-            ])}
-          />
+        ])}/>
         </Mk9Panel>
 
         {/* Lojas Reincidentes */}
-        {data.recurrence.length > 0 && (
-          <Mk9Panel className="xl:col-span-1">
+        {data.recurrence.length > 0 && (<Mk9Panel className="xl:col-span-1">
             <div className="flex items-center gap-3 mb-6">
-              <History className="h-5 w-5 text-rose-500" />
+              <History className="h-5 w-5 text-rose-500"/>
               <div>
                 <h3 className="text-sm font-black text-foreground uppercase tracking-[0.1em]">
                   Lojas Reincidentes
@@ -784,49 +558,29 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               </div>
             </div>
 
-            <AnalyticsTable
-              headers={["Loja", "Indústria", "Histórico", "Status"]}
-              rows={data.recurrence.slice(0, 6).map((r) => [
+            <AnalyticsTable headers={["Loja", "Indústria", "Histórico", "Status"]} rows={data.recurrence.slice(0, 6).map((r) => [
                 <div key={`${r.storeId}-${r.industryName}`} className="flex flex-col">
                   <span className="font-bold text-foreground uppercase tracking-tighter truncate w-32">
                     {r.storeName}
                   </span>
                   <span className="text-[9px] text-muted-foreground font-bold uppercase">{r.uf}</span>
                 </div>,
-                <span
-                  key={`${r.storeId}-${r.industryName}`}
-                  className="text-[10px] font-bold text-muted-foreground uppercase truncate w-20"
-                >
+                <span key={`${r.storeId}-${r.industryName}`} className="text-[10px] font-bold text-muted-foreground uppercase truncate w-20">
                   {r.industryName}
                 </span>,
                 <div key={`${r.storeId}-${r.industryName}`} className="flex gap-1">
-                  {r.history.map((h, i) => (
-                    <div
-                      key={i}
-                      className="flex flex-col items-center p-1 rounded bg-white/[0.03] border border-border/50 min-w-[35px]"
-                    >
+                  {r.history.map((h, i) => (<div key={i} className="flex flex-col items-center p-1 rounded bg-white/[0.03] border border-border/50 min-w-[35px]">
                       <span className="text-[6px] font-black text-muted-foreground">{h.period}</span>
-                      <span
-                        className={cn(
-                          "text-[8px] font-black",
-                          h.realized === 0 ? "text-rose-500" : "text-foreground",
-                        )}
-                      >
+                      <span className={cn("text-[8px] font-black", h.realized === 0 ? "text-rose-500" : "text-foreground")}>
                         {h.realized}
                       </span>
-                    </div>
-                  ))}
+                    </div>))}
                 </div>,
-                <Mk9Badge
-                  variant={r.status === "CRITICAL_RECURRENT" ? "danger" : "warning"}
-                  key={`${r.storeId}-${r.industryName}`}
-                >
+                <Mk9Badge variant={r.status === "CRITICAL_RECURRENT" ? "danger" : "warning"} key={`${r.storeId}-${r.industryName}`}>
                   {r.status === "CRITICAL_RECURRENT" ? "REINCIDENTE" : "ALERTA"}
                 </Mk9Badge>,
-              ])}
-            />
-          </Mk9Panel>
-        )}
+            ])}/>
+          </Mk9Panel>)}
 
         {/* Industry Performance */}
         <Mk9Panel className="xl:col-span-1" id="industry-analysis">
@@ -842,32 +596,24 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </div>
 
           <div className="space-y-3">
-            {industries.slice(0, 6).map((ind) => (
-              <div
-                key={ind.industryId}
-                className="p-4 rounded-xl bg-card/50 border border-border/50 group hover:bg-white/[0.04] transition-all cursor-pointer"
-              >
+            {industries.slice(0, 6).map((ind) => (<div key={ind.industryId} className="p-4 rounded-xl bg-card/50 border border-border/50 group hover:bg-white/[0.04] transition-all cursor-pointer">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Building2 className="h-3.5 w-3.5 text-command-purple" />
+                    <Building2 className="h-3.5 w-3.5 text-command-purple"/>
                     <span className="text-[11px] font-black text-foreground uppercase tracking-tight">
                       {ind.industryName}
                     </span>
                   </div>
-                  <Mk9Badge
-                    variant={
-                      ind.risk === "CRITICAL"
-                        ? "danger"
-                        : ind.risk === "HIGH"
-                          ? "warning"
-                          : "success"
-                    }
-                  >
+                  <Mk9Badge variant={ind.risk === "CRITICAL"
+                ? "danger"
+                : ind.risk === "HIGH"
+                    ? "warning"
+                    : "success"}>
                     {ind.trend === "IMPROVING"
-                      ? "Evoluindo"
-                      : ind.trend === "WORSENING"
-                        ? "Queda"
-                        : "Estável"}
+                ? "Evoluindo"
+                : ind.trend === "WORSENING"
+                    ? "Queda"
+                    : "Estável"}
                   </Mk9Badge>
                 </div>
                 <div className="grid grid-cols-4 gap-4 mt-3">
@@ -875,12 +621,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                     <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">
                       Cobertura
                     </span>
-                    <span
-                      className={cn(
-                        "text-xs font-black",
-                        ind.coverage.delta >= 0 ? "text-emerald-400" : "text-amber-400",
-                      )}
-                    >
+                    <span className={cn("text-xs font-black", ind.coverage.delta >= 0 ? "text-emerald-400" : "text-amber-400")}>
                       {formatPercentage(ind.coverage.current)}
                     </span>
                   </div>
@@ -906,18 +647,12 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                     <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">
                       Risco
                     </span>
-                    <span
-                      className={cn(
-                        "text-[10px] font-black",
-                        ind.risk === "CRITICAL" ? "text-rose-500" : "text-amber-500",
-                      )}
-                    >
+                    <span className={cn("text-[10px] font-black", ind.risk === "CRITICAL" ? "text-rose-500" : "text-amber-500")}>
                       {ind.risk}
                     </span>
                   </div>
                 </div>
-              </div>
-            ))}
+              </div>))}
           </div>
         </Mk9Panel>
       </div>
@@ -927,7 +662,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center border border-command-purple/30">
-              <TrendingUp className="h-6 w-6 text-command-purple" />
+              <TrendingUp className="h-6 w-6 text-command-purple"/>
             </div>
             <div>
               <h3 className="text-lg font-black text-foreground uppercase italic">
@@ -964,16 +699,11 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               </span>
             </div>
           </div>
-          <Mk9Badge
-            variant={
-              projection?.riskStatus === "CRITICAL"
-                ? "danger"
-                : projection?.riskStatus === "HIGH"
-                  ? "warning"
-                  : "success"
-            }
-            className="h-10 px-6 text-sm"
-          >
+          <Mk9Badge variant={projection?.riskStatus === "CRITICAL"
+            ? "danger"
+            : projection?.riskStatus === "HIGH"
+                ? "warning"
+                : "success"} className="h-10 px-6 text-sm">
             RISCO {projection?.riskStatus || "N/D"}
           </Mk9Badge>
         </div>
@@ -992,9 +722,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           </div>
         </div>
 
-        <AnalyticsTable
-          headers={["UF", "Lojas", "Contratadas", "Realizadas", "Cobertura", "Delta", "Zeradas"]}
-          rows={ufs.map((u) => [
+        <AnalyticsTable headers={["UF", "Lojas", "Contratadas", "Realizadas", "Cobertura", "Delta", "Zeradas"]} rows={ufs.map((u) => [
             <div key={u.uf} className="flex items-center gap-2">
               <div className="h-6 w-6 rounded bg-primary/10 flex items-center justify-center text-[10px] font-black text-command-purple border border-command-purple/20">
                 {u.uf}
@@ -1011,30 +739,16 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               {u.realized}
             </span>,
             <div key={u.uf} className="flex items-center gap-2">
-              <span
-                className={cn(
-                  "font-black text-xs",
-                  u.variationVsPrevious >= 0 ? "text-emerald-400" : "text-amber-400",
-                )}
-              >
+              <span className={cn("font-black text-xs", u.variationVsPrevious >= 0 ? "text-emerald-400" : "text-amber-400")}>
                 {formatPercentage(u.coverage)}
               </span>
 
               <div className="flex-1 h-1 bg-muted/30 rounded-full min-w-[60px] hidden md:block">
 
-                <div
-                  className="h-full bg-primary rounded-full"
-                  style={{ width: `${u.coverage}%` }}
-                />
+                <div className="h-full bg-primary rounded-full" style={{ width: `${u.coverage}%` }}/>
               </div>
             </div>,
-            <span
-              key={u.uf}
-              className={cn(
-                "font-bold text-xs",
-                u.variationVsPrevious >= 0 ? "text-emerald-500" : "text-rose-500",
-              )}
-            >
+            <span key={u.uf} className={cn("font-bold text-xs", u.variationVsPrevious >= 0 ? "text-emerald-500" : "text-rose-500")}>
               {u.variationVsPrevious > 0 ? "+" : ""}
               {formatPercentage(u.variationVsPrevious)}
 
@@ -1042,9 +756,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             <Mk9Badge variant={u.zeroVisits > 0 ? "danger" : "default"} key={u.uf}>
               {u.zeroVisits} LOJAS
             </Mk9Badge>,
-          ])}
-        />
+        ])}/>
       </Mk9Panel>
-    </div>
-  );
+    </div>);
 }
