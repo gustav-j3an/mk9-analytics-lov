@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-const PresenceStatusSchema = z.enum(['PRESENT', 'ABSENT', 'MEDICAL_CERTIFICATE']);
+const PresenceStatusSchema = z.enum(['PRESENT', 'ABSENT', 'MEDICAL_CERTIFICATE', 'VACATION']);
 
 export const getPresenceList = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ 
