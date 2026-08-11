@@ -28,7 +28,7 @@ import { listFreelancers } from "@/lib/mk9-freelancers.functions";
 import { listSupervisors } from "@/lib/mk9-supervisors.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
-import { Loader2, Plus, Trash2, Info } from "lucide-react";
+import { Loader2, Plus, Trash2, Info, Building2 as Store } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DailyAttendanceDraft {
