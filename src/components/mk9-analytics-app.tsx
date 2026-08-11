@@ -97,7 +97,18 @@ export function Mk9AnalyticsApp() {
   const { user, roles, loading: sessionLoading, signOut } = useMk9Session();
   const queryClient = useQueryClient();
   const [activeModule, setActiveModule] = useState<ModuleId>("dashboard");
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("mk9_sidebar_collapsed");
+      return saved === "true";
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("mk9_sidebar_collapsed", String(collapsed));
+  }, [collapsed]);
+
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [auditFilters, setAuditFilters] = useState<Mk9AuditInitialFilters>({});
