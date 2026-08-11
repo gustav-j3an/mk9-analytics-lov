@@ -30,6 +30,7 @@ Personalização global de temas (Light/Dark) com tokens oklch semânticos. Acce
 - **Sidebar Optimized (v1.7.0):** Recolhimento persistente, tooltips e design compacto.
 - **Light Mode Corrected (v1.8.1):** Correção sistêmica de contraste em Selects, Inputs, Dropdowns e DatePickers, eliminando textos brancos sobre fundo claro.
 - **Freelancers & Global UI (v1.8.4):** Estabilização do módulo de Freelancers, botões globais e componentes de Empty State para legibilidade total no tema claro.
+- **Diárias Data Fix (v1.8.5):** Correção crítica na separação de conceitos entre Loja e Indústria no formulário de Nova Diária.
 
 ## Processo obrigatório de conclusão de tarefa
 Reproduzir -> achar causa raiz -> identificar arquivo/função -> corrigir -> validar no preview (login, dashboard, sidebar, rota afetada, refresh) — só então considerar concluído.
