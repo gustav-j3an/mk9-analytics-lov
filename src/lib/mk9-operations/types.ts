@@ -116,6 +116,7 @@ export interface StoreBucket {
   uf: string | null;
   weekly: number | null;
   monthly: number | null;
+  frequencyLabel?: string | null;
   segments: FrequencySegmentInput[];
   visits: string[];
 }
