@@ -41,7 +41,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v2.8.0 — CHAIN NORMALIZED",
+    title: "MK9 | v3.1.5 — ROTA PDF",
     meta: [
       {
         name: "description",
