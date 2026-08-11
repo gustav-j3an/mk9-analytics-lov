@@ -44,9 +44,10 @@ const WEEKDAYS_FULL = [
 ];
 
 export function PromoterIndividualRoute() {
-  const { promoterId } = useParams({ from: '/roteiros/promotor/$promoterId' });
+  const { promoterId } = useParams({ from: "/roteiros/promotor/$promoterId" }) as any;
   const navigate = useNavigate();
-  const search = useSearch({ from: '/roteiros/promotor/$promoterId' }) as any;
+  const search = useSearch({ from: "/roteiros/promotor/$promoterId" }) as any;
+
   
   const [searchTerm, setSearchTerm] = useState("");
   const referenceDate = search.date || new Date().toISOString().slice(0, 10);
