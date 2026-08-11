@@ -100,7 +100,7 @@ export function Mk9IndustryAuditModule() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nome..."
-              className="pl-10 bg-white/[0.03] border-border text-white placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
+              className="pl-10 bg-white/[0.03] border-border text-foreground placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -112,7 +112,7 @@ export function Mk9IndustryAuditModule() {
               onClick={() => setFilter("all")}
               className={cn(
                 "text-[10px] font-black uppercase tracking-widest border-border/50",
-                filter === "all" ? "bg-white/10 text-white" : "text-muted-foreground"
+                filter === "all" ? "bg-white/10 text-foreground" : "text-muted-foreground"
               )}
             >
               Tudo
@@ -160,7 +160,7 @@ export function Mk9IndustryAuditModule() {
                 <TableRow key={r.id} className="border-border/50 group hover:bg-white/[0.02]">
                   <TableCell className="py-4">
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">{r.name}</span>
+                      <span className="text-sm font-bold text-foreground group-hover:text-mk9-accent-primary transition-colors">{r.name}</span>
                       {r.archived && <span className="text-[8px] text-rose-500 font-black uppercase">Arquivada</span>}
                     </div>
                   </TableCell>
@@ -225,24 +225,24 @@ export function Mk9IndustryAuditModule() {
           </Table>
         </div>
 
-        <div className="mt-8 p-6 bg-command-purple/5 border border-command-purple/20 rounded-xl space-y-4">
+        <div className="mt-8 p-6 bg-primary/5 border border-command-purple/20 rounded-xl space-y-4">
           <div className="flex items-center gap-2 text-command-purple">
             <Info className="h-5 w-5" />
             <h3 className="font-black uppercase tracking-widest text-xs">Resumo do Diagnóstico</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-[11px] leading-relaxed text-muted-foreground">
             <div className="space-y-2">
-              <p className="font-bold text-white mb-1 uppercase tracking-tighter underline decoration-command-purple/30">Lógica de Reclassificação:</p>
+              <p className="font-bold text-foreground mb-1 uppercase tracking-tighter underline decoration-command-purple/30">Lógica de Reclassificação:</p>
               <ul className="list-disc pl-4 space-y-1">
                 <li><span className="text-emerald-400 font-black">VISIT_CONTROLLED</span>: Indústrias com importações de checklist, frequências versionadas, visitas operacionais reais ou snapshots de PDF históricos.</li>
                 <li><span className="text-orange-400 font-black">FIXED_OPERATION</span>: Indústrias que existem apenas no roteiro ou cadastro, sem atividade de checklist mensal.</li>
               </ul>
             </div>
             <div className="space-y-2">
-              <p className="font-bold text-white mb-1 uppercase tracking-tighter underline decoration-command-purple/30">Impacto da Classificação:</p>
+              <p className="font-bold text-foreground mb-1 uppercase tracking-tighter underline decoration-command-purple/30">Impacto da Classificação:</p>
               <ul className="list-disc pl-4 space-y-1">
-                <li><span className="text-white font-bold">Monitoradas</span>: Participam do Dashboard Analytics, BI e indicadores de faturamento por visita.</li>
-                <li><span className="text-white font-bold">Fixas</span>: Continuam no roteiro e PDF operacional, mas não afetam indicadores globais de cobertura.</li>
+                <li><span className="text-foreground font-bold">Monitoradas</span>: Participam do Dashboard Analytics, BI e indicadores de faturamento por visita.</li>
+                <li><span className="text-foreground font-bold">Fixas</span>: Continuam no roteiro e PDF operacional, mas não afetam indicadores globais de cobertura.</li>
               </ul>
             </div>
           </div>

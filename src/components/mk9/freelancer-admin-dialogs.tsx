@@ -164,7 +164,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" className="bg-command-purple hover:bg-command-purple/80" disabled={mutation.isPending}>
+            <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground" disabled={mutation.isPending}>
               {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {freelancer ? "Salvar Alterações" : "Cadastrar"}
             </Button>

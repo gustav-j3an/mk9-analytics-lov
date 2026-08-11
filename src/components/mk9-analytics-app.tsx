@@ -340,7 +340,7 @@ export function Mk9AnalyticsApp() {
                   </span>
                   <Badge
                     variant="outline"
-                    className="text-[8px] py-0 px-1 border-command-purple/30 bg-command-purple/10 text-command-purple font-black"
+                    className="text-[8px] py-0 px-1 border-command-purple/30 bg-primary/10 text-command-purple font-black"
                   >
                     {isAdmin
                       ? "ADMIN"
@@ -464,7 +464,7 @@ function SidebarItem({
       className={cn(
         "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 relative group",
         active
-          ? "bg-command-purple/10 text-foreground dark:text-foreground shadow-[0_0_20px_rgba(168,85,247,0.15)] neon-border-primary"
+          ? "bg-primary/10 text-foreground dark:text-foreground shadow-[0_0_20px_rgba(168,85,247,0.15)] neon-border-primary"
           : "text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:text-foreground",
         collapsed && "justify-center px-0"
       )}
@@ -477,7 +477,7 @@ function SidebarItem({
       />
       {!collapsed && <span className="truncate">{label}</span>}
       {!collapsed && active && (
-        <div className="ml-auto h-1.5 w-1.5 rounded-full bg-command-purple shadow-[0_0_8px_#A855F7]" />
+        <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_#A855F7]" />
       )}
     </button>
   );

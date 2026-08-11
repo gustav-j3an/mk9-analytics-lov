@@ -378,7 +378,7 @@ export function Mk9CockpitModule({
                   <button
                     key={a.id}
                     onClick={() => go(a.target)}
-                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-muted/30 border border-border/50 hover:bg-command-purple/10 hover:border-command-purple/30 transition-all group"
+                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-muted/30 border border-border/50 hover:bg-primary/10 hover:border-command-purple/30 transition-all group"
                   >
                     <Icon className="h-6 w-6 text-muted-foreground group-hover:text-command-purple mb-2 transition-colors" />
                     <span className="text-[9px] font-black text-muted-foreground group-hover:text-foreground uppercase tracking-widest text-center">

@@ -35,15 +35,15 @@ export function Mk9FreelancersModule() {
     <div className="p-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-black text-white tracking-tighter uppercase">Gestão de Freelancers</h2>
+          <h2 className="text-3xl font-black text-foreground tracking-tighter uppercase">Gestão de Freelancers</h2>
           <p className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Cadastro e Gestão de Prestadores Avulsos</p>
         </div>
-        <Button className="w-full md:w-auto bg-command-purple hover:bg-command-purple/80 font-black tracking-widest text-[11px] h-11 px-6 shadow-[0_0_20px_rgba(168,85,247,0.2)]" onClick={() => { setEditing(null); setOpen(true); }}>
+        <Button className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-black tracking-widest text-[11px] h-11 px-6 shadow-sm" onClick={() => { setEditing(null); setOpen(true); }}>
           <Plus className="w-4 h-4 mr-2" /> NOVO FREELANCER
         </Button>
       </div>
 
-      <div className="border border-border rounded-lg bg-[#111122]">
+      <div className="border border-border rounded-lg bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
@@ -58,7 +58,7 @@ export function Mk9FreelancersModule() {
           <TableBody>
             {freelancers?.map((f: any) => (
               <TableRow key={f.id} className="border-border/50 hover:bg-accent">
-                <TableCell className="text-white font-medium">{f.name}</TableCell>
+                <TableCell className="text-foreground font-medium">{f.name}</TableCell>
                 <TableCell className="text-foreground/80">{f.city ? `${f.city}/${f.uf}` : "-"}</TableCell>
                 <TableCell className="text-foreground/80">{f.phone || "-"}</TableCell>
                 <TableCell className="text-emerald-400 font-mono text-xs">
@@ -89,12 +89,12 @@ export function Mk9FreelancersModule() {
       </div>
 
       {freelancers?.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-border rounded-xl bg-muted/50 text-center">
-          <Users className="w-12 h-12 text-slate-600 mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">Nenhum freelancer cadastrado</h3>
+        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-border rounded-xl bg-muted/30 text-center">
+          <Users className="w-12 h-12 text-muted-foreground/60 mb-4" />
+          <h3 className="text-xl font-bold text-foreground mb-2">Nenhum freelancer cadastrado</h3>
           <p className="text-muted-foreground max-w-xs mb-6">Comece cadastrando um prestador para realizar diárias e atendimentos avulsos.</p>
-          <Button className="bg-command-purple hover:bg-command-purple/80" onClick={() => { setEditing(null); setOpen(true); }}>
-            <Plus className="w-4 h-4 mr-2" /> Cadastrar Primeiro Freelancer
+          <Button variant="outline" className="font-bold tracking-widest text-[11px] h-10 px-6 border-primary/20 hover:bg-primary/5 hover:text-primary transition-colors" onClick={() => { setEditing(null); setOpen(true); }}>
+            <Plus className="w-4 h-4 mr-2" /> CADASTRAR PRIMEIRO FREELANCER
           </Button>
         </div>
       )}

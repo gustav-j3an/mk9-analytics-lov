@@ -260,7 +260,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
 
             <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden">
               <div
-                className="h-full bg-command-purple rounded-full transition-all duration-1000"
+                className="h-full bg-primary rounded-full transition-all duration-1000"
                 style={{ width: `${executive.coverage.current}%` }}
               />
             </div>
@@ -898,7 +898,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
       <Mk9Panel className="bg-gradient-to-r from-command-deep to-command-purple/10 border-command-purple/20">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-command-purple/20 flex items-center justify-center border border-command-purple/30">
+            <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center border border-command-purple/30">
               <TrendingUp className="h-6 w-6 text-command-purple" />
             </div>
             <div>
@@ -968,7 +968,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           headers={["UF", "Lojas", "Contratadas", "Realizadas", "Cobertura", "Delta", "Zeradas"]}
           rows={ufs.map((u) => [
             <div key={u.uf} className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded bg-command-purple/10 flex items-center justify-center text-[10px] font-black text-command-purple border border-command-purple/20">
+              <div className="h-6 w-6 rounded bg-primary/10 flex items-center justify-center text-[10px] font-black text-command-purple border border-command-purple/20">
                 {u.uf}
               </div>
               <span className="font-black text-foreground">{u.uf}</span>
@@ -995,7 +995,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               <div className="flex-1 h-1 bg-muted/30 rounded-full min-w-[60px] hidden md:block">
 
                 <div
-                  className="h-full bg-command-purple rounded-full"
+                  className="h-full bg-primary rounded-full"
                   style={{ width: `${u.coverage}%` }}
                 />
               </div>

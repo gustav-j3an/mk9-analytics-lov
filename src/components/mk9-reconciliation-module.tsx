@@ -456,7 +456,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
             <Button
               onClick={() => runMut.mutate()}
               disabled={runMut.isPending}
-              className="h-9 bg-command-purple hover:bg-command-purple/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] flex-1 text-[10px] font-black uppercase tracking-widest"
+              className="h-9 bg-primary hover:bg-primary/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] flex-1 text-[10px] font-black uppercase tracking-widest"
             >
               {runMut.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -518,37 +518,37 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
           <TabsList className="flex md:flex-wrap h-auto bg-background/40 border border-border/50 p-1 w-max md:w-auto">
             <TabsTrigger
               value="all"
-              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-foreground"
+              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-foreground"
             >
               Geral
             </TabsTrigger>
             <TabsTrigger
               value="matched"
-              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-foreground"
+              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-foreground"
             >
               Conciliadas
             </TabsTrigger>
             <TabsTrigger
               value="pending"
-              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-foreground"
+              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-foreground"
             >
               Pendências
             </TabsTrigger>
             <TabsTrigger
               value="unplanned"
-              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-foreground"
+              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-foreground"
             >
               Fora Roteiro
             </TabsTrigger>
             <TabsTrigger
               value="manual"
-              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-foreground"
+              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-foreground"
             >
               Manual
             </TabsTrigger>
             <TabsTrigger
               value="not_completed"
-              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-foreground"
+              className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-foreground"
             >
               Não Realizadas
             </TabsTrigger>

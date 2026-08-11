@@ -164,7 +164,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
         actions={
           <Button
             onClick={() => setCreating(true)}
-            className="h-9 bg-command-purple hover:bg-command-purple/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest px-6"
+            className="h-9 bg-primary hover:bg-primary/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest px-6"
           >
             <Plus className="h-4 w-4 mr-2" /> Novo Item
           </Button>
@@ -285,7 +285,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           <Button
             size="sm"
             onClick={() => setCreating(true)}
-            className="h-9 bg-command-purple hover:bg-command-purple/80 text-foreground border-none uppercase text-[10px] font-black tracking-widest px-6"
+            className="h-9 bg-primary hover:bg-primary/80 text-foreground border-none uppercase text-[10px] font-black tracking-widest px-6"
           >
             <Plus className="h-4 w-4 mr-2" /> Novo item de roteiro
           </Button>

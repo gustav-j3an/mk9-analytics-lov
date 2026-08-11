@@ -91,7 +91,7 @@ export function Mk9SupervisorsModule() {
               setEditingSupervisor(null);
               setIsDialogOpen(true);
             }}
-            className="bg-command-purple hover:bg-command-purple/90 text-white font-black uppercase tracking-widest px-6 shadow-lg shadow-command-purple/20 border-none"
+            className="bg-primary hover:bg-primary/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-sm border-none"
           >
             <Plus className="h-4 w-4 mr-2" /> Novo Supervisor
           </Button>
@@ -109,7 +109,7 @@ export function Mk9SupervisorsModule() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar supervisor..."
-              className="pl-10 bg-white/[0.03] border-border text-white placeholder:text-slate-600"
+              className="pl-10 bg-muted/50 border-border text-foreground placeholder:text-slate-600"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -138,7 +138,7 @@ export function Mk9SupervisorsModule() {
                     <td className="px-4 py-4">
                       <button 
                         onClick={() => setDetailId(s.id)}
-                        className="text-sm font-bold text-white group-hover:text-command-purple transition-colors flex items-center gap-2"
+                        className="text-sm font-bold text-foreground group-hover:text-command-purple transition-colors flex items-center gap-2"
                       >
                         {s.name}
                         <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -158,7 +158,7 @@ export function Mk9SupervisorsModule() {
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-command-deep border-border text-white">
+                        <DropdownMenuContent align="end" className="bg-popover border-border text-foreground">
                           <DropdownMenuItem onClick={() => setDetailId(s.id)} className="gap-2 cursor-pointer">
                             <Users className="h-3.5 w-3.5" /> Ver Equipe
                           </DropdownMenuItem>
@@ -237,7 +237,7 @@ function SupervisorFormDialog({ open, onClose, supervisor }: { open: boolean, on
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-command-deep border-border text-white">
+      <DialogContent className="bg-popover border-border text-foreground">
         <DialogHeader>
           <DialogTitle>{supervisor ? "Editar Supervisor" : "Novo Supervisor"}</DialogTitle>
         </DialogHeader>
@@ -249,12 +249,12 @@ function SupervisorFormDialog({ open, onClose, supervisor }: { open: boolean, on
               onChange={(e) => setName(e.target.value)} 
               placeholder="Digite o nome..."
               required
-              className="bg-white/[0.03] border-border"
+              className="bg-muted/50 border-border"
             />
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
-            <Button type="submit" className="bg-command-purple hover:bg-command-purple/90">Salvar</Button>
+            <Button type="submit" className="bg-primary hover:bg-primary/90">Salvar</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -298,9 +298,9 @@ function SupervisorDetailsSheet({ id, onClose }: { id: string | null, onClose: (
 
   return (
     <Sheet open={!!id} onOpenChange={onClose}>
-      <SheetContent className="bg-command-deep border-border text-white sm:max-w-md overflow-y-auto">
+      <SheetContent className="bg-popover border-border text-foreground sm:max-w-md overflow-y-auto">
         <SheetHeader className="mb-6">
-          <SheetTitle className="text-white flex items-center gap-2">
+          <SheetTitle className="text-foreground flex items-center gap-2">
             <UserCheck className="h-5 w-5 text-command-purple" />
             {details?.name || "Carregando..."}
           </SheetTitle>
@@ -342,7 +342,7 @@ function SupervisorDetailsSheet({ id, onClose }: { id: string | null, onClose: (
                     </div>
                   ))}
                 </div>
-                <Button onClick={handleAssign} className="w-full bg-command-purple hover:bg-command-purple/90">Confirmar Vínculos</Button>
+                <Button onClick={handleAssign} className="w-full bg-primary hover:bg-primary/90">Confirmar Vínculos</Button>
               </div>
             ) : (
               <div className="space-y-2">

@@ -160,9 +160,9 @@ export function Mk9EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 gap-4 border border-dashed border-border/50 rounded-2xl bg-muted/10">
-      <Inbox className="h-10 w-10 text-slate-700" />
-      <p className="text-sm font-medium text-muted-foreground italic">{message}</p>
+    <div className="flex flex-col items-center justify-center py-20 gap-4 border border-dashed border-border rounded-2xl bg-muted/20 text-center px-6">
+      <Inbox className="h-10 w-10 text-muted-foreground/60" />
+      <p className="text-sm font-semibold text-foreground/80">{message}</p>
       {action && <div className="mt-2">{action}</div>}
     </div>
   );

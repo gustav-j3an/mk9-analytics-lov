@@ -143,7 +143,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
         actions={
           <Button
             onClick={() => setShowNew(true)}
-            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-mk9-accent-primary/20 border-none"
+            className="bg-primary hover:bg-primary/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-sm border-none"
           >
             <UserPlus className="h-4 w-4 mr-2" /> Novo Usuário
           </Button>
@@ -159,7 +159,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
       {showNew && (
         <Mk9Panel className="animate-in slide-in-from-top-4 duration-300">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-mk9-accent-primary/10 border border-mk9-accent-primary/20">
+            <div className="p-2 rounded-lg bg-primary/10 border border-mk9-accent-primary/20">
               <UserPlus className="h-4 w-4 text-mk9-accent-primary" />
             </div>
             <h3 className="text-sm font-black text-foreground uppercase tracking-wider">
@@ -235,7 +235,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
               <Button
                 type="submit"
                 disabled={busy}
-                className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-foreground font-black uppercase tracking-widest px-8"
+                className="bg-primary hover:bg-primary/90 text-foreground font-black uppercase tracking-widest px-8"
               >
                 {busy ? "Processando..." : "Finalizar Cadastro"}
               </Button>

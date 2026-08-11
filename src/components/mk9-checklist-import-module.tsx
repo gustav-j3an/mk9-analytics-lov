@@ -568,7 +568,7 @@ export function Mk9ChecklistImportModule({
           className={cn(
             "h-8 px-4 text-[10px] font-black uppercase tracking-widest transition-all",
             viewMode === "individual"
-              ? "bg-command-purple text-foreground shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+              ? "bg-primary text-foreground shadow-[0_0_10px_rgba(168,85,247,0.2)]"
               : "text-muted-foreground hover:text-foreground",
           )}
         >
@@ -580,7 +580,7 @@ export function Mk9ChecklistImportModule({
           className={cn(
             "h-8 px-4 text-[10px] font-black uppercase tracking-widest transition-all",
             viewMode === "batch"
-              ? "bg-command-purple text-foreground shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+              ? "bg-primary text-foreground shadow-[0_0_10px_rgba(168,85,247,0.2)]"
               : "text-muted-foreground hover:text-foreground",
           )}
         >
@@ -858,7 +858,7 @@ function Mk9ChecklistBatchModule({ industries }: { industries: any[] }) {
     <div className="space-y-4">
       <Mk9Panel className="relative">
         <div className="flex items-center gap-2 mb-6">
-          <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
+          <div className="p-2 rounded-lg bg-primary/10 text-command-purple">
             <Files className="h-5 w-5" />
           </div>
           <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
@@ -1201,7 +1201,7 @@ function IndividualImport({
     <div className="space-y-6">
       <Mk9Panel className="relative">
         <div className="flex items-center gap-2 mb-6">
-          <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
+          <div className="p-2 rounded-lg bg-primary/10 text-command-purple">
             <ClipboardCheck className="h-5 w-5" />
           </div>
           <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
@@ -1351,7 +1351,7 @@ function IndividualImport({
           <Button
             onClick={() => previewMut.mutate()}
             disabled={!file || !industryId || previewMut.isPending}
-            className="h-9 bg-command-purple hover:bg-command-purple/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] text-[10px] font-black uppercase tracking-widest px-8"
+            className="h-9 bg-primary hover:bg-primary/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] text-[10px] font-black uppercase tracking-widest px-8"
           >
             {previewMut.isPending ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -1714,7 +1714,7 @@ function IndividualImport({
 
       <Mk9Panel className="relative">
         <div className="flex items-center gap-2 mb-6">
-          <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
+          <div className="p-2 rounded-lg bg-primary/10 text-command-purple">
             <Clock className="h-5 w-5" />
           </div>
           <h3 className="text-sm font-black text-foreground uppercase tracking-widest">

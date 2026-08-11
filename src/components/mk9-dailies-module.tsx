@@ -165,14 +165,14 @@ export function Mk9DailiesModule() {
           <p className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Gestão de Freelancers e Atendimentos Avulsos</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <Button variant="outline" className="flex-1 md:flex-none border-command-purple/50 text-command-purple hover:bg-command-purple/10" onClick={() => setShowClosing(true)}>
+          <Button variant="outline" className="flex-1 md:flex-none border-command-purple/50 text-command-purple hover:bg-primary/10" onClick={() => setShowClosing(true)}>
             <TrendingUp className="w-4 h-4 mr-2" /> [ FECHAMENTO ]
           </Button>
           <Button variant="outline" className="flex-1 md:flex-none border-border hover:bg-muted/50 text-foreground/80" onClick={handleExport} disabled={isExporting}>
             {isExporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
             Exportar Excel
           </Button>
-          <Button className="flex-1 md:flex-none bg-command-purple hover:bg-command-purple/80 font-bold" onClick={() => { setEditing(null); setOpen(true); }}>
+          <Button className="flex-1 md:flex-none bg-primary hover:bg-primary/80 font-bold" onClick={() => { setEditing(null); setOpen(true); }}>
             <Plus className="w-4 h-4 mr-2" /> Nova Diária
           </Button>
         </div>
@@ -391,7 +391,7 @@ export function Mk9DailiesModule() {
                       </div>
                       <div className="flex flex-wrap gap-1.5 pl-5">
                         {group.industries.map((ind: any, i: number) => (
-                          <Badge key={i} variant="secondary" className="bg-command-purple/10 text-command-purple border-none text-[9px] font-bold py-0.5">
+                          <Badge key={i} variant="secondary" className="bg-primary/10 text-command-purple border-none text-[9px] font-bold py-0.5">
                             {ind?.name}
                           </Badge>
                         ))}

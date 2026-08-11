@@ -237,19 +237,19 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                 <TabsList className="bg-muted/50 border-border p-1 h-12 mb-6">
                   <TabsTrigger
                     value="visits"
-                    className="data-[state=active]:bg-mk9-accent-primary data-[state=active]:text-foreground font-bold uppercase text-[10px] tracking-widest"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-foreground font-bold uppercase text-[10px] tracking-widest"
                   >
                     Visitas ({diagnosis.sources.visits.length})
                   </TabsTrigger>
                   <TabsTrigger
                     value="frequencies"
-                    className="data-[state=active]:bg-mk9-accent-primary data-[state=active]:text-foreground font-bold uppercase text-[10px] tracking-widest"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-foreground font-bold uppercase text-[10px] tracking-widest"
                   >
                     Frequências ({diagnosis.sources.frequencies.length})
                   </TabsTrigger>
                   <TabsTrigger
                     value="imports"
-                    className="data-[state=active]:bg-mk9-accent-primary data-[state=active]:text-foreground font-bold uppercase text-[10px] tracking-widest"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-foreground font-bold uppercase text-[10px] tracking-widest"
                   >
                     Importações ({diagnosis.sources.imports.length})
                   </TabsTrigger>
@@ -273,7 +273,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                                   : prev.visitIds.filter((id) => id !== v.id),
                               }));
                             }}
-                            className="border-white/20 data-[state=checked]:bg-mk9-accent-primary"
+                            className="border-white/20 data-[state=checked]:bg-primary"
                           />
                           <div className="flex flex-col">
                             <span className="text-sm font-bold text-foreground uppercase tracking-tight">
@@ -310,7 +310,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                                   : prev.frequencyIds.filter((id) => id !== f.id),
                               }));
                             }}
-                            className="border-white/20 data-[state=checked]:bg-mk9-accent-primary"
+                            className="border-white/20 data-[state=checked]:bg-primary"
                           />
                           <div className="flex flex-col">
                             <span className="text-sm font-bold text-foreground uppercase tracking-tight">
@@ -347,7 +347,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                                   : prev.importIds.filter((id) => id !== i.id),
                               }));
                             }}
-                            className="border-white/20 data-[state=checked]:bg-mk9-accent-primary"
+                            className="border-white/20 data-[state=checked]:bg-primary"
                           />
                           <div className="flex flex-col">
                             <span className="text-sm font-bold text-foreground uppercase tracking-tight truncate max-w-[300px]">
