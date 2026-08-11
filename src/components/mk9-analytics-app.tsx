@@ -207,8 +207,8 @@ export function Mk9AnalyticsApp() {
                 { 
                   title: "Operação", 
                   items: [
-                    { id: "importacoes", icon: Settings2, label: "Gestão Operacional" },
-                    { id: "checklists", icon: Upload, label: "Importar Checklist" },
+                    { id: "importacoes", icon: Settings2, label: "Gestão Operacional", adminOnly: true },
+                    { id: "checklists", icon: Upload, label: "Importar Checklist", adminOnly: true },
                     { id: "roteiros", icon: Route, label: "Roteiros" },
                     { id: "presenca", icon: CheckCircle2, label: "Presença" },
                     { id: "diarias", icon: WalletCards, label: "Controle de Diárias" },
@@ -218,7 +218,7 @@ export function Mk9AnalyticsApp() {
                   title: "Análise e Controle", 
                   items: [
                     { id: "conciliacao", icon: ClipboardCheck, label: "Conciliação" },
-                    { id: "qualidade", icon: PackageCheck, label: "Qualidade" },
+                    { id: "qualidade", icon: PackageCheck, label: "Qualidade", adminOnly: true },
                     { id: "relatorio_industria", icon: FileSpreadsheet, label: "Indústrias (PDF)" },
                   ]
                 },
@@ -235,33 +235,41 @@ export function Mk9AnalyticsApp() {
                 { 
                   title: "Administração", 
                   items: [
-                    { id: "cleanup_admin", icon: ShieldAlert, label: "Limpeza Manual" },
-                    { id: "usuarios", icon: Users, label: "Usuários" },
-                    { id: "auditoria_controle", icon: ShieldCheck, label: "Auditoria Controle" },
+                    { id: "cleanup_admin", icon: ShieldAlert, label: "Limpeza Manual", adminOnly: true },
+                    { id: "usuarios", icon: Users, label: "Usuários", adminOnly: true },
+                    { id: "auditoria_controle", icon: ShieldCheck, label: "Auditoria Controle", adminOnly: true },
                   ]
                 }
-              ].map((cat, i) => (
-                <div key={i} className="space-y-1">
-                  {!collapsed && (
-                    <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">
-                      {cat.title}
-                    </p>
-                  )}
-                  {cat.items.map((item: any) => (
-                    <SidebarItem
-                      key={item.id + item.label}
-                      icon={item.icon}
-                      label={item.label}
-                      active={activeModule === item.id}
-                      collapsed={collapsed}
-                      onClick={() => {
-                        setActiveModule(item.id as ModuleId);
-                        if (window.innerWidth < 768) setCollapsed(true);
-                      }}
-                    />
-                  ))}
-                </div>
-              ))}
+              ].map((category) => {
+                // Filtra itens baseados na role
+                const visibleItems = category.items.filter(item => !item.adminOnly || isAdmin);
+                
+                // Se não houver itens visíveis, não renderiza a categoria nem o título
+                if (visibleItems.length === 0) return null;
+
+                return (
+                  <div key={category.title} className="space-y-1">
+                    {!collapsed && (
+                      <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">
+                        {category.title}
+                      </p>
+                    )}
+                    {visibleItems.map((item: any) => (
+                      <SidebarItem
+                        key={item.id + item.label}
+                        icon={item.icon}
+                        label={item.label}
+                        active={activeModule === item.id}
+                        collapsed={collapsed}
+                        onClick={() => {
+                          setActiveModule(item.id as ModuleId);
+                          if (window.innerWidth < 768) setCollapsed(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                );
+              })}
             </nav>
           </div>
 
