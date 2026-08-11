@@ -41,16 +41,17 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v2.4.0 — FINANCEIRO STABILIZED",
+    title: "MK9 | v2.8.0 — CHAIN NORMALIZED",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v2.4.0: FINANCEIRO STABILIZED. Cálculo de diárias por indústria atendida e correções de contraste no Light Mode.",
+        content: "MK9 Command Center v2.8.0: CHAIN NORMALIZED. Normalização automática de redes de lojas e melhorias na exportação operacional.",
+
       },
-      { property: "og:title", content: "MK9 | v2.4.0" },
+      { property: "og:title", content: "MK9 | v2.8.0" },
       {
         property: "og:description",
-        content: "MK9 Command Center v2.4.0: FINANCEIRO STABILIZED. Cálculo de diárias por indústria atendida e correções de contraste no Light Mode.",
+        content: "MK9 Command Center v2.8.0: CHAIN NORMALIZED. Normalização automática de redes de lojas e melhorias na exportação operacional.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -136,10 +137,11 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v2.4.0</span>
+                  MK9 Command Center • <span className="text-primary/80">v2.8.0</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  FINANCEIRO STABILIZED
+                  CHAIN NORMALIZED
+
                 </p>
               </div>
             </div>
