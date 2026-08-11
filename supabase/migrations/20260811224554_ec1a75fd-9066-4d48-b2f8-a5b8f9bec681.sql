@@ -1,0 +1,1 @@
+ALTER TABLE public.mk9_freelancers ADD COLUMN IF NOT EXISTS cpf TEXT;

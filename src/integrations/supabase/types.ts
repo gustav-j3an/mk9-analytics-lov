@@ -840,6 +840,7 @@ export type Database = {
         Row: {
           active: boolean
           city: string | null
+          cpf: string | null
           created_at: string
           default_daily_rate: number | null
           id: string
@@ -852,6 +853,7 @@ export type Database = {
         Insert: {
           active?: boolean
           city?: string | null
+          cpf?: string | null
           created_at?: string
           default_daily_rate?: number | null
           id?: string
@@ -864,6 +866,7 @@ export type Database = {
         Update: {
           active?: boolean
           city?: string | null
+          cpf?: string | null
           created_at?: string
           default_daily_rate?: number | null
           id?: string
