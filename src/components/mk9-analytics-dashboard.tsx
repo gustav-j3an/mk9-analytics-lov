@@ -173,8 +173,10 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             <thead className="bg-muted/30">
               <tr>
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Indústria</th>
+                <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Frequência</th>
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Previstas</th>
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Checklist</th>
+
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Pendentes</th>
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-right">Cobertura</th>
               </tr>
@@ -183,7 +185,11 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               {filteredIndustries.map((ind: any) => (
                 <tr key={ind.industryId} className="hover:bg-muted/20 transition-colors group cursor-default">
                   <td className="px-6 py-4 font-bold text-sm text-foreground">{ind.industryName}</td>
+                  <td className="px-6 py-4 text-center">
+                    <span className="text-[10px] font-black text-muted-foreground uppercase">{ind.frequency || "-"}</span>
+                  </td>
                   <td className="px-6 py-4 text-center font-mono text-xs">{nf(ind.contracted?.current || 0)}</td>
+
                   <td className="px-6 py-4 text-center font-mono text-xs text-emerald-500/80">{nf(ind.realized?.current || 0)}</td>
                   <td className="px-6 py-4 text-center font-mono text-xs text-amber-500/80">{nf(ind.pendingCount || 0)}</td>
                   <td className="px-6 py-4 text-right">
@@ -213,9 +219,14 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               </div>
               <div className="grid grid-cols-2 gap-y-2 text-[10px] font-bold uppercase">
                 <div className="flex flex-col text-left">
+                  <span className="text-muted-foreground tracking-widest mb-0.5">Frequência</span>
+                  <span>{ind.frequency || "-"}</span>
+                </div>
+                <div className="flex flex-col text-right">
                   <span className="text-muted-foreground tracking-widest mb-0.5">Previstas</span>
                   <span>{nf(ind.contracted?.current || 0)}</span>
                 </div>
+
                 <div className="flex flex-col text-right">
                   <span className="text-muted-foreground tracking-widest mb-0.5">Checklist</span>
                   <span className="text-emerald-500">{nf(ind.realized?.current || 0)}</span>
