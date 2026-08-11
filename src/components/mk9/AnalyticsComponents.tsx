@@ -76,7 +76,7 @@ export function AnalyticsMetricCard({
             className={cn(
               "flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-black",
               comparison.trend === "up"
-                ? "text-emerald-400 bg-emerald-500/10"
+                ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
                 : comparison.trend === "down"
                   ? "text-rose-600 dark:text-rose-400 bg-rose-500/10"
                   : "text-muted-foreground bg-muted/50",
