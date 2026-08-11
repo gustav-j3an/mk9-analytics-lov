@@ -1,24 +1,31 @@
 /*
 # Inventário de Módulos — MK9 Command Center
 
-## 1. Módulo Inteligência (Auditado)
-- **Status:** Consolidado e Removido da Navegação.
-- **Rota:** `/inteligencia` (Redirecionada para `/dashboard`).
-- **Análise:**
-  - A — JÁ EXISTE NO DASHBOARD: Indicadores de cobertura, totalizadores de previstas/realizadas por indústria.
-  - B — DEVE SER INCORPORADA AO DASHBOARD: Drill-down por loja (Incorporado na v2.1.0).
-  - D — NÃO TEM MAIS UTILIDADE: Gráficos de barra redundantes que não permitiam ação imediata.
-- **Impacto:** Redução de complexidade e carregamento de queries agregadas pesadas no início da sessão.
+## 1. Módulos Descontinuados (Visão Geral)
+- **Inteligência:** Consolidado no Dashboard (v2.2.0). Rota `/inteligencia` redirecionada.
+- **Cockpit:** Descontinuado (v2.3.0). Rota `/cockpit` redirecionada para `/dashboard`.
+  - Motivo: Sobreposição de atalhos e indicadores redundantes.
+  - Funcionalidades exclusivas (Saúde do Sistema): Removidas da experiência principal por serem de uso técnico/administrativo.
 
-## 2. Inventário dos Módulos Atuais
-- **Dashboard:** Central de monitoramento em tempo real por indústria e loja. (MANTER - Core)
-- **Cockpit:** Visão geral rápida da operação. (MANTER - Core)
-- **Gestão Operacional:** Controle de vigências e meses operacionais. (MANTER)
-- **Importar Checklist:** Motor de ingestão de dados. (MANTER)
-- **Roteiros:** Planejamento e execução de promotores. (MANTER)
-- **Presença:** Controle de ponto e equipes. (MANTER)
-- **Controle de Diárias:** Gestão financeira de freelancers. (MANTER)
-- **Conciliação / Auditoria / Qualidade:** Módulos de hardening e verificação. (MANTER)
+## 2. Inventário do Menu Atual
+- **Dashboard:** Central de monitoramento por indústria e loja. (ESSENCIAL - Home)
+- **Gestão Operacional:** Configuração de vigências. (ESSENCIAL)
+- **Importar Checklist:** Motor de dados. (ESSENCIAL)
+- **Roteiros:** Planejamento de campo. (ESSENCIAL)
+- **Presença:** Controle de ponto. (ESSENCIAL)
+- **Controle de Diárias:** Gestão financeira freelancers. (ESSENCIAL)
+- **Conciliação / Auditoria / Qualidade:** Hardening operacional. (ESSENCIAL)
+- **Cadastros (Lojas/Indústrias/etc):** Gestão de entidades. (ESSENCIAL)
+
+---
+
+# MISSÃO — DESCONTINUAR O COCKPIT E SIMPLIFICAR A NAVEGAÇÃO
+MK9 COMMAND CENTER
+
+O Cockpit foi oficialmente descontinuado na v2.3.0.
+O Dashboard agora é a única Home Operacional, centralizando a inteligência sem poluição visual.
+*/
+
 
 ---
 
