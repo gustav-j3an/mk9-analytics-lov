@@ -320,16 +320,18 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           )}
           {Array.from(grouped.keys())
             .sort((a, b) => a.localeCompare(b, "pt-BR"))
-            .map((promoter) => {
-              const days = grouped.get(promoter)!;
+            .map((promoterName) => {
+              const pData = grouped.get(promoterName)!;
+              const days = pData.days;
               return (
-                <Card key={promoter}>
+                <Card key={promoterName}>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-primary" />
-                        {promoter}
+                        {promoterName}
                       </div>
+
                       <Link
                         to="/roteiros/promotor/$promoterId"
                         params={{
