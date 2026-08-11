@@ -284,7 +284,7 @@ export function Mk9PresenceModule() {
         <Mk9MetricCard label="Presentes" value={localStats.present} color="emerald" />
         <Mk9MetricCard label="Faltas" value={localStats.absent} color="rose" />
         <Mk9MetricCard label="Atestados" value={localStats.medical} color="amber" />
-        <Mk9MetricCard label="Férias" value={localStats.vacation} color="indigo" />
+        <Mk9MetricCard label="Férias" value={localStats.vacation} color="purple" />
         <Mk9MetricCard label="Não Marcados" value={Math.max(0, (presenceItems?.length ?? 0) - (localStats.present + localStats.absent + localStats.medical + localStats.vacation))} color="blue" hint="Pendentes" />
       </div>
 
