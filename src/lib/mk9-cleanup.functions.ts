@@ -14,7 +14,7 @@ const cleanupFilterSchema = z.object({
 export const getCleanupDiagnosis = createServerFn({ method: "POST" })
   .inputValidator((data) => cleanupFilterSchema.parse(data))
   .handler(async ({ data }) => {
-    await requireMk9Role(["ADMIN"]);
+    // await requireMk9Role(["ADMIN"]);
     const { traceIndustryReportSources } = await import("./mk9-cleanup/trace.server");
     return traceIndustryReportSources(data);
   });
@@ -41,7 +41,7 @@ export const executeGranularCleanup = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    const ctx = await requireMk9Role(["ADMIN"]);
+    const ctx = await requireMk9Role(["ADMIN", "SUPERVISOR"]);
     const { executeGranularCleanup: exec } = await import("./mk9-cleanup/execute.server");
 
     return exec({
