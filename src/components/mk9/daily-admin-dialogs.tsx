@@ -26,8 +26,16 @@ import {
 } from "@/lib/mk9-freelancer-dailies.functions";
 import { listFreelancers } from "@/lib/mk9-freelancers.functions";
 import { listSupervisors } from "@/lib/mk9-supervisors.functions";
-import { Loader2, Info } from "lucide-react";
+import { mk9ListIndustries } from "@/lib/mk9-data.functions";
+import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
+import { Loader2, Plus, Trash2, Info, Building2 as Store } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface DailyAttendanceDraft {
+  id: string;
+  storeId: string;
+  industryIds: string[];
+}
 
 interface DailyFormProps {
   daily?: any;
@@ -41,6 +49,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
   const updateFn = useServerFn(updateDaily);
   const freelancersFn = useServerFn(listFreelancers);
   const supervisorsFn = useServerFn(listSupervisors);
+  const industriesFn = useServerFn(mk9ListIndustries);
 
   const [formData, setFormData] = useState<any>({
     freelancerId: "",
@@ -51,8 +60,10 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
     paymentDate: null,
     supervisorId: "",
     notes: "",
-    items: []
   });
+
+  // MISSÃO 2: Novo estado de atendimentos isolado
+  const [attendances, setAttendances] = useState<DailyAttendanceDraft[]>([]);
 
   const freelancersQ = useQuery({ 
     queryKey: ["mk9-freelancers-active"], 
@@ -63,6 +74,12 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
   const supervisorsQ = useQuery({ 
     queryKey: ["mk9-supervisors-active"], 
     queryFn: () => supervisorsFn(),
+    enabled: open
+  });
+
+  const industriesQ = useQuery({
+    queryKey: ["mk9-industries-list"],
+    queryFn: () => industriesFn(),
     enabled: open
   });
 
@@ -77,15 +94,11 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
         paymentDate: daily.payment_date || null,
         supervisorId: daily.supervisor_id || "",
         notes: daily.notes || "",
-        items: daily.items?.map((it: any) => ({
-          storeId: it.store_id,
-          industryIds: [it.industry_id]
-        })) || []
       });
       
-      // Group items if needed (preserving data but not showing in form)
+      // Reconstituir atendimentos para edição
       if (daily.items) {
-        const grouped: any[] = [];
+        const grouped: DailyAttendanceDraft[] = [];
         daily.items.forEach((it: any) => {
           const existing = grouped.find(g => g.storeId === it.store_id);
           if (existing) {
@@ -94,12 +107,15 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
             }
           } else {
             grouped.push({
+              id: crypto.randomUUID(),
               storeId: it.store_id,
               industryIds: [it.industry_id]
             });
           }
         });
-        setFormData((prev: any) => ({ ...prev, items: grouped }));
+        setAttendances(grouped);
+      } else {
+        setAttendances([{ id: crypto.randomUUID(), storeId: "", industryIds: [] }]);
       }
     } else {
       setFormData({
@@ -111,17 +127,60 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
         paymentDate: null,
         supervisorId: "",
         notes: "",
-        items: []
       });
+      setAttendances([{ id: crypto.randomUUID(), storeId: "", industryIds: [] }]);
     }
   }, [daily, open]);
 
+  // MISSÃO 2: Handlers novos e isolados
+  const addAttendance = () => {
+    setAttendances(prev => [
+      ...prev, 
+      { id: crypto.randomUUID(), storeId: "", industryIds: [] }
+    ]);
+  };
+
+  const removeAttendance = (id: string) => {
+    if (attendances.length <= 1) {
+      // Regra: mantém pelo menos um vazio se for o último
+      setAttendances([{ id: crypto.randomUUID(), storeId: "", industryIds: [] }]);
+      return;
+    }
+    setAttendances(prev => prev.filter(a => a.id !== id));
+  };
+
+  const updateStore = (id: string, storeId: string) => {
+    setAttendances(prev => prev.map(a => 
+      a.id === id ? { ...a, storeId } : a
+    ));
+  };
+
+  const toggleIndustry = (attendanceId: string, industryId: string) => {
+    setAttendances(prev => prev.map(a => {
+      if (a.id !== attendanceId) return a;
+      
+      const currentIds = Array.isArray(a.industryIds) ? a.industryIds : [];
+      const exists = currentIds.includes(industryId);
+      
+      return {
+        ...a,
+        industryIds: exists 
+          ? currentIds.filter(id => id !== industryId)
+          : [...currentIds, industryId]
+      };
+    }));
+  };
+
   const mutation = useMutation({
     mutationFn: async (data: any) => {
+      // MISSÃO 2: NÃO integrar ao banco ainda, mas mantemos o payload base
+      // para garantir que a diária (sem itens) salve se necessário.
+      // O payload 'items' será ignorado ou enviado vazio conforme o schema v1.9.0.
       const payload = {
         ...data,
         amount: Number(data.amount),
-        supervisorId: data.supervisorId || null
+        supervisorId: data.supervisorId || null,
+        items: [] // Temporariamente vazio para MISSÃO 2
       };
       if (daily?.id) {
         return updateFn({ data: { ...payload, id: daily.id } });
@@ -144,12 +203,14 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
       toast.error("Selecione um freelancer");
       return;
     }
+    // MISSÃO 2: Apenas logamos para validar o estado no console/tela
+    console.log("Submit Draft Attendances:", attendances);
     mutation.mutate(formData);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-popover border-border text-foreground">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-popover border-border text-foreground">
         <DialogHeader>
           <DialogTitle>{daily ? "Editar Diária" : "Nova Diária"}</DialogTitle>
         </DialogHeader>
@@ -278,16 +339,78 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
             )}
           </div>
 
-          {/* TEMPORARILY REMOVED: Atendimentos (Lojas/Indústrias) */}
-          <div className="p-6 rounded-lg border border-dashed border-border/50 bg-muted/20 flex flex-col items-center justify-center text-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Info className="h-5 w-5 text-primary" />
+          {/* MISSÃO 2: Reconstrução dos Atendimentos */}
+          <div className="space-y-4 pt-4 border-t border-border/50">
+            <div className="flex justify-between items-center">
+              <Label className="text-lg font-black uppercase tracking-tighter">Atendimentos</Label>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                onClick={addAttendance}
+                className="h-8 border-primary/30 text-primary hover:bg-primary/10 font-bold"
+              >
+                <Plus className="w-4 h-4 mr-1" /> Adicionar Loja
+              </Button>
             </div>
-            <div className="space-y-1">
-              <p className="text-xs font-black uppercase tracking-widest text-foreground/80">Gestão de Atendimentos</p>
-              <p className="text-[10px] text-muted-foreground font-medium italic">
-                Os atendimentos serão configurados após o cadastro inicial da diária.
-              </p>
+
+            <div className="space-y-4">
+              {attendances.map((att, idx) => (
+                <div key={att.id} className="p-4 rounded-xl border border-border bg-card/50 space-y-4 relative group">
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10"
+                    onClick={() => removeAttendance(att.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+
+                  <div className="space-y-2 pr-8">
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                      <Store className="w-3 h-3" /> Atendimento {idx + 1} - Loja*
+                    </Label>
+                    <Mk9StoreAutocomplete 
+                      value={att.storeId} 
+                      onChange={(store) => updateStore(att.id, store.id)}
+                      placeholder="Pesquisar loja (Nome, Rede, Cidade ou UF)..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                      <Info className="w-3 h-3" /> Indústrias*
+                    </Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-muted/30 rounded-lg border border-border/30">
+                      {industriesQ.data?.map((ind: any) => (
+                        <div key={`${att.id}-${ind.id}`} className="flex items-center gap-2 group/item cursor-pointer">
+                          <input 
+                            type="checkbox"
+                            id={`${att.id}-${ind.id}`}
+                            checked={att.industryIds.includes(ind.id)}
+                            onChange={() => toggleIndustry(att.id, ind.id)}
+                            className="w-4 h-4 accent-command-purple cursor-pointer"
+                          />
+                          <label 
+                            htmlFor={`${att.id}-${ind.id}`}
+                            className="text-xs text-foreground/80 cursor-pointer select-none group-hover/item:text-foreground transition-colors"
+                          >
+                            {ind.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* DEBUG VISUAL TEMPORÁRIO */}
+                  <div className="mt-2 p-2 rounded bg-primary/5 border border-primary/10">
+                    <p className="text-[8px] font-mono text-primary/60 uppercase tracking-tighter">Debug Operacional:</p>
+                    <p className="text-[9px] font-mono text-foreground/70">storeId: {att.storeId || "null"}</p>
+                    <p className="text-[9px] font-mono text-foreground/70">industryIds: {JSON.stringify(att.industryIds)}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
