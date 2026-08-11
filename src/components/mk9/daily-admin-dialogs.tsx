@@ -407,16 +407,14 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              console.log(`[DEBUG] Toggling industry ${ind.id} for attendance ${idx}`);
                               toggleIndustry(idx, ind.id);
                             }}
                           >
-                            <input 
-                              type="checkbox"
+                            <Checkbox 
                               id={`ind-${idx}-${ind.id}`}
                               checked={isChecked}
-                              onChange={() => {}} // Controlled by click on parent
-                              className="w-4 h-4 rounded border-gray-300 text-command-purple focus:ring-command-purple pointer-events-none"
+                              onCheckedChange={() => {}} // Controlled by click on parent
+                              className="border-white/20 data-[state=checked]:bg-command-purple data-[state=checked]:border-command-purple pointer-events-none"
                             />
                             <label 
                               htmlFor={`ind-${idx}-${ind.id}`}
@@ -427,12 +425,8 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                           </div>
                         );
                       })}
-                      
-                      {/* Debug Temporário */}
-                      <div className="col-span-full mt-2 pt-2 border-t border-border/30 text-[9px] font-mono text-muted-foreground">
-                        DEBUG: Store: {item.storeId || "null"} | IDs: {JSON.stringify(item.industryIds || [])}
-                      </div>
                     </div>
+
 
                   </div>
                 </div>
