@@ -31,28 +31,27 @@ export function CollapsibleDashboardSection({
 
   useEffect(() => {
     localStorage.setItem(`mk9_dashboard_section_${storageKey}`, String(isOpen));
-    // Dispatch a custom event to sync "Collapse/Expand All" buttons
-    window.dispatchEvent(new CustomEvent("mk9_dashboard_section_sync", {
-      detail: { storageKey, isOpen }
-    }));
   }, [isOpen, storageKey]);
 
   // Listen for global sync events
   useEffect(() => {
     const handleSync = (e: any) => {
-      if (e.detail.storageKey === storageKey || e.detail.storageKey === "__ALL__") {
+      if (e.detail.storageKey === "__ALL__") {
         setIsOpen(e.detail.isOpen);
+      } else if (e.detail.storageKey === "__RESTORE_DEFAULT__") {
+        setIsOpen(defaultOpen);
       }
     };
     window.addEventListener("mk9_dashboard_section_sync", handleSync);
     return () => window.removeEventListener("mk9_dashboard_section_sync", handleSync);
-  }, [storageKey]);
+  }, [storageKey, defaultOpen]);
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("space-y-4", className)} id={`section-${storageKey}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
+        aria-controls={`content-${storageKey}`}
         className="w-full flex items-center justify-between group/section hover:opacity-80 transition-opacity"
       >
         <div className="flex flex-col items-start text-left">
@@ -60,10 +59,7 @@ export function CollapsibleDashboardSection({
             <h2 className="text-sm font-black text-foreground uppercase tracking-[0.2em]">
               {title}
             </h2>
-            {badge && isOpen && <div className="animate-fade-in">{badge}</div>}
-            {!isOpen && badge && (
-               <div className="animate-fade-in">{badge}</div>
-            )}
+            {badge && <div className="animate-fade-in">{badge}</div>}
           </div>
           {subtitle && (
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
@@ -74,7 +70,7 @@ export function CollapsibleDashboardSection({
         <div className="flex items-center gap-2">
           {!isOpen && (
             <span className="text-[9px] font-black text-primary uppercase tracking-tighter opacity-0 group-hover/section:opacity-100 transition-opacity">
-              Expandir
+              [ Ver matriz ]
             </span>
           )}
           {isOpen ? (
@@ -86,9 +82,10 @@ export function CollapsibleDashboardSection({
       </button>
 
       <div
+        id={`content-${storageKey}`}
         className={cn(
           "transition-all duration-300 ease-in-out overflow-hidden",
-          isOpen ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+          isOpen ? "max-h-[5000px] opacity-100 mt-4" : "max-h-0 opacity-0 pointer-events-none"
         )}
       >
         <div className={cn(isGrid ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4" : "")}>
