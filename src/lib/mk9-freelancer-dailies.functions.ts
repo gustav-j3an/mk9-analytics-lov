@@ -260,7 +260,7 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
     const { data: dailies, error } = await query;
     if (error) throw error;
 
-    // Resumo
+    // Lógica Central de Cálculo v2.6.0: Soma de todos os atendimentos
     const calculateTotal = (list: any[]) => list.reduce((acc: number, d: any) => {
       const industryCount = d.items?.length || 0;
       const unitRate = Number(d.amount) || 0;
@@ -304,7 +304,7 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       OBSERVAÇÃO: d.notes || "-"
     }));
 
-    // Atendimentos
+    // Atendimentos (v2.6.0: Unidade Financeira Autônoma)
     const itemsList = dailies.flatMap((d: any) => d.items.map((it: any) => ({
       DATA: d.date,
       FREELANCER: d.freelancer?.name,
@@ -312,8 +312,8 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       REDE: it.store?.chain || "-",
       LOJA_UF: it.store?.uf || "-",
       INDÚSTRIA: it.industry?.name,
-      "VALOR UNITÁRIO DA DIÁRIA": Number(d.amount),
-      "VALOR TOTAL DA DIÁRIA": Number(d.amount) * d.items.length,
+      "VALOR UNITÁRIO": Number(d.amount),
+      VALOR_DO_ATENDIMENTO: Number(d.amount), // Cada linha tem seu próprio valor
       STATUS: d.status,
       "STATUS FINANCEIRO": d.payment_status,
       "DATA PAGAMENTO": d.payment_date || "-",

@@ -115,7 +115,7 @@ export function Mk9DailiesModule() {
     if (!dailies) return { count: 0, total: 0, freelancers: 0, stores: 0, toPay: 0, paid: 0 };
     const realized = dailies.filter((d: any) => d.status === 'REALIZADA');
     
-    // REGRA MK9 v2.4.0: Total = Soma(Valor Unitário * Quantidade de Indústrias)
+    // REGRA MK9 v2.6.0: Total = Soma dos Atendimentos (Valor Unitário de cada item)
     const calculateTotal = (dailyList: any[]) => dailyList.reduce((acc: number, d: any) => {
       const industryCount = d.items?.length || 0;
       const unitRate = Number(d.amount) || 0;
