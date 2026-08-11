@@ -45,12 +45,15 @@ Reproduzir -> achar causa raiz -> identificar arquivo/função -> corrigir -> va
 */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import { Loader2, Activity, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { ClientOnly } from "@/components/client-only";
+import { ThemeProvider, useTheme } from "@/lib/mk9-theme/ThemeContext";
+import { ThemeSettings } from "@/lib/mk9-theme/ThemeToggle";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
@@ -92,7 +95,7 @@ function LandingPage() {
 
   if (loading || session) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#05050a]">
+      <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -117,7 +120,7 @@ function LoginContent() {
       </div>
 
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-10">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,#3b0764_0%,transparent_70%)]" />
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,var(--primary)_0%,transparent_70%)]" />
         <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
       </div>
 
@@ -158,3 +161,5 @@ function LoginContent() {
         </div>
       </div>
     </div>
+  );
+}
