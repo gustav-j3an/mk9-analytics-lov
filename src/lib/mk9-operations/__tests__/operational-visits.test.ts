@@ -104,6 +104,7 @@ describe("getOperationalVisits", () => {
       sourceImportId: "target-imp",
     });
 
-    expect(mockSupabase.eq).toHaveBeenCalledWith("source_import_id", "target-imp");
+    expect(mockSupabase.or).toHaveBeenCalledWith(expect.stringContaining('"target-imp"'));
+
   });
 });
