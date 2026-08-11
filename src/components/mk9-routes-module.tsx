@@ -326,7 +326,27 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                         <Users className="h-4 w-4 text-primary" />
                         {promoter}
                       </div>
+                      <Link
+                        to="/roteiros/promotor/$promoterId"
+                        params={{
+                          promoterId:
+                            Array.from(days.values())
+                              .next()
+                              .value.items[0].promoterId || "",
+                        }}
+                        search={{ date: referenceDate }}
+                      >
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 border-primary/20 hover:bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest px-4"
+                        >
+                          <Eye className="h-3.5 w-3.5 mr-2" />
+                          Ver Rota
+                        </Button>
+                      </Link>
                     </CardTitle>
+
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {Array.from(days.keys())
