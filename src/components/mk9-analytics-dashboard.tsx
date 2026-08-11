@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { getMk9AnalyticsDashboardFn } from "@/lib/mk9-analytics/analytics.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
 
@@ -90,14 +89,24 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
 
   const { executive } = data;
 
+  return (
+    <div className="space-y-6 animate-fade-in pb-20 max-w-7xl mx-auto">
+      {/* HEADER & FILTERS */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-foreground tracking-tighter uppercase flex items-center gap-2">
+            <Activity className="w-6 h-6 text-primary" />
+            Dashboard
+          </h1>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
+            Visão Rápida da Operação
+          </p>
+        </div>
 
-      {/* FILTROS */}
-      <CollapsibleDashboardSection title="Filtros" storageKey="filters" defaultOpen={true}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest pl-1">Mês</label>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="space-y-1">
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-10 bg-card/40 border-border/50 text-[11px] font-bold uppercase">
+              <SelectTrigger className="h-9 w-32 bg-card/40 border-border/50 text-[10px] font-bold uppercase">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -107,10 +116,9 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest pl-1">Ano</label>
+          <div className="space-y-1">
             <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="h-10 bg-card/40 border-border/50 text-[11px] font-bold uppercase">
+              <SelectTrigger className="h-9 w-24 bg-card/40 border-border/50 text-[10px] font-bold uppercase">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -120,231 +128,126 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest pl-1">Indústria</label>
+          <div className="space-y-1">
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-10 bg-card/40 border-border/50 text-[11px] font-bold uppercase">
-                <SelectValue />
+              <SelectTrigger className="h-9 w-40 bg-card/40 border-border/50 text-[10px] font-bold uppercase">
+                <SelectValue placeholder="Indústria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__ALL__">Todas as Indústrias</SelectItem>
+                <SelectItem value="__ALL__">Todas Indústrias</SelectItem>
                 {(industriesQ.data || []).map(ind => (
                   <SelectItem key={ind.id} value={ind.id}>{ind.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest pl-1">UF</label>
-            <Select value={uf} onValueChange={setUf}>
-              <SelectTrigger className="h-10 bg-card/40 border-border/50 text-[11px] font-bold uppercase">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__ALL__">Todas as UFs</SelectItem>
-                {ufs.map(u => (
-                  <SelectItem key={u.uf} value={u.uf}>{u.uf}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
-      </CollapsibleDashboardSection>
-
-      {/* RESUMO OPERACIONAL */}
-      <CollapsibleDashboardSection title="Resumo Operacional" storageKey="summary" defaultOpen={true}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="glass-command p-4 rounded-2xl border border-border/50 bg-card/50 flex flex-col justify-between">
-              <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Indústrias Monitoradas</span>
-              </div>
-              <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-black text-foreground italic">{data.perf?.monitoredIndustriesCount ?? 0}</span>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">DE {industries.length}</span>
-              </div>
-            </div>
-            <div className="glass-command p-5 rounded-2xl border border-border/50 bg-card/50 flex flex-col justify-between">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Status de Risco</span>
-                <div className="flex items-center gap-2">
-                    <span className={cn("text-xl font-black italic uppercase", projection?.riskStatus === "CRITICAL" ? "text-rose-500" : "text-foreground")}>
-                        {projection?.riskStatus || "N/D"}
-                    </span>
-                </div>
-            </div>
-            <div className="glass-command p-4 rounded-2xl border border-border/50 bg-card/50 flex flex-col justify-between">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Projeção Final</span>
-                <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-black text-foreground italic">{nf(projection.projected)}</span>
-                </div>
-            </div>
-            <div className="glass-command p-4 rounded-2xl border border-border/50 bg-card/50 flex flex-col justify-between">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Meta Proporcional</span>
-                <div className="flex flex-col">
-                    <span className="text-lg font-black text-foreground italic">
-                        {rawExecutive?.coverage ? formatPercentage(executive.coverage.current) : "N/D"}
-                    </span>
-                </div>
-            </div>
-            <div className="glass-command p-4 rounded-2xl border border-border/50 bg-card/50 flex flex-col justify-between">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">Última Atualização</span>
-                <div className="flex items-center gap-2 text-foreground/70">
-                    <span className="text-xs font-bold uppercase">
-                    {lastUpdate ? new Date(lastUpdate).toLocaleTimeString("pt-BR") : "—"}
-                    </span>
-                </div>
-            </div>
-        </div>
-      </CollapsibleDashboardSection>
-
-      {/* PRIORIDADES / ALERTAS CRÍTICOS */}
-      <CollapsibleDashboardSection title="Prioridades Críticas" storageKey="priorities" defaultOpen={true}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <AnalyticsMetricCard 
-            label="Visitas Pendentes"
-            value={nf(executive.pending.current)}
-            icon={Clock}
-            color="amber"
-            comparison={{
-              value: executive.pending.delta,
-              label: "vs mês anterior",
-              trend: executive.pending.delta > 0 ? "up" : "down"
-            }}
-          />
-          <AnalyticsMetricCard 
-            label="Cobertura Geral"
-            value={formatPercentage(executive.coverage.current)}
-            icon={TrendingUp}
-            color="purple"
-            comparison={{
-              value: executive.coverage.delta,
-              label: "vs mês anterior",
-              trend: executive.coverage.delta > 0 ? "up" : "down"
-            }}
-          />
-          <AnalyticsMetricCard 
-            label="Lojas Sem Visita"
-            value={nf(executive.zeroVisits.current)}
-            icon={AlertTriangle}
-            color="rose"
-            comparison={{
-              value: executive.zeroVisits.delta,
-              label: "vs mês anterior",
-              trend: executive.zeroVisits.delta > 0 ? "up" : "down"
-            }}
-          />
-        </div>
-      </CollapsibleDashboardSection>
-
-      {/* VISITAS E COBERTURA */}
-      <CollapsibleDashboardSection title="Visitas e Cobertura" storageKey="visits" defaultOpen={true}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <AnalyticsChartCard title="Evolução de Cobertura por Indústria" subtitle="Top 5 melhores performances">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={industries.slice(0, 5)}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="industryName" stroke="rgba(255,255,255,0.3)" fontSize={10} axisLine={false} tickLine={false} />
-                <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} axisLine={false} tickLine={false} />
-                <RechartsTooltip 
-                  contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', fontSize: '10px' }}
-                />
-                <Bar dataKey="coverage.current" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </AnalyticsChartCard>
-
-          <AnalyticsChartCard title="Status Operacional" subtitle="Distribuição atual de execução">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: 'Realizadas', value: executive.realized.current },
-                    { name: 'Pendentes', value: executive.pending.current },
-                  ]}
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  <Cell fill="var(--primary)" />
-                  <Cell fill="rgba(255,255,255,0.1)" />
-                </Pie>
-                <RechartsTooltip 
-                   contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', fontSize: '10px' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </AnalyticsChartCard>
-        </div>
-      </CollapsibleDashboardSection>
-
-      {/* MATRIZ DE EXECUÇÃO */}
-      <CollapsibleDashboardSection title="Matriz de Execução" subtitle="Distribuição por frequência e cobertura" storageKey="matrix" defaultOpen={false}>
-        <div className="glass-command rounded-2xl overflow-hidden border border-border/50">
-          <AnalyticsTable 
-            headers={["Frequência", "Faixa de Cobertura", "Total Lojas"]}
-            rows={matrix.map(row => [
-              <span className="font-bold uppercase tracking-widest text-[10px]">{row.frequency}</span>,
-              <span className="font-bold text-muted-foreground">{row.coverageLabel}</span>,
-              <span className="font-black text-primary">{nf(row.count)}</span>
-            ])}
-          />
-        </div>
-      </CollapsibleDashboardSection>
-
-      {/* DISTRIBUIÇÃO DE FREQUÊNCIA */}
-      <CollapsibleDashboardSection title="Distribuição de Frequência" storageKey="distribution" defaultOpen={false}>
-        <AnalyticsChartCard title="Lote Operacional" subtitle="Volume de lojas por frequência contratada" height={400}>
-          <ResponsiveContainer width="100%" height="100%">
-             <BarChart data={frequencies}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="frequency" stroke="rgba(255,255,255,0.3)" fontSize={10} axisLine={false} tickLine={false} />
-                <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} axisLine={false} tickLine={false} />
-                <RechartsTooltip 
-                   contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', fontSize: '10px' }}
-                />
-                <Bar dataKey="stores" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-             </BarChart>
-          </ResponsiveContainer>
-        </AnalyticsChartCard>
-      </CollapsibleDashboardSection>
-
-      {/* TOP PRIORIDADES & LOJAS REINCIDENTES */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <CollapsibleDashboardSection title="Top Prioridades" storageKey="top_priorities" defaultOpen={false}>
-          <div className="glass-command rounded-2xl border border-border/50">
-            <AnalyticsTable 
-              headers={["Loja", "Indústria", "Motivo"]}
-              rows={topPriorities.slice(0, 10).map(p => [
-                <div className="flex flex-col">
-                  <span className="font-bold text-foreground text-[10px] uppercase truncate max-w-[150px]">{p.storeName}</span>
-                </div>,
-                <span className="text-[9px] font-black text-muted-foreground uppercase">{p.industryName}</span>,
-                <Mk9Badge variant="danger">{p.reason}</Mk9Badge>
-              ])}
-            />
-          </div>
-        </CollapsibleDashboardSection>
-
-        <CollapsibleDashboardSection title="Lojas Reincidentes" storageKey="recurring_stores" defaultOpen={false}>
-           <div className="glass-command rounded-2xl border border-border/50">
-            <AnalyticsTable 
-              headers={["Loja", "Frequência", "Status"]}
-              rows={data.recurrence?.slice(0, 10).map((rec: any) => [
-                <span className="font-bold text-foreground text-[10px] uppercase truncate max-w-[150px]">{rec.storeName}</span>,
-                <span className="text-[9px] font-black text-muted-foreground uppercase">{rec.currentFrequency}x</span>,
-                <div className="flex items-center gap-2 justify-end">
-                   <Mk9Badge variant={rec.status === "CRITICAL_RECURRENT" ? "danger" : "warning"}>
-                      {rec.status}
-                   </Mk9Badge>
-                </div>
-              ]) || []}
-            />
-          </div>
-        </CollapsibleDashboardSection>
       </div>
 
-      <div className="text-center p-10 text-muted-foreground text-xs uppercase tracking-[0.3em] font-black opacity-30">
-        Painel MK9 Analytics - Comando Central Operacional
+      {/* KPI CARDS COMPACTOS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPIMini label="Indústrias Monitoradas" value={data.perf?.monitoredIndustriesCount ?? 0} icon={Factory} />
+        <KPIMini label="Visitas Previstas" value={nf(executive.contracted.current)} icon={Clock} />
+        <KPIMini label="Visitas Realizadas" value={nf(executive.realized.current)} icon={CheckCircle2} color="text-emerald-500" />
+        <KPIMini label="Pendentes" value={nf(executive.pending.current)} icon={AlertTriangle} color="text-amber-500" />
+      </div>
+
+      {/* LISTAGEM DE INDÚSTRIAS */}
+      <div className="space-y-4 pt-4 border-t border-border/30">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">Monitoramento por Indústria</h2>
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+            <Input 
+              placeholder="Buscar indústria..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-9 pl-9 bg-card/40 border-border/50 text-xs"
+            />
+          </div>
+        </div>
+
+        {/* TABLE DESKTOP */}
+        <div className="hidden md:block glass-command rounded-xl overflow-hidden border border-border/50">
+          <table className="w-full text-left">
+            <thead className="bg-muted/30">
+              <tr>
+                <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Indústria</th>
+                <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Previstas</th>
+                <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Checklist</th>
+                <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Pendentes</th>
+                <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-right">Cobertura</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/30">
+              {filteredIndustries.map((ind: any) => (
+                <tr key={ind.industryId} className="hover:bg-muted/20 transition-colors group cursor-default">
+                  <td className="px-6 py-4 font-bold text-sm text-foreground">{ind.industryName}</td>
+                  <td className="px-6 py-4 text-center font-mono text-xs">{nf(ind.contracted?.current || 0)}</td>
+                  <td className="px-6 py-4 text-center font-mono text-xs text-emerald-500/80">{nf(ind.realized?.current || 0)}</td>
+                  <td className="px-6 py-4 text-center font-mono text-xs text-amber-500/80">{nf(ind.pendingCount || 0)}</td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-3">
+                      <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden hidden lg:block">
+                        <div 
+                          className="h-full bg-primary transition-all duration-500" 
+                          style={{ width: `${Math.min(100, ind.coverage.current)}%` }} 
+                        />
+                      </div>
+                      <span className="font-black text-xs min-w-[50px]">{formatPercentage(ind.coverage.current)}</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* CARDS MOBILE */}
+        <div className="md:hidden space-y-3">
+          {filteredIndustries.map((ind: any) => (
+            <div key={ind.industryId} className="glass-command p-4 rounded-xl border border-border/50 bg-card/50 space-y-3">
+              <div className="flex justify-between items-start">
+                <span className="font-black text-sm text-foreground uppercase tracking-tighter">{ind.industryName}</span>
+                <span className="text-[10px] font-black text-primary">{formatPercentage(ind.coverage.current)}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-y-2 text-[10px] font-bold uppercase">
+                <div className="flex flex-col text-left">
+                  <span className="text-muted-foreground tracking-widest mb-0.5">Previstas</span>
+                  <span>{nf(ind.contracted?.current || 0)}</span>
+                </div>
+                <div className="flex flex-col text-right">
+                  <span className="text-muted-foreground tracking-widest mb-0.5">Checklist</span>
+                  <span className="text-emerald-500">{nf(ind.realized?.current || 0)}</span>
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-muted-foreground tracking-widest mb-0.5">Pendentes</span>
+                  <span className="text-amber-500">{nf(ind.pendingCount || 0)}</span>
+                </div>
+              </div>
+              <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-500" 
+                  style={{ width: `${Math.min(100, ind.coverage.current)}%` }} 
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KPIMini({ label, value, icon: Icon, color = "text-foreground" }: any) {
+  return (
+    <div className="glass-command p-4 rounded-xl border border-border/50 bg-card/50 flex items-center gap-4">
+      <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
+        <Icon className="w-4 h-4 text-primary" />
+      </div>
+      <div>
+        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.15em] mb-0.5">{label}</p>
+        <h3 className={cn("text-xl font-black italic leading-none tracking-tighter", color)}>{value}</h3>
       </div>
     </div>
   );
