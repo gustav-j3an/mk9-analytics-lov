@@ -370,8 +370,9 @@ export function Mk9DailiesModule() {
                   <p className="text-sm font-bold text-foreground">{viewing.date ? new Date(viewing.date + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Valor</label>
-                  <p className="text-sm font-bold text-emerald-400">R$ {Number(viewing.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Valor Total</label>
+                  <p className="text-sm font-bold text-emerald-400">R$ {(Number(viewing.amount) * viewing.items.length).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <p className="text-[9px] text-muted-foreground uppercase">{viewing.items.length} indústrias × R$ {Number(viewing.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Status</label>
@@ -460,7 +461,7 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
     if (!dailies) return { count: 0, amount: 0 };
     return {
       count: dailies.length,
-      amount: dailies.reduce((acc: number, d: any) => acc + Number(d.amount), 0)
+      amount: dailies.reduce((acc: number, d: any) => acc + (Number(d.amount) * (d.items?.length || 0)), 0)
     };
   }, [dailies]);
 
