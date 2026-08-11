@@ -62,8 +62,8 @@ export function Mk9DailiesModule() {
 
   // Filters
   const [filters, setFilters] = useState({
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-CA'),
+    endDate: new Date().toLocaleDateString('en-CA'),
     freelancerId: "all",
     supervisorId: "all",
     status: "all",
@@ -278,7 +278,7 @@ export function Mk9DailiesModule() {
             ) : (
               filteredDailies.map((d: any) => (
                 <TableRow key={d.id} className="border-border/50 hover:bg-muted/50 transition-colors group">
-                  <TableCell className="text-foreground/80 font-medium py-4">{new Date(d.date).toLocaleDateString('pt-BR')}</TableCell>
+                  <TableCell className="text-foreground/80 font-medium py-4">{d.date ? new Date(d.date + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</TableCell>
                   <TableCell className="text-foreground font-bold">{d.freelancer?.name}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-0.5">
