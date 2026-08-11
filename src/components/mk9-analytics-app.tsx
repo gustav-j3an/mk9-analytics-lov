@@ -119,26 +119,6 @@ export function Mk9AnalyticsApp() {
   const isSupervisor = roles.includes("SUPERVISOR");
   const isAuditor = roles.includes("AUDITOR");
 
-  // Regra de Redirecionamento de Módulos Protegidos (Supervisor)
-  useEffect(() => {
-    if (!sessionLoading && isSupervisor) {
-      const protectedModules: ModuleId[] = [
-        "importacoes",
-        "checklists",
-        "qualidade",
-        "cleanup_admin",
-        "usuarios",
-        "auditoria_controle"
-      ];
-      
-      if (protectedModules.includes(activeModule)) {
-        console.warn(`[MK9-SECURITY] Supervisor tentando acessar módulo protegido: ${activeModule}. Redirecionando...`);
-        setActiveModule("dashboard");
-        toast.error("Acesso restrito: este módulo é exclusivo para administradores.");
-      }
-    }
-  }, [activeModule, isSupervisor, sessionLoading]);
-
 
   const listIndustriesFn = useServerFn(mk9ListIndustries);
   const listStoresFn = useServerFn(mk9ListStores);
