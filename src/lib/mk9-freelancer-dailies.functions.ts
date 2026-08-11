@@ -260,68 +260,24 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
     const { data: dailies, error } = await query;
     if (error) throw error;
 
-    // Lógica Central de Cálculo v2.6.0: Soma de todos os atendimentos
-    const calculateTotal = (list: any[]) => list.reduce((acc: number, d: any) => {
-      const industryCount = d.items?.length || 0;
-      const unitRate = Number(d.amount) || 0;
-      return acc + (unitRate * industryCount);
-    }, 0);
-
-    const totalDailies = dailies.length;
-    const totalAmount = calculateTotal(dailies);
-    const totalPaid = calculateTotal(dailies.filter((d: any) => d.payment_status === 'PAGO'));
-    const totalToPay = calculateTotal(dailies.filter((d: any) => d.payment_status === 'A PAGAR'));
-    
-    const uniqueFreelancers = new Set(dailies.map((d: any) => d.freelancer_id)).size;
-    const uniqueStores = new Set(dailies.flatMap((d: any) => d.items.map((it: any) => it.store_id))).size;
-    const uniqueIndustries = new Set(dailies.flatMap((d: any) => d.items.map((it: any) => it.industry_id))).size;
-    const totalAttendances = dailies.reduce((acc: number, d: any) => acc + (d.items?.length || 0), 0);
-
-    const summary = [
-      { campo: "Período", valor: `${data.startDate} a ${data.endDate}` },
-      { campo: "Total de diárias", valor: totalDailies },
-      { campo: "Total financeiro", valor: totalAmount },
-      { campo: "Total A PAGAR", valor: totalToPay },
-      { campo: "Total PAGO", valor: totalPaid },
-      { campo: "Freelancers utilizados", valor: uniqueFreelancers },
-      { campo: "Lojas únicas", valor: uniqueStores },
-      { campo: "Atendimentos de indústria", valor: totalAttendances },
-      { campo: "Indústrias distintas", valor: uniqueIndustries },
-    ];
-
-    // Diárias
-    const dailiesList = dailies.map((d: any) => ({
-      DATA: d.date,
-      FREELANCER: d.freelancer?.name,
-      SUPERVISOR: d.supervisor?.name || "-",
-      VALOR_UNITARIO: Number(d.amount),
-      VALOR_TOTAL: Number(d.amount) * d.items.length,
-      STATUS: d.status,
-      "STATUS FINANCEIRO": d.payment_status,
-      "DATA PAGAMENTO": d.payment_date || "-",
-      "QTD LOJAS": new Set(d.items.map((it: any) => it.store_id)).size,
-      "QTD INDÚSTRIAS": d.items.length,
-      OBSERVAÇÃO: d.notes || "-"
-    }));
-
-    // Atendimentos (v2.6.0: Unidade Financeira Autônoma)
+    // Atendimentos (v2.7.0: Single-Sheet Operational Export)
     const itemsList = dailies.flatMap((d: any) => d.items.map((it: any) => ({
-      DATA: d.date,
-      FREELANCER: d.freelancer?.name,
-      LOJA: it.store?.name,
+      DATA: d.date ? new Date(d.date + 'T12:00:00').toLocaleDateString('pt-BR') : "-",
+      FREELANCER: d.freelancer?.name || "-",
+      CPF: d.freelancer?.cpf || "-",
+      TELEFONE: d.freelancer?.phone || "-",
+      LOJA: it.store?.name || "-",
       REDE: it.store?.chain || "-",
-      LOJA_UF: it.store?.uf || "-",
-      INDÚSTRIA: it.industry?.name,
-      "VALOR UNITÁRIO": Number(d.amount),
-      VALOR_DO_ATENDIMENTO: Number(d.amount), // Cada linha tem seu próprio valor
+      CIDADE: it.store?.city || "-",
+      UF: it.store?.uf || "-",
+      INDÚSTRIA: it.industry?.name || "-",
+      "VALOR DO ATENDIMENTO": Number(d.amount),
       STATUS: d.status,
       "STATUS FINANCEIRO": d.payment_status,
-      "DATA PAGAMENTO": d.payment_date || "-",
-      CIDADE: d.freelancer?.city || "-",
-      UF: d.freelancer?.uf || "-",
-      TELEFONE: d.freelancer?.phone || "-"
+      "DATA DE PAGAMENTO": d.payment_date ? new Date(d.payment_date + 'T12:00:00').toLocaleDateString('pt-BR') : "-",
+      OBSERVAÇÃO: d.notes || "-"
     })));
 
-    return { summary, dailiesList, itemsList };
+    return { itemsList };
   });
 

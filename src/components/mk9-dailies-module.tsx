@@ -147,17 +147,40 @@ export function Mk9DailiesModule() {
       });
 
       const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(data.itemsList);
+
+      // Configurar larguras de colunas
+      ws['!cols'] = [
+        { wch: 12 }, // DATA
+        { wch: 25 }, // FREELANCER
+        { wch: 15 }, // CPF
+        { wch: 15 }, // TELEFONE
+        { wch: 25 }, // LOJA
+        { wch: 15 }, // REDE
+        { wch: 20 }, // CIDADE
+        { wch: 5 },  // UF
+        { wch: 15 }, // INDÚSTRIA
+        { wch: 20 }, // VALOR DO ATENDIMENTO
+        { wch: 15 }, // STATUS
+        { wch: 18 }, // STATUS FINANCEIRO
+        { wch: 18 }, // DATA DE PAGAMENTO
+        { wch: 30 }, // OBSERVAÇÃO
+      ];
+
+      // Adicionar linha de TOTAL com fórmula
+      const rowCount = data.itemsList.length;
+      const lastRowIndex = rowCount + 2; // +1 header, +1 para nova linha (1-based)
       
-      const wsSummary = XLSX.utils.json_to_sheet(data.summary);
-      XLSX.utils.book_append_sheet(wb, wsSummary, "RESUMO");
+      XLSX.utils.sheet_add_aoa(ws, [
+        [null, null, null, null, null, null, null, null, "TOTAL:", { f: `SUM(J2:J${rowCount + 1})`, t: 'n', z: 'R$ #,##0.00' }]
+      ], { origin: -1 });
 
-      const wsDailies = XLSX.utils.json_to_sheet(data.dailiesList);
-      XLSX.utils.book_append_sheet(wb, wsDailies, "DIÁRIAS");
+      // Congelar primeira linha e adicionar filtros
+      ws['!autofilter'] = { ref: `A1:N${rowCount + 1}` };
+      ws['!freeze'] = { xSplit: 0, ySplit: 1 };
 
-      const wsItems = XLSX.utils.json_to_sheet(data.itemsList);
-      XLSX.utils.book_append_sheet(wb, wsItems, "ATENDIMENTOS");
-
-      XLSX.writeFile(wb, `DIARIAS - ${filters.startDate} A ${filters.endDate}.xlsx`);
+      XLSX.utils.book_append_sheet(wb, ws, "ATENDIMENTOS");
+      XLSX.writeFile(wb, `MK9_DIARIAS_${filters.startDate}_A_${filters.endDate}.xlsx`);
       toast.success("Excel gerado com sucesso");
     } catch (err: any) {
       toast.error("Erro ao exportar: " + err.message);
