@@ -267,7 +267,8 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       CPF: d.freelancer?.cpf || "-",
       TELEFONE: d.freelancer?.phone || "-",
       LOJA: it.store?.name || "-",
-      REDE: it.store?.chain || "-",
+      REDE: it.store ? (require('./mk9/chain-normalization').getNormalizedChain(it.store)) : "-",
+
       CIDADE: it.store?.city || "-",
       UF: it.store?.uf || "-",
       INDÚSTRIA: it.industry?.name || "-",

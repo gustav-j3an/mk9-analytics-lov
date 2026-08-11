@@ -22,6 +22,8 @@ import {
   mk9ReactivateStore,
   mk9StoreArchiveImpact,
 } from "@/lib/mk9-stores.functions";
+import { identifyStoreChain } from "@/lib/mk9/chain-normalization";
+
 
 export function StoreDialog({
   open,
@@ -96,6 +98,24 @@ export function StoreDialog({
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex: Supermercado Central"
             />
+            {name && !chain && (
+              <div className="flex items-center gap-2 mt-1 px-1">
+                <span className="text-[9px] font-bold text-mk9-accent-primary/60 uppercase tracking-tighter">
+                  Sugestão:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const suggested = identifyStoreChain(name);
+                    if (suggested) setChain(suggested);
+                  }}
+                  className="text-[9px] font-bold text-foreground hover:text-mk9-accent-primary uppercase tracking-tighter transition-colors underline decoration-dotted underline-offset-2"
+                >
+                  {identifyStoreChain(name) || "Nenhuma identificada"}
+                </button>
+              </div>
+            )}
+
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
