@@ -124,7 +124,7 @@ function LoginContent() {
 
       <div className="max-w-md w-full z-10 flex flex-col items-center">
         <div className="w-full flex flex-col justify-center space-y-6">
-          <div className="bg-black/40 border border-white/5 p-8 rounded-2xl shadow-2xl relative overflow-hidden backdrop-blur-xl">
+          <div className="bg-card/40 border border-border/50 p-8 rounded-2xl shadow-2xl relative overflow-hidden backdrop-blur-xl">
             <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
               <ShieldCheck className="w-16 h-16 text-primary" />
             </div>
@@ -134,10 +134,10 @@ function LoginContent() {
                 <div className="p-3 bg-primary/20 rounded-xl border border-primary/30 mb-4 shadow-[0_0_20px_rgba(var(--primary-rgb),0.2)]">
                   <Activity className="w-8 h-8 text-primary" />
                 </div>
-                <h1 className="text-2xl font-black text-white tracking-[0.2em] uppercase text-center">
-                  MK9 ANALYTICS
+                <h1 className="text-2xl font-black text-foreground tracking-[0.2em] uppercase text-center">
+                  MK9 COMMAND CENTER
                 </h1>
-                <p className="text-[10px] text-slate-500 font-bold tracking-[0.4em] uppercase mt-1">
+                <p className="text-[10px] text-muted-foreground font-bold tracking-[0.4em] uppercase mt-1">
                   OPERATIONAL GATEWAY
                 </p>
               </div>
@@ -146,12 +146,12 @@ function LoginContent() {
                 <Mk9LoginForm />
               </ClientOnly>
 
-              <div className="mt-8 pt-6 border-t border-white/5 flex flex-col items-center gap-1 text-center">
-                <p className="text-[10px] text-slate-500 font-medium">
-                  MK9 Analytics • <span className="text-primary/80">v1.5.1</span>
+              <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  MK9 Command Center • <span className="text-primary/80">v1.8.0</span>
                 </p>
-                <p className="text-[9px] text-slate-600 uppercase tracking-widest font-bold">
-                  FINANCEIRO FREELANCERS
+                <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
+                  NATIVE LIGHT MODE
                 </p>
               </div>
             </div>
