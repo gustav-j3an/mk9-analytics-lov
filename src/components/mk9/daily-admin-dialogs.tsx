@@ -52,6 +52,8 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
     date: new Date().toISOString().split('T')[0],
     amount: 0,
     status: "PLANEJADA",
+    paymentStatus: "A PAGAR",
+    paymentDate: null,
     supervisorId: "",
     notes: "",
     items: []
@@ -82,6 +84,8 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
         date: daily.date || new Date().toISOString().split('T')[0],
         amount: Number(daily.amount) || 0,
         status: daily.status || "PLANEJADA",
+        paymentStatus: daily.payment_status || "A PAGAR",
+        paymentDate: daily.payment_date || null,
         supervisorId: daily.supervisor_id || "",
         notes: daily.notes || "",
         items: daily.items?.map((it: any) => ({
@@ -114,6 +118,8 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
         date: new Date().toISOString().split('T')[0],
         amount: 0,
         status: "PLANEJADA",
+        paymentStatus: "A PAGAR",
+        paymentDate: null,
         supervisorId: "",
         notes: "",
         items: []
@@ -299,6 +305,39 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                 <SelectItem value="CANCELADA">CANCELADA</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Status Financeiro</Label>
+              <Select 
+                value={formData.paymentStatus} 
+                onValueChange={(val) => setFormData({ 
+                  ...formData, 
+                  paymentStatus: val,
+                  paymentDate: val === 'PAGO' ? (formData.paymentDate || new Date().toISOString().split('T')[0]) : null
+                })}
+              >
+                <SelectTrigger className="bg-white/5 border-white/10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="A PAGAR">A PAGAR</SelectItem>
+                  <SelectItem value="PAGO">PAGO</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {formData.paymentStatus === 'PAGO' && (
+              <div className="space-y-2">
+                <Label>Data do Pagamento</Label>
+                <Input
+                  type="date"
+                  value={formData.paymentDate || ""}
+                  onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
+                  className="bg-white/5 border-white/10"
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
