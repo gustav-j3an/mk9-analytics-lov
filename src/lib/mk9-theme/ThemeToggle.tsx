@@ -13,7 +13,7 @@ export const ThemeSettings = () => {
           <Palette className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 bg-[#111122] border-white/5 text-white">
+      <DropdownMenuContent className="w-56 bg-card border-border text-foreground">
         <DropdownMenuLabel>Aparência</DropdownMenuLabel>
         <div className="grid grid-cols-3 gap-2 p-2">
           <Button variant={theme === "light" ? "default" : "outline"} size="sm" onClick={() => setTheme("light")}>

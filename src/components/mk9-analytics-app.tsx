@@ -121,9 +121,9 @@ export function Mk9AnalyticsApp() {
   return (
     <main className="min-h-screen w-full bg-background text-foreground flex flex-col md:flex-row overflow-hidden font-sans">
       {/* Mobile Top Header */}
-      <div className="md:hidden h-14 shrink-0 bg-[#111122] border-b border-white/5 flex items-center justify-between px-4 z-30">
+      <div className="md:hidden h-14 shrink-0 bg-card border-b border-border flex items-center justify-between px-4 z-30">
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-command-purple flex items-center justify-center shadow-lg shadow-purple-500/20">
+          <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary">
             <ShieldCheck className="text-white h-4 w-4" />
           </div>
           <span className="font-black tracking-tighter text-sm text-white">MK9</span>
@@ -149,23 +149,23 @@ export function Mk9AnalyticsApp() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "bg-[#111122] border-r border-white/5 transition-all duration-300 flex flex-col shrink-0 z-30",
+          "bg-card border-r border-border transition-all duration-300 flex flex-col shrink-0 z-30",
           "fixed inset-y-0 left-0 md:relative",
           collapsed ? "-translate-x-full md:translate-x-0 md:w-20" : "translate-x-0 w-64",
         )}
       >
-        <div className="h-16 flex items-center px-6 border-b border-white/5 bg-command-deep/50">
+        <div className="h-16 flex items-center px-6 border-b border-border bg-background/50">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-command-purple flex items-center justify-center shadow-lg shadow-purple-500/20">
+              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary">
                 <ShieldCheck className="text-white h-5 w-5" />
               </div>
               <span className="font-black tracking-tighter text-lg text-white">
-                MK9 <span className="text-command-purple">COMMAND</span> <span className="text-[8px] opacity-30 ml-1">v1.1.2</span>
+                MK9 <span className="text-primary">COMMAND</span> <span className="text-[8px] opacity-30 ml-1 text-foreground">v1.1.2</span>
               </span>
             </div>
           )}
-          {collapsed && <ShieldCheck className="mx-auto text-command-purple h-6 w-6" />}
+          {collapsed && <ShieldCheck className="mx-auto text-primary h-6 w-6" />}
         </div>
 
         <div className="flex-1 overflow-y-auto py-6">
@@ -421,11 +421,11 @@ export function Mk9AnalyticsApp() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#080812]">
-        <header className="h-16 md:h-20 border-b border-white/5 flex items-center justify-between px-4 md:px-8 bg-command-deep/80 backdrop-blur-md z-10 shrink-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-background">
+        <header className="h-16 md:h-20 border-b border-border flex items-center justify-between px-4 md:px-8 bg-background/80 backdrop-blur-md z-10 shrink-0">
           <div className="flex items-center gap-4">
             <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-3">
-              <div className="h-1.5 w-1.5 rounded-full bg-command-purple animate-pulse" />
+              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
               {activeModule === "dashboard" && "Dashboard"}
               {activeModule === "cockpit" && "Cockpit"}
               {activeModule === "importacoes" && "Gestão"}
@@ -450,7 +450,7 @@ export function Mk9AnalyticsApp() {
             <div className="flex items-center gap-1 md:gap-2 bg-white/5 p-1 rounded-lg border border-white/5">
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
                 <SelectTrigger className="w-24 md:w-32 h-7 border-none bg-transparent shadow-none focus:ring-0 text-[9px] md:text-[10px] font-bold text-white uppercase tracking-tighter shrink-0 px-1 md:px-2 gap-0.5 md:gap-1">
-                  <Calendar className="h-3 w-3 mr-1.5 text-command-purple" />
+                  <Calendar className="h-3 w-3 mr-1.5 text-primary" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-command-deep border-white/10 text-white text-xs">
