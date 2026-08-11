@@ -182,7 +182,7 @@ export function Mk9QualityModule({
               <SelectTrigger className="h-8 w-[120px] bg-input/50 border-border/50 text-[10px] font-bold text-foreground uppercase tracking-wider">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-card border-border text-foreground">
+              <SelectContent className="bg-popover border-border text-popover-foreground">
                 {MONTHS_PT.map((m, i) => (
                   <SelectItem
                     key={m}
@@ -249,7 +249,7 @@ export function Mk9QualityModule({
                 placeholder="Buscar por ocorrência..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-9 h-9 w-[280px] bg-card border-border text-foreground text-xs"
+                className="pl-9 h-9 w-[280px] bg-popover border-border text-popover-foreground text-xs"
               />
             </div>
           </div>

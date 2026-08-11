@@ -190,7 +190,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
               type="date"
               value={referenceDate}
               onChange={(e) => setReferenceDate(e.target.value)}
-              className="h-9 bg-background/60 border-border/50 text-xs text-foreground"
+              className="h-9 bg-input/50 border-border/50 text-xs text-foreground"
             />
           </div>
           <div className="col-span-2 space-y-1.5">
@@ -201,7 +201,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
               value={filterPromoter || "all"}
               onValueChange={(v) => setFilterPromoter(v === "all" ? "" : v)}
             >
-              <SelectTrigger className="h-9 bg-background/60 border-border/50 text-xs text-foreground">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-foreground">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
@@ -222,7 +222,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
               value={filterIndustry || "all"}
               onValueChange={(v) => setFilterIndustry(v === "all" ? "" : v)}
             >
-              <SelectTrigger className="h-9 bg-background/60 border-border/50 text-xs text-foreground">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-foreground">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
@@ -243,7 +243,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
               value={filterUf || "all"}
               onValueChange={(v) => setFilterUf(v === "all" ? "" : v)}
             >
-              <SelectTrigger className="h-9 bg-background/60 border-border/50 text-xs text-foreground">
+              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-foreground">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
@@ -264,7 +264,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
               placeholder="Buscar por promotor, loja ou indústria…"
               value={nameFilter}
               onChange={(e) => setNameFilter(e.target.value)}
-              className="h-9 bg-background/60 border-border/50 text-xs text-foreground"
+              className="h-9 bg-input/50 border-border/50 text-xs text-foreground"
             />
           </div>
           <Button
