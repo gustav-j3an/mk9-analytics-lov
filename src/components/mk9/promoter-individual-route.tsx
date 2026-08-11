@@ -302,8 +302,7 @@ export function PromoterIndividualRoute() {
 
             </TableHeader>
             <TableBody className="print:bg-white">
-              {(isPrinting ? matrix : filteredMatrix).length === 0 ? (
-
+              {filteredMatrix.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="h-32 text-center text-muted-foreground">
                     <div className="flex flex-col items-center gap-2">
@@ -313,7 +312,8 @@ export function PromoterIndividualRoute() {
                   </TableCell>
                 </TableRow>
               ) : (
-                (isPrinting ? matrix : filteredMatrix).map((row, idx) => (
+                filteredMatrix.map((row, idx) => (
+
                   <TableRow key={idx} className="hover:bg-primary/5 transition-colors border-border/40 group print:border-gray-300 print:break-inside-avoid print:bg-white">
                     <TableCell className="font-bold text-xs uppercase tracking-tighter text-foreground py-3 print:text-black print:border print:border-gray-300">
                       {row.industryName}
