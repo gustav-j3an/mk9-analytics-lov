@@ -11,7 +11,8 @@ import {
   Users,
   Eye,
   Layout,
-  Download
+  Download,
+  Printer
 } from "lucide-react";
 import { Mk9PageHeader, Mk9Panel } from "./design-system";
 import { Button } from "../ui/button";
