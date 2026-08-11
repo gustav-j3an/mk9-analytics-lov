@@ -10,6 +10,7 @@ export const listDailies = createServerFn({ method: "GET" })
     freelancerId: z.string().uuid().optional(),
     supervisorId: z.string().uuid().optional(),
     status: z.string().optional(),
+    paymentStatus: z.string().optional(),
   }).optional())
   .handler(async ({ data }) => {
     const admin = supabaseAdmin as any;
@@ -32,6 +33,7 @@ export const listDailies = createServerFn({ method: "GET" })
     if (data?.freelancerId) query = query.eq('freelancer_id', data.freelancerId);
     if (data?.supervisorId) query = query.eq('supervisor_id', data.supervisorId);
     if (data?.status) query = query.eq('status', data.status);
+    if (data?.paymentStatus) query = query.eq('payment_status', data.paymentStatus);
 
     const { data: dailies, error } = await query;
     if (error) throw error;

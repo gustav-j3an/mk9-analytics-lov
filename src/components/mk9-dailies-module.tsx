@@ -26,6 +26,7 @@ import { DailyAdminDialog } from "@/components/mk9/daily-admin-dialogs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   Select, 
   SelectContent, 
@@ -497,7 +498,7 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Resumo por Freelancer</label>
             <div className="space-y-2">
               {isLoading ? <p className="text-xs text-slate-500 italic">Carregando...</p> : 
-               Object.values(dailies?.reduce((acc: any, d: any) => {
+               Object.values((dailies || []).reduce((acc: any, d: any) => {
                  if(!acc[d.freelancer_id]) acc[d.freelancer_id] = { name: d.freelancer.name, count: 0, amount: 0 };
                  acc[d.freelancer_id].count++;
                  acc[d.freelancer_id].amount += Number(d.amount);
