@@ -10,7 +10,8 @@ import {
   Search as SearchIcon,
   Users,
   Eye,
-  Layout
+  Layout,
+  Download
 } from "lucide-react";
 import { Mk9PageHeader, Mk9Panel } from "./design-system";
 import { Button } from "../ui/button";
@@ -28,6 +29,8 @@ import { Badge } from "../ui/badge";
 import { mk9RoutesListVersioned } from "../../lib/mk9-routes.functions";
 import { mk9ListPromoters } from "../../lib/mk9-data.functions";
 import { cn } from "../../lib/utils";
+import { generatePromoterRoutePdf } from "../../lib/mk9-promoter-route-pdf-v2.client";
+import { toast } from "sonner";
 
 
 
@@ -52,6 +55,7 @@ export function PromoterIndividualRoute() {
 
   
   const [searchTerm, setSearchTerm] = useState("");
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const referenceDate = search.date || new Date().toISOString().slice(0, 10);
   
 
@@ -120,6 +124,26 @@ export function PromoterIndividualRoute() {
   const totalVisits = useMemo(() => {
     return matrix.reduce((acc, row) => acc + row.days.size, 0);
   }, [matrix]);
+
+  const handleDownloadPdf = async () => {
+    if (isGeneratingPdf || matrix.length === 0) return;
+    
+    setIsGeneratingPdf(true);
+    try {
+      await generatePromoterRoutePdf({
+        promoterName: promoter?.name || "PROMOTOR",
+        referenceDate,
+        totalVisits,
+        rows: matrix
+      });
+      toast.success("PDF gerado com sucesso!");
+    } catch (error: any) {
+      console.error("[PDF_ERROR] Falha na geração do PDF:", error);
+      toast.error("Erro ao gerar PDF. Verifique o console para mais detalhes.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
 
 
@@ -247,6 +271,24 @@ export function PromoterIndividualRoute() {
           >
             <Eye className="h-4 w-4 mr-2" />
             Visualizar Rota
+          </Button>
+
+          <Button
+            onClick={handleDownloadPdf}
+            disabled={matrix.length === 0 || isGeneratingPdf}
+            className="h-10 bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 min-w-[140px] shadow-lg shadow-primary/20"
+          >
+            {isGeneratingPdf ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Gerando...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Baixar PDF
+              </>
+            )}
           </Button>
         </div>
       </div>
