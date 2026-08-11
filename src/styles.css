@@ -258,60 +258,71 @@
   body {
     background-color: white !important;
     color: black !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  /* Hide UI elements */
+  /* Hide EVERYTHING except the main document content */
+  #lovable-badge,
   .print\:hidden,
   nav,
   aside,
   header,
   footer,
-  button:not(.print\:show),
+  button,
   [role="navigation"],
   .mk9-sidebar,
   .mk9-topbar,
   .floating-avatar,
   .scroll-indicator,
-  .search-container {
+  .search-container,
+  .fixed,
+  .sticky {
     display: none !important;
   }
 
-  /* Force light theme elements */
+  /* Force light theme colors for printing */
   .dark {
     color-scheme: light !important;
+    --background: white;
+    --foreground: black;
+    --card: white;
+    --border: #e2e8f0;
   }
 
-  .print\:border-none {
-    border: none !important;
-  }
-  
-  .print\:shadow-none {
-    box-shadow: none !important;
-  }
+  .bg-white { background-color: white !important; }
+  .text-slate-950 { color: #020617 !important; }
+  .bg-slate-50 { background-color: #f8fafc !important; }
+  .bg-slate-100 { background-color: #f1f5f9 !important; }
+  .border-slate-200 { border-color: #e2e8f0 !important; }
+  .text-primary { color: var(--primary) !important; }
+  .bg-primary\/10 { background-color: color-mix(in oklab, var(--primary) 10%, white) !important; }
+  .border-primary\/20 { border-color: color-mix(in oklab, var(--primary) 20%, transparent) !important; }
 
-  .print\:bg-white {
-    background-color: white !important;
-  }
-
-  .print\:text-black {
-    color: black !important;
-  }
-
-  .print\:border-gray-300 {
-    border: 1px solid #d1d5db !important;
+  /* Container adjustments */
+  .min-h-screen { min-height: auto !important; }
+  .p-8 { padding: 0 !important; }
+  .max-w-\[297mm\] { 
+    max-width: 100% !important; 
+    margin: 0 !important;
   }
 
   /* Table Specifics */
   table {
     width: 100% !important;
     border-collapse: collapse !important;
+    table-layout: fixed !important; /* Force layout to respect widths */
   }
 
   th, td {
     padding: 6px 4px !important;
-    font-size: 9pt !important;
+    font-size: 8pt !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  thead {
+    display: table-header-group !important;
   }
 
   tr {
@@ -319,13 +330,9 @@
     break-inside: avoid !important;
   }
 
-  thead {
-    display: table-header-group !important;
-  }
-
-  .print\:break-inside-avoid {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
+  /* Ensure circles and checks are visible */
+  .rounded-full {
+    border-radius: 9999px !important;
   }
 }
 
