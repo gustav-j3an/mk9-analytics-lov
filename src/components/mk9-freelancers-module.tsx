@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { listFreelancers, toggleFreelancerStatus } from "@/lib/mk9-freelancers.functions";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Power, Loader2 } from "lucide-react";
+import { Plus, Pencil, Power, Loader2, Users } from "lucide-react";
 import { FreelancerAdminDialog } from "@/components/mk9/freelancer-admin-dialogs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
