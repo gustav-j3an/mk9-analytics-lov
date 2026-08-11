@@ -152,8 +152,9 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
   const addItem = () => {
     setFormData((prev: any) => ({
       ...prev,
-      items: [...prev.items, { storeId: "", industryIds: [] as string[] }]
+      items: [...(prev.items || []), { storeId: "", industryIds: [] as string[] }]
     }));
+
   };
 
   const removeItem = (index: number) => {
@@ -171,14 +172,23 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
   };
 
   const toggleIndustry = (itemIndex: number, industryId: string) => {
-    const item = formData.items[itemIndex];
-    const currentIndustries = item.industryIds || [];
-    const newIndustries = currentIndustries.includes(industryId)
-      ? currentIndustries.filter((id: string) => id !== industryId)
-      : [...currentIndustries, industryId];
-    
-    updateItem(itemIndex, { industryIds: newIndustries });
+    setFormData((prev: any) => {
+      const newItems = [...(prev.items || [])];
+      const item = { ...newItems[itemIndex] };
+      
+      // Garantir que industryIds seja sempre um array
+      const currentIndustries = Array.isArray(item.industryIds) ? item.industryIds : [];
+      
+      const exists = currentIndustries.includes(industryId);
+      item.industryIds = exists
+        ? currentIndustries.filter((id: string) => id !== industryId)
+        : [...currentIndustries, industryId];
+        
+      newItems[itemIndex] = item;
+      return { ...prev, items: newItems };
+    });
   };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -388,26 +398,36 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                       <Badge variant="outline" className="text-[9px] px-1 h-4 bg-emerald-500/10 text-emerald-500 border-none">CONTRATANTES</Badge>
                     </Label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-background/40 rounded-md">
-                      {industriesQ.data?.map((ind: any) => (
-                        <div 
-                          key={ind.id} 
-                          className="flex items-center space-x-2 hover:bg-muted/50 p-1 rounded transition-colors cursor-pointer group"
-                          onClick={() => toggleIndustry(idx, ind.id)}
-                        >
-                          <Checkbox 
-                            id={`ind-${idx}-${ind.id}`}
-                            checked={(item.industryIds || []).includes(ind.id)}
-                            onCheckedChange={() => {}} // Controlled by the parent div click
-                            className="border-white/20 data-[state=checked]:bg-command-purple data-[state=checked]:border-command-purple pointer-events-none"
-                          />
-                          <span 
-                            className="text-xs text-foreground/80 select-none group-hover:text-foreground transition-colors"
+                      {industriesQ.data?.map((ind: any) => {
+                        const isChecked = Array.isArray(item.industryIds) && item.industryIds.includes(ind.id);
+                        return (
+                          <div 
+                            key={`attendance-${idx}-industry-${ind.id}`} 
+                            className="flex items-center space-x-2 hover:bg-muted/50 p-1 rounded transition-colors cursor-pointer group"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              toggleIndustry(idx, ind.id);
+                            }}
                           >
-                            {ind.name}
-                          </span>
-                        </div>
-                      ))}
+                            <Checkbox 
+                              id={`ind-${idx}-${ind.id}`}
+                              checked={isChecked}
+                              onCheckedChange={() => {}} // Controlled by click on parent
+                              className="border-white/20 data-[state=checked]:bg-command-purple data-[state=checked]:border-command-purple pointer-events-none"
+                            />
+                            <label 
+                              htmlFor={`ind-${idx}-${ind.id}`}
+                              className="text-xs text-foreground/80 select-none group-hover:text-foreground transition-colors pointer-events-none"
+                            >
+                              {ind.name}
+                            </label>
+                          </div>
+                        );
+                      })}
                     </div>
+
+
                   </div>
                 </div>
               ))}
