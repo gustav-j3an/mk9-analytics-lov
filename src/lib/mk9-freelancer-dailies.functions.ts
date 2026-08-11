@@ -74,6 +74,7 @@ export const createDaily = createServerFn({ method: "POST" })
       .single();
 
     if (dailyErr) throw dailyErr;
+    await logAudit(ctx, 'DAILY_RATE_CREATED', 'mk9_freelancer_dailies', daily.id, data);
 
     // Prepare items
     const itemsToInsert: any[] = [];
@@ -140,6 +141,7 @@ export const updateDaily = createServerFn({ method: "POST" })
       .single();
 
     if (dailyErr) throw dailyErr;
+    await logAudit(ctx, 'DAILY_RATE_UPDATED', 'mk9_freelancer_dailies', data.id, data);
 
     // Replace items: Delete old and insert new
     const { error: delErr } = await admin
