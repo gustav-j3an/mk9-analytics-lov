@@ -299,11 +299,12 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
           ) : drilldown && (
             <div className="space-y-8 pb-10">
               <div className="grid grid-cols-2 gap-4">
-                <DetailKPI label="Visitas Previstas" value={nf(drilldown.industry.contracted)} />
-                <DetailKPI label="Realizadas" value={nf(drilldown.industry.realized)} color="text-emerald-500" />
-                <DetailKPI label="Pendentes" value={nf(drilldown.industry.pending)} color="text-amber-500" />
+                <DetailKPI label="Visitas Previstas" value={nf(drilldown.industry.contratadas)} />
+                <DetailKPI label="Realizadas" value={nf(drilldown.industry.realizadas)} color="text-emerald-500" />
+                <DetailKPI label="Pendentes" value={nf(drilldown.industry.pendentes)} color="text-amber-500" />
                 <DetailKPI label="Cobertura" value={formatPercentage(drilldown.industry.coberturaPct)} />
               </div>
+
 
               <div className="space-y-4">
                 <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Lojas Atendidas</h3>
