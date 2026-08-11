@@ -433,11 +433,12 @@ export function Mk9PresenceModule() {
   );
 }
 
-function PresenceButton({ active, onClick, variant }: { active: boolean, onClick: () => void, variant: 'present' | 'absent' | 'medical' }) {
+function PresenceButton({ active, onClick, variant }: { active: boolean, onClick: () => void, variant: 'present' | 'absent' | 'medical' | 'vacation' }) {
   const configs = {
     present: { label: 'Presente', icon: Check, activeClass: 'bg-emerald-500 text-white shadow-sm', inactiveClass: 'text-emerald-500 hover:bg-emerald-500/10 border-emerald-500/20' },
     absent: { label: 'Falta', icon: X, activeClass: 'bg-rose-500 text-white shadow-sm', inactiveClass: 'text-rose-500 hover:bg-rose-500/10 border-rose-500/20' },
-    medical: { label: 'Atestado', icon: Plus, activeClass: 'bg-amber-500 text-white shadow-sm', inactiveClass: 'text-amber-500 hover:bg-amber-500/10 border-amber-500/20' }
+    medical: { label: 'Atestado', icon: Plus, activeClass: 'bg-amber-500 text-white shadow-sm', inactiveClass: 'text-amber-500 hover:bg-amber-500/10 border-amber-500/20' },
+    vacation: { label: 'Férias', icon: Users, activeClass: 'bg-purple-500 text-white shadow-sm', inactiveClass: 'text-purple-500 hover:bg-purple-500/10 border-purple-500/20' }
   };
   
   const config = configs[variant];
