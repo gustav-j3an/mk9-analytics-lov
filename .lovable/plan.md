@@ -1,45 +1,30 @@
-# Plan: Novo Status FÉRIAS e Correção de Observação no Módulo de Presença
+# Plano de Ação — Corrigir Dados do Dashboard por Indústria
 
-Adicionar o status "FÉRIAS" ao sistema de presença dos promotores e corrigir o bug de persistência do campo de observação.
+Este plano visa resolver a inconsistência de dados onde colunas principais (Frequência, Previstas, Realizadas) aparecem zeradas, enquanto Pendentes e Cobertura possuem valores.
 
-## Alterações de Backend
+## Passos Técnicos
 
-### 1. Banco de Dados (Migration)
-- Adicionar o valor `VACATION` ao enum `presence_status`.
-- Garantir que a coluna `observation` na tabela `mk9_promoter_presence` esteja sendo tratada corretamente (já existe no schema).
+### 1. Tipagem Analítica
+Atualizar `src/lib/mk9-analytics/analytics-types.ts` para incluir os campos ausentes na evolução por indústria.
 
-### 2. Funções de Servidor (`src/lib/mk9-presence.functions.ts`)
-- Atualizar `PresenceStatusSchema` (Zod) para incluir `VACATION`.
-- Revisar `getPresenceList` para garantir que o campo `observation` retornado do banco seja mapeado corretamente para o frontend.
-- Revisar `savePresenceBulk` para garantir que `observation` seja persistido no `upsert`.
-- Atualizar `getPresenceStats` para incluir a contagem de `VACATION`.
+### 2. Motor Analítico (Backend)
+Refatorar `src/lib/mk9-analytics/analytics-engine.server.ts`:
+- Incluir `frequency` (vindo de `OperationIndustryRow.frequency`).
+- Incluir métricas detalhadas de `contracted` e `realized` por indústria.
+- Garantir que `contracted` e `realized` usem as propriedades oficiais do `OperationCore` (`contratadas` e `realizadas`).
 
-## Alterações de Frontend (`src/components/mk9-presence-module.tsx`)
+### 3. Interface do Dashboard (Frontend)
+Ajustar `src/components/mk9-analytics-dashboard.tsx`:
+- Garantir que o mapeamento de `ind.contracted.current` e `ind.realized.current` esteja correto.
+- Validar a exibição da frequência.
 
-### 1. UI de Status
-- Adicionar o botão "FÉRIAS" na linha de cada promotor.
-- Estilo: Azul/Roxo suave (ex: `bg-indigo-500` ou `bg-cyan-500`).
-- Garantir exclusividade (um status por dia).
+## Relatório de Mudanças Esperado
+1. **Causa Raiz**: Divergência de nomes de propriedades entre o Engine analítico e o componente UI.
+2. **Fonte da Frequência**: `mk9_industry_store_frequency` via `loadOperationCore`.
+3. **Fonte das Previstas**: `OperationIndustryRow.contratadas`.
+4. **Fonte das Realizadas**: `OperationIndustryRow.realizadas`.
+5. **Correção**: Unificação do payload para garantir que todas as colunas bebam da mesma fonte de dados processada pelo núcleo operacional.
 
-### 2. Correção de Observação
-- Verificar o `useEffect` que sincroniza `presenceItems` com `localPresence`.
-- Garantir que ao digitar e salvar, o estado local reflita o que vem do servidor.
-
-### 3. KPIs e Filtros
-- Adicionar card de KPI "FÉRIAS".
-- Adicionar opção "FÉRIAS" no filtro de status.
-- Ajustar cálculo de "Não Marcados" para subtrair também as férias.
-
-### 4. Excel
-- Incluir o status "FÉRIAS" e o campo de observação na exportação.
-
-### 5. Botão "Marcar Todos"
-- Alterar lógica para marcar como `PRESENT` apenas quem estiver `NÃO MARCADO`, preservando `FÉRIAS` e `ATESTADO`.
-
-## Detalhes Técnicos
-- **Migration SQL**: 
-  ```sql
-  ALTER TYPE public.presence_status ADD VALUE IF NOT EXISTS 'VACATION';
-  ```
-- **Enum Mapping**: `VACATION` no banco -> "FÉRIAS" na UI.
-- **KPI Consistency**: `Total = Presente + Falta + Atestado + Férias + Não Marcado`.
+## Verificação
+- Comparar dados da indústria KING e COOPATOS com o banco.
+- Verificar integridade matemática: `Previstas = Realizadas + Pendentes`.
