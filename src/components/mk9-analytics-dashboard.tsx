@@ -568,7 +568,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                             "group flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-300 relative overflow-hidden",
                             cell.count > 0 
                               ? "bg-white/[0.03] border-border hover:border-white/30 cursor-help" 
-                              : "bg-black/20 border-border/50 opacity-30 select-none"
+                              : "bg-background/40 border-border/50 opacity-30 select-none"
                           )}
                         >
                           {cell.count > 0 && (
@@ -650,7 +650,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             <BarChart data={frequencies} layout="vertical" margin={{ left: 20 }}>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.05)"
+                stroke="var(--border)"
                 horizontal={false}
               />
               <XAxis type="number" hide />
@@ -672,7 +672,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                         <p className="text-[10px] font-black text-foreground uppercase tracking-widest mb-1">
                           {label}x/mês
                         </p>
-                        <p className="text-xs font-bold text-slate-300">
+                        <p className="text-xs font-bold text-foreground/80">
                           {data.stores} {data.stores === 1 ? "loja" : "lojas"}
                         </p>
                         {isManual && (
@@ -860,7 +860,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                     <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">
                       Delta
                     </span>
-                    <span className="text-xs font-bold text-slate-300">
+                    <span className="text-xs font-bold text-foreground/80">
                       {ind.coverage.delta > 0 ? "+" : ""}
                       {formatPercentage(ind.coverage.delta)}
                     </span>

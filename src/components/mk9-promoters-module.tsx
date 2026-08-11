@@ -131,14 +131,14 @@ export function Mk9PromotersModule() {
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-xs font-mono text-slate-300">
+                      <span className="text-xs font-mono text-foreground/80">
                         {p.employeeNumber || "—"}
                       </span>
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-1.5">
                         <MapPin className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs font-medium text-slate-300">
+                        <span className="text-xs font-medium text-foreground/80">
                           {p.city} / {p.uf}
                         </span>
                       </div>
@@ -167,7 +167,7 @@ export function Mk9PromotersModule() {
                         >
                           <DropdownMenuItem
                             onClick={() => setEditingPromoter(p)}
-                            className="gap-2 cursor-pointer hover:bg-white/5"
+                            className="gap-2 cursor-pointer hover:bg-accent"
                           >
                             <Edit2 className="h-3.5 w-3.5" /> Editar
                           </DropdownMenuItem>

@@ -21,7 +21,7 @@ export function PerformanceCard({ label, percentage, status, comparison }: Perfo
           {label}
         </h3>
         <span
-          className={cn("text-xs font-bold px-2 py-1 rounded-full bg-white/5", statusColor[status])}
+          className={cn("text-xs font-bold px-2 py-1 rounded-full bg-muted/50", statusColor[status])}
         >
           {status}
         </span>

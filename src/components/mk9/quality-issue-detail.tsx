@@ -125,7 +125,7 @@ export function QualityIssueDetailSheet({
                 </div>
               </div>
 
-              <Separator className="bg-white/5" />
+              <Separator className="bg-muted/50" />
 
               {/* Entidades Relacionadas */}
               <div className="space-y-4">
@@ -208,7 +208,7 @@ export function QualityIssueDetailSheet({
                     <AlertTriangle className="h-4 w-4" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Ação Sugerida</span>
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <p className="text-xs text-foreground/80 leading-relaxed">
                     {issue.suggestedAction}
                   </p>
                   
@@ -225,13 +225,13 @@ export function QualityIssueDetailSheet({
 
               {/* Dados Técnicos */}
               <div className="pt-8 pb-4 space-y-4">
-                <Separator className="bg-white/5" />
+                <Separator className="bg-muted/50" />
                 <h5 className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600">Dados Técnicos</h5>
                 
                 <div className="grid grid-cols-1 gap-3">
                   <div className="space-y-1">
                     <p className="text-[8px] font-black uppercase text-slate-700">Issue ID</p>
-                    <p className="text-[10px] font-mono text-slate-600 break-all bg-black/20 p-2 rounded border border-border/50 select-all">
+                    <p className="text-[10px] font-mono text-slate-600 break-all bg-background/40 p-2 rounded border border-border/50 select-all">
                       {issue.id}
                     </p>
                   </div>

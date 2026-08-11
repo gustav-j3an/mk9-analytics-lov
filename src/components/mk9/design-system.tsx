@@ -123,7 +123,7 @@ export function Mk9Badge({
   variant?: "default" | "success" | "warning" | "danger" | "info";
 }) {
   const variants = {
-    default: "border-border bg-white/5 text-slate-300",
+    default: "border-border bg-muted/50 text-foreground/80",
     success: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
     warning: "border-amber-500/20 bg-amber-500/10 text-amber-400",
     danger: "border-rose-500/20 bg-rose-500/10 text-rose-400",

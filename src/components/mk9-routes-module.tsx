@@ -269,7 +269,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           </div>
           <Button
             variant="outline"
-            className="h-9 border-border text-muted-foreground hover:text-foreground hover:bg-white/5 text-[10px] font-black uppercase tracking-widest"
+            className="h-9 border-border text-muted-foreground hover:text-foreground hover:bg-accent text-[10px] font-black uppercase tracking-widest"
             onClick={() => qc.invalidateQueries({ queryKey: ["mk9-routes-versioned"] })}
           >
             <RefreshCw className="h-4 w-4 mr-2" /> Atualizar
@@ -496,7 +496,7 @@ function DeleteConfirmDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <div className="space-y-2 text-xs text-muted-foreground bg-white/5 p-4 rounded-lg border border-border">
+          <div className="space-y-2 text-xs text-muted-foreground bg-muted/50 p-4 rounded-lg border border-border">
             <div className="flex justify-between">
               <span className="uppercase font-bold tracking-widest text-[9px]">Promotor:</span>
               <span className="text-foreground font-medium">{item.promoterName}</span>

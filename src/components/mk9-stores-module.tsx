@@ -129,7 +129,7 @@ export function Mk9StoresModule() {
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-xs text-slate-300 font-medium uppercase tracking-tight">
+                      <span className="text-xs text-foreground/80 font-medium uppercase tracking-tight">
                         {s.chain || "LOJA INDEPENDENTE"}
                       </span>
                     </td>
@@ -165,7 +165,7 @@ export function Mk9StoresModule() {
                         >
                           <DropdownMenuItem
                             onClick={() => setEditingStore(s)}
-                            className="gap-2 cursor-pointer hover:bg-white/5"
+                            className="gap-2 cursor-pointer hover:bg-accent"
                           >
                             <Edit2 className="h-3.5 w-3.5" /> Editar
                           </DropdownMenuItem>

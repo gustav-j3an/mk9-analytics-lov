@@ -326,7 +326,7 @@ function SupervisorDetailsSheet({ id, onClose }: { id: string | null, onClose: (
               <div className="space-y-4">
                 <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                   {allPromoters.filter((p: any) => p.isActive).map((p: any) => (
-                    <div key={p.id} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
+                    <div key={p.id} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-accent transition-colors">
                       <Checkbox 
                         id={p.id} 
                         checked={selectedPromoters.includes(p.id) || (details?.members?.some((m: any) => m.id === p.id) && !selectedPromoters.includes(p.id))}

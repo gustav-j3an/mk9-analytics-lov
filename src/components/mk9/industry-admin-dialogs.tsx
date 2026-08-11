@@ -214,7 +214,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
               rows={3}
             />
           </div>
-          <div className="flex items-center justify-between rounded-xl bg-white/5 border border-border/50 p-4 transition-colors hover:bg-white/[0.08]">
+          <div className="flex items-center justify-between rounded-xl bg-muted/50 border border-border/50 p-4 transition-colors hover:bg-white/[0.08]">
             <div className="space-y-1">
               <p className="text-xs font-bold text-white uppercase tracking-tight">
                 Exige checklist
@@ -475,7 +475,7 @@ export function IndustryEditDialog({
               rows={3}
             />
           </div>
-          <div className="flex items-center justify-between rounded-xl bg-white/5 border border-border/50 p-4 transition-colors hover:bg-white/[0.08]">
+          <div className="flex items-center justify-between rounded-xl bg-muted/50 border border-border/50 p-4 transition-colors hover:bg-white/[0.08]">
             <div className="space-y-1">
               <p className="text-xs font-bold text-white uppercase tracking-tight">
                 Exige checklist
@@ -552,9 +552,9 @@ export function IndustryEditDialog({
               </div>
             </div>
           )}
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-border/50">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
             <Switch checked={usesPreviousMonth} onCheckedChange={setUsesPreviousMonth} />
-            <Label className="text-xs text-slate-300">Utilizar mês anterior como referência</Label>
+            <Label className="text-xs text-foreground/80">Utilizar mês anterior como referência</Label>
           </div>
         </div>
         <DialogFooter className="mt-6 border-t border-border/50 pt-4 flex sm:justify-between items-center gap-4">

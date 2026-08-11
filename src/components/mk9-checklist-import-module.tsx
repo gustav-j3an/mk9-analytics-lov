@@ -1342,7 +1342,7 @@ function IndividualImport({
           {preview && (
             <Button
               variant="outline"
-              className="h-9 border-border text-muted-foreground hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest px-6"
+              className="h-9 border-border text-muted-foreground hover:text-white hover:bg-accent text-[10px] font-black uppercase tracking-widest px-6"
               onClick={() => discardMut.mutate()}
             >
               Descartar
@@ -1478,7 +1478,7 @@ function IndividualImport({
                 </p>
               </div>
             </div>
-            <div className="px-3 py-1 rounded-full bg-white/5 border border-border text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+            <div className="px-3 py-1 rounded-full bg-muted/50 border border-border text-[10px] font-black text-muted-foreground uppercase tracking-widest">
               {MONTHS_PT[preview.operationMonth - 1]}/{preview.operationYear}
             </div>
           </div>
@@ -1737,7 +1737,7 @@ function IndividualImport({
               return (
                 <div
                   key={imp.id}
-                  className="text-sm rounded-lg border border-border/50 bg-white/5 p-3"
+                  className="text-sm rounded-lg border border-border/50 bg-muted/50 p-3"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
@@ -1922,7 +1922,7 @@ function PhaseRow({ active, done, label }: { active: boolean; done: boolean; lab
       ) : active ? (
         <Loader2 className="h-4 w-4 animate-spin text-command-purple" />
       ) : (
-        <div className="h-4 w-4 rounded-full border border-border bg-white/5" />
+        <div className="h-4 w-4 rounded-full border border-border bg-muted/50" />
       )}
       <span
         className={cn(

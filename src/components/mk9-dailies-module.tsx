@@ -168,7 +168,7 @@ export function Mk9DailiesModule() {
           <Button variant="outline" className="flex-1 md:flex-none border-command-purple/50 text-command-purple hover:bg-command-purple/10" onClick={() => setShowClosing(true)}>
             <TrendingUp className="w-4 h-4 mr-2" /> [ FECHAMENTO ]
           </Button>
-          <Button variant="outline" className="flex-1 md:flex-none border-border hover:bg-muted/50 text-slate-300" onClick={handleExport} disabled={isExporting}>
+          <Button variant="outline" className="flex-1 md:flex-none border-border hover:bg-muted/50 text-foreground/80" onClick={handleExport} disabled={isExporting}>
             {isExporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
             Exportar Excel
           </Button>
@@ -278,7 +278,7 @@ export function Mk9DailiesModule() {
             ) : (
               filteredDailies.map((d: any) => (
                 <TableRow key={d.id} className="border-border/50 hover:bg-muted/50 transition-colors group">
-                  <TableCell className="text-slate-300 font-medium py-4">{new Date(d.date).toLocaleDateString('pt-BR')}</TableCell>
+                  <TableCell className="text-foreground/80 font-medium py-4">{new Date(d.date).toLocaleDateString('pt-BR')}</TableCell>
                   <TableCell className="text-foreground font-bold">{d.freelancer?.name}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-0.5">
@@ -364,7 +364,7 @@ export function Mk9DailiesModule() {
                 </div>
                 <div className="space-y-1 col-span-2">
                   <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Supervisor</label>
-                  <p className="text-sm font-bold text-slate-300">{viewing.supervisor?.name || "Não informado"}</p>
+                  <p className="text-sm font-bold text-foreground/80">{viewing.supervisor?.name || "Não informado"}</p>
                 </div>
               </div>
 

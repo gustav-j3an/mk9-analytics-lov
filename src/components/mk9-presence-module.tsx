@@ -386,7 +386,7 @@ export function Mk9PresenceModule() {
                             placeholder="..."
                             value={local.observation}
                             onChange={(e) => handleObservationChange(item.id, e.target.value)}
-                            className="h-7 text-[10px] bg-transparent border-border/50 focus:border-white/20 text-slate-300 w-full"
+                            className="h-7 text-[10px] bg-transparent border-border/50 focus:border-white/20 text-foreground/80 w-full"
                           />
                         </td>
                       </tr>

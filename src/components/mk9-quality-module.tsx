@@ -283,7 +283,7 @@ export function Mk9QualityModule({
                             {String(item.evidence?.industryName ?? item.industryId ?? "SISTEMA")}
                           </span>
                           <span className="text-[10px] text-muted-foreground">•</span>
-                          <span className="text-[11px] font-bold text-slate-300 uppercase tracking-tighter">
+                          <span className="text-[11px] font-bold text-foreground/80 uppercase tracking-tighter">
                             {String(item.evidence?.storeName ?? item.storeId ?? "-")}
                           </span>
                         </div>

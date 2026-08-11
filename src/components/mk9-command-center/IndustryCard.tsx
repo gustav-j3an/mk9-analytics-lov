@@ -33,7 +33,7 @@ export function IndustryCard({ industries }: IndustryCardProps) {
               <span className="text-white text-sm font-bold">{industry.name}</span>
               <span
                 className={cn(
-                  "text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5",
+                  "text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted/50",
                   industry.percentage > 85
                     ? "text-emerald-500"
                     : industry.percentage > 60
@@ -45,7 +45,7 @@ export function IndustryCard({ industries }: IndustryCardProps) {
               </span>
             </div>
             <div className="space-y-2">
-              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+              <div className="h-1.5 w-full bg-muted/50 rounded-full overflow-hidden">
                 <div
                   className={cn(
                     "h-full transition-all duration-500",

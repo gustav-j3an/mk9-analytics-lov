@@ -142,7 +142,7 @@ export function Mk9IndustryAuditModule() {
           </div>
         </div>
 
-        <div className="bg-black/20 border border-border/50 rounded-xl overflow-hidden">
+        <div className="bg-background/40 border border-border/50 rounded-xl overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">

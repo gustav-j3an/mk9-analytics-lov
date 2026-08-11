@@ -361,7 +361,7 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
                         <div className="flex items-center gap-2">
                           <div className={cn(
                             "w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors",
-                            isSelected ? "bg-command-purple border-command-purple" : "border-white/20 bg-black/20"
+                            isSelected ? "bg-command-purple border-command-purple" : "border-white/20 bg-background/40"
                           )}>
                             {isSelected && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
                           </div>

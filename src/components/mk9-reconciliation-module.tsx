@@ -469,7 +469,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
               variant="outline"
               onClick={exportCsv}
               disabled={rows.length === 0}
-              className="h-9 border-border text-muted-foreground hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest"
+              className="h-9 border-border text-muted-foreground hover:text-white hover:bg-accent text-[10px] font-black uppercase tracking-widest"
             >
               <Download className="h-4 w-4 mr-2" /> Exportar
             </Button>
@@ -515,7 +515,7 @@ export function Mk9ReconciliationModule({ initialMonth, initialYear }: { initial
         </div>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="mb-6 overflow-x-auto">
-          <TabsList className="flex md:flex-wrap h-auto bg-black/20 border border-border/50 p-1 w-max md:w-auto">
+          <TabsList className="flex md:flex-wrap h-auto bg-background/40 border border-border/50 p-1 w-max md:w-auto">
             <TabsTrigger
               value="all"
               className="text-[10px] uppercase font-bold px-4 py-2 data-[state=active]:bg-command-purple data-[state=active]:text-white"

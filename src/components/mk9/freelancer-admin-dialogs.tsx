@@ -105,7 +105,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="col-span-3 bg-white/5 border-border"
+              className="col-span-3 bg-muted/50 border-border"
               required
             />
           </div>
@@ -115,7 +115,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
               id="phone"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="col-span-3 bg-white/5 border-border"
+              className="col-span-3 bg-muted/50 border-border"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -124,7 +124,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
               id="city"
               value={formData.city}
               onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              className="col-span-3 bg-white/5 border-border"
+              className="col-span-3 bg-muted/50 border-border"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -133,7 +133,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
               id="uf"
               value={formData.uf}
               onChange={(e) => setFormData({ ...formData, uf: e.target.value.toUpperCase().slice(0, 2) })}
-              className="col-span-3 bg-white/5 border-border"
+              className="col-span-3 bg-muted/50 border-border"
               maxLength={2}
             />
           </div>
@@ -145,7 +145,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
               step="0.01"
               value={formData.default_daily_rate}
               onChange={(e) => setFormData({ ...formData, default_daily_rate: e.target.value })}
-              className="col-span-3 bg-white/5 border-border"
+              className="col-span-3 bg-muted/50 border-border"
               placeholder="Ex: 150.00"
               required
             />
@@ -156,7 +156,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="col-span-3 bg-white/5 border-border"
+              className="col-span-3 bg-muted/50 border-border"
             />
           </div>
 

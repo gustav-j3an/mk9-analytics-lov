@@ -36,7 +36,7 @@ export function AnalyticsMetricCard({
     blue: "text-blue-400 bg-blue-500/10 border-blue-500/20",
     emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
     amber: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-    rose: "text-rose-400 bg-rose-500/10 border-rose-500/20",
+    rose: "text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20",
     cyan: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
   };
 
@@ -45,7 +45,7 @@ export function AnalyticsMetricCard({
       onClick={onClick}
       className={cn(
         "glass-command p-5 rounded-2xl group transition-all duration-300 relative overflow-hidden",
-        onClick && "cursor-pointer hover:border-white/20 active:scale-[0.98]",
+        onClick && "cursor-pointer hover:border-primary/30 active:scale-[0.98]",
         className,
       )}
     >
@@ -78,8 +78,8 @@ export function AnalyticsMetricCard({
               comparison.trend === "up"
                 ? "text-emerald-400 bg-emerald-500/10"
                 : comparison.trend === "down"
-                  ? "text-rose-400 bg-rose-500/10"
-                  : "text-muted-foreground bg-white/5",
+                  ? "text-rose-600 dark:text-rose-400 bg-rose-500/10"
+                  : "text-muted-foreground bg-muted/50",
             )}
           >
             {comparison.trend === "up" && <ArrowUpRight className="h-3 w-3" />}
@@ -183,7 +183,7 @@ export function AnalyticsTable({
                 <td
                   key={j}
                   className={cn(
-                    "px-4 py-3 text-xs bg-white/[0.02] border-y border-border/50 transition-colors group-hover:bg-white/[0.04]",
+                    "px-4 py-3 text-xs bg-muted/20 border-y border-border/50 transition-colors group-hover:bg-muted/40",
                     j === 0 && "rounded-l-xl border-l text-left",
                     j > 0 && "text-right",
                     j === row.length - 1 && "rounded-r-xl border-r",

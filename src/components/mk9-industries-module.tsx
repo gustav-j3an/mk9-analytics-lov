@@ -199,7 +199,7 @@ export function Mk9IndustriesModule() {
                         >
                           <DropdownMenuItem
                             onClick={() => setEditingIndustry(i)}
-                            className="gap-2 cursor-pointer hover:bg-white/5"
+                            className="gap-2 cursor-pointer hover:bg-accent"
                           >
                             <Edit2 className="h-3.5 w-3.5" /> Editar
                           </DropdownMenuItem>

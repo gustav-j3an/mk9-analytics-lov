@@ -195,7 +195,7 @@ export function Mk9AuditModule({
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 text-muted-foreground hover:text-white hover:bg-white/5"
+              className="h-8 text-muted-foreground hover:text-white hover:bg-accent"
               onClick={() => {
                 industryQ.refetch();
                 storeQ.refetch();
@@ -367,7 +367,7 @@ export function Mk9AuditModule({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 border-border bg-white/5 text-muted-foreground hover:text-white"
+                className="h-9 border-border bg-muted/50 text-muted-foreground hover:text-white"
               >
                 <Download className="h-3.5 w-3.5 mr-2" /> Exportar
               </Button>
@@ -397,7 +397,7 @@ function IndustryTable({ q }: { q: any }) {
 
   return (
     <Table>
-      <TableHeader className="bg-white/5">
+      <TableHeader className="bg-muted/50">
         <TableRow className="border-border/50 hover:bg-transparent">
           <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Indústria
@@ -426,7 +426,7 @@ function IndustryTable({ q }: { q: any }) {
             <TableCell className="text-[10px] text-muted-foreground font-medium">
               {fmtDate(r.window.startDate)} — {fmtDate(r.window.endDate)}
             </TableCell>
-            <TableCell className="text-right font-medium text-slate-300">{r.contratadas}</TableCell>
+            <TableCell className="text-right font-medium text-foreground/80">{r.contratadas}</TableCell>
             <TableCell className="text-right font-medium text-emerald-400">
               {r.realizadas}
             </TableCell>
@@ -459,7 +459,7 @@ function StoreTable({ q, search }: { q: any; search: string }) {
 
   return (
     <Table>
-      <TableHeader className="bg-white/5">
+      <TableHeader className="bg-muted/50">
         <TableRow className="border-border/50 hover:bg-transparent">
           <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Loja / Rede
@@ -491,7 +491,7 @@ function StoreTable({ q, search }: { q: any; search: string }) {
               </div>
             </TableCell>
             <TableCell className="text-[10px] font-bold text-muted-foreground">{r.industryName}</TableCell>
-            <TableCell className="text-right font-medium text-slate-300">{r.contratadas}</TableCell>
+            <TableCell className="text-right font-medium text-foreground/80">{r.contratadas}</TableCell>
             <TableCell className="text-right font-medium text-emerald-400">
               {r.realizadas}
             </TableCell>
@@ -526,7 +526,7 @@ function PromoterTable({ q, search }: { q: any; search: string }) {
 
   return (
     <Table>
-      <TableHeader className="bg-white/5">
+      <TableHeader className="bg-muted/50">
         <TableRow className="border-border/50 hover:bg-transparent">
           <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Promotor
@@ -553,7 +553,7 @@ function PromoterTable({ q, search }: { q: any; search: string }) {
           >
             <TableCell className="font-bold text-white">{r.promoterName}</TableCell>
             <TableCell className="text-right font-medium text-muted-foreground">{r.storesCount}</TableCell>
-            <TableCell className="text-right font-medium text-slate-300">{r.contratadas}</TableCell>
+            <TableCell className="text-right font-medium text-foreground/80">{r.contratadas}</TableCell>
             <TableCell className="text-right font-medium text-emerald-400">
               {r.realizadas}
             </TableCell>

@@ -304,7 +304,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                           </Mk9Badge>
                         ))}
                         <Select onValueChange={(v) => addRole(u, v as Role)}>
-                          <SelectTrigger className="h-6 w-24 bg-white/5 border-border text-[9px] font-black uppercase tracking-widest px-2">
+                          <SelectTrigger className="h-6 w-24 bg-muted/50 border-border text-[9px] font-black uppercase tracking-widest px-2">
                             <SelectValue placeholder="+ PAPEL" />
                           </SelectTrigger>
                           <SelectContent className="bg-command-deep border-border">
@@ -360,7 +360,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                           <DropdownMenuItem
                             onClick={() => toggleActive(u)}
                             disabled={u.userId === currentUserId}
-                            className="gap-2 cursor-pointer hover:bg-white/5"
+                            className="gap-2 cursor-pointer hover:bg-accent"
                           >
                             {u.active ? (
                               <Ban className="h-3.5 w-3.5 text-rose-400" />
@@ -369,7 +369,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                             )}
                             {u.active ? "Desativar Acesso" : "Reativar Acesso"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer hover:bg-white/5">
+                          <DropdownMenuItem className="gap-2 cursor-pointer hover:bg-accent">
                             <Key className="h-3.5 w-3.5" /> Resetar Senha
                           </DropdownMenuItem>
                         </DropdownMenuContent>

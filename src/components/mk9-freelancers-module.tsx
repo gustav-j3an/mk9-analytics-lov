@@ -57,10 +57,10 @@ export function Mk9FreelancersModule() {
           </TableHeader>
           <TableBody>
             {freelancers?.map((f: any) => (
-              <TableRow key={f.id} className="border-border/50 hover:bg-white/5">
+              <TableRow key={f.id} className="border-border/50 hover:bg-accent">
                 <TableCell className="text-white font-medium">{f.name}</TableCell>
-                <TableCell className="text-slate-300">{f.city ? `${f.city}/${f.uf}` : "-"}</TableCell>
-                <TableCell className="text-slate-300">{f.phone || "-"}</TableCell>
+                <TableCell className="text-foreground/80">{f.city ? `${f.city}/${f.uf}` : "-"}</TableCell>
+                <TableCell className="text-foreground/80">{f.phone || "-"}</TableCell>
                 <TableCell className="text-emerald-400 font-mono text-xs">
                   {f.default_daily_rate ? `R$ ${Number(f.default_daily_rate).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : "-"}
                 </TableCell>
@@ -89,7 +89,7 @@ export function Mk9FreelancersModule() {
       </div>
 
       {freelancers?.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-border rounded-xl bg-white/5 text-center">
+        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-border rounded-xl bg-muted/50 text-center">
           <Users className="w-12 h-12 text-slate-600 mb-4" />
           <h3 className="text-xl font-bold text-white mb-2">Nenhum freelancer cadastrado</h3>
           <p className="text-muted-foreground max-w-xs mb-6">Comece cadastrando um prestador para realizar diárias e atendimentos avulsos.</p>

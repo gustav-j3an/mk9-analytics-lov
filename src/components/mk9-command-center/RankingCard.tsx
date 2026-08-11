@@ -27,10 +27,10 @@ export function RankingCard({ items }: RankingCardProps) {
                 item.position === 1
                   ? "bg-amber-500/20 text-amber-500"
                   : item.position === 2
-                    ? "bg-slate-300/20 text-slate-300"
+                    ? "bg-slate-300/20 text-foreground/80"
                     : item.position === 3
                       ? "bg-orange-400/20 text-orange-400"
-                      : "bg-white/5 text-muted-foreground",
+                      : "bg-muted/50 text-muted-foreground",
               )}
             >
               {item.position}

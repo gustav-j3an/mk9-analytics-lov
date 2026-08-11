@@ -345,7 +345,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                 onClick={() => downloadPdf("full")}
                 disabled={!!downloading}
                 variant="outline"
-                className="h-9 w-full sm:w-auto border-border text-muted-foreground hover:text-white hover:bg-white/5 uppercase text-[10px] font-black tracking-widest"
+                className="h-9 w-full sm:w-auto border-border text-muted-foreground hover:text-white hover:bg-accent uppercase text-[10px] font-black tracking-widest"
               >
                 {downloading === "full" ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -394,8 +394,8 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                     {report.ufs.map((u) => (
                       <tr key={u.uf} className="group hover:bg-white/[0.02]">
                         <td className="py-3 text-white font-medium">{u.uf}</td>
-                        <td className="py-3 text-slate-300 text-right">{u.stores}</td>
-                        <td className="py-3 text-slate-300 text-right">{u.expected}</td>
+                        <td className="py-3 text-foreground/80 text-right">{u.stores}</td>
+                        <td className="py-3 text-foreground/80 text-right">{u.expected}</td>
                         <td className="py-3 text-white text-right">{u.actual}</td>
                         <td className="py-3 text-muted-foreground text-right">{u.pending}</td>
                         <td className="py-3 text-muted-foreground text-right">{u.extra}</td>
@@ -448,7 +448,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                         </td>
                         <td className="py-3 text-muted-foreground font-mono">{s.uf ?? "—"}</td>
                         <td className="py-3 text-muted-foreground text-xs">{freqLabel}</td>
-                        <td className="py-3 text-slate-300 font-medium text-right">{s.expected}</td>
+                        <td className="py-3 text-foreground/80 font-medium text-right">{s.expected}</td>
                         <td className="py-3 text-white font-bold text-right">{s.actual}</td>
                         <td className="py-3 text-right">
                           <Mk9Badge
@@ -517,7 +517,7 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="h-9 border-border hover:bg-white/5 text-slate-300"
+          className="h-9 border-border hover:bg-accent text-foreground/80"
           disabled={!industryId}
         >
           <Settings2 className="mr-2 h-4 w-4" /> CONFIGURAR PERÍODO
@@ -581,7 +581,7 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-border/50">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
               <Switch
                 checked={current.usesPreviousMonth}
                 onCheckedChange={(v) => setForm({ ...current, usesPreviousMonth: v })}

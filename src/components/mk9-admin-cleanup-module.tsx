@@ -234,7 +234,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
 
             <Mk9Panel>
               <Tabs defaultValue="visits">
-                <TabsList className="bg-white/5 border-border p-1 h-12 mb-6">
+                <TabsList className="bg-muted/50 border-border p-1 h-12 mb-6">
                   <TabsTrigger
                     value="visits"
                     className="data-[state=active]:bg-mk9-accent-primary data-[state=active]:text-white font-bold uppercase text-[10px] tracking-widest"
@@ -256,7 +256,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                 </TabsList>
 
                 <TabsContent value="visits">
-                  <div className="max-h-[400px] overflow-auto border border-border/50 rounded-xl divide-y divide-white/[0.02] bg-black/20">
+                  <div className="max-h-[400px] overflow-auto border border-border/50 rounded-xl divide-y divide-white/[0.02] bg-background/40">
                     {diagnosis.sources.visits.map((v: any) => (
                       <div
                         key={v.id}
@@ -284,7 +284,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                             </span>
                           </div>
                         </div>
-                        <Mk9Badge className="bg-white/5 border-border text-muted-foreground">
+                        <Mk9Badge className="bg-muted/50 border-border text-muted-foreground">
                           LOJA: {v.store_id.slice(0, 8)}
                         </Mk9Badge>
                       </div>
@@ -293,7 +293,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                 </TabsContent>
 
                 <TabsContent value="frequencies">
-                  <div className="max-h-[400px] overflow-auto border border-border/50 rounded-xl divide-y divide-white/[0.02] bg-black/20">
+                  <div className="max-h-[400px] overflow-auto border border-border/50 rounded-xl divide-y divide-white/[0.02] bg-background/40">
                     {diagnosis.sources.frequencies.map((f: any) => (
                       <div
                         key={f.id}
@@ -330,7 +330,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                 </TabsContent>
 
                 <TabsContent value="imports">
-                  <div className="max-h-[400px] overflow-auto border border-border/50 rounded-xl divide-y divide-white/[0.02] bg-black/20">
+                  <div className="max-h-[400px] overflow-auto border border-border/50 rounded-xl divide-y divide-white/[0.02] bg-background/40">
                     {diagnosis.sources.imports.map((i: any) => (
                       <div
                         key={i.id}
@@ -476,7 +476,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white/5 border-border text-muted-foreground hover:text-white">
+            <AlertDialogCancel className="bg-muted/50 border-border text-muted-foreground hover:text-white">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction

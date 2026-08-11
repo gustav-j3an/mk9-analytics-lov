@@ -215,7 +215,7 @@ export function Mk9CockpitModule({
             <Button
               size="icon"
               variant="ghost"
-              className="h-8 w-8 text-muted-foreground hover:text-white hover:bg-white/5"
+              className="h-8 w-8 text-muted-foreground hover:text-white hover:bg-accent"
               onClick={() => q.refetch()}
               disabled={q.isFetching}
             >
@@ -335,7 +335,7 @@ export function Mk9CockpitModule({
                   className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-xl bg-white/[0.02] border border-border/50 hover:border-border transition-colors group gap-3"
                 >
                   <div className="flex items-center gap-3 md:gap-4">
-                    <span className="h-7 w-7 md:h-8 md:w-8 shrink-0 rounded-lg bg-white/5 flex items-center justify-center text-[9px] md:text-[10px] font-black text-muted-foreground">
+                    <span className="h-7 w-7 md:h-8 md:w-8 shrink-0 rounded-lg bg-muted/50 flex items-center justify-center text-[9px] md:text-[10px] font-black text-muted-foreground">
                       {idx + 1}
                     </span>
                     <div>

@@ -330,7 +330,7 @@ export function PromoterDeleteDialog({
           </div>
         ) : (
           <div className="space-y-6 py-4">
-            <div className="bg-white/5 border border-border/50 rounded-xl p-4 transition-all">
+            <div className="bg-muted/50 border border-border/50 rounded-xl p-4 transition-all">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-0.5">
                   <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
@@ -342,7 +342,7 @@ export function PromoterDeleteDialog({
                   <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                     Matrícula
                   </p>
-                  <p className="text-xs font-mono text-slate-300">
+                  <p className="text-xs font-mono text-foreground/80">
                     {promoter?.employeeNumber || "—"}
                   </p>
                 </div>
@@ -350,7 +350,7 @@ export function PromoterDeleteDialog({
                   <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                     Região
                   </p>
-                  <p className="text-xs text-slate-300">
+                  <p className="text-xs text-foreground/80">
                     {promoter?.uf || "—"} / {promoter?.city || "—"}
                   </p>
                 </div>
