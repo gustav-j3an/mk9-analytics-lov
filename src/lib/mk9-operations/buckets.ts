@@ -226,6 +226,7 @@ export function buildIndustryRows(input: {
         pacePercentage:
           expectedToDate > 0 ? pct(realizadas, expectedToDate) : realizadas > 0 ? 100 : 0,
         status,
+        frequency,
         checklistImports: ctx.checklistImports,
       };
     });

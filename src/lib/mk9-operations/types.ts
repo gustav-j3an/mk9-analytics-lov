@@ -107,6 +107,7 @@ export interface OperationIndustryRow {
   deviation: number;
   pacePercentage: number;
   status: IndustryStatusKey;
+  frequency: string | null;
   checklistImports: number;
 }
 
