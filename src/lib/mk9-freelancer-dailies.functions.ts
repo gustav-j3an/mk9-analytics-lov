@@ -275,6 +275,7 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
     const uniqueFreelancers = new Set(dailies.map((d: any) => d.freelancer_id)).size;
     const uniqueStores = new Set(dailies.flatMap((d: any) => d.items.map((it: any) => it.store_id))).size;
     const uniqueIndustries = new Set(dailies.flatMap((d: any) => d.items.map((it: any) => it.industry_id))).size;
+    const totalAttendances = dailies.reduce((acc: number, d: any) => acc + (d.items?.length || 0), 0);
 
     const summary = [
       { campo: "Período", valor: `${data.startDate} a ${data.endDate}` },
@@ -283,8 +284,9 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       { campo: "Total A PAGAR", valor: totalToPay },
       { campo: "Total PAGO", valor: totalPaid },
       { campo: "Freelancers utilizados", valor: uniqueFreelancers },
-      { campo: "Lojas atendidas", valor: uniqueStores },
-      { campo: "Indústrias atendidas", valor: uniqueIndustries },
+      { campo: "Lojas únicas", valor: uniqueStores },
+      { campo: "Atendimentos de indústria", valor: totalAttendances },
+      { campo: "Indústrias distintas", valor: uniqueIndustries },
     ];
 
     // Diárias
