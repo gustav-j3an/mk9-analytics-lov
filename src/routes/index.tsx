@@ -9,11 +9,11 @@ import { ClientOnly } from "@/components/client-only";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.3.31 — PRESENCE SYNC",
+    title: "MK9 | v1.5.1 — FINANCEIRO FREELANCERS",
     meta: [
       {
         name: "description",
-        content: "MK9 Analytics v1.3.31: PRESENCE SYNC. Novo módulo de Controle de Presença totalmente integrado ao cadastro oficial.",
+        content: "MK9 Analytics v1.5.1: FINANCEIRO FREELANCERS. Integração definitiva entre gestão de prestadores e controle de diárias com fechamento quinzenal.",
       },
       { property: "og:title", content: "MK9 | v1.3.26" },
       {
@@ -85,10 +85,10 @@ function LandingPage() {
 
               <div className="mt-8 pt-6 border-t border-white/5 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-slate-500 font-medium">
-                  MK9 Analytics • <span className="text-purple-400/80">v1.3.31</span>
+                  MK9 Analytics • <span className="text-purple-400/80">v1.5.1</span>
                 </p>
                 <p className="text-[9px] text-slate-600 uppercase tracking-widest font-bold">
-                  PRESENCE SYNC
+                  FINANCEIRO FREELANCERS
                 </p>
               </div>
             </div>
