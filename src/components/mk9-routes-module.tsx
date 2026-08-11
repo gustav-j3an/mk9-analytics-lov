@@ -390,7 +390,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                                       ) : null}
                                     </p>
                                     <div className="flex flex-wrap items-center gap-1 mt-1">
-                                      {items.map((it) => (
+                                      {items.map((it: any) => (
                                         <div
                                           key={it.id}
                                           className="inline-flex items-center gap-1 rounded-md bg-background border px-1.5 py-0.5 text-xs"
