@@ -29,7 +29,6 @@ import { Badge } from "../ui/badge";
 import { mk9RoutesListVersioned } from "../../lib/mk9-routes.functions";
 import { mk9ListPromoters } from "../../lib/mk9-data.functions";
 import { cn } from "../../lib/utils";
-import { generatePromoterRoutePdf } from "../../lib/mk9-promoter-route-pdf-v2.client";
 import { toast } from "sonner";
 
 
@@ -138,6 +137,8 @@ export function PromoterIndividualRoute() {
       // Pequeno delay para garantir que o estado de carregamento reflita na UI
       await new Promise(resolve => setTimeout(resolve, 100));
       
+      const { generatePromoterRoutePdf } = await import("../../lib/mk9-promoter-route-pdf-v2.client");
+
       const success = await generatePromoterRoutePdf({
         promoterName: promoter?.name || "PROMOTOR",
         referenceDate,
