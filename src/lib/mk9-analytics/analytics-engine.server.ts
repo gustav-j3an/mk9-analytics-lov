@@ -148,7 +148,10 @@ function buildIndustriesEvolution(
 
   return current.map((cur) => {
     const prev = prevMap.get(cur.industryId);
+    const contracted = calcMetric(cur.contratadas, prev?.contratadas ?? 0);
+    const realized = calcMetric(cur.realizadas, prev?.realizadas ?? 0);
     const coverage = calcMetric(cur.coberturaPct, prev?.coberturaPct ?? 0, true);
+
     const zeroVisits = calcMetric(cur.zeradasCount, prev?.zeradasCount ?? 0);
 
     let trend: TrendStatus = "STABLE";
@@ -163,7 +166,11 @@ function buildIndustriesEvolution(
     return {
       industryId: cur.industryId,
       industryName: cur.industryName,
+      frequency: cur.frequency,
+      contracted,
+      realized,
       coverage,
+
       zeroVisits,
       trend,
       risk,
