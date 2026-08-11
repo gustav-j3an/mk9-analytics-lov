@@ -374,7 +374,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                               )}
                             </div>
                             <div className="space-y-2">
-                              {Array.from(stMap.values()).map(({ store, items }) => (
+                              {Array.from(stMap.values()).map(({ store, items }: any) => (
                                 <div
                                   key={store.storeId ?? store.storeName}
                                   className="flex items-start justify-between gap-3 border-l-2 border-primary/40 pl-3"
