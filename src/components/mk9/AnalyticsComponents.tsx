@@ -32,12 +32,12 @@ export function AnalyticsMetricCard({
   className,
 }: AnalyticsMetricCardProps) {
   const colorMap = {
-    purple: "text-purple-400 bg-purple-500/10 border-purple-500/20",
-    blue: "text-blue-400 bg-blue-500/10 border-blue-500/20",
-    emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-    amber: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+    purple: "text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20",
+    blue: "text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20",
+    emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+    amber: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20",
     rose: "text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20",
-    cyan: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
+    cyan: "text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
   };
 
   return (
