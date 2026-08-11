@@ -33,13 +33,13 @@ export function Mk9FreelancersModule() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white">Gestão de Freelancers</h2>
-          <p className="text-slate-400">Cadastre e gerencie freelancers para atendimento avulso.</p>
+          <h2 className="text-3xl font-black text-white tracking-tighter uppercase">Gestão de Freelancers</h2>
+          <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Cadastro e Gestão de Prestadores Avulsos</p>
         </div>
-        <Button className="bg-command-purple hover:bg-command-purple/80" onClick={() => { setEditing(null); setOpen(true); }}>
-          <Plus className="w-4 h-4 mr-2" /> Novo Freelancer
+        <Button className="w-full md:w-auto bg-command-purple hover:bg-command-purple/80 font-black tracking-widest text-[11px] h-11 px-6 shadow-[0_0_20px_rgba(168,85,247,0.2)]" onClick={() => { setEditing(null); setOpen(true); }}>
+          <Plus className="w-4 h-4 mr-2" /> NOVO FREELANCER
         </Button>
       </div>
 

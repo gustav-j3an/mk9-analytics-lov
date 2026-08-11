@@ -138,7 +138,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="default_daily_rate" className="text-right">Valor Padrão</Label>
+            <Label htmlFor="default_daily_rate" className="text-right">Valor Padrão*</Label>
             <Input
               id="default_daily_rate"
               type="number"
@@ -146,7 +146,8 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
               value={formData.default_daily_rate}
               onChange={(e) => setFormData({ ...formData, default_daily_rate: e.target.value })}
               className="col-span-3 bg-white/5 border-white/10"
-              placeholder="Ex: 150.00 (Opcional)"
+              placeholder="Ex: 150.00"
+              required
             />
           </div>
           <div className="grid grid-cols-4 items-start gap-4">

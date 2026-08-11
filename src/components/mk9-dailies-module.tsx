@@ -26,6 +26,7 @@ import { DailyAdminDialog } from "@/components/mk9/daily-admin-dialogs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   Select, 
   SelectContent, 
@@ -52,6 +53,7 @@ export function Mk9DailiesModule() {
   const freelancersFn = useServerFn(listFreelancers);
   const supervisorsFn = useServerFn(listSupervisors);
   const industriesFn = useServerFn(mk9ListIndustries);
+  const [showClosing, setShowClosing] = useState(false);
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
@@ -65,18 +67,20 @@ export function Mk9DailiesModule() {
     freelancerId: "all",
     supervisorId: "all",
     status: "all",
+    paymentStatus: "all",
     search: ""
   });
 
   const { data: dailies, isLoading } = useQuery({
-    queryKey: ["mk9-freelancer-dailies", filters.startDate, filters.endDate, filters.freelancerId, filters.supervisorId, filters.status],
+    queryKey: ["mk9-freelancer-dailies", filters.startDate, filters.endDate, filters.freelancerId, filters.supervisorId, filters.status, filters.paymentStatus],
     queryFn: () => listFn({ 
       data: { 
         startDate: filters.startDate,
         endDate: filters.endDate,
         freelancerId: filters.freelancerId === "all" ? undefined : filters.freelancerId,
         supervisorId: filters.supervisorId === "all" ? undefined : filters.supervisorId,
-        status: filters.status === "all" ? undefined : filters.status
+        status: filters.status === "all" ? undefined : filters.status,
+        paymentStatus: filters.paymentStatus === "all" ? undefined : filters.paymentStatus
       } 
     })
   });
@@ -108,12 +112,14 @@ export function Mk9DailiesModule() {
 
   // KPIs
   const kpis = useMemo(() => {
-    if (!dailies) return { count: 0, total: 0, freelancers: 0, stores: 0 };
+    if (!dailies) return { count: 0, total: 0, freelancers: 0, stores: 0, toPay: 0, paid: 0 };
     const realized = dailies.filter((d: any) => d.status === 'REALIZADA');
     const total = realized.reduce((acc: number, d: any) => acc + Number(d.amount), 0);
+    const toPay = dailies.filter((d: any) => d.payment_status === 'A PAGAR').reduce((acc: number, d: any) => acc + Number(d.amount), 0);
+    const paid = dailies.filter((d: any) => d.payment_status === 'PAGO').reduce((acc: number, d: any) => acc + Number(d.amount), 0);
     const uniqueFreelancers = new Set(dailies.map((d: any) => d.freelancer_id)).size;
     const uniqueStores = new Set(dailies.flatMap((d: any) => d.items?.map((it: any) => it.store_id) || [])).size;
-    return { count: dailies.length, total, freelancers: uniqueFreelancers, stores: uniqueStores };
+    return { count: dailies.length, total, freelancers: uniqueFreelancers, stores: uniqueStores, toPay, paid };
   }, [dailies]);
 
   const handleExport = async () => {
@@ -125,7 +131,8 @@ export function Mk9DailiesModule() {
           endDate: filters.endDate,
           freelancerId: filters.freelancerId === "all" ? undefined : filters.freelancerId,
           supervisorId: filters.supervisorId === "all" ? undefined : filters.supervisorId,
-          status: filters.status === "all" ? undefined : filters.status
+          status: filters.status === "all" ? undefined : filters.status,
+          paymentStatus: filters.paymentStatus === "all" ? undefined : filters.paymentStatus
         }
       });
 
@@ -157,7 +164,10 @@ export function Mk9DailiesModule() {
           <h2 className="text-3xl font-black text-white tracking-tighter uppercase">Controle de Diárias</h2>
           <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Gestão de Freelancers e Atendimentos Avulsos</p>
         </div>
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          <Button variant="outline" className="flex-1 md:flex-none border-command-purple/50 text-command-purple hover:bg-command-purple/10" onClick={() => setShowClosing(true)}>
+            <TrendingUp className="w-4 h-4 mr-2" /> [ FECHAMENTO ]
+          </Button>
           <Button variant="outline" className="flex-1 md:flex-none border-white/10 hover:bg-white/5 text-slate-300" onClick={handleExport} disabled={isExporting}>
             {isExporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
             Exportar Excel
@@ -169,11 +179,12 @@ export function Mk9DailiesModule() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KPICard label="Diárias no Período" value={kpis.count} icon={ArrowUpRight} />
-        <KPICard label="Valor Total (Realizadas)" value={`R$ ${kpis.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-emerald-400" />
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <KPICard label="Total no Período" value={kpis.count} icon={ArrowUpRight} />
+        <KPICard label="Valor Total" value={`R$ ${kpis.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-emerald-400" />
+        <KPICard label="A PAGAR" value={`R$ ${kpis.toPay.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-amber-400" />
+        <KPICard label="PAGO" value={`R$ ${kpis.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-blue-400" />
         <KPICard label="Freelancers" value={kpis.freelancers} icon={Users} />
-        <KPICard label="Lojas Atendidas" value={kpis.stores} icon={Store} />
       </div>
 
       {/* Filters */}
@@ -214,7 +225,20 @@ export function Mk9DailiesModule() {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5 lg:col-span-2">
+        <div className="space-y-1.5">
+          <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Financeiro</label>
+          <Select value={filters.paymentStatus} onValueChange={(val) => setFilters({ ...filters, paymentStatus: val })}>
+            <SelectTrigger className="h-9 bg-black/40 border-white/10 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="A PAGAR">A PAGAR</SelectItem>
+              <SelectItem value="PAGO">PAGO</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
           <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Buscar</label>
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
@@ -238,6 +262,7 @@ export function Mk9DailiesModule() {
               <TableHead className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Atendimentos</TableHead>
               <TableHead className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Valor</TableHead>
               <TableHead className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Status</TableHead>
+              <TableHead className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Financeiro</TableHead>
               <TableHead className="text-right text-slate-400 font-bold text-[10px] uppercase tracking-widest px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -276,6 +301,14 @@ export function Mk9DailiesModule() {
                       "bg-rose-500/10 text-rose-400"
                     )}>
                       {d.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={cn(
+                      "text-[10px] font-black uppercase border-none",
+                      d.payment_status === 'PAGO' ? "bg-blue-500/10 text-blue-400" : "bg-amber-500/10 text-amber-400"
+                    )}>
+                      {d.payment_status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right px-6 space-x-1">
@@ -371,9 +404,123 @@ export function Mk9DailiesModule() {
           )}
         </SheetContent>
       </Sheet>
+      <BiWeeklyClosingPanel open={showClosing} onOpenChange={setShowClosing} />
     </div>
   );
 }
+
+function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
+  const queryClient = useQueryClient();
+  const listFn = useServerFn(listDailies);
+  const markPaidFn = useServerFn(require('@/lib/mk9-freelancer-dailies.functions').markAsPaid);
+  const [closingFilters, setClosingFilters] = useState({
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+  });
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const { data: dailies, isLoading } = useQuery({
+    queryKey: ["mk9-closing-dailies", closingFilters.startDate, closingFilters.endDate],
+    queryFn: () => listFn({ 
+      data: { 
+        startDate: closingFilters.startDate,
+        endDate: closingFilters.endDate,
+        paymentStatus: 'A PAGAR'
+      } 
+    }),
+    enabled: open
+  });
+
+  const markMutation = useMutation({
+    mutationFn: (ids: string[]) => markPaidFn({ data: { dailyIds: ids, paymentDate } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mk9-freelancer-dailies"] });
+      queryClient.invalidateQueries({ queryKey: ["mk9-closing-dailies"] });
+      toast.success("Pagamento registrado com sucesso!");
+    },
+    onError: (err: any) => toast.error("Erro ao registrar: " + err.message)
+  });
+
+  const totals = useMemo(() => {
+    if (!dailies) return { count: 0, amount: 0 };
+    return {
+      count: dailies.length,
+      amount: dailies.reduce((acc: number, d: any) => acc + Number(d.amount), 0)
+    };
+  }, [dailies]);
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="sm:max-w-lg bg-command-deep border-white/10 text-white overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="text-2xl font-black text-white tracking-tighter uppercase">Fechamento Financeiro</SheetTitle>
+          <SheetDescription className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Liquidação de diárias em lote</SheetDescription>
+        </SheetHeader>
+
+        <div className="mt-8 space-y-6">
+          <div className="grid grid-cols-2 gap-4 p-4 bg-white/5 border border-white/10 rounded-xl">
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Início do Período</label>
+              <Input type="date" value={closingFilters.startDate} onChange={(e) => setClosingFilters({ ...closingFilters, startDate: e.target.value })} className="h-9 bg-black/40 border-white/10 text-xs" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Fim do Período</label>
+              <Input type="date" value={closingFilters.endDate} onChange={(e) => setClosingFilters({ ...closingFilters, endDate: e.target.value })} className="h-9 bg-black/40 border-white/10 text-xs" />
+            </div>
+          </div>
+
+          <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-center space-y-2">
+            <p className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.2em]">Pendente no Período</p>
+            <p className="text-4xl font-black text-white tracking-tighter">R$ {totals.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <p className="text-xs text-amber-500/80 font-medium">{totals.count} diárias aguardando pagamento</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Data do Pagamento</Label>
+              <Input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} className="bg-white/5 border-white/10" />
+            </div>
+
+            <Button 
+              className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 font-bold text-white uppercase tracking-widest text-xs"
+              disabled={totals.count === 0 || markMutation.isPending}
+              onClick={() => {
+                if(confirm(`Confirmar liquidação de R$ ${totals.amount.toLocaleString('pt-BR')} para ${totals.count} diárias?`)) {
+                  markMutation.mutate((dailies || []).map((d: any) => d.id));
+                }
+              }}
+            >
+              {markMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Marcar como Pago (Em Lote)"}
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Resumo por Freelancer</label>
+            <div className="space-y-2">
+              {isLoading ? <p className="text-xs text-slate-500 italic">Carregando...</p> : 
+               Object.values((dailies || []).reduce((acc: any, d: any) => {
+                 if(!acc[d.freelancer_id]) acc[d.freelancer_id] = { name: d.freelancer.name, count: 0, amount: 0 };
+                 acc[d.freelancer_id].count++;
+                 acc[d.freelancer_id].amount += Number(d.amount);
+                 return acc;
+               }, {}) || {}).map((f: any, i: number) => (
+                 <div key={i} className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
+                   <div>
+                     <p className="text-xs font-bold text-white">{f.name}</p>
+                     <p className="text-[10px] text-slate-500">{f.count} diárias</p>
+                   </div>
+                   <p className="text-sm font-mono font-bold text-amber-400">R$ {f.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                 </div>
+               ))
+              }
+            </div>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 
 function KPICard({ label, value, icon: Icon, color = "text-white" }: any) {
   return (
