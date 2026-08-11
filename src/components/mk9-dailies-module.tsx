@@ -352,7 +352,7 @@ export function Mk9DailiesModule() {
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Data</label>
-                  <p className="text-sm font-bold text-foreground">{new Date(viewing.date).toLocaleDateString('pt-BR')}</p>
+                  <p className="text-sm font-bold text-foreground">{viewing.date ? new Date(viewing.date + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</p>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Valor</label>
@@ -414,10 +414,10 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
   const listFn = useServerFn(listDailies);
   const markPaidFn = useServerFn(markAsPaid);
   const [closingFilters, setClosingFilters] = useState({
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-CA'),
+    endDate: new Date().toLocaleDateString('en-CA'),
   });
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [paymentDate, setPaymentDate] = useState(new Date().toLocaleDateString('en-CA'));
 
   const { data: dailies, isLoading } = useQuery({
     queryKey: ["mk9-closing-dailies", closingFilters.startDate, closingFilters.endDate],
