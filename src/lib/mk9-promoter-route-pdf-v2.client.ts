@@ -1,6 +1,16 @@
-
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
+
+/**
+ * MK9 — Gerador de PDF de Rota Individual v2 (Resiliente)
+ * 
+ * Correção Crítica: O jspdf-autotable em ambientes Vite/ESM 
+ * deve ser chamado via autoTable(doc, options) importado nominalmente.
+ */
+
+
+
+
 
 interface MatrixRow {
   industryName: string;
@@ -24,7 +34,11 @@ export async function generatePromoterRoutePdf({
   rows
 }: GeneratePdfParams) {
   try {
-    console.log("[PDF_GEN] Inciando geração para:", promoterName);
+    console.log("[PDF_GEN] Inciando geração para:", promoterName, { totalVisits, rowsCount: rows?.length });
+    
+    if (!rows || rows.length === 0) {
+      throw new Error("Dados da rota vazios ou inválidos");
+    }
     
     // 1. Instanciar o documento em A4 Paisagem (landscape)
     const doc = new jsPDF({
@@ -86,7 +100,7 @@ export async function generatePromoterRoutePdf({
     ]);
 
     // 5. Gerar Tabela com autoTable
-    (doc as any).autoTable({
+    autoTable(doc, {
       head,
       body,
       startY: 55,
