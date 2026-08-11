@@ -196,131 +196,72 @@ export function Mk9AnalyticsApp() {
           </div>
 
           <div className="flex-1 overflow-y-auto py-6 custom-scrollbar">
-            <nav className="px-3 space-y-6" data-sidebar-version="v2.5.4-whitelist">
-              {(() => {
-                // WHITELIST EXPLÍCITA POR ROLE
-                const navigationConfig = {
-                  ADMIN: [
-                    { 
-                      title: "Visão Geral", 
-                      items: [
-                        { id: "dashboard", icon: BarChart3, label: "Dashboard" },
-                      ]
-                    },
-                    { 
-                      title: "Operação", 
-                      items: [
-                        { id: "importacoes", icon: Settings2, label: "Gestão Operacional" },
-                        { id: "checklists", icon: Upload, label: "Importar Checklist" },
-                        { id: "roteiros", icon: Route, label: "Roteiros" },
-                        { id: "presenca", icon: CheckCircle2, label: "Presença" },
-                        { id: "diarias", icon: WalletCards, label: "Controle de Diárias" },
-                      ]
-                    },
-                    { 
-                      title: "Análise e Controle", 
-                      items: [
-                        { id: "conciliacao", icon: ClipboardCheck, label: "Conciliação" },
-                        { id: "qualidade", icon: PackageCheck, label: "Qualidade" },
-                        { id: "relatorio_industria", icon: FileSpreadsheet, label: "Indústrias (PDF)" },
-                      ]
-                    },
-                    { 
-                      title: "Cadastros", 
-                      items: [
-                        { id: "industrias", icon: Factory, label: "Indústrias" },
-                        { id: "lojas", icon: Store, label: "Lojas" },
-                        { id: "supervisores", icon: UserCheck, label: "Supervisores" },
-                        { id: "promotores", icon: Users, label: "Promotores" },
-                        { id: "freelancers", icon: UserCheck, label: "Freelancers" },
-                      ]
-                    },
-                    { 
-                      title: "Administração", 
-                      items: [
-                        { id: "cleanup_admin", icon: ShieldAlert, label: "Limpeza Manual" },
-                        { id: "usuarios", icon: Users, label: "Usuários" },
-                        { id: "auditoria_controle", icon: ShieldCheck, label: "Auditoria Controle" },
-                      ]
-                    }
-                  ],
-                  SUPERVISOR: [
-                    { 
-                      title: "Visão Geral", 
-                      items: [
-                        { id: "dashboard", icon: BarChart3, label: "Dashboard" },
-                      ]
-                    },
-                    { 
-                      title: "Operação", 
-                      items: [
-                        { id: "roteiros", icon: Route, label: "Roteiros" },
-                        { id: "presenca", icon: CheckCircle2, label: "Presença" },
-                        { id: "diarias", icon: WalletCards, label: "Controle de Diárias" },
-                      ]
-                    },
-                    { 
-                      title: "Análise e Controle", 
-                      items: [
-                        { id: "conciliacao", icon: ClipboardCheck, label: "Conciliação" },
-                        { id: "relatorio_industria", icon: FileSpreadsheet, label: "Indústrias (PDF)" },
-                      ]
-                    },
-                    { 
-                      title: "Cadastros", 
-                      items: [
-                        { id: "industrias", icon: Factory, label: "Indústrias" },
-                        { id: "lojas", icon: Store, label: "Lojas" },
-                        { id: "supervisores", icon: UserCheck, label: "Supervisores" },
-                        { id: "promotores", icon: Users, label: "Promotores" },
-                        { id: "freelancers", icon: UserCheck, label: "Freelancers" },
-                      ]
-                    }
-                  ],
-                  // Fallback para outros papéis (Auditor, etc) ou role não identificada
-                  DEFAULT: [
-                    { 
-                      title: "Visão Geral", 
-                      items: [
-                        { id: "dashboard", icon: BarChart3, label: "Dashboard" },
-                      ]
-                    },
-                    { 
-                      title: "Operação", 
-                      items: [
-                        { id: "roteiros", icon: Route, label: "Roteiros" },
-                      ]
-                    }
+            <nav className="px-3 space-y-6">
+              {[
+                { 
+                  title: "Visão Geral", 
+                  items: [
+                    { id: "dashboard", icon: BarChart3, label: "Dashboard" },
                   ]
-                };
-
-                // Normalização centralizada e explícita da role para a navegação
-                const primaryRole = isAdmin ? "ADMIN" : isSupervisor ? "SUPERVISOR" : "DEFAULT";
-                const visibleNavigation = navigationConfig[primaryRole as keyof typeof navigationConfig] || navigationConfig.DEFAULT;
-
-                return visibleNavigation.map((cat, i) => (
-                  <div key={i} className="space-y-1">
-                    {!collapsed && (
-                      <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">
-                        {cat.title}
-                      </p>
-                    )}
-                    {cat.items.map((item: any) => (
-                      <SidebarItem
-                        key={item.id + item.label}
-                        icon={item.icon}
-                        label={item.label}
-                        active={activeModule === item.id}
-                        collapsed={collapsed}
-                        onClick={() => {
-                          setActiveModule(item.id);
-                          if (window.innerWidth < 768) setCollapsed(true);
-                        }}
-                      />
-                    ))}
-                  </div>
-                ));
-              })()}
+                },
+                { 
+                  title: "Operação", 
+                  items: [
+                    { id: "importacoes", icon: Settings2, label: "Gestão Operacional" },
+                    { id: "checklists", icon: Upload, label: "Importar Checklist" },
+                    { id: "roteiros", icon: Route, label: "Roteiros" },
+                    { id: "presenca", icon: CheckCircle2, label: "Presença" },
+                    { id: "diarias", icon: WalletCards, label: "Controle de Diárias" },
+                  ]
+                },
+                { 
+                  title: "Análise e Controle", 
+                  items: [
+                    { id: "conciliacao", icon: ClipboardCheck, label: "Conciliação" },
+                    { id: "qualidade", icon: PackageCheck, label: "Qualidade" },
+                    { id: "relatorio_industria", icon: FileSpreadsheet, label: "Indústrias (PDF)" },
+                  ]
+                },
+                { 
+                  title: "Cadastros", 
+                  items: [
+                    { id: "industrias", icon: Factory, label: "Indústrias" },
+                    { id: "lojas", icon: Store, label: "Lojas" },
+                    { id: "supervisores", icon: UserCheck, label: "Supervisores" },
+                    { id: "promotores", icon: Users, label: "Promotores" },
+                    { id: "freelancers", icon: UserCheck, label: "Freelancers" },
+                  ]
+                },
+                { 
+                  title: "Administração", 
+                  items: [
+                    { id: "cleanup_admin", icon: ShieldAlert, label: "Limpeza Manual" },
+                    { id: "usuarios", icon: Users, label: "Usuários" },
+                    { id: "auditoria_controle", icon: ShieldCheck, label: "Auditoria Controle" },
+                  ]
+                }
+              ].map((cat, i) => (
+                <div key={i} className="space-y-1">
+                  {!collapsed && (
+                    <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">
+                      {cat.title}
+                    </p>
+                  )}
+                  {cat.items.map((item: any) => (
+                    <SidebarItem
+                      key={item.id + item.label}
+                      icon={item.icon}
+                      label={item.label}
+                      active={activeModule === item.id}
+                      collapsed={collapsed}
+                      onClick={() => {
+                        setActiveModule(item.id as ModuleId);
+                        if (window.innerWidth < 768) setCollapsed(true);
+                      }}
+                    />
+                  ))}
+                </div>
+              ))}
             </nav>
           </div>
 
