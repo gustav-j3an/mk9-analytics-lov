@@ -216,12 +216,14 @@ export function Mk9PresenceModule() {
         icon={CheckCircle2}
         actions={
           <div className="flex items-center gap-2 glass-command p-1.5 rounded-xl border border-border/50">
-            <Input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="h-8 w-[140px] bg-input/50 border-border/50 text-[10px] font-bold text-foreground uppercase tracking-wider"
-            />
+            <div className="relative group/date shrink-0">
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="h-8 w-[170px] bg-input/50 border-border/50 text-[10px] font-bold text-foreground uppercase tracking-wider pr-8"
+              />
+            </div>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" className="h-8 w-8 p-0 border-border text-muted-foreground hover:text-foreground">
