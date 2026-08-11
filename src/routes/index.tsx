@@ -27,17 +27,6 @@ O Dashboard agora é a única Home Operacional, centralizando a inteligência se
 */
 
 
-
----
-
-# MISSÃO — CONSOLIDAR INTELIGÊNCIA NO DASHBOARD E REDUZIR MÓDULOS
-MK9 COMMAND CENTER
-
-A Inteligência foi oficialmente consolidada no novo Dashboard v2.1.0.
-A rota antiga foi redirecionada e o item removido da sidebar para simplificar a UX.
-*/
-
-
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
