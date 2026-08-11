@@ -54,7 +54,7 @@ export function PromoterIndividualRoute() {
 
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  // const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const referenceDate = search.date || new Date().toISOString().slice(0, 10);
   
 
@@ -125,41 +125,7 @@ export function PromoterIndividualRoute() {
   }, [matrix]);
 
   const handleDownloadPdf = async () => {
-    if (isGeneratingPdf || matrix.length === 0) {
-      console.warn("[PDF_WARN] Cancelando download: matrix vazia ou já gerando.");
-      return;
-    }
-    
-    setIsGeneratingPdf(true);
-    console.log("[PDF_ACTION] Iniciando geração de PDF para", promoter?.name, "com", matrix.length, "linhas.");
-    
-    try {
-      // Pequeno delay para garantir que o estado de carregamento reflita na UI
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const { generatePromoterRoutePdf } = await import("../../lib/mk9-promoter-route-pdf-v2.client");
-
-      const success = await generatePromoterRoutePdf({
-        promoterName: promoter?.name || "PROMOTOR",
-        referenceDate,
-        totalVisits,
-        rows: matrix
-      });
-      
-      if (success) {
-        toast.success("PDF gerado com sucesso!");
-      }
-    } catch (error: any) {
-      console.error("[PDF_ERROR_FULL] Falha detalhada na geração do PDF:", {
-        message: error?.message,
-        stack: error?.stack,
-        promoter: promoter?.name,
-        matrixLength: matrix.length
-      });
-      toast.error(`Erro ao gerar PDF: ${error?.message || "Erro desconhecido"}`);
-    } finally {
-      setIsGeneratingPdf(false);
-    }
+    toast.info("A funcionalidade de download direto de PDF está sendo reformulada para garantir paridade visual. Por favor, use 'Visualizar Rota' e imprima a página.");
   };
 
 
@@ -293,20 +259,11 @@ export function PromoterIndividualRoute() {
 
           <Button
             onClick={handleDownloadPdf}
-            disabled={matrix.length === 0 || isGeneratingPdf}
-            className="h-10 bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 min-w-[140px] shadow-lg shadow-primary/20"
+            disabled={true}
+            className="h-10 bg-primary/50 text-primary-foreground text-[10px] font-black uppercase tracking-widest min-w-[140px] cursor-not-allowed opacity-50"
           >
-            {isGeneratingPdf ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Gerando...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4 mr-2" />
-                Baixar PDF
-              </>
-            )}
+            <Download className="h-4 w-4 mr-2" />
+            PDF (Em Breve)
           </Button>
         </div>
       </div>
