@@ -1,0 +1,1 @@
+ALTER TYPE presence_status ADD VALUE IF NOT EXISTS 'VACATION';
