@@ -16,7 +16,11 @@ export interface AnalyticsMetric {
 export interface IndustryEvolution {
   industryId: string;
   industryName: string;
+  frequency: string | null;
+  contracted: AnalyticsMetric;
+  realized: AnalyticsMetric;
   coverage: AnalyticsMetric;
+
   zeroVisits: AnalyticsMetric;
   trend: TrendStatus;
   risk: RiskScore;

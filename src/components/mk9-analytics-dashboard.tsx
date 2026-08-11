@@ -221,7 +221,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                     </div>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <span className="text-[10px] font-black text-muted-foreground uppercase">{ind.frequency || "-"}</span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase">{ind.frequency || "Mista"}</span>
                   </td>
                   <td className="px-6 py-4 text-center font-mono text-xs">{nf(ind.contracted?.current || 0)}</td>
                   <td className="px-6 py-4 text-center font-mono text-xs text-emerald-500/80">{nf(ind.realized?.current || 0)}</td>
@@ -257,7 +257,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               <div className="grid grid-cols-2 gap-y-2 text-[10px] font-bold uppercase">
                 <div className="flex flex-col text-left">
                   <span className="text-muted-foreground tracking-widest mb-0.5">Frequência</span>
-                  <span>{ind.frequency || "-"}</span>
+                  <span>{ind.frequency || "Mista"}</span>
                 </div>
                 <div className="flex flex-col text-right">
                   <span className="text-muted-foreground tracking-widest mb-0.5">Previstas</span>
