@@ -195,7 +195,7 @@ export function Mk9AuditModule({
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 text-muted-foreground hover:text-white hover:bg-accent"
+              className="h-8 text-muted-foreground hover:text-foreground hover:bg-accent"
               onClick={() => {
                 industryQ.refetch();
                 storeQ.refetch();
@@ -213,10 +213,10 @@ export function Mk9AuditModule({
               Mês
             </label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
+              <SelectTrigger className="h-9 bg-muted/50 border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-muted/50 border-border text-foreground">
                 {MONTHS_PT.map((m, i) => (
                   <SelectItem key={m} value={String(i + 1)}>
                     {m}
@@ -230,10 +230,10 @@ export function Mk9AuditModule({
               Ano
             </label>
             <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
+              <SelectTrigger className="h-9 bg-muted/50 border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-muted/50 border-border text-foreground">
                 {[2024, 2025, 2026].map((y) => (
                   <SelectItem key={y} value={String(y)}>
                     {y}
@@ -247,10 +247,10 @@ export function Mk9AuditModule({
               Indústria
             </label>
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
+              <SelectTrigger className="h-9 bg-muted/50 border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-muted/50 border-border text-foreground">
                 <SelectItem value="__ALL__">Todas as indústrias</SelectItem>
                 {(industriesQ.data ?? []).map((i: any) => (
                   <SelectItem key={i.id} value={i.id}>
@@ -265,10 +265,10 @@ export function Mk9AuditModule({
               Promotor
             </label>
             <Select value={promoterId} onValueChange={setPromoterId}>
-              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
+              <SelectTrigger className="h-9 bg-muted/50 border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-muted/50 border-border text-foreground">
                 <SelectItem value="__ALL__">Todos os promotores</SelectItem>
                 {(promotersQ.data ?? []).map((p: any) => (
                   <SelectItem key={p.id} value={p.id}>
@@ -283,10 +283,10 @@ export function Mk9AuditModule({
               UF
             </label>
             <Select value={uf} onValueChange={setUf}>
-              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
+              <SelectTrigger className="h-9 bg-muted/50 border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-muted/50 border-border text-foreground">
                 <SelectItem value="__ALL__">Todas as UFs</SelectItem>
                 {UFS.map((u) => (
                   <SelectItem key={u} value={u}>
@@ -325,28 +325,28 @@ export function Mk9AuditModule({
       <Mk9Panel>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
           <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="w-full lg:w-auto overflow-x-auto">
-            <TabsList className="flex md:flex-wrap h-auto bg-command-deep border border-border/50 p-1 w-max md:w-auto">
+            <TabsList className="flex md:flex-wrap h-auto bg-muted/50 border border-border/50 p-1 w-max md:w-auto">
               <TabsTrigger
                 value="industry"
-                className="data-[state=active]:bg-command-purple data-[state=active]:text-white uppercase text-[10px] font-black tracking-widest"
+                className="data-[state=active]:bg-command-purple data-[state=active]:text-foreground uppercase text-[10px] font-black tracking-widest"
               >
                 Por Indústria
               </TabsTrigger>
               <TabsTrigger
                 value="store"
-                className="data-[state=active]:bg-command-purple data-[state=active]:text-white uppercase text-[10px] font-black tracking-widest"
+                className="data-[state=active]:bg-command-purple data-[state=active]:text-foreground uppercase text-[10px] font-black tracking-widest"
               >
                 Por Loja
               </TabsTrigger>
               <TabsTrigger
                 value="promoter"
-                className="data-[state=active]:bg-command-purple data-[state=active]:text-white uppercase text-[10px] font-black tracking-widest"
+                className="data-[state=active]:bg-command-purple data-[state=active]:text-foreground uppercase text-[10px] font-black tracking-widest"
               >
                 Por Promotor
               </TabsTrigger>
               <TabsTrigger
                 value="review"
-                className="data-[state=active]:bg-command-purple data-[state=active]:text-white uppercase text-[10px] font-black tracking-widest"
+                className="data-[state=active]:bg-command-purple data-[state=active]:text-foreground uppercase text-[10px] font-black tracking-widest"
               >
                 Revisão Manual
               </TabsTrigger>
@@ -361,13 +361,13 @@ export function Mk9AuditModule({
                   placeholder="Filtrar resultados..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 h-9 w-full sm:w-[240px] bg-command-deep border-border text-white text-xs"
+                  className="pl-9 h-9 w-full sm:w-[240px] bg-muted/50 border-border text-foreground text-xs"
                 />
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 border-border bg-muted/50 text-muted-foreground hover:text-white"
+                className="h-9 border-border bg-muted/50 text-muted-foreground hover:text-foreground"
               >
                 <Download className="h-3.5 w-3.5 mr-2" /> Exportar
               </Button>
@@ -422,7 +422,7 @@ function IndustryTable({ q }: { q: any }) {
             key={r.industryId}
             className="border-border/50 hover:bg-white/[0.02] transition-colors"
           >
-            <TableCell className="font-bold text-white">{r.industryName}</TableCell>
+            <TableCell className="font-bold text-foreground">{r.industryName}</TableCell>
             <TableCell className="text-[10px] text-muted-foreground font-medium">
               {fmtDate(r.window.startDate)} — {fmtDate(r.window.endDate)}
             </TableCell>
@@ -485,7 +485,7 @@ function StoreTable({ q, search }: { q: any; search: string }) {
             className="border-border/50 hover:bg-white/[0.02] transition-colors"
           >
             <TableCell>
-              <div className="font-bold text-white uppercase tracking-tight">{r.storeName}</div>
+              <div className="font-bold text-foreground uppercase tracking-tight">{r.storeName}</div>
               <div className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">
                 {r.chain ?? "—"}
               </div>
@@ -551,7 +551,7 @@ function PromoterTable({ q, search }: { q: any; search: string }) {
             key={r.promoterId ?? "none"}
             className="border-border/50 hover:bg-white/[0.02] transition-colors"
           >
-            <TableCell className="font-bold text-white">{r.promoterName}</TableCell>
+            <TableCell className="font-bold text-foreground">{r.promoterName}</TableCell>
             <TableCell className="text-right font-medium text-muted-foreground">{r.storesCount}</TableCell>
             <TableCell className="text-right font-medium text-foreground/80">{r.contratadas}</TableCell>
             <TableCell className="text-right font-medium text-emerald-400">
