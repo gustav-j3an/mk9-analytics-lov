@@ -58,7 +58,7 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
-  const { session, loading, signOut } = useMk9Session();
+  const { session, loading, roles, signOut } = useMk9Session();
   const search = Route.useSearch() as { session_expired?: string };
   const navigate = useNavigate();
 
@@ -71,7 +71,11 @@ function LandingPage() {
     }
 
     if (!loading && session) {
-      navigate({ to: "/dashboard", replace: true });
+      if (roles.includes("PROMOTOR") && !roles.includes("ADMIN") && !roles.includes("SUPERVISOR")) {
+        navigate({ to: "/mk9-portal", replace: true });
+      } else {
+        navigate({ to: "/dashboard", replace: true });
+      }
     }
   }, [session, loading, navigate, search.session_expired, signOut]);
 
