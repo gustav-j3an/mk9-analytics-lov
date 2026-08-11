@@ -124,10 +124,10 @@ export function Mk9Badge({
 }) {
   const variants = {
     default: "border-border bg-muted/50 text-foreground/80",
-    success: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
-    warning: "border-amber-500/20 bg-amber-500/10 text-amber-400",
-    danger: "border-rose-500/20 bg-rose-500/10 text-rose-400",
-    info: "border-blue-500/20 bg-blue-500/10 text-blue-400",
+    success: "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    warning: "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    danger: "border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400",
+    info: "border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400",
   };
 
   return (
