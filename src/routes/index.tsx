@@ -41,16 +41,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v3.1.5 — ROTA ESTÁVEL",
+    title: "MK9 | v3.1.6 — ROTA DOCUMENT",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v3.1.5: ROTA ESTÁVEL. Gestão simplificada e matriz operacional estável.",
+        content: "MK9 Command Center v3.1.6: ROTA DOCUMENT. Novo componente de documento para visualização limpa da matriz operacional.",
       },
-      { property: "og:title", content: "MK9 | v3.1.5 — ROTA ESTÁVEL" },
+      { property: "og:title", content: "MK9 | v3.1.6 — ROTA DOCUMENT" },
       {
         property: "og:description",
-        content: "MK9 Command Center v3.1.5: ROTA ESTÁVEL. Gestão simplificada e matriz operacional estável.",
+        content: "MK9 Command Center v3.1.6: ROTA DOCUMENT. Novo componente de documento para visualização limpa da matriz operacional.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -139,7 +139,7 @@ function LoginContent() {
                   MK9 Command Center • <span className="text-primary/80">v3.1.5</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  ROTA ESTÁVEL
+                  ROTA DOCUMENT
                 </p>
               </div>
             </div>

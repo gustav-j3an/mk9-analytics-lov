@@ -239,9 +239,15 @@ export function PromoterIndividualRoute() {
             </div>
           </div>
 
-
-
-
+          <Button
+            variant="outline"
+            onClick={() => navigate({ search: { ...search, previewDocument: 'true' } })}
+            disabled={matrix.length === 0}
+            className="h-10 border-primary/20 hover:bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 min-w-[140px]"
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Visualizar Rota
+          </Button>
         </div>
       </div>
 
