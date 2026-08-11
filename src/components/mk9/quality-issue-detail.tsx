@@ -69,7 +69,7 @@ export function QualityIssueDetailSheet({
 
   return (
     <Sheet open={!!issueId} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-[400px] sm:w-[540px] bg-popover border-border text-white p-0">
+      <SheetContent className="w-[400px] sm:w-[540px] bg-popover border-border text-foreground p-0">
         <SheetHeader className="p-6 border-b border-border/50">
           <div className="flex items-center gap-2 mb-2">
              <Badge 
@@ -84,7 +84,7 @@ export function QualityIssueDetailSheet({
                {issue?.status}
              </Badge>
           </div>
-          <SheetTitle className="text-xl font-bold text-white leading-tight">
+          <SheetTitle className="text-xl font-bold text-foreground leading-tight">
             {issue ? issueTypeLabel(issue.issueType) : "Carregando..."}
           </SheetTitle>
           <SheetDescription className="text-muted-foreground text-sm mt-2">
@@ -149,7 +149,7 @@ export function QualityIssueDetailSheet({
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-8 text-[10px] font-black uppercase text-muted-foreground hover:text-white"
+                        className="h-8 text-[10px] font-black uppercase text-muted-foreground hover:text-foreground"
                         onClick={() => onNavigateToEntity?.('industry', issue.industryId!)}
                       >
                         Ver Indústria
@@ -174,7 +174,7 @@ export function QualityIssueDetailSheet({
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-8 text-[10px] font-black uppercase text-muted-foreground hover:text-white"
+                        className="h-8 text-[10px] font-black uppercase text-muted-foreground hover:text-foreground"
                         onClick={() => onNavigateToEntity?.('store', issue.storeId!)}
                       >
                         Ver Loja
@@ -208,7 +208,7 @@ export function QualityIssueDetailSheet({
                     <AlertTriangle className="h-4 w-4" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Ação Sugerida</span>
                   </div>
-                  <p className="text-xs text-white/80 leading-relaxed">
+                  <p className="text-xs text-foreground/80 leading-relaxed">
                     {issue.suggestedAction}
                   </p>
                   
