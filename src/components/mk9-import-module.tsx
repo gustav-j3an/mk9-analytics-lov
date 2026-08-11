@@ -240,14 +240,14 @@ export function Mk9ImportModule({
           <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
             <Upload className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+          <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
             Importar planilha MK9
           </h3>
         </div>
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">
+              <label className="text-sm font-semibold text-foreground mb-1.5 block drop-shadow-sm">
                 Arquivo .xlsx (Base MK9 — roteiro/consulta)
               </label>
               <Input
@@ -277,7 +277,7 @@ export function Mk9ImportModule({
               />
             </div>
             <div>
-              <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Mês</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block drop-shadow-sm">Mês</label>
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
                 <SelectTrigger>
                   <SelectValue />
@@ -292,7 +292,7 @@ export function Mk9ImportModule({
               </Select>
             </div>
             <div>
-              <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Ano</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block drop-shadow-sm">Ano</label>
               <Input
                 type="number"
                 value={year}
@@ -303,7 +303,7 @@ export function Mk9ImportModule({
             </div>
           </div>
           <div>
-            <label className="text-sm font-semibold text-white mb-1.5 block drop-shadow-sm">Modo de sincronização</label>
+            <label className="text-sm font-semibold text-foreground mb-1.5 block drop-shadow-sm">Modo de sincronização</label>
             <Select value={syncMode} onValueChange={(v) => setSyncMode(v as SyncMode)}>
               <SelectTrigger>
                 <SelectValue />
@@ -397,7 +397,7 @@ export function Mk9ImportModule({
             <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
               <FileSpreadsheet className="h-5 w-5" />
             </div>
-            <h3 className="text-sm font-black text-white uppercase tracking-widest">
+            <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
               Prévia — {preview.filename}
             </h3>
           </div>
@@ -527,7 +527,7 @@ export function Mk9ImportModule({
           <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
             <Clock className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+          <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
             Histórico de importações
           </h3>
         </div>
@@ -549,7 +549,7 @@ export function Mk9ImportModule({
                   <div key={imp.id} className="text-sm rounded-lg border border-border/50 bg-muted/50 p-3">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-white truncate">{imp.filename}</p>
+                        <p className="font-medium text-foreground truncate">{imp.filename}</p>
                         <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">
                           {MONTHS[imp.operationMonth - 1]} {imp.operationYear} ·{" "}
                           {SYNC_MODE_LABEL[imp.syncMode] ?? imp.syncMode} ·{" "}
@@ -568,7 +568,7 @@ export function Mk9ImportModule({
                             size="sm"
                             variant="ghost"
                             onClick={() => setExpanded((s) => ({ ...s, [imp.id]: !s[imp.id] }))}
-                            className="h-8 text-muted-foreground hover:text-white"
+                            className="h-8 text-muted-foreground hover:text-foreground"
                           >
                             {isOpen ? (
                               <ChevronDown className="h-4 w-4 mr-1" />

@@ -220,17 +220,17 @@ export function Mk9PresenceModule() {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="h-8 w-[140px] bg-input/50 border-border/50 text-[10px] font-bold text-white uppercase tracking-wider"
+              className="h-8 w-[140px] bg-input/50 border-border/50 text-[10px] font-bold text-foreground uppercase tracking-wider"
             />
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="h-8 w-8 p-0 border-border text-muted-foreground hover:text-white">
+                <Button variant="outline" className="h-8 w-8 p-0 border-border text-muted-foreground hover:text-foreground">
                   <Settings className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="bg-command-deep border-l-white/10 text-white w-[400px]">
+              <SheetContent className="bg-popover border-l-border text-foreground w-[400px]">
                 <SheetHeader>
-                  <SheetTitle className="text-white uppercase tracking-tighter">Gestão de Equipes</SheetTitle>
+                  <SheetTitle className="text-foreground uppercase tracking-tighter">Gestão de Equipes</SheetTitle>
                 </SheetHeader>
                 <div className="py-6">
                   <PresenceTeamsManager />
@@ -240,7 +240,7 @@ export function Mk9PresenceModule() {
             <Button
               onClick={handleSave}
               disabled={saveMutation.isPending}
-              className="h-8 gap-2 bg-command-purple hover:bg-command-purple/80 text-white border-none uppercase text-[10px] font-black tracking-widest px-4"
+              className="h-8 gap-2 bg-command-purple hover:bg-command-purple/80 text-foreground border-none uppercase text-[10px] font-black tracking-widest px-4"
             >
               {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Salvar
@@ -248,7 +248,7 @@ export function Mk9PresenceModule() {
             <Button
               onClick={exportToExcel}
               variant="outline"
-              className="h-8 gap-2 border-border text-muted-foreground hover:text-white uppercase text-[10px] font-black tracking-widest px-4"
+              className="h-8 gap-2 border-border text-muted-foreground hover:text-foreground uppercase text-[10px] font-black tracking-widest px-4"
             >
               <Download className="h-4 w-4" />
               Excel
@@ -287,14 +287,14 @@ export function Mk9PresenceModule() {
                 placeholder="Nome ou matrícula..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-9 w-[220px] bg-command-deep border-border text-white text-xs"
+                className="pl-9 h-9 w-[220px] bg-popover border-border text-foreground text-xs"
               />
             </div>
             <Select value={teamFilter} onValueChange={setTeamFilter}>
-              <SelectTrigger className="h-9 w-[180px] bg-command-deep border-border text-white text-[10px] font-bold uppercase tracking-wider">
+              <SelectTrigger className="h-9 w-[180px] bg-popover border-border text-foreground text-[10px] font-bold uppercase tracking-wider">
                 <SelectValue placeholder="EQUIPE" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-popover border-border text-foreground">
                 <SelectItem value="ALL">TODAS EQUIPES</SelectItem>
                 <SelectItem value="NONE">SEM EQUIPE (AVULSOS)</SelectItem>
                 {teams?.map(t => (
@@ -304,10 +304,10 @@ export function Mk9PresenceModule() {
             </Select>
             
             <Select value={supervisorFilter} onValueChange={setSupervisorFilter}>
-              <SelectTrigger className="h-9 w-[180px] bg-command-deep border-border text-white text-[10px] font-bold uppercase tracking-wider">
+              <SelectTrigger className="h-9 w-[180px] bg-popover border-border text-foreground text-[10px] font-bold uppercase tracking-wider">
                 <SelectValue placeholder="SUPERVISOR" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-popover border-border text-foreground">
                 <SelectItem value="ALL">TODOS SUPERVISORES</SelectItem>
                 <SelectItem value="NONE">SEM SUPERVISOR</SelectItem>
                 {supervisors?.map(s => (
@@ -317,10 +317,10 @@ export function Mk9PresenceModule() {
             </Select>
 
             <Select value={ufFilter} onValueChange={setUfFilter}>
-              <SelectTrigger className="h-9 w-[80px] bg-command-deep border-border text-white text-[10px] font-bold uppercase tracking-wider">
+              <SelectTrigger className="h-9 w-[80px] bg-popover border-border text-foreground text-[10px] font-bold uppercase tracking-wider">
                 <SelectValue placeholder="UF" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border text-white">
+              <SelectContent className="bg-popover border-border text-foreground">
                 <SelectItem value="__ALL__">TODAS</SelectItem>
                 {ufs.map(uf => (
                   <SelectItem key={uf} value={uf}>{uf}</SelectItem>
@@ -355,7 +355,7 @@ export function Mk9PresenceModule() {
                       <tr key={item.id} className="border-b border-border/50 last:border-0 hover:bg-white/[0.02] transition-colors group">
                         <td className="px-4 py-3">
                           <div className="flex flex-col">
-                            <span className="text-[11px] font-black text-white uppercase tracking-tighter">{item.name}</span>
+                            <span className="text-[11px] font-black text-foreground uppercase tracking-tighter">{item.name}</span>
                             <span className="text-[9px] text-muted-foreground font-bold">{item.uf || "-"}</span>
                           </div>
                         </td>
@@ -386,7 +386,7 @@ export function Mk9PresenceModule() {
                             placeholder="..."
                             value={local.observation}
                             onChange={(e) => handleObservationChange(item.id, e.target.value)}
-                            className="h-7 text-[10px] bg-transparent border-border/50 focus:border-white/20 text-foreground/80 w-full"
+                            className="h-7 text-[10px] bg-transparent border-border/50 focus:border-primary text-foreground/80 w-full"
                           />
                         </td>
                       </tr>
@@ -404,9 +404,9 @@ export function Mk9PresenceModule() {
 
 function PresenceButton({ active, onClick, variant }: { active: boolean, onClick: () => void, variant: 'present' | 'absent' | 'medical' }) {
   const configs = {
-    present: { label: 'Presente', icon: Check, activeClass: 'bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]', inactiveClass: 'text-emerald-500 hover:bg-emerald-500/10 border-emerald-500/20' },
-    absent: { label: 'Falta', icon: X, activeClass: 'bg-rose-500 text-white shadow-[0_0_10px_rgba(244,63,94,0.3)]', inactiveClass: 'text-rose-500 hover:bg-rose-500/10 border-rose-500/20' },
-    medical: { label: 'Atestado', icon: Plus, activeClass: 'bg-amber-500 text-white shadow-[0_0_10px_rgba(245,158,11,0.3)]', inactiveClass: 'text-amber-500 hover:bg-amber-500/10 border-amber-500/20' }
+    present: { label: 'Presente', icon: Check, activeClass: 'bg-emerald-500 text-foreground shadow-[0_0_10px_rgba(16,185,129,0.3)]', inactiveClass: 'text-emerald-500 hover:bg-emerald-500/10 border-emerald-500/20' },
+    absent: { label: 'Falta', icon: X, activeClass: 'bg-rose-500 text-foreground shadow-[0_0_10px_rgba(244,63,94,0.3)]', inactiveClass: 'text-rose-500 hover:bg-rose-500/10 border-rose-500/20' },
+    medical: { label: 'Atestado', icon: Plus, activeClass: 'bg-amber-500 text-foreground shadow-[0_0_10px_rgba(245,158,11,0.3)]', inactiveClass: 'text-amber-500 hover:bg-amber-500/10 border-amber-500/20' }
   };
   
   const config = configs[variant];

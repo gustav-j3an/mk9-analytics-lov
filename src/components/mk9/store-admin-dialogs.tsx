@@ -76,7 +76,7 @@ export function StoreDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-popover border-border text-white max-w-md">
+      <DialogContent className="bg-popover border-border text-foreground max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             {store ? "Editar Loja" : "Nova Loja"}
@@ -91,7 +91,7 @@ export function StoreDialog({
               Nome da Loja *
             </Label>
             <Input
-              className="bg-input/50 border-border h-10 text-white"
+              className="bg-input/50 border-border h-10 text-foreground"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex: Supermercado Central"
@@ -102,7 +102,7 @@ export function StoreDialog({
               Rede / Bandeira
             </Label>
             <Input
-              className="bg-input/50 border-border h-10 text-white"
+              className="bg-input/50 border-border h-10 text-foreground"
               value={chain}
               onChange={(e) => setChain(e.target.value)}
               placeholder="Ex: Carrefour, Pão de Açúcar"
@@ -114,7 +114,7 @@ export function StoreDialog({
                 Cidade
               </Label>
               <Input
-                className="bg-input/50 border-border h-10 text-white"
+                className="bg-input/50 border-border h-10 text-foreground"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Ex: São Paulo"
@@ -125,7 +125,7 @@ export function StoreDialog({
                 UF
               </Label>
               <Input
-                className="bg-input/50 border-border h-10 text-white font-mono"
+                className="bg-input/50 border-border h-10 text-foreground font-mono"
                 value={uf}
                 onChange={(e) => setUf(e.target.value.toUpperCase())}
                 maxLength={2}
@@ -135,11 +135,11 @@ export function StoreDialog({
           </div>
         </div>
         <DialogFooter className="mt-4 border-t border-border/50 pt-4">
-          <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
+          <Button variant="ghost" className="text-muted-foreground hover:text-foreground" onClick={onClose}>
             CANCELAR
           </Button>
           <Button
-            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold"
+            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-foreground font-bold"
             onClick={() => mut.mutate()}
             disabled={!name || mut.isPending}
           >
@@ -184,7 +184,7 @@ export function StoreArchiveDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-popover border-border text-white max-w-md">
+      <DialogContent className="bg-popover border-border text-foreground max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-rose-500 uppercase font-black tracking-tighter">
             <AlertTriangle className="h-5 w-5" />
@@ -211,11 +211,11 @@ export function StoreArchiveDialog({
               <ul className="space-y-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 <li className="flex justify-between border-b border-border/50 pb-1">
                   <span>Frequências vigentes:</span>{" "}
-                  <span className="text-white">{impact?.activeFrequencies || 0}</span>
+                  <span className="text-foreground">{impact?.activeFrequencies || 0}</span>
                 </li>
                 <li className="flex justify-between border-b border-border/50 pb-1">
                   <span>Roteiros ativos:</span>{" "}
-                  <span className="text-white">{impact?.activeRoutes || 0}</span>
+                  <span className="text-foreground">{impact?.activeRoutes || 0}</span>
                 </li>
                 <li className="flex justify-between">
                   <span>Visitas históricas:</span>{" "}
@@ -229,7 +229,7 @@ export function StoreArchiveDialog({
                 Motivo do Arquivamento (Opcional)
               </Label>
               <Textarea
-                className="bg-input/50 border-border text-white min-h-[80px]"
+                className="bg-input/50 border-border text-foreground min-h-[80px]"
                 placeholder="Ex: Loja fechada definitivamente..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
@@ -239,11 +239,11 @@ export function StoreArchiveDialog({
         )}
 
         <DialogFooter className="mt-4 border-t border-border/50 pt-4">
-          <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
+          <Button variant="ghost" className="text-muted-foreground hover:text-foreground" onClick={onClose}>
             CANCELAR
           </Button>
           <Button
-            className="bg-rose-500 hover:bg-rose-600 text-white font-bold px-6 shadow-lg shadow-rose-500/20"
+            className="bg-rose-500 hover:bg-rose-600 text-foreground font-bold px-6 shadow-lg shadow-rose-500/20"
             onClick={() => mut.mutate()}
             disabled={isLoading || mut.isPending}
           >

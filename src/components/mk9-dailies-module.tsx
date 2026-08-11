@@ -161,14 +161,14 @@ export function Mk9DailiesModule() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-black text-white tracking-tighter uppercase">Controle de Diárias</h2>
+          <h2 className="text-3xl font-black text-foreground tracking-tighter uppercase">Controle de Diárias</h2>
           <p className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Gestão de Freelancers e Atendimentos Avulsos</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <Button variant="outline" className="flex-1 md:flex-none border-command-purple/50 text-command-purple hover:bg-command-purple/10" onClick={() => setShowClosing(true)}>
             <TrendingUp className="w-4 h-4 mr-2" /> [ FECHAMENTO ]
           </Button>
-          <Button variant="outline" className="flex-1 md:flex-none border-border hover:bg-muted/50 text-white/80" onClick={handleExport} disabled={isExporting}>
+          <Button variant="outline" className="flex-1 md:flex-none border-border hover:bg-muted/50 text-foreground/80" onClick={handleExport} disabled={isExporting}>
             {isExporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
             Exportar Excel
           </Button>
@@ -278,8 +278,8 @@ export function Mk9DailiesModule() {
             ) : (
               filteredDailies.map((d: any) => (
                 <TableRow key={d.id} className="border-border/50 hover:bg-muted/50 transition-colors group">
-                  <TableCell className="text-white/80 font-medium py-4">{new Date(d.date).toLocaleDateString('pt-BR')}</TableCell>
-                  <TableCell className="text-white font-bold">{d.freelancer?.name}</TableCell>
+                  <TableCell className="text-foreground/80 font-medium py-4">{new Date(d.date).toLocaleDateString('pt-BR')}</TableCell>
+                  <TableCell className="text-foreground font-bold">{d.freelancer?.name}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-0.5">
                       <span className="text-xs text-muted-foreground">
@@ -290,7 +290,7 @@ export function Mk9DailiesModule() {
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-white font-mono text-xs">
+                  <TableCell className="text-foreground font-mono text-xs">
                     R$ {Number(d.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell>
@@ -312,10 +312,10 @@ export function Mk9DailiesModule() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right px-6 space-x-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white" onClick={() => setViewing(d)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => setViewing(d)}>
                       <Eye className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white" onClick={() => { setEditing(d); setOpen(true); }}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => { setEditing(d); setOpen(true); }}>
                       <Pencil className="w-4 h-4" />
                     </Button>
                     {d.status !== 'CANCELADA' && (
@@ -337,9 +337,9 @@ export function Mk9DailiesModule() {
       
       {/* Detail Sheet */}
       <Sheet open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
-        <SheetContent className="sm:max-w-md bg-background border-border text-white overflow-y-auto">
+        <SheetContent className="sm:max-w-md bg-background border-border text-foreground overflow-y-auto">
           <SheetHeader>
-            <SheetTitle className="text-xl font-black text-white tracking-tighter uppercase">Detalhe da Diária</SheetTitle>
+            <SheetTitle className="text-xl font-black text-foreground tracking-tighter uppercase">Detalhe da Diária</SheetTitle>
             <SheetDescription className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Visualização completa do atendimento</SheetDescription>
           </SheetHeader>
           
@@ -348,11 +348,11 @@ export function Mk9DailiesModule() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Freelancer</label>
-                  <p className="text-sm font-bold text-white">{viewing.freelancer?.name}</p>
+                  <p className="text-sm font-bold text-foreground">{viewing.freelancer?.name}</p>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Data</label>
-                  <p className="text-sm font-bold text-white">{new Date(viewing.date).toLocaleDateString('pt-BR')}</p>
+                  <p className="text-sm font-bold text-foreground">{new Date(viewing.date).toLocaleDateString('pt-BR')}</p>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Valor</label>
@@ -364,7 +364,7 @@ export function Mk9DailiesModule() {
                 </div>
                 <div className="space-y-1 col-span-2">
                   <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Supervisor</label>
-                  <p className="text-sm font-bold text-white/80">{viewing.supervisor?.name || "Não informado"}</p>
+                  <p className="text-sm font-bold text-foreground/80">{viewing.supervisor?.name || "Não informado"}</p>
                 </div>
               </div>
 
@@ -387,7 +387,7 @@ export function Mk9DailiesModule() {
                     <div key={idx} className="p-4 bg-muted/50 border border-border/50 rounded-xl space-y-2">
                       <div className="flex items-center gap-2">
                         <Store className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span className="text-xs font-bold text-white">{group.store?.name}</span>
+                        <span className="text-xs font-bold text-foreground">{group.store?.name}</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5 pl-5">
                         {group.industries.map((ind: any, i: number) => (
@@ -451,9 +451,9 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg bg-background border-border text-white overflow-y-auto">
+      <SheetContent className="sm:max-w-lg bg-background border-border text-foreground overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-2xl font-black text-white tracking-tighter uppercase">Fechamento Financeiro</SheetTitle>
+          <SheetTitle className="text-2xl font-black text-foreground tracking-tighter uppercase">Fechamento Financeiro</SheetTitle>
           <SheetDescription className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Liquidação de diárias em lote</SheetDescription>
         </SheetHeader>
 
@@ -471,7 +471,7 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
 
           <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-center space-y-2">
             <p className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.2em]">Pendente no Período</p>
-            <p className="text-4xl font-black text-white tracking-tighter">R$ {totals.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <p className="text-4xl font-black text-foreground tracking-tighter">R$ {totals.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
             <p className="text-xs text-amber-500/80 font-medium">{totals.count} diárias aguardando pagamento</p>
           </div>
 
@@ -482,7 +482,7 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
             </div>
 
             <Button 
-              className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 font-bold text-white uppercase tracking-widest text-xs"
+              className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 font-bold text-foreground uppercase tracking-widest text-xs"
               disabled={totals.count === 0 || markMutation.isPending}
               onClick={() => {
                 if(confirm(`Confirmar liquidação de R$ ${totals.amount.toLocaleString('pt-BR')} para ${totals.count} diárias?`)) {
@@ -506,7 +506,7 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
                }, {}) || {}).map((f: any, i: number) => (
                  <div key={i} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg border border-border/50">
                    <div>
-                     <p className="text-xs font-bold text-white">{f.name}</p>
+                     <p className="text-xs font-bold text-foreground">{f.name}</p>
                      <p className="text-[10px] text-muted-foreground">{f.count} diárias</p>
                    </div>
                    <p className="text-sm font-mono font-bold text-amber-400">R$ {f.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
@@ -522,7 +522,7 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
 }
 
 
-function KPICard({ label, value, icon: Icon, color = "text-white" }: any) {
+function KPICard({ label, value, icon: Icon, color = "text-foreground" }: any) {
   return (
     <div className="p-5 bg-card border border-border/50 rounded-2xl relative overflow-hidden group">
       <div className="absolute top-0 right-0 p-3 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity">

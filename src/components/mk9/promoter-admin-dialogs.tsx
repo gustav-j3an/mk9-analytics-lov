@@ -127,7 +127,7 @@ export function PromoterDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-popover border-border text-white max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <DialogContent className="bg-popover border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             {promoter ? "Editar Promotor" : "Novo Promotor"}
@@ -143,7 +143,7 @@ export function PromoterDialog({
                 Nome Completo *
               </Label>
               <Input
-                className="bg-input/50 border-border h-10 text-white"
+                className="bg-input/50 border-border h-10 text-foreground"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Nome do promotor"
@@ -154,7 +154,7 @@ export function PromoterDialog({
                 Matrícula
               </Label>
               <Input
-                className="bg-input/50 border-border h-10 text-white"
+                className="bg-input/50 border-border h-10 text-foreground"
                 value={employeeNumber}
                 onChange={(e) => setEmployeeNumber(e.target.value)}
                 placeholder="001245"
@@ -167,7 +167,7 @@ export function PromoterDialog({
                 Cidade
               </Label>
               <Input
-                className="bg-input/50 border-border h-10 text-white"
+                className="bg-input/50 border-border h-10 text-foreground"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Ex: São Paulo"
@@ -178,7 +178,7 @@ export function PromoterDialog({
                 UF
               </Label>
               <Input
-                className="bg-input/50 border-border h-10 text-white font-mono"
+                className="bg-input/50 border-border h-10 text-foreground font-mono"
                 value={uf}
                 onChange={(e) => setUf(e.target.value.toUpperCase())}
                 maxLength={2}
@@ -190,7 +190,7 @@ export function PromoterDialog({
                 ID Externo
               </Label>
               <Input
-                className="bg-input/50 border-border h-10 text-white"
+                className="bg-input/50 border-border h-10 text-foreground"
                 value={externalId}
                 onChange={(e) => setExternalId(e.target.value)}
                 placeholder="ERP ID"
@@ -203,10 +203,10 @@ export function PromoterDialog({
                 Supervisor MK9
               </Label>
               <Select value={supervisorId || "NONE"} onValueChange={(val) => setSupervisorId(val === "NONE" ? null : val)}>
-                <SelectTrigger className="bg-input/50 border-border h-10 text-white text-xs">
+                <SelectTrigger className="bg-input/50 border-border h-10 text-foreground text-xs">
                   <SelectValue placeholder="Sem Supervisor" />
                 </SelectTrigger>
-                <SelectContent className="bg-popover border-border text-white">
+                <SelectContent className="bg-popover border-border text-foreground">
                   <SelectItem value="NONE">Sem Supervisor</SelectItem>
                   {supervisors?.map(s => (
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
@@ -219,10 +219,10 @@ export function PromoterDialog({
                 Equipe de Presença
               </Label>
               <Select value={presenceTeamId || "NONE"} onValueChange={(val) => setPresenceTeamId(val === "NONE" ? null : val)}>
-                <SelectTrigger className="bg-input/50 border-border h-10 text-white text-xs">
+                <SelectTrigger className="bg-input/50 border-border h-10 text-foreground text-xs">
                   <SelectValue placeholder="Sem Equipe" />
                 </SelectTrigger>
-                <SelectContent className="bg-popover border-border text-white">
+                <SelectContent className="bg-popover border-border text-foreground">
                   <SelectItem value="NONE">Sem Equipe (Avulso)</SelectItem>
                   {teams?.map(t => (
                     <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
@@ -236,7 +236,7 @@ export function PromoterDialog({
               Contato (Telefone/Email)
             </Label>
             <Input
-              className="bg-input/50 border-border h-10 text-white"
+              className="bg-input/50 border-border h-10 text-foreground"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               placeholder="(00) 00000-0000"
@@ -247,7 +247,7 @@ export function PromoterDialog({
               Observações
             </Label>
             <Textarea
-              className="bg-input/50 border-border text-white min-h-[80px]"
+              className="bg-input/50 border-border text-foreground min-h-[80px]"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Notas internas..."
@@ -255,11 +255,11 @@ export function PromoterDialog({
           </div>
         </div>
         <DialogFooter className="mt-4 border-t border-border/50 pt-4">
-          <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
+          <Button variant="ghost" className="text-muted-foreground hover:text-foreground" onClick={onClose}>
             CANCELAR
           </Button>
           <Button
-            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-bold"
+            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-foreground font-bold"
             onClick={() => mut.mutate()}
             disabled={!name || mut.isPending}
           >
@@ -310,7 +310,7 @@ export function PromoterDeleteDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-popover border-border text-white max-w-md">
+      <DialogContent className="bg-popover border-border text-foreground max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-rose-500 font-black tracking-tighter uppercase">
             <AlertTriangle className="h-5 w-5" />
@@ -336,13 +336,13 @@ export function PromoterDeleteDialog({
                   <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                     Agente
                   </p>
-                  <p className="text-xs font-bold text-white">{promoter?.name}</p>
+                  <p className="text-xs font-bold text-foreground">{promoter?.name}</p>
                 </div>
                 <div className="space-y-0.5">
                   <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                     Matrícula
                   </p>
-                  <p className="text-xs font-mono text-white/80">
+                  <p className="text-xs font-mono text-foreground/80">
                     {promoter?.employeeNumber || "—"}
                   </p>
                 </div>
@@ -350,7 +350,7 @@ export function PromoterDeleteDialog({
                   <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                     Região
                   </p>
-                  <p className="text-xs text-white/80">
+                  <p className="text-xs text-foreground/80">
                     {promoter?.uf || "—"} / {promoter?.city || "—"}
                   </p>
                 </div>
@@ -385,14 +385,14 @@ export function PromoterDeleteDialog({
         <DialogFooter className="mt-4 border-t border-border/50 pt-4">
           <Button
             variant="ghost"
-            className="text-muted-foreground hover:text-white"
+            className="text-muted-foreground hover:text-foreground"
             onClick={onClose}
             disabled={mut.isPending}
           >
             CANCELAR
           </Button>
           <Button
-            className="bg-rose-500 hover:bg-rose-600 text-white font-bold px-6 shadow-lg shadow-rose-500/20"
+            className="bg-rose-500 hover:bg-rose-600 text-foreground font-bold px-6 shadow-lg shadow-rose-500/20"
             onClick={() => mut.mutate()}
             disabled={isLoading || mut.isPending}
           >
