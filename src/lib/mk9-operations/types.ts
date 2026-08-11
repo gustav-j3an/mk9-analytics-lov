@@ -72,6 +72,8 @@ export interface OperationStoreRow {
   industryName: string;
   weeklyFrequency: number | null;
   monthlyFrequency: number | null;
+  frequencyLabel: string | null;
+
   contratadas: number;
   expectedToDate: number;
   realizadas: number;
@@ -105,6 +107,7 @@ export interface OperationIndustryRow {
   deviation: number;
   pacePercentage: number;
   status: IndustryStatusKey;
+  frequency: string | null;
   checklistImports: number;
 }
 
@@ -116,6 +119,7 @@ export interface StoreBucket {
   uf: string | null;
   weekly: number | null;
   monthly: number | null;
+  frequencyLabel?: string | null;
   segments: FrequencySegmentInput[];
   visits: string[];
 }

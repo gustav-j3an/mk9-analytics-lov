@@ -319,6 +319,14 @@ export async function loadOperationCore(
   const touch = (ctx: IndustryContext, storeId: string, store: any): StoreBucket => {
     let b = ctx.buckets.get(storeId);
     if (!b) {
+      const routeKey = `${ctx.id}|${storeId}`;
+      const routeInfo = routeByKey.get(routeKey);
+      
+      let frequencyFromRoute: string | null = null;
+      if (routeInfo && routeInfo.weekdays.size > 0) {
+        frequencyFromRoute = `${routeInfo.weekdays.size}x/semana`;
+      }
+
       b = {
         storeId,
         storeName: store?.name ?? "—",
@@ -326,6 +334,7 @@ export async function loadOperationCore(
         uf: store?.uf ?? null,
         weekly: null,
         monthly: null,
+        frequencyLabel: frequencyFromRoute,
         segments: [],
         visits: [],
       };
