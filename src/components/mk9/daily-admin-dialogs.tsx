@@ -172,14 +172,23 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
   };
 
   const toggleIndustry = (itemIndex: number, industryId: string) => {
-    const item = formData.items[itemIndex];
-    const currentIndustries = item.industryIds || [];
-    const newIndustries = currentIndustries.includes(industryId)
-      ? currentIndustries.filter((id: string) => id !== industryId)
-      : [...currentIndustries, industryId];
-    
-    updateItem(itemIndex, { industryIds: newIndustries });
+    setFormData((prev: any) => {
+      const newItems = [...(prev.items || [])];
+      const item = { ...newItems[itemIndex] };
+      
+      // Garantir que industryIds seja sempre um array
+      const currentIndustries = Array.isArray(item.industryIds) ? item.industryIds : [];
+      
+      const exists = currentIndustries.includes(industryId);
+      item.industryIds = exists
+        ? currentIndustries.filter((id: string) => id !== industryId)
+        : [...currentIndustries, industryId];
+        
+      newItems[itemIndex] = item;
+      return { ...prev, items: newItems };
+    });
   };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
