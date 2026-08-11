@@ -126,24 +126,41 @@ export function PromoterIndividualRoute() {
   }, [matrix]);
 
   const handleDownloadPdf = async () => {
-    if (isGeneratingPdf || matrix.length === 0) return;
+    if (isGeneratingPdf || matrix.length === 0) {
+      console.warn("[PDF_WARN] Cancelando download: matrix vazia ou já gerando.");
+      return;
+    }
     
     setIsGeneratingPdf(true);
+    console.log("[PDF_ACTION] Iniciando geração de PDF para", promoter?.name, "com", matrix.length, "linhas.");
+    
     try {
-      await generatePromoterRoutePdf({
+      // Pequeno delay para garantir que o estado de carregamento reflita na UI
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const success = await generatePromoterRoutePdf({
         promoterName: promoter?.name || "PROMOTOR",
         referenceDate,
         totalVisits,
         rows: matrix
       });
-      toast.success("PDF gerado com sucesso!");
+      
+      if (success) {
+        toast.success("PDF gerado com sucesso!");
+      }
     } catch (error: any) {
-      console.error("[PDF_ERROR] Falha na geração do PDF:", error);
-      toast.error("Erro ao gerar PDF. Verifique o console para mais detalhes.");
+      console.error("[PDF_ERROR_FULL] Falha detalhada na geração do PDF:", {
+        message: error?.message,
+        stack: error?.stack,
+        promoter: promoter?.name,
+        matrixLength: matrix.length
+      });
+      toast.error(`Erro ao gerar PDF: ${error?.message || "Erro desconhecido"}`);
     } finally {
       setIsGeneratingPdf(false);
     }
   };
+
 
 
 
