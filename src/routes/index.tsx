@@ -1,29 +1,16 @@
 /*
-# Inventário de Módulos — MK9 Command Center
-
-## 1. Módulos Descontinuados (Visão Geral)
-- **Inteligência:** Consolidado no Dashboard (v2.2.0). Rota `/inteligencia` redirecionada.
-- **Cockpit:** Descontinuado (v2.3.0). Rota `/cockpit` redirecionada para `/dashboard`.
-  - Motivo: Sobreposição de atalhos e indicadores redundantes.
-  - Funcionalidades exclusivas (Saúde do Sistema): Removidas da experiência principal por serem de uso técnico/administrativo.
-
-## 2. Inventário do Menu Atual
-- **Dashboard:** Central de monitoramento por indústria e loja. (ESSENCIAL - Home)
-- **Gestão Operacional:** Configuração de vigências. (ESSENCIAL)
-- **Importar Checklist:** Motor de dados. (ESSENCIAL)
-- **Roteiros:** Planejamento de campo. (ESSENCIAL)
-- **Presença:** Controle de ponto. (ESSENCIAL)
-- **Controle de Diárias:** Gestão financeira freelancers. (ESSENCIAL)
-- **Conciliação / Auditoria / Qualidade:** Hardening operacional. (ESSENCIAL)
-- **Cadastros (Lojas/Indústrias/etc):** Gestão de entidades. (ESSENCIAL)
-
----
-
-# MISSÃO — DESCONTINUAR O COCKPIT E SIMPLIFICAR A NAVEGAÇÃO
+# MISSÃO 1 — REMOVER PDF V2 E ESTABILIZAR O BUILD
 MK9 COMMAND CENTER
+ROTEIROS → ROTA INDIVIDUAL
 
-O Cockpit foi oficialmente descontinuado na v2.3.0.
-O Dashboard agora é a única Home Operacional, centralizando a inteligência sem poluição visual.
+DECISÃO DE ARQUITETURA:
+Não vamos mais gerar a Rota Individual reconstruindo a tabela através de jsPDF/jspdf-autotable/html2canvas, pois o PDF atual não possui paridade visual com a tela e causou Build Errors.
+A tela "VISUALIZAR ROTA" já possui o visual aprovado e será usada como base para a versão impressa.
+
+OBJETIVO:
+Remover a implementação direta de PDF (v2) e estabilizar o projeto, mantendo a "Visualizar Rota" funcional.
+
+STATUS: v3.1.8 — BUILD STABILIZED
 */
 
 
@@ -41,16 +28,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v3.1.7 — ROTA PDF FIXED",
+    title: "MK9 | v3.1.8 — BUILD STABILIZED",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v3.1.7: ROTA PDF FIXED. Geração binária estável de documentos A4 Paisagem para roteiros individuais.",
+        content: "MK9 Command Center v3.1.8: BUILD STABILIZED. Remoção da implementação instável de PDF e estabilização do motor de roteiros.",
       },
-      { property: "og:title", content: "MK9 | v3.1.7 — ROTA PDF FIXED" },
+      { property: "og:title", content: "MK9 | v3.1.8 — BUILD STABILIZED" },
       {
         property: "og:description",
-        content: "MK9 Command Center v3.1.7: ROTA PDF FIXED. Geração binária estável de documentos A4 Paisagem para roteiros individuais.",
+        content: "MK9 Command Center v3.1.8: BUILD STABILIZED. Remoção da implementação instável de PDF e estabilização do motor de roteiros.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -136,10 +123,10 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v3.1.7</span>
+                  MK9 Command Center • <span className="text-primary/80">v3.1.8</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  ROTA PDF FIXED
+                  BUILD STABILIZED
 
                 </p>
               </div>
