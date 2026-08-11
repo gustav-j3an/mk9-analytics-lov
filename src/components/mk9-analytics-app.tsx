@@ -445,14 +445,16 @@ function SidebarItem({
   icon: Icon,
   label,
   active,
+  collapsed,
   onClick,
 }: {
   icon: any;
   label: string;
   active: boolean;
+  collapsed: boolean;
   onClick: () => void;
 }) {
-  return (
+  const content = (
     <button
       onClick={onClick}
       className={cn(
@@ -460,18 +462,32 @@ function SidebarItem({
         active
           ? "bg-command-purple/10 text-white shadow-[0_0_20px_rgba(168,85,247,0.15)] neon-border-purple"
           : "text-slate-400 hover:bg-white/5 hover:text-white",
+        collapsed && "justify-center px-0"
       )}
     >
       <Icon
         className={cn(
-          "h-5 w-5 transition-transform duration-300 group-hover:scale-110",
+          "h-5 w-5 transition-transform duration-300 group-hover:scale-110 shrink-0",
           active ? "text-command-purple" : "text-slate-500",
         )}
       />
-      <span className="truncate">{label}</span>
-      {active && (
+      {!collapsed && <span className="truncate">{label}</span>}
+      {!collapsed && active && (
         <div className="ml-auto h-1.5 w-1.5 rounded-full bg-command-purple shadow-[0_0_8px_#A855F7]" />
       )}
     </button>
   );
+
+  if (collapsed) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{content}</TooltipTrigger>
+        <TooltipContent side="right" className="bg-command-deep border-white/10 text-white">
+          {label}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return content;
 }
