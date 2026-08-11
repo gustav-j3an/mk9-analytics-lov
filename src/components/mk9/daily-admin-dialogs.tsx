@@ -175,10 +175,18 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.freelancerId) return toast.error("Selecione um freelancer");
-    if (formData.items.length === 0) return toast.error("Adicione pelo menos um atendimento");
-    if (formData.items.some((it: any) => !it.storeId || it.industryIds.length === 0)) {
-      return toast.error("Preencha a loja e selecione indústrias para todos os atendimentos");
+    if (!formData.freelancerId) {
+      toast.error("Selecione um freelancer");
+      return;
+    }
+    if (formData.items.length === 0) {
+      toast.error("Adicione pelo menos um atendimento");
+      return;
+    }
+    const invalidItem = formData.items.some((it: any) => !it.storeId || it.industryIds.length === 0);
+    if (invalidItem) {
+      toast.error("Preencha a loja e selecione indústrias para todos os atendimentos");
+      return;
     }
     mutation.mutate(formData);
   };
@@ -196,15 +204,40 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
               <Label>Freelancer*</Label>
               <Select 
                 value={formData.freelancerId} 
-                onValueChange={(val) => setFormData({ ...formData, freelancerId: val })}
+                onValueChange={(val) => {
+                  const freelancer = freelancersQ.data?.find((f: any) => f.id === val);
+                  setFormData({ 
+                    ...formData, 
+                    freelancerId: val,
+                    amount: freelancer?.default_daily_rate || formData.amount
+                  });
+                }}
               >
                 <SelectTrigger className="bg-white/5 border-white/10">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {freelancersQ.data?.map((f: any) => (
-                    <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
-                  ))}
+                  {freelancersQ.data?.length === 0 ? (
+                    <div className="p-2 text-xs text-slate-500 text-center">
+                      Nenhum freelancer ativo.
+                      <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="text-command-purple h-auto p-1 block w-full"
+                        onClick={() => {
+                          onOpenChange(false);
+                          // We'll trust the user to navigate or we can try to provide a better UX
+                          // For now, let's just show the message as requested in point 33
+                        }}
+                      >
+                        Cadastrar Freelancer
+                      </Button>
+                    </div>
+                  ) : (
+                    freelancersQ.data?.map((f: any) => (
+                      <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -294,6 +327,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                     <Mk9StoreAutocomplete 
                       value={item.storeId} 
                       onChange={(store) => updateItem(idx, { storeId: store.id })}
+                      placeholder="Pesquisar loja por nome, rede, cidade ou UF..."
                     />
                   </div>
 

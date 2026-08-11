@@ -36,6 +36,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
     phone: "",
     city: "",
     uf: "",
+    default_daily_rate: "",
     notes: ""
   });
 
@@ -46,6 +47,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
         phone: freelancer.phone || "",
         city: freelancer.city || "",
         uf: freelancer.uf || "",
+        default_daily_rate: freelancer.default_daily_rate?.toString() || "",
         notes: freelancer.notes || ""
       });
     } else {
@@ -54,6 +56,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
         phone: "",
         city: "",
         uf: "",
+        default_daily_rate: "",
         notes: ""
       });
     }
@@ -61,10 +64,14 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
+      const payload = {
+        ...data,
+        default_daily_rate: data.default_daily_rate ? Number(data.default_daily_rate) : null
+      };
       if (freelancer?.id) {
-        return updateFn({ data: { ...data, id: freelancer.id } });
+        return updateFn({ data: { ...payload, id: freelancer.id } });
       }
-      return createFn({ data });
+      return createFn({ data: payload });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mk9-freelancers"] });
@@ -128,6 +135,18 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
               onChange={(e) => setFormData({ ...formData, uf: e.target.value.toUpperCase().slice(0, 2) })}
               className="col-span-3 bg-white/5 border-white/10"
               maxLength={2}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="default_daily_rate" className="text-right">Valor Padrão</Label>
+            <Input
+              id="default_daily_rate"
+              type="number"
+              step="0.01"
+              value={formData.default_daily_rate}
+              onChange={(e) => setFormData({ ...formData, default_daily_rate: e.target.value })}
+              className="col-span-3 bg-white/5 border-white/10"
+              placeholder="Ex: 150.00 (Opcional)"
             />
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
