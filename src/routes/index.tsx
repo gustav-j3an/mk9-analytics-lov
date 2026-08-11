@@ -1,13 +1,16 @@
 /*
-# MISSÃO 2 — TRANSFORMAR VISUALIZAR ROTA EM DOCUMENTO IMPRIMÍVEL
+# MISSÃO 3 — ADICIONAR IMPRESSÃO DA ROTA INDIVIDUAL
 MK9 COMMAND CENTER
 
-A tela "VISUALIZAR ROTA" está visualmente aprovada. Agora, ESSA PRÓPRIA TELA será a origem da impressão/PDF, seguindo o princípio: "O QUE EU VEJO = O QUE EU IMPRIMO".
+A página "Visualizar Rota" já foi validada. Agora implementamos o fluxo oficial de impressão:
+1. Botão "IMPRIMIR ROTA" na interface principal.
+2. Acionamento automático de window.print() ao visualizar.
+3. Botão "Imprimir Agora" na tela de prévia.
 
 OBJETIVO:
-Criar um modo print via CSS (@media print) que configure a página para A4 Paisagem, oculte elementos de interface (sidebar, botões) e preserve a paridade visual absoluta, incluindo os checks azuis.
+Preservar 100% da paridade visual (✓, cores, layout) delegando a geração do documento ao motor de impressão do navegador (Salvar como PDF ou Imprimir).
 
-STATUS: v3.1.9 — PRINT READY
+STATUS: v3.1.10 — PRINT FLOW DEPLOYED
 */
 
 
@@ -25,16 +28,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v3.1.9 — PRINT READY",
+    title: "MK9 | v3.1.10 — PRINT FLOW DEPLOYED",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v3.1.9: PRINT READY. Otimização da Rota Individual para impressão A4 Paisagem com paridade total.",
+        content: "MK9 Command Center v3.1.10: PRINT FLOW DEPLOYED. Implementação do fluxo oficial de impressão e salvamento de PDF nativo.",
       },
-      { property: "og:title", content: "MK9 | v3.1.9 — PRINT READY" },
+      { property: "og:title", content: "MK9 | v3.1.10 — PRINT FLOW DEPLOYED" },
       {
         property: "og:description",
-        content: "MK9 Command Center v3.1.9: PRINT READY. Otimização da Rota Individual para impressão A4 Paisagem com paridade total.",
+        content: "MK9 Command Center v3.1.10: PRINT FLOW DEPLOYED. Implementação do fluxo oficial de impressão e salvamento de PDF nativo.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -120,10 +123,10 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v3.1.9</span>
+                  MK9 Command Center • <span className="text-primary/80">v3.1.10</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  PRINT READY
+                  PRINT FLOW DEPLOYED
 
                 </p>
               </div>

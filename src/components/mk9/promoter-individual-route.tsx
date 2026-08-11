@@ -124,8 +124,14 @@ export function PromoterIndividualRoute() {
     return matrix.reduce((acc, row) => acc + row.days.size, 0);
   }, [matrix]);
 
-  const handleDownloadPdf = async () => {
-    toast.info("A funcionalidade de download direto de PDF está sendo reformulada para garantir paridade visual. Por favor, use 'Visualizar Rota' e imprima a página.");
+  const handlePrint = () => {
+    // Navigate to the preview document route which is optimized for print
+    navigate({ search: { ...search, previewDocument: 'true' } });
+    
+    // Give it a moment to render and then trigger print
+    setTimeout(() => {
+      window.print();
+    }, 500);
   };
 
 
@@ -147,14 +153,22 @@ export function PromoterIndividualRoute() {
   if (search.previewDocument === 'true') {
     return (
       <div className="animate-in fade-in duration-500">
-        <div className="print:hidden fixed top-4 right-4 z-50">
+        <div className="print:hidden fixed top-4 right-4 z-50 flex gap-2">
+          <Button 
+            variant="default"
+            onClick={() => window.print()}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
+          >
+            <Printer className="h-4 w-4 mr-2" />
+            Imprimir Agora
+          </Button>
           <Button 
             variant="outline" 
             onClick={() => navigate({ search: { ...search, previewDocument: undefined } })}
             className="bg-white border-slate-200 text-slate-600 hover:text-slate-900 font-black uppercase tracking-widest text-[10px]"
           >
             <Layout className="h-4 w-4 mr-2" />
-            Voltar para Interface
+            Voltar
           </Button>
         </div>
         <PromoterRouteDocument 
@@ -258,12 +272,12 @@ export function PromoterIndividualRoute() {
           </Button>
 
           <Button
-            onClick={handleDownloadPdf}
-            disabled={true}
-            className="h-10 bg-primary/50 text-primary-foreground text-[10px] font-black uppercase tracking-widest min-w-[140px] cursor-not-allowed opacity-50"
+            onClick={handlePrint}
+            disabled={matrix.length === 0}
+            className="h-10 bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 min-w-[140px] shadow-lg shadow-primary/20"
           >
-            <Download className="h-4 w-4 mr-2" />
-            PDF (Em Breve)
+            <Printer className="h-4 w-4 mr-2" />
+            Imprimir Rota
           </Button>
         </div>
       </div>
