@@ -240,7 +240,7 @@ export function Mk9PresenceModule() {
             <Button
               onClick={handleSave}
               disabled={saveMutation.isPending}
-              className="h-8 gap-2 bg-command-purple hover:bg-command-purple/80 text-foreground border-none uppercase text-[10px] font-black tracking-widest px-4"
+              className="h-8 gap-2 bg-primary hover:bg-primary/80 text-foreground border-none uppercase text-[10px] font-black tracking-widest px-4"
             >
               {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Salvar

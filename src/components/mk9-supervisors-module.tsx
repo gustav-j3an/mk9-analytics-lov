@@ -91,7 +91,7 @@ export function Mk9SupervisorsModule() {
               setEditingSupervisor(null);
               setIsDialogOpen(true);
             }}
-            className="bg-command-purple hover:bg-command-purple/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-command-purple/20 border-none"
+            className="bg-primary hover:bg-primary/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-sm border-none"
           >
             <Plus className="h-4 w-4 mr-2" /> Novo Supervisor
           </Button>
@@ -254,7 +254,7 @@ function SupervisorFormDialog({ open, onClose, supervisor }: { open: boolean, on
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
-            <Button type="submit" className="bg-command-purple hover:bg-command-purple/90">Salvar</Button>
+            <Button type="submit" className="bg-primary hover:bg-primary/90">Salvar</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -342,7 +342,7 @@ function SupervisorDetailsSheet({ id, onClose }: { id: string | null, onClose: (
                     </div>
                   ))}
                 </div>
-                <Button onClick={handleAssign} className="w-full bg-command-purple hover:bg-command-purple/90">Confirmar Vínculos</Button>
+                <Button onClick={handleAssign} className="w-full bg-primary hover:bg-primary/90">Confirmar Vínculos</Button>
               </div>
             ) : (
               <div className="space-y-2">

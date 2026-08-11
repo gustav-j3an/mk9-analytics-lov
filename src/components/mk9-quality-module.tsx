@@ -197,7 +197,7 @@ export function Mk9QualityModule({
             <Button
               onClick={handleRun}
               disabled={running}
-              className="h-8 gap-2 bg-command-purple hover:bg-command-purple/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest px-4"
+              className="h-8 gap-2 bg-primary hover:bg-primary/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest px-4"
             >
               {running ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

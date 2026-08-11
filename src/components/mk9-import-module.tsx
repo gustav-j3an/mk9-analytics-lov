@@ -237,7 +237,7 @@ export function Mk9ImportModule({
 
       <Mk9Panel>
         <div className="flex items-center gap-2 mb-6">
-          <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
+          <div className="p-2 rounded-lg bg-primary/10 text-command-purple">
             <Upload className="h-5 w-5" />
           </div>
           <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
@@ -524,7 +524,7 @@ export function Mk9ImportModule({
 
       <Mk9Panel className="relative">
         <div className="flex items-center gap-2 mb-6">
-          <div className="p-2 rounded-lg bg-command-purple/10 text-command-purple">
+          <div className="p-2 rounded-lg bg-primary/10 text-command-purple">
             <Clock className="h-5 w-5" />
           </div>
           <h3 className="text-sm font-black text-foreground uppercase tracking-widest">

@@ -71,7 +71,7 @@ export function Mk9PromotersModule() {
         actions={
           <Button
             onClick={() => setShowCreate(true)}
-            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-mk9-accent-primary/20 border-none"
+            className="bg-primary hover:bg-primary/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-sm border-none"
           >
             <Plus className="h-4 w-4 mr-2" /> Novo Promotor
           </Button>

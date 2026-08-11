@@ -328,25 +328,25 @@ export function Mk9AuditModule({
             <TabsList className="flex md:flex-wrap h-auto bg-muted/50 border border-border/50 p-1 w-max md:w-auto">
               <TabsTrigger
                 value="industry"
-                className="data-[state=active]:bg-command-purple data-[state=active]:text-foreground uppercase text-[10px] font-black tracking-widest"
+                className="data-[state=active]:bg-primary data-[state=active]:text-foreground uppercase text-[10px] font-black tracking-widest"
               >
                 Por Indústria
               </TabsTrigger>
               <TabsTrigger
                 value="store"
-                className="data-[state=active]:bg-command-purple data-[state=active]:text-foreground uppercase text-[10px] font-black tracking-widest"
+                className="data-[state=active]:bg-primary data-[state=active]:text-foreground uppercase text-[10px] font-black tracking-widest"
               >
                 Por Loja
               </TabsTrigger>
               <TabsTrigger
                 value="promoter"
-                className="data-[state=active]:bg-command-purple data-[state=active]:text-foreground uppercase text-[10px] font-black tracking-widest"
+                className="data-[state=active]:bg-primary data-[state=active]:text-foreground uppercase text-[10px] font-black tracking-widest"
               >
                 Por Promotor
               </TabsTrigger>
               <TabsTrigger
                 value="review"
-                className="data-[state=active]:bg-command-purple data-[state=active]:text-foreground uppercase text-[10px] font-black tracking-widest"
+                className="data-[state=active]:bg-primary data-[state=active]:text-foreground uppercase text-[10px] font-black tracking-widest"
               >
                 Revisão Manual
               </TabsTrigger>

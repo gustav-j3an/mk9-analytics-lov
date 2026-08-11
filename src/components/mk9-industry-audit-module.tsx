@@ -225,7 +225,7 @@ export function Mk9IndustryAuditModule() {
           </Table>
         </div>
 
-        <div className="mt-8 p-6 bg-command-purple/5 border border-command-purple/20 rounded-xl space-y-4">
+        <div className="mt-8 p-6 bg-primary/5 border border-command-purple/20 rounded-xl space-y-4">
           <div className="flex items-center gap-2 text-command-purple">
             <Info className="h-5 w-5" />
             <h3 className="font-black uppercase tracking-widest text-xs">Resumo do Diagnóstico</h3>

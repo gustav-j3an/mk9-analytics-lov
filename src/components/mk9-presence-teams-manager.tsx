@@ -101,7 +101,7 @@ export function PresenceTeamsManager() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Configurar Equipes</h2>
-        <Button onClick={() => setIsDialogOpen(true)} size="sm" className="bg-command-purple">
+        <Button onClick={() => setIsDialogOpen(true)} size="sm" className="bg-primary">
           <Plus className="w-4 h-4 mr-2" /> NOVA EQUIPE
         </Button>
       </div>
@@ -352,7 +352,7 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
                       key={member.id} 
                       className={cn(
                         "bg-white/[0.03] border rounded-lg p-3 flex items-center justify-between cursor-pointer transition-all",
-                        isSelected ? "border-command-purple/50 bg-command-purple/5" : "border-border/50 hover:border-white/20",
+                        isSelected ? "border-command-purple/50 bg-primary/5" : "border-border/50 hover:border-white/20",
                         inOtherTeam && !isSelected && "opacity-70"
                       )}
                       onClick={() => toggleSelect(member.id)}
@@ -361,7 +361,7 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
                         <div className="flex items-center gap-2">
                           <div className={cn(
                             "w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors",
-                            isSelected ? "bg-command-purple border-command-purple" : "border-white/20 bg-background/40"
+                            isSelected ? "bg-primary border-command-purple" : "border-white/20 bg-background/40"
                           )}>
                             {isSelected && <CheckCircle2 className="w-2.5 h-2.5 text-foreground" />}
                           </div>
@@ -386,7 +386,7 @@ function TeamMemberManager({ teamId, open, onClose }: { teamId: string, open: bo
             </div>
 
             <Button 
-              className="w-full bg-command-purple hover:bg-command-purple/80 text-foreground font-black uppercase text-[10px] tracking-widest h-9"
+              className="w-full bg-primary hover:bg-primary/80 text-foreground font-black uppercase text-[10px] tracking-widest h-9"
               disabled={selectedPromoterIds.length === 0 || addMutation.isPending}
               onClick={handleAddSelected}
             >

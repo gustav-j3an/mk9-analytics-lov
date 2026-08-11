@@ -357,7 +357,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
               <Button
                 onClick={() => downloadPdf("unattended")}
                 disabled={!!downloading}
-                className="h-9 w-full sm:w-auto bg-command-purple hover:bg-command-purple/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest"
+                className="h-9 w-full sm:w-auto bg-primary hover:bg-primary/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest"
               >
                 {downloading === "unattended" ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -626,7 +626,7 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
             CANCELAR
           </Button>
           <Button
-            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-foreground font-bold"
+            className="bg-primary hover:bg-primary/90 text-foreground font-bold"
             onClick={() =>
               mut.mutate({
                 industryId,
