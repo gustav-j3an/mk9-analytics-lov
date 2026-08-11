@@ -29,6 +29,8 @@ import { mk9RoutesListVersioned } from "../../lib/mk9-routes.functions";
 import { mk9ListPromoters } from "../../lib/mk9-data.functions";
 import { cn } from "../../lib/utils";
 import { toast } from "sonner";
+import { generatePromoterRoutePdf } from "../../lib/mk9-promoter-route-pdf.client";
+
 
 
 
