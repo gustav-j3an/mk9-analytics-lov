@@ -190,6 +190,13 @@ export function buildIndustryRows(input: {
       const expectedToDate = Math.round(contratadas * ctx.fraction);
       const lojasAtendidas = rows.filter((s) => s.realizadas > 0).length;
       const lojasContratadas = rows.filter((s) => s.contratadas > 0).length;
+
+      // Pegamos a frequência mais comum entre as lojas para exibição agregada
+      const frequencies = rows.map(r => r.frequencyLabel).filter(Boolean);
+      const frequency = frequencies.length > 0 
+        ? Array.from(new Set(frequencies)).join(", ")
+        : null;
+
       const status = classifyIndustry({
         contratadas,
         realizadas,
