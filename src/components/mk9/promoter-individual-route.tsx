@@ -9,10 +9,13 @@ import {
   Loader2,
   Search as SearchIcon,
   Users,
+  Eye,
+  Layout
 } from "lucide-react";
 import { Mk9PageHeader, Mk9Panel } from "./design-system";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { PromoterRouteDocument } from "./PromoterRouteDocument";
 import {
   Table,
   TableBody,
@@ -129,6 +132,29 @@ export function PromoterIndividualRoute() {
         <p className="text-sm text-muted-foreground animate-pulse font-black uppercase tracking-widest">
           Carregando Matriz Operacional...
         </p>
+      </div>
+    );
+  }
+
+  if (search.previewDocument === 'true') {
+    return (
+      <div className="animate-in fade-in duration-500">
+        <div className="print:hidden fixed top-4 right-4 z-50">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate({ search: { ...search, previewDocument: undefined } })}
+            className="bg-white border-slate-200 text-slate-600 hover:text-slate-900 font-black uppercase tracking-widest text-[10px]"
+          >
+            <Layout className="h-4 w-4 mr-2" />
+            Voltar para Interface
+          </Button>
+        </div>
+        <PromoterRouteDocument 
+          promoterName={promoter?.name || "N/A"}
+          referenceDate={referenceDate}
+          totalVisits={totalVisits}
+          rows={matrix}
+        />
       </div>
     );
   }
