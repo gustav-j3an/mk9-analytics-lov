@@ -51,7 +51,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "MK9 | v3.1.5" },
       {
         property: "og:description",
-        content: "MK9 Command Center v2.8.0: CHAIN NORMALIZED. Normalização automática de redes de lojas e melhorias na exportação operacional.",
+        content: "MK9 Command Center v3.1.5: ROTA PDF. Geração e download de roteiros individuais em PDF A4 Paisagem.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
