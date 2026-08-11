@@ -346,6 +346,7 @@ export function Mk9PresenceModule() {
                 <SelectValue placeholder="UF" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border text-foreground">
+                <SelectItem value="VACATION">FÉRIAS</SelectItem>
                 <SelectItem value="__ALL__">TODAS</SelectItem>
                 {ufs.map(uf => (
                   <SelectItem key={uf} value={uf}>{uf}</SelectItem>
