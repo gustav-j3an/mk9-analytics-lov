@@ -341,7 +341,7 @@ export function Mk9PresenceModule() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-border/50 bg-white/[0.02]">
+                  <tr className="border-b border-border/50 bg-muted/20">
                     <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Promotor</th>
                     <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Matrícula</th>
                     <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center w-[300px]">Status</th>
@@ -352,7 +352,7 @@ export function Mk9PresenceModule() {
                   {presenceItems.map((item) => {
                     const local = localPresence[item.id] || { status: null, observation: "" };
                     return (
-                      <tr key={item.id} className="border-b border-border/50 last:border-0 hover:bg-white/[0.02] transition-colors group">
+                      <tr key={item.id} className="border-b border-border/50 last:border-0 hover:bg-muted/10 transition-colors group">
                         <td className="px-4 py-3">
                           <div className="flex flex-col">
                             <span className="text-[11px] font-black text-foreground uppercase tracking-tighter">{item.name}</span>

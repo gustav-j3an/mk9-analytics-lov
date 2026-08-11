@@ -265,7 +265,7 @@ export function Mk9QualityModule({
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="p-4 border-b border-border/50 last:border-0 hover:bg-white/[0.02] transition-colors flex items-center justify-between group"
+                  className="p-4 border-b border-border/50 last:border-0 hover:bg-muted/10 transition-colors flex items-center justify-between group"
                 >
                   <div className="flex items-start gap-4">
                     <div

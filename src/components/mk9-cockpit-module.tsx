@@ -300,11 +300,11 @@ export function Mk9CockpitModule({
                 />
                 <RTooltip
                   contentStyle={{
-                    backgroundColor: "#111122",
-                    border: "1px solid rgba(255,255,255,0.1)",
+                    backgroundColor: "var(--popover)",
+                    border: "1px solid var(--border)",
                     borderRadius: "8px",
                   }}
-                  itemStyle={{ fontSize: "12px", color: "#fff" }}
+                  itemStyle={{ fontSize: "12px", color: "var(--popover-foreground)" }}
                 />
                 <Line
                   type="monotone"
@@ -336,7 +336,7 @@ export function Mk9CockpitModule({
               {data.priorities.map((p: any, idx: number) => (
                 <div
                   key={p.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-xl bg-white/[0.02] border border-border/50 hover:border-border transition-colors group gap-3"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-xl bg-muted/20 border border-border/50 hover:border-border transition-colors group gap-3"
                 >
                   <div className="flex items-center gap-3 md:gap-4">
                     <span className="h-7 w-7 md:h-8 md:w-8 shrink-0 rounded-lg bg-muted/50 flex items-center justify-center text-[9px] md:text-[10px] font-black text-muted-foreground">
@@ -378,7 +378,7 @@ export function Mk9CockpitModule({
                   <button
                     key={a.id}
                     onClick={() => go(a.target)}
-                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/[0.03] border border-border/50 hover:bg-command-purple/10 hover:border-command-purple/30 transition-all group"
+                    className="flex flex-col items-center justify-center p-4 rounded-2xl bg-muted/30 border border-border/50 hover:bg-command-purple/10 hover:border-command-purple/30 transition-all group"
                   >
                     <Icon className="h-6 w-6 text-muted-foreground group-hover:text-command-purple mb-2 transition-colors" />
                     <span className="text-[9px] font-black text-muted-foreground group-hover:text-foreground uppercase tracking-widest text-center">
