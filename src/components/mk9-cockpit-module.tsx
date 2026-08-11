@@ -206,11 +206,13 @@ export function Mk9CockpitModule({
                 <SelectItem value={ALL} className="text-[10px] font-bold uppercase">
                   Todos os Promotores
                 </SelectItem>
-                {promoters.map((p: any) => (
-                  <SelectItem key={p.id} value={p.id} className="text-[10px] font-bold uppercase">
-                    {p.name}
-                  </SelectItem>
-                ))}
+                {promoters
+                  .filter((p: any) => p?.id)
+                  .map((p: any) => (
+                    <SelectItem key={p.id} value={String(p.id)} className="text-[10px] font-bold uppercase">
+                      {p.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
