@@ -119,6 +119,27 @@ export function Mk9AnalyticsApp() {
   const isSupervisor = roles.includes("SUPERVISOR");
   const isAuditor = roles.includes("AUDITOR");
 
+  // Regra de Redirecionamento de Módulos Protegidos (Supervisor)
+  useEffect(() => {
+    if (!sessionLoading && isSupervisor) {
+      const protectedModules: ModuleId[] = [
+        "importacoes",
+        "checklists",
+        "qualidade",
+        "cleanup_admin",
+        "usuarios",
+        "auditoria_controle"
+      ];
+      
+      if (protectedModules.includes(activeModule)) {
+        console.warn(`[MK9-SECURITY] Supervisor tentando acessar módulo protegido: ${activeModule}. Redirecionando...`);
+        setActiveModule("dashboard");
+        toast.error("Acesso restrito: este módulo é exclusivo para administradores.");
+      }
+    }
+  }, [activeModule, isSupervisor, sessionLoading]);
+
+
   const listIndustriesFn = useServerFn(mk9ListIndustries);
   const listStoresFn = useServerFn(mk9ListStores);
   const listPromotersFn = useServerFn(mk9ListPromoters);
@@ -202,17 +223,19 @@ export function Mk9AnalyticsApp() {
                 ]},
 
                 { title: "Operação", items: [
-                  { id: "importacoes", icon: Settings2, label: "Gestão Operacional" },
-                  { id: "checklists", icon: Upload, label: "Importar Checklist" },
+                  isAdmin && { id: "importacoes", icon: Settings2, label: "Gestão Operacional" },
+                  isAdmin && { id: "checklists", icon: Upload, label: "Importar Checklist" },
                   { id: "roteiros", icon: Route, label: "Roteiros" },
                   { id: "presenca", icon: CheckCircle2, label: "Presença" },
                   { id: "diarias", icon: WalletCards, label: "Controle de Diárias" },
-                ]},
+                ].filter((item): item is Exclude<typeof item, boolean> => !!item)},
+
                 { title: "Análise e Controle", items: [
                   { id: "conciliacao", icon: ClipboardCheck, label: "Conciliação" },
-                  { id: "qualidade", icon: PackageCheck, label: "Qualidade" },
+                  isAdmin && { id: "qualidade", icon: PackageCheck, label: "Qualidade" },
                   { id: "relatorio_industria", icon: FileSpreadsheet, label: "Indústrias (PDF)" },
-                ]},
+                ].filter((item): item is Exclude<typeof item, boolean> => !!item)},
+
                 { title: "Cadastros", items: [
                   { id: "industrias", icon: Factory, label: "Indústrias" },
                   { id: "lojas", icon: Store, label: "Lojas" },

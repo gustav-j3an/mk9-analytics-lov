@@ -96,8 +96,9 @@ export const mk9DeleteImport = createServerFn({ method: "POST" })
   });
 
 export const mk9OverviewCounts = createServerFn({ method: "GET" }).handler(async () => {
-  const { requireMk9Read } = await import("@/lib/mk9-auth/read-guards.server");
-  await requireMk9Read();
+  const { requireMk9Role } = await import("./mk9-auth/require-role.server");
+  await requireMk9Role(["ADMIN"]);
+
   const { createSupabaseRepository } = await import("./mk9/persistence.server");
   const repo = createSupabaseRepository();
   const [industries, stores, promoters] = await Promise.all([

@@ -115,11 +115,12 @@ const commentArchiveSchema = z.object({
   commentId: z.string().uuid(),
 });
 
-/** Guard padrão do módulo: leitura operacional + escopo resolvido. */
+/** Guard padrão do módulo: Acesso exclusivo ADMIN. */
 async function qualitySession() {
-  const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
-  return requireMk9ReadScope();
+  const { requireMk9RoleScope } = await import("@/lib/mk9-auth/read-guards.server");
+  return requireMk9RoleScope(["ADMIN"]);
 }
+
 
 /** Painel: contagens agregadas + sinais em tempo real. */
 export const mk9QualityOverviewFn = createServerFn({ method: "POST" })
