@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listDailies, cancelDaily, deleteDaily, getDailiesExportData } from "@/lib/mk9-freelancer-dailies.functions";
+import { listDailies, cancelDaily, deleteDaily, getDailiesExportData, markAsPaid } from "@/lib/mk9-freelancer-dailies.functions";
 import { listFreelancers } from "@/lib/mk9-freelancers.functions";
 import { listSupervisors } from "@/lib/mk9-supervisors.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
@@ -412,7 +412,7 @@ export function Mk9DailiesModule() {
 function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
   const queryClient = useQueryClient();
   const listFn = useServerFn(listDailies);
-  const markPaidFn = useServerFn(require('@/lib/mk9-freelancer-dailies.functions').markAsPaid);
+  const markPaidFn = useServerFn(markAsPaid);
   const [closingFilters, setClosingFilters] = useState({
     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
