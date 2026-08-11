@@ -90,7 +90,13 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
   const [year, setYear] = useState(initialYear || new Date().getFullYear());
   const [industryId, setIndustryId] = useState("__ALL__");
   const [uf, setUf] = useState("__ALL__");
-  const [matrixCollapsed, setMatrixCollapsed] = useState(true);
+
+  const toggleAllSections = (open: boolean) => {
+    window.dispatchEvent(new CustomEvent("mk9_dashboard_section_sync", {
+      detail: { storageKey: "__ALL__", isOpen: open }
+    }));
+  };
+
 
   const analyticsFn = useServerFn(getMk9AnalyticsDashboardFn);
   const industriesFn = useServerFn(mk9ListIndustries);
