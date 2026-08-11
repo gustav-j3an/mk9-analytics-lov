@@ -4,14 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useParams, useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowLeft, Calendar, Download, Info, Loader2, Search as SearchIcon, Users, } from "lucide-react";
-import { Mk9Panel } from "@/components/mk9/design-system";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { mk9RoutesListVersioned } from "@/lib/mk9-routes.functions";
-import { mk9ListPromoters } from "@/lib/mk9-data.functions";
-import { cn } from "@/lib/utils";
+import { Mk9Panel } from "./design-system";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "../ui/table";
+import { Badge } from "../ui/badge";
+import { mk9RoutesListVersioned } from "../../lib/mk9-routes.functions";
+import { mk9ListPromoters } from "../../lib/mk9-data.functions";
+import { cn } from "../../lib/utils";
 const WEEKDAYS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
 const WEEKDAYS_FULL = [
     "Domingo",
