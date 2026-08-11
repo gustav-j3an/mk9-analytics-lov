@@ -126,7 +126,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
     uf: uf === "__ALL__" ? null : uf,
   };
 
-  const { data, isLoading, error, refetch, isFetching } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["mk9-analytics-data", year, month, industryId, uf],
     queryFn: () => analyticsFn({ data: params }),
     staleTime: 60000,
@@ -184,9 +184,9 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
-                <DropdownMenuItem onClick={() => toggleAllSections(true)} className="text-xs font-bold uppercase tracking-tighter">Expandir tudo</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => toggleAllSections(false)} className="text-xs font-bold uppercase tracking-tighter">Recolher tudo</DropdownMenuItem>
-                <DropdownMenuItem onClick={restoreDefaults} className="text-xs font-bold uppercase tracking-tighter">Restaurar padrão</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => toggleAllSections(true)} className="text-xs font-bold uppercase tracking-tighter cursor-pointer">Expandir tudo</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => toggleAllSections(false)} className="text-xs font-bold uppercase tracking-tighter cursor-pointer">Recolher tudo</DropdownMenuItem>
+                <DropdownMenuItem onClick={restoreDefaults} className="text-xs font-bold uppercase tracking-tighter cursor-pointer">Restaurar padrão</DropdownMenuItem>
             </DropdownMenuContent>
          </DropdownMenu>
       </div>
@@ -228,7 +228,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__ALL__">Todas as Indústrias</SelectItem>
-                {industries.map(ind => (
+                {(industriesQ.data || []).map(ind => (
                   <SelectItem key={ind.id} value={ind.id}>{ind.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -243,7 +243,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
               <SelectContent>
                 <SelectItem value="__ALL__">Todas as UFs</SelectItem>
                 {ufs.map(u => (
-                  <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                  <SelectItem key={u.uf} value={u.uf}>{u.uf}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -338,23 +338,17 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
       {/* VISITAS E COBERTURA */}
       <CollapsibleDashboardSection title="Visitas e Cobertura" storageKey="visits" defaultOpen={true}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <AnalyticsChartCard title="Evolução de Visitas Realizadas" subtitle="Comparativo de volume operacional">
+          <AnalyticsChartCard title="Evolução de Cobertura por Indústria" subtitle="Top 5 melhores performances">
             <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={data.perf?.visitHistory || []}>
-                <defs>
-                  <linearGradient id="colorRealized" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
+              <BarChart data={industries.slice(0, 5)}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="date" stroke="rgba(255,255,255,0.3)" fontSize={10} axisLine={false} tickLine={false} />
+                <XAxis dataKey="industryName" stroke="rgba(255,255,255,0.3)" fontSize={10} axisLine={false} tickLine={false} />
                 <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} axisLine={false} tickLine={false} />
                 <RechartsTooltip 
                   contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', fontSize: '10px' }}
                 />
-                <Area type="monotone" dataKey="realized" stroke="var(--primary)" fillOpacity={1} fill="url(#colorRealized)" />
-              </AreaChart>
+                <Bar dataKey="coverage.current" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </AnalyticsChartCard>
 
@@ -384,18 +378,14 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
       </CollapsibleDashboardSection>
 
       {/* MATRIZ DE EXECUÇÃO */}
-      <CollapsibleDashboardSection title="Matriz de Execução" subtitle="Lojas por frequência contratada e cobertura" storageKey="matrix" defaultOpen={false}>
+      <CollapsibleDashboardSection title="Matriz de Execução" subtitle="Distribuição por frequência e cobertura" storageKey="matrix" defaultOpen={false}>
         <div className="glass-command rounded-2xl overflow-hidden border border-border/50">
           <AnalyticsTable 
-            headers={["Frequência", "Total Lojas", "Contratadas", "Realizadas", "Cobertura"]}
+            headers={["Frequência", "Faixa de Cobertura", "Total Lojas"]}
             rows={matrix.map(row => [
               <span className="font-bold uppercase tracking-widest text-[10px]">{row.frequency}</span>,
-              <span className="font-black text-foreground">{row.totalStores}</span>,
-              <span className="font-bold text-muted-foreground">{nf(row.contracted)}</span>,
-              <span className="font-black text-primary">{nf(row.realized)}</span>,
-              <Mk9Badge variant={row.coverage >= 90 ? "success" : row.coverage >= 70 ? "warning" : "error"}>
-                {formatPercentage(row.coverage)}
-              </Mk9Badge>
+              <span className="font-bold text-muted-foreground">{row.coverageLabel}</span>,
+              <span className="font-black text-primary">{nf(row.count)}</span>
             ])}
           />
         </div>
@@ -403,16 +393,16 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
 
       {/* DISTRIBUIÇÃO DE FREQUÊNCIA */}
       <CollapsibleDashboardSection title="Distribuição de Frequência" storageKey="distribution" defaultOpen={false}>
-        <AnalyticsChartCard title="Lote Operacional" subtitle="Volume de visitas por tipo de atendimento" height={400}>
+        <AnalyticsChartCard title="Lote Operacional" subtitle="Volume de lojas por frequência contratada" height={400}>
           <ResponsiveContainer width="100%" height="100%">
              <BarChart data={frequencies}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" fontSize={10} axisLine={false} tickLine={false} />
+                <XAxis dataKey="frequency" stroke="rgba(255,255,255,0.3)" fontSize={10} axisLine={false} tickLine={false} />
                 <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} axisLine={false} tickLine={false} />
                 <RechartsTooltip 
                    contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px', fontSize: '10px' }}
                 />
-                <Bar dataKey="visits" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="stores" fill="var(--primary)" radius={[4, 4, 0, 0]} />
              </BarChart>
           </ResponsiveContainer>
         </AnalyticsChartCard>
@@ -423,14 +413,13 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
         <CollapsibleDashboardSection title="Top Prioridades" storageKey="top_priorities" defaultOpen={false}>
           <div className="glass-command rounded-2xl border border-border/50">
             <AnalyticsTable 
-              headers={["Loja", "Indústria", "Pendentes"]}
+              headers={["Loja", "Indústria", "Motivo"]}
               rows={topPriorities.slice(0, 10).map(p => [
                 <div className="flex flex-col">
                   <span className="font-bold text-foreground text-[10px] uppercase truncate max-w-[150px]">{p.storeName}</span>
-                  <span className="text-[9px] text-muted-foreground uppercase">{p.uf}</span>
                 </div>,
                 <span className="text-[9px] font-black text-muted-foreground uppercase">{p.industryName}</span>,
-                <Mk9Badge variant="error">{p.pendingCount}</Mk9Badge>
+                <Mk9Badge variant="danger">{p.reason}</Mk9Badge>
               ])}
             />
           </div>
@@ -439,15 +428,14 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
         <CollapsibleDashboardSection title="Lojas Reincidentes" storageKey="recurring_stores" defaultOpen={false}>
            <div className="glass-command rounded-2xl border border-border/50">
             <AnalyticsTable 
-              headers={["Loja", "Frequência", "Score Risco"]}
-              rows={data.perf?.recurringIssues?.slice(0, 10).map((issue: any) => [
-                <span className="font-bold text-foreground text-[10px] uppercase truncate max-w-[150px]">{issue.storeName}</span>,
-                <span className="text-[9px] font-black text-muted-foreground uppercase">{issue.frequency}</span>,
+              headers={["Loja", "Frequência", "Status"]}
+              rows={data.recurrence?.slice(0, 10).map((rec: any) => [
+                <span className="font-bold text-foreground text-[10px] uppercase truncate max-w-[150px]">{rec.storeName}</span>,
+                <span className="text-[9px] font-black text-muted-foreground uppercase">{rec.currentFrequency}x</span>,
                 <div className="flex items-center gap-2 justify-end">
-                   <div className="h-1.5 w-12 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-rose-500" style={{ width: `${issue.riskScore}%` }} />
-                   </div>
-                   <span className="text-[9px] font-black text-rose-500">{issue.riskScore}%</span>
+                   <Mk9Badge variant={rec.status === "CRITICAL_RECURRENT" ? "danger" : "warning"}>
+                      {rec.status}
+                   </Mk9Badge>
                 </div>
               ]) || []}
             />
