@@ -380,19 +380,22 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                     </Label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-background/40 rounded-md">
                       {industriesQ.data?.map((ind: any) => (
-                        <div key={ind.id} className="flex items-center space-x-2">
+                        <div 
+                          key={ind.id} 
+                          className="flex items-center space-x-2 hover:bg-muted/50 p-1 rounded transition-colors cursor-pointer group"
+                          onClick={() => toggleIndustry(idx, ind.id)}
+                        >
                           <Checkbox 
                             id={`ind-${idx}-${ind.id}`}
                             checked={item.industryIds.includes(ind.id)}
-                            onCheckedChange={() => toggleIndustry(idx, ind.id)}
-                            className="border-white/20 data-[state=checked]:bg-command-purple data-[state=checked]:border-command-purple"
+                            onCheckedChange={() => {}} // Controlled by the parent div click
+                            className="border-white/20 data-[state=checked]:bg-command-purple data-[state=checked]:border-command-purple pointer-events-none"
                           />
-                          <label 
-                            htmlFor={`ind-${idx}-${ind.id}`}
-                            className="text-xs text-foreground/80 cursor-pointer select-none"
+                          <span 
+                            className="text-xs text-foreground/80 select-none group-hover:text-foreground transition-colors"
                           >
                             {ind.name}
-                          </label>
+                          </span>
                         </div>
                       ))}
                     </div>
