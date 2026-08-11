@@ -142,7 +142,7 @@ export function Mk9AnalyticsApp() {
       <div className="md:hidden h-14 shrink-0 bg-card border-b border-border flex items-center justify-between px-4 z-30">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary">
-            <ShieldCheck className="text-white h-4 w-4" />
+            <ShieldCheck className="text-white dark:text-foreground h-4 w-4" />
           </div>
           <span className="font-black tracking-tighter text-sm text-foreground">MK9</span>
         </div>
@@ -177,7 +177,7 @@ export function Mk9AnalyticsApp() {
           )}>
               <div className={cn("flex items-center gap-2 overflow-hidden transition-all duration-300", collapsed && "w-8 shrink-0")}>
                 <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary shrink-0">
-                  <ShieldCheck className="text-white h-5 w-5" />
+                  <ShieldCheck className="text-white dark:text-foreground h-5 w-5" />
                 </div>
                 {!collapsed && (
                   <span className="font-black tracking-tighter text-lg text-foreground whitespace-nowrap">
