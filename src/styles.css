@@ -63,43 +63,43 @@
   --accent-orange: oklch(0.70 0.15 65);
   --accent-red: oklch(0.62 0.20 27);
 
-  /* Light Theme (Base) */
-  --background: oklch(0.995 0.002 260);
-  --foreground: oklch(0.20 0.03 260);
+  /* Light Theme (Base) - Refined for "Native" look */
+  --background: oklch(0.99 0.005 260);
+  --foreground: oklch(0.18 0.04 260); /* Navy/Dark Gray text */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.20 0.03 260);
+  --card-foreground: oklch(0.18 0.04 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.20 0.03 260);
+  --popover-foreground: oklch(0.18 0.04 260);
   
   --primary: var(--accent-purple); /* Default */
   --primary-foreground: oklch(0.99 0.003 260);
 
-  --secondary: oklch(0.97 0.006 260);
-  --secondary-foreground: oklch(0.28 0.03 260);
-  --muted: oklch(0.972 0.005 260);
-  --muted-foreground: oklch(0.52 0.02 260);
-  --accent: oklch(0.965 0.012 255);
-  --accent-foreground: oklch(0.30 0.05 260);
-  --destructive: oklch(0.62 0.20 27);
+  --secondary: oklch(0.96 0.01 260);
+  --secondary-foreground: oklch(0.25 0.05 260);
+  --muted: oklch(0.95 0.01 260);
+  --muted-foreground: oklch(0.45 0.03 260); /* Bluish Gray */
+  --accent: oklch(0.96 0.02 255);
+  --accent-foreground: oklch(0.25 0.05 260);
+  --destructive: oklch(0.55 0.20 27);
   --destructive-foreground: oklch(0.99 0.003 260);
-  --border: oklch(0.93 0.007 260);
-  --input: oklch(0.93 0.007 260);
+  --border: oklch(0.91 0.01 260);
+  --input: oklch(0.91 0.01 260);
   --ring: var(--primary);
 
   --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.28 0.03 260);
+  --sidebar-foreground: oklch(0.25 0.05 260);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: oklch(0.99 0.003 260);
-  --sidebar-accent: oklch(0.96 0.012 255);
-  --sidebar-accent-foreground: oklch(0.30 0.05 260);
+  --sidebar-accent: oklch(0.97 0.01 255);
+  --sidebar-accent-foreground: oklch(0.20 0.06 260);
   --sidebar-border: oklch(0.93 0.007 260);
   --sidebar-ring: var(--primary);
 
-  /* MK9 Legacy Compatibility */
+  /* MK9 Legacy Compatibility - Optimized for Light Mode */
   --mk9-bg-primary: var(--background);
-  --mk9-bg-secondary: oklch(0.98 0.002 260);
-  --mk9-surface: oklch(0.96 0.002 260);
-  --mk9-border: oklch(0.92 0.002 260);
+  --mk9-bg-secondary: oklch(0.98 0.005 260);
+  --mk9-surface: oklch(0.96 0.008 260);
+  --mk9-border: oklch(0.88 0.01 260);
   --mk9-text-primary: var(--foreground);
   --mk9-text-secondary: var(--muted-foreground);
 }
@@ -118,7 +118,7 @@
   --secondary: oklch(0.20 0.03 260);
   --secondary-foreground: oklch(0.98 0.005 260);
   --muted: oklch(0.20 0.03 260);
-  --muted-foreground: oklch(0.85 0.02 260);
+  --muted-foreground: oklch(0.70 0.02 260);
   --accent: oklch(0.22 0.04 260);
   --accent-foreground: oklch(0.98 0.005 260);
   --border: oklch(1 0 0 / 12%);
@@ -134,11 +134,13 @@
   --sidebar-border: oklch(1 0 0 / 12%);
   --sidebar-ring: var(--primary);
 
-  /* MK9 Legacy */
+  /* MK9 Legacy - Optimized for Dark Mode */
   --mk9-bg-primary: oklch(0.10 0.02 260);
   --mk9-bg-secondary: oklch(0.14 0.025 260);
   --mk9-surface: oklch(0.18 0.025 260);
   --mk9-border: oklch(1 0 0 / 8%);
+  --mk9-text-primary: var(--foreground);
+  --mk9-text-secondary: var(--muted-foreground);
 }
 
 /* Dynamic Accent Colors */
