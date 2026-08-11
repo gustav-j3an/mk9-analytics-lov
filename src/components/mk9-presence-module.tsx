@@ -145,7 +145,10 @@ export function Mk9PresenceModule() {
     if (!presenceItems) return;
     const newState = { ...localPresence };
     presenceItems.forEach(item => {
-      newState[item.id] = { ...newState[item.id], status: 'PRESENT' };
+      // Somente quem está "Não Marcado" recebe Presente
+      if (!newState[item.id] || newState[item.id].status === null) {
+        newState[item.id] = { ...newState[item.id], status: 'PRESENT' };
+      }
     });
     setLocalPresence(newState);
   };
