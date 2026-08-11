@@ -302,7 +302,7 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       FREELANCER: d.freelancer?.name,
       LOJA: it.store?.name,
       REDE: it.store?.chain || "-",
-      UF: it.store?.uf || "-",
+      LOJA_UF: it.store?.uf || "-",
       INDÚSTRIA: it.industry?.name,
       "VALOR DA DIÁRIA": Number(d.amount),
       STATUS: d.status,
