@@ -51,8 +51,8 @@ export const createDaily = createServerFn({ method: "POST" })
     notes: z.string().optional().nullable(),
     items: z.array(z.object({
       storeId: z.string().uuid(),
-      industryIds: z.array(z.string().uuid()).min(1, "Selecione pelo menos uma indústria para esta loja")
-    })).min(1, "Adicione pelo menos um atendimento")
+      industryIds: z.array(z.string().uuid())
+    })).optional().default([])
   }))
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN', 'SUPERVISOR']);
@@ -117,8 +117,8 @@ export const updateDaily = createServerFn({ method: "POST" })
     notes: z.string().optional().nullable(),
     items: z.array(z.object({
       storeId: z.string().uuid(),
-      industryIds: z.array(z.string().uuid()).min(1, "Selecione pelo menos uma indústria para esta loja")
-    })).min(1, "Adicione pelo menos um atendimento")
+      industryIds: z.array(z.string().uuid())
+    })).optional().default([])
   }))
   .handler(async ({ data }) => {
     const ctx = await requireMk9Role(['ADMIN', 'SUPERVISOR']);

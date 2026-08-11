@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -26,12 +26,8 @@ import {
 } from "@/lib/mk9-freelancer-dailies.functions";
 import { listFreelancers } from "@/lib/mk9-freelancers.functions";
 import { listSupervisors } from "@/lib/mk9-supervisors.functions";
-import { mk9ListIndustries } from "@/lib/mk9-data.functions";
-import { Mk9StoreAutocomplete } from "@/components/mk9/store-autocomplete";
-import { Loader2, Plus, Trash2, Info } from "lucide-react";
+import { Loader2, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface DailyFormProps {
   daily?: any;
@@ -45,7 +41,6 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
   const updateFn = useServerFn(updateDaily);
   const freelancersFn = useServerFn(listFreelancers);
   const supervisorsFn = useServerFn(listSupervisors);
-  const industriesFn = useServerFn(mk9ListIndustries);
 
   const [formData, setFormData] = useState<any>({
     freelancerId: "",
@@ -71,12 +66,6 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
     enabled: open
   });
 
-  const industriesQ = useQuery({
-    queryKey: ["mk9-industries-list"],
-    queryFn: () => industriesFn(),
-    enabled: open
-  });
-
   useEffect(() => {
     if (daily) {
       setFormData({
@@ -90,11 +79,11 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
         notes: daily.notes || "",
         items: daily.items?.map((it: any) => ({
           storeId: it.store_id,
-          industryIds: [it.industry_id] // We'll group them by store in a moment
+          industryIds: [it.industry_id]
         })) || []
       });
       
-      // Group items by store for the UI
+      // Group items if needed (preserving data but not showing in form)
       if (daily.items) {
         const grouped: any[] = [];
         daily.items.forEach((it: any) => {
@@ -149,60 +138,10 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
     }
   });
 
-  const addItem = () => {
-    setFormData((prev: any) => ({
-      ...prev,
-      items: [...(prev.items || []), { storeId: "", industryIds: [] as string[] }]
-    }));
-
-  };
-
-  const removeItem = (index: number) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      items: prev.items.filter((_: any, i: number) => i !== index)
-    }));
-  };
-
-  const updateItem = (index: number, updates: any) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      items: prev.items.map((it: any, i: number) => i === index ? { ...it, ...updates } : it)
-    }));
-  };
-
-  const toggleIndustry = (itemIndex: number, industryId: string) => {
-    setFormData((prev: any) => {
-      const newItems = [...(prev.items || [])];
-      const item = { ...newItems[itemIndex] };
-      
-      // Garantir que industryIds seja sempre um array
-      const currentIndustries = Array.isArray(item.industryIds) ? item.industryIds : [];
-      
-      const exists = currentIndustries.includes(industryId);
-      item.industryIds = exists
-        ? currentIndustries.filter((id: string) => id !== industryId)
-        : [...currentIndustries, industryId];
-        
-      newItems[itemIndex] = item;
-      return { ...prev, items: newItems };
-    });
-  };
-
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.freelancerId) {
       toast.error("Selecione um freelancer");
-      return;
-    }
-    if (formData.items.length === 0) {
-      toast.error("Adicione pelo menos um atendimento");
-      return;
-    }
-    const invalidItem = formData.items.some((it: any) => !it.storeId || it.industryIds.length === 0);
-    if (invalidItem) {
-      toast.error("Preencha a loja e selecione indústrias para todos os atendimentos");
       return;
     }
     mutation.mutate(formData);
@@ -210,7 +149,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-popover border-border text-foreground">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-popover border-border text-foreground">
         <DialogHeader>
           <DialogTitle>{daily ? "Editar Diária" : "Nova Diária"}</DialogTitle>
         </DialogHeader>
@@ -237,18 +176,6 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                   {freelancersQ.data?.length === 0 ? (
                     <div className="p-2 text-xs text-muted-foreground text-center">
                       Nenhum freelancer ativo.
-                      <Button 
-                        variant="link" 
-                        size="sm" 
-                        className="text-command-purple h-auto p-1 block w-full"
-                        onClick={() => {
-                          onOpenChange(false);
-                          // We'll trust the user to navigate or we can try to provide a better UX
-                          // For now, let's just show the message as requested in point 33
-                        }}
-                      >
-                        Cadastrar Freelancer
-                      </Button>
                     </div>
                   ) : (
                     freelancersQ.data?.map((f: any) => (
@@ -351,92 +278,16 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
             )}
           </div>
 
-          <div className="space-y-4">
-            <div className="flex justify-between items-center border-b border-border/50 pb-2">
-              <Label className="text-lg font-bold">Atendimentos</Label>
-              <Button type="button" variant="outline" size="sm" onClick={addItem} className="border-border hover:bg-accent">
-                <Plus className="w-4 h-4 mr-1" /> Adicionar Loja
-              </Button>
+          {/* TEMPORARILY REMOVED: Atendimentos (Lojas/Indústrias) */}
+          <div className="p-6 rounded-lg border border-dashed border-border/50 bg-muted/20 flex flex-col items-center justify-center text-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Info className="h-5 w-5 text-primary" />
             </div>
-
-            <div className="space-y-4">
-              {formData.items.map((item: any, idx: number) => (
-                <div key={idx} className="p-4 rounded-lg bg-muted/50 border border-border space-y-4 relative">
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon" 
-                    className="absolute top-2 right-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                    onClick={() => removeItem(idx)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-
-                  <div className="space-y-2 pr-8">
-                    <Label className="flex items-center gap-1.5">
-                      Loja*
-                      <Badge variant="outline" className="text-[9px] px-1 h-4 bg-blue-500/10 text-blue-500 border-none">UNIDADE OPERACIONAL</Badge>
-                    </Label>
-                    <Mk9StoreAutocomplete 
-                      value={item.storeId} 
-                      onChange={(store) => updateItem(idx, { 
-                        storeId: store.id,
-                        _storeLabel: store.name // Armazenamos o label localmente para exibição estável
-                      })}
-                      placeholder="Pesquisar loja por nome, rede, cidade ou UF..."
-                    />
-                    {item._storeLabel && item.storeId && (
-                      <div className="text-[10px] font-bold text-primary px-1 mt-1">
-                        SELECIONADO: {item._storeLabel}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-1.5">
-                      Indústrias*
-                      <Badge variant="outline" className="text-[9px] px-1 h-4 bg-emerald-500/10 text-emerald-500 border-none">CONTRATANTES</Badge>
-                    </Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-background/40 rounded-md">
-                      {industriesQ.data?.map((ind: any) => {
-                        const isChecked = Array.isArray(item.industryIds) && item.industryIds.includes(ind.id);
-                        return (
-                          <div 
-                            key={`attendance-${idx}-industry-${ind.id}`} 
-                            className="flex items-center space-x-2 hover:bg-muted/50 p-1 rounded transition-colors cursor-pointer group"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              toggleIndustry(idx, ind.id);
-                            }}
-                          >
-                            <Checkbox 
-                              id={`ind-${idx}-${ind.id}`}
-                              checked={isChecked}
-                              onCheckedChange={() => {}} // Controlled by click on parent
-                              className="border-white/20 data-[state=checked]:bg-command-purple data-[state=checked]:border-command-purple pointer-events-none"
-                            />
-                            <label 
-                              htmlFor={`ind-${idx}-${ind.id}`}
-                              className="text-xs text-foreground/80 select-none group-hover:text-foreground transition-colors pointer-events-none"
-                            >
-                              {ind.name}
-                            </label>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-
-                  </div>
-                </div>
-              ))}
-              
-              {formData.items.length === 0 && (
-                <div className="text-center py-8 border-2 border-dashed border-border/50 rounded-lg text-muted-foreground italic">
-                  Nenhuma loja adicionada.
-                </div>
-              )}
+            <div className="space-y-1">
+              <p className="text-xs font-black uppercase tracking-widest text-foreground/80">Gestão de Atendimentos</p>
+              <p className="text-[10px] text-muted-foreground font-medium italic">
+                Os atendimentos serão configurados após o cadastro inicial da diária.
+              </p>
             </div>
           </div>
 
@@ -456,7 +307,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
             </Button>
             <Button type="submit" className="bg-command-purple hover:bg-command-purple/80" disabled={mutation.isPending}>
               {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {daily ? "Salvar Diária" : "Registrar Diária"}
+              {daily ? "Salvar Alterações" : "Criar Diária"}
             </Button>
           </DialogFooter>
         </form>
