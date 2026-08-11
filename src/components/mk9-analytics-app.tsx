@@ -438,6 +438,7 @@ export function Mk9AnalyticsApp() {
         </section>
       </div>
     </main>
+    </TooltipProvider>
   );
 }
 
