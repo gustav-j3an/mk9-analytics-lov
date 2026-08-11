@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Mk9SessionProvider } from "@/lib/mk9-auth/session";
+import { ThemeProvider } from "@/lib/mk9-theme/ThemeContext";
 import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
@@ -142,9 +143,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Mk9SessionProvider>
-        <Outlet />
-      </Mk9SessionProvider>
+      <ThemeProvider>
+        <Mk9SessionProvider>
+          <Outlet />
+        </Mk9SessionProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
