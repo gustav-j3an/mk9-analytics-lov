@@ -188,7 +188,7 @@ export function PromoterIndividualRoute() {
             </div>
             <div>
               <h1 className="text-2xl font-black tracking-tighter text-foreground uppercase">
-                Rota Individual
+                Rota Individual [REAL-V3.1.5]
               </h1>
               <p className="text-sm text-muted-foreground font-medium">
                 {promoter?.name || "Promotor não encontrado"}
