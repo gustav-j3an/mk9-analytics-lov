@@ -23,7 +23,7 @@ export const listDailies = createServerFn({ method: "GET" })
         items:mk9_freelancer_daily_items(
           *,
           store:mk9_stores(*),
-          industry:mk9_industries(*)
+          industry:mk9_industries(id,name)
         )
       `)
       .order('date', { ascending: false });
