@@ -388,26 +388,42 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                       <Badge variant="outline" className="text-[9px] px-1 h-4 bg-emerald-500/10 text-emerald-500 border-none">CONTRATANTES</Badge>
                     </Label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-background/40 rounded-md">
-                      {industriesQ.data?.map((ind: any) => (
-                        <div 
-                          key={ind.id} 
-                          className="flex items-center space-x-2 hover:bg-muted/50 p-1 rounded transition-colors cursor-pointer group"
-                          onClick={() => toggleIndustry(idx, ind.id)}
-                        >
-                          <Checkbox 
-                            id={`ind-${idx}-${ind.id}`}
-                            checked={(item.industryIds || []).includes(ind.id)}
-                            onCheckedChange={() => {}} // Controlled by the parent div click
-                            className="border-white/20 data-[state=checked]:bg-command-purple data-[state=checked]:border-command-purple pointer-events-none"
-                          />
-                          <span 
-                            className="text-xs text-foreground/80 select-none group-hover:text-foreground transition-colors"
+                      {industriesQ.data?.map((ind: any) => {
+                        const isChecked = Array.isArray(item.industryIds) && item.industryIds.includes(ind.id);
+                        return (
+                          <div 
+                            key={`attendance-${idx}-industry-${ind.id}`} 
+                            className="flex items-center space-x-2 hover:bg-muted/50 p-1 rounded transition-colors cursor-pointer group"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log(`[DEBUG] Toggling industry ${ind.id} for attendance ${idx}`);
+                              toggleIndustry(idx, ind.id);
+                            }}
                           >
-                            {ind.name}
-                          </span>
-                        </div>
-                      ))}
+                            <input 
+                              type="checkbox"
+                              id={`ind-${idx}-${ind.id}`}
+                              checked={isChecked}
+                              onChange={() => {}} // Controlled by click on parent
+                              className="w-4 h-4 rounded border-gray-300 text-command-purple focus:ring-command-purple pointer-events-none"
+                            />
+                            <label 
+                              htmlFor={`ind-${idx}-${ind.id}`}
+                              className="text-xs text-foreground/80 select-none group-hover:text-foreground transition-colors pointer-events-none"
+                            >
+                              {ind.name}
+                            </label>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Debug Temporário */}
+                      <div className="col-span-full mt-2 pt-2 border-t border-border/30 text-[9px] font-mono text-muted-foreground">
+                        DEBUG: Store: {item.storeId || "null"} | IDs: {JSON.stringify(item.industryIds || [])}
+                      </div>
                     </div>
+
                   </div>
                 </div>
               ))}
