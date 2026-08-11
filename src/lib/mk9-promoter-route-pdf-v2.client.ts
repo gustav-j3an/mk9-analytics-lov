@@ -8,37 +8,6 @@ import autoTable from "jspdf-autotable";
  * deve ser chamado via autoTable(doc, options) importado nominalmente.
  */
 
-// Funções de teste para diagnóstico (mantidas temporariamente)
-export function testJsPdfSimple() {
-  try {
-    console.log("[DEBUG_PDF] Iniciando teste jsPDF simples...");
-    const doc = new jsPDF();
-    doc.text("MK9 TESTE SIMPLES", 10, 10);
-    doc.save("teste-simples.pdf");
-    console.log("[DEBUG_PDF] Sucesso no teste jsPDF simples.");
-    return true;
-  } catch (e: any) {
-    console.error("[DEBUG_PDF] Erro no jsPDF simples:", e);
-    throw e;
-  }
-}
-
-export function testAutoTableSimple() {
-  try {
-    console.log("[DEBUG_PDF] Iniciando teste autoTable simples...");
-    const doc = new jsPDF();
-    autoTable(doc, {
-      head: [['ID', 'NOME']],
-      body: [['1', 'TESTE']],
-    });
-    doc.save("teste-autotable.pdf");
-    console.log("[DEBUG_PDF] Sucesso no teste autoTable simples.");
-    return true;
-  } catch (e: any) {
-    console.error("[DEBUG_PDF] Erro no autoTable simples:", e);
-    throw e;
-  }
-}
 
 
 
