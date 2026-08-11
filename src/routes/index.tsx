@@ -31,7 +31,7 @@ Personalização global de temas (Light/Dark) com tokens oklch semânticos. Acce
 - **Light Mode Corrected (v1.8.1):** Correção sistêmica de contraste em Selects, Inputs, Dropdowns e DatePickers, eliminando textos brancos sobre fundo claro.
 - **Freelancers & Global UI (v1.8.4):** Estabilização do módulo de Freelancers, botões globais e componentes de Empty State para legibilidade total no tema claro.
 - **Dashboard Optimized (v1.8.7):** Matriz de Execução recolhível por padrão e correção de reatividade na sidebar.
-- **Diárias Stabilized (v1.8.8):** Correção de crash crítico na seleção de indústrias e melhoria na persistência visual da loja selecionada.
+- **Diárias Integradas (v1.9.2):** Atendimentos (Loja + N Indústrias) persistidos e validados no backend. Edição resiliente com re-sincronização de itens.
 
 ## Processo obrigatório de conclusão de tarefa
 Reproduzir -> achar causa raiz -> identificar arquivo/função -> corrigir -> validar no preview (login, dashboard, sidebar, rota afetada, refresh) — só então considerar concluído.
@@ -60,16 +60,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v1.8.9 — MODULAR DASHBOARD",
+    title: "MK9 | v1.9.2 — ATENDIMENTOS INTEGRADOS",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v1.8.9: MODULAR DASHBOARD. Seções recolhíveis, persistentes e otimizadas para monitoramento de alta densidade.",
+        content: "MK9 Command Center v1.9.2: ATENDIMENTOS INTEGRADOS. Atendimentos das Diárias (Loja + N Indústrias) persistidos e validados no backend.",
       },
-      { property: "og:title", content: "MK9 | v1.8.9" },
+      { property: "og:title", content: "MK9 | v1.9.2" },
       {
         property: "og:description",
-        content: "MK9 Command Center v1.8.9: MODULAR DASHBOARD. Seções recolhíveis, persistentes e otimizadas para monitoramento de alta densidade.",
+        content: "MK9 Command Center v1.9.2: ATENDIMENTOS INTEGRADOS. Atendimentos das Diárias (Loja + N Indústrias) persistidos e validados no backend.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -151,10 +151,10 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v1.8.9</span>
+                  MK9 Command Center • <span className="text-primary/80">v1.9.2</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  MODULAR DASHBOARD
+                  ATENDIMENTOS INTEGRADOS
                 </p>
               </div>
             </div>

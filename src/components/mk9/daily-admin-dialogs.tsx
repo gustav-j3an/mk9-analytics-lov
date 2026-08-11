@@ -173,15 +173,21 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
-      // MISSÃO 2: NÃO integrar ao banco ainda, mas mantemos o payload base
-      // para garantir que a diária (sem itens) salve se necessário.
-      // O payload 'items' será ignorado ou enviado vazio conforme o schema v1.9.0.
+      // Filtrar atendimentos inválidos (sem loja ou sem indústrias)
+      const validAttendances = attendances
+        .filter(a => a.storeId && a.industryIds.length > 0)
+        .map(a => ({
+          storeId: a.storeId,
+          industryIds: a.industryIds
+        }));
+
       const payload = {
         ...data,
         amount: Number(data.amount),
         supervisorId: data.supervisorId || null,
-        items: [] // Temporariamente vazio para MISSÃO 2
+        items: validAttendances
       };
+
       if (daily?.id) {
         return updateFn({ data: { ...payload, id: daily.id } });
       }
