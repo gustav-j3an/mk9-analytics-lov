@@ -486,7 +486,7 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
               disabled={totals.count === 0 || markMutation.isPending}
               onClick={() => {
                 if(confirm(`Confirmar liquidação de R$ ${totals.amount.toLocaleString('pt-BR')} para ${totals.count} diárias?`)) {
-                  markMutation.mutate(dailies.map((d: any) => d.id));
+                  markMutation.mutate((dailies || []).map((d: any) => d.id));
                 }
               }}
             >
