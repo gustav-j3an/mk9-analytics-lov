@@ -2,6 +2,9 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
+console.log("[DEBUG_PDF] Imports carregados:", { jsPDF: !!jsPDF, autoTable: !!autoTable });
+
+
 interface MatrixRow {
   industryName: string;
   storeName: string;
@@ -24,7 +27,11 @@ export async function generatePromoterRoutePdf({
   rows
 }: GeneratePdfParams) {
   try {
-    console.log("[PDF_GEN] Inciando geração para:", promoterName);
+    console.log("[PDF_GEN] Inciando geração para:", promoterName, { totalVisits, rowsCount: rows?.length });
+    
+    if (!rows || rows.length === 0) {
+      throw new Error("Dados da rota vazios ou inválidos");
+    }
     
     // 1. Instanciar o documento em A4 Paisagem (landscape)
     const doc = new jsPDF({
