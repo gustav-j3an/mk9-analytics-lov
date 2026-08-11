@@ -147,278 +147,105 @@ export function Mk9AnalyticsApp() {
       )}
 
       {/* Sidebar */}
-      <aside
-        className={cn(
-          "bg-card border-r border-border transition-all duration-300 flex flex-col shrink-0 z-30",
-          "fixed inset-y-0 left-0 md:relative",
-          collapsed ? "-translate-x-full md:translate-x-0 md:w-20" : "translate-x-0 w-64",
-        )}
-      >
-        <div className="h-16 flex items-center px-6 border-b border-border bg-background/50">
-          {!collapsed && (
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary">
+        <aside
+          className={cn(
+            "bg-card border-r border-border transition-all duration-300 ease-in-out flex flex-col shrink-0 z-30 fixed inset-y-0 left-0 md:relative",
+            collapsed ? "w-20" : "w-64",
+          )}
+        >
+          <div className="h-16 flex items-center px-4 border-b border-border bg-background/50 justify-between shrink-0">
+            <div className={cn("flex items-center gap-2 overflow-hidden transition-all duration-300", collapsed && "justify-center")}>
+              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary shrink-0">
                 <ShieldCheck className="text-white h-5 w-5" />
               </div>
-              <span className="font-black tracking-tighter text-lg text-white">
-                MK9 <span className="text-primary">COMMAND</span> <span className="text-[8px] opacity-30 ml-1 text-foreground">v1.1.2</span>
-              </span>
-            </div>
-          )}
-          {collapsed && <ShieldCheck className="mx-auto text-primary h-6 w-6" />}
-        </div>
-
-        <div className="flex-1 overflow-y-auto py-6">
-          <nav className="px-3 space-y-1">
-            <div className="pt-2 pb-2">
               {!collapsed && (
-                <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">
-                  Visão Geral
-                </p>
+                <span className="font-black tracking-tighter text-lg text-white whitespace-nowrap">
+                  MK9 <span className="text-primary">COMMAND</span>
+                </span>
               )}
             </div>
-            <SidebarItem
-              icon={BarChart3}
-              label="Dashboard"
-              active={activeModule === "dashboard"}
-              onClick={() => {
-                setActiveModule("dashboard");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-            <SidebarItem
-              icon={Gauge}
-              label="Cockpit"
-              active={activeModule === "cockpit"}
-              onClick={() => {
-                setActiveModule("cockpit");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-            <SidebarItem
-              icon={Layers}
-              label="Inteligência"
-              active={activeModule === "dashboard"}
-              onClick={() => {
-                setActiveModule("dashboard");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-white/5 transition-colors"
+              aria-label={collapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
+            >
+              {collapsed ? <ChevronsRight className="h-5 w-5" /> : <ChevronsLeft className="h-5 w-5" />}
+            </button>
+          </div>
 
-            <div className="pt-4 pb-2">
-              {!collapsed && (
-                <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">
-                  Operação
-                </p>
-              )}
-            </div>
-            <SidebarItem
-              icon={Settings2}
-              label="Gestão Operacional"
-              active={activeModule === "importacoes"}
-              onClick={() => {
-                setActiveModule("importacoes");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-            <SidebarItem
-              icon={Upload}
-              label="Importar Checklist"
-              active={activeModule === "checklists"}
-              onClick={() => {
-                setActiveModule("checklists");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-            <SidebarItem
-              icon={Route}
-              label="Roteiros"
-              active={activeModule === "roteiros"}
-              onClick={() => {
-                setActiveModule("roteiros");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-            <SidebarItem
-              icon={CheckCircle2}
-              label="Presença"
-              active={activeModule === "presenca"}
-              onClick={() => {
-                setActiveModule("presenca");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-            <SidebarItem
-              icon={WalletCards}
-              label="Controle de Diárias"
-              active={activeModule === "diarias"}
-              onClick={() => {
-                setActiveModule("diarias");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-
-
-            <div className="pt-4 pb-2">
-              {!collapsed && (
-                <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">
-                  Análise e Controle
-                </p>
-              )}
-            </div>
-            <SidebarItem
-              icon={ClipboardCheck}
-              label="Conciliação"
-              active={activeModule === "conciliacao"}
-              onClick={() => {
-                setActiveModule("conciliacao");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-            <SidebarItem
-              icon={PackageCheck}
-              label="Qualidade"
-              active={activeModule === "qualidade"}
-              onClick={() => {
-                setActiveModule("qualidade");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-            <SidebarItem
-              icon={FileSpreadsheet}
-              label="Indústrias (PDF)"
-              active={activeModule === "relatorio_industria"}
-              onClick={() => {
-                setActiveModule("relatorio_industria");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-
-            <div className="pt-4 pb-2">
-              {!collapsed && (
-                <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">
-                  Cadastros
-                </p>
-              )}
-            </div>
-            <SidebarItem
-              icon={Factory}
-              label="Indústrias"
-              active={activeModule === "industrias"}
-                  onClick={() => {
-                    setActiveModule("industrias");
-                    if (window.innerWidth < 768) setCollapsed(true);
-                  }}
-            />
-            <SidebarItem
-              icon={Store}
-              label="Lojas"
-              active={activeModule === "lojas"}
-                  onClick={() => {
-                    setActiveModule("lojas");
-                    if (window.innerWidth < 768) setCollapsed(true);
-                  }}
-            />
-            <SidebarItem
-              icon={UserCheck}
-              label="Supervisores"
-              active={activeModule === "supervisores"}
-              onClick={() => {
-                setActiveModule("supervisores");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-            <SidebarItem
-              icon={Users}
-              label="Promotores"
-              active={activeModule === "promotores"}
-              onClick={() => {
-                setActiveModule("promotores");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-            <SidebarItem
-              icon={UserCheck}
-              label="Freelancers"
-              active={activeModule === "freelancers"}
-              onClick={() => {
-                setActiveModule("freelancers");
-                if (window.innerWidth < 768) setCollapsed(true);
-              }}
-            />
-
-            {isAdmin && (
-              <>
-                <div className="pt-4 pb-2">
+          <div className="flex-1 overflow-y-auto py-6 custom-scrollbar">
+            <nav className="px-3 space-y-6">
+              {[
+                { title: "Visão Geral", items: [
+                  { id: "dashboard", icon: BarChart3, label: "Dashboard" },
+                  { id: "cockpit", icon: Gauge, label: "Cockpit" },
+                  { id: "dashboard", icon: Layers, label: "Inteligência" },
+                ]},
+                { title: "Operação", items: [
+                  { id: "importacoes", icon: Settings2, label: "Gestão Operacional" },
+                  { id: "checklists", icon: Upload, label: "Importar Checklist" },
+                  { id: "roteiros", icon: Route, label: "Roteiros" },
+                  { id: "presenca", icon: CheckCircle2, label: "Presença" },
+                  { id: "diarias", icon: WalletCards, label: "Controle de Diárias" },
+                ]},
+                { title: "Análise e Controle", items: [
+                  { id: "conciliacao", icon: ClipboardCheck, label: "Conciliação" },
+                  { id: "qualidade", icon: PackageCheck, label: "Qualidade" },
+                  { id: "relatorio_industria", icon: FileSpreadsheet, label: "Indústrias (PDF)" },
+                ]},
+                { title: "Cadastros", items: [
+                  { id: "industrias", icon: Factory, label: "Indústrias" },
+                  { id: "lojas", icon: Store, label: "Lojas" },
+                  { id: "supervisores", icon: UserCheck, label: "Supervisores" },
+                  { id: "promotores", icon: Users, label: "Promotores" },
+                  { id: "freelancers", icon: UserCheck, label: "Freelancers" },
+                ]},
+                isAdmin && { title: "Administração", items: [
+                  { id: "cleanup_admin", icon: ShieldAlert, label: "Limpeza Manual" },
+                  { id: "usuarios", icon: Users, label: "Usuários" },
+                  { id: "auditoria_controle", icon: ShieldCheck, label: "Auditoria Controle" },
+                ]}
+              ].filter(Boolean).map((cat: any, i) => (
+                <div key={i} className="space-y-1">
                   {!collapsed && (
                     <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 opacity-60">
-                      Administração
+                      {cat.title}
                     </p>
                   )}
+                  {cat.items.map((item: any) => (
+                    <SidebarItem
+                      key={item.id + item.label}
+                      icon={item.icon}
+                      label={item.label}
+                      active={activeModule === item.id}
+                      collapsed={collapsed}
+                      onClick={() => {
+                        setActiveModule(item.id);
+                        if (window.innerWidth < 768) setCollapsed(true);
+                      }}
+                    />
+                  ))}
                 </div>
-                <SidebarItem
-                  icon={ShieldAlert}
-                  label="Limpeza Manual"
-                  active={activeModule === "cleanup_admin"}
-                  onClick={() => {
-                    setActiveModule("cleanup_admin");
-                    if (window.innerWidth < 768) setCollapsed(true);
-                  }}
-                />
-                <SidebarItem
-                  icon={Users}
-                  label="Usuários"
-                  active={activeModule === "usuarios"}
-                  onClick={() => {
-                    setActiveModule("usuarios");
-                    if (window.innerWidth < 768) setCollapsed(true);
-                  }}
-                />
-                <SidebarItem
-                  icon={ShieldCheck}
-                  label="Auditoria Controle"
-                  active={activeModule === "auditoria_controle"}
-                  onClick={() => {
-                    setActiveModule("auditoria_controle");
-                    if (window.innerWidth < 768) setCollapsed(true);
-                  }}
-                />
-              </>
-            )}
-          </nav>
-        </div>
+              ))}
+            </nav>
+          </div>
 
-        <div className="p-4 border-t border-white/5 space-y-2">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className={cn(
-              "w-full flex items-center gap-3 px-4 py-2 text-slate-400 hover:text-white transition-colors hover:bg-white/5 rounded-lg",
-              collapsed && "justify-center px-0",
-            )}
-          >
-            {collapsed ? (
-              <ChevronsRight className="h-5 w-5" />
-            ) : (
-              <ChevronsLeft className="h-5 w-5" />
-            )}
-            {!collapsed && (
-              <span className="text-sm font-bold uppercase tracking-tighter">Recolher</span>
-            )}
-          </button>
-          <button
-            className={cn(
-              "w-full flex items-center gap-3 px-4 py-2 text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors rounded-lg",
-              collapsed && "justify-center px-0",
-            )}
-            onClick={() => signOut()}
-          >
-            <LogOut className="h-5 w-5" />
-            {!collapsed && (
-              <span className="text-sm font-bold uppercase tracking-tighter">Sair</span>
-            )}
-          </button>
-        </div>
-      </aside>
+          <div className="p-4 border-t border-white/5 shrink-0">
+            <button
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-2 text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors rounded-lg",
+                collapsed && "justify-center px-0",
+              )}
+              onClick={() => signOut()}
+              title="Sair"
+            >
+              <LogOut className="h-5 w-5" />
+              {!collapsed && (
+                <span className="text-sm font-bold uppercase tracking-tighter">Sair</span>
+              )}
+            </button>
+          </div>
+        </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 bg-background">
