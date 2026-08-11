@@ -341,7 +341,7 @@ export function PromoterIndividualRoute() {
                           </div>
                         </div>
                       ) : (
-                        <span className="text-[10px] text-muted-foreground/10 font-black">•</span>
+                        <span className="text-[10px] text-muted-foreground/10 font-black print:hidden">•</span>
                       )}
                     </TableCell>
                   </TableRow>
