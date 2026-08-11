@@ -142,14 +142,14 @@ export function Mk9AnalyticsApp() {
       <div className="md:hidden h-14 shrink-0 bg-card border-b border-border flex items-center justify-between px-4 z-30">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary">
-            <ShieldCheck className="text-white dark:text-foreground h-4 w-4" />
+            <ShieldCheck className="text-foreground dark:text-foreground h-4 w-4" />
           </div>
           <span className="font-black tracking-tighter text-sm text-foreground">MK9</span>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="text-white"
+          className="text-foreground"
           onClick={() => setCollapsed(!collapsed)}
         >
           {collapsed ? <ChevronsRight className="h-5 w-5" /> : <ChevronsLeft className="h-5 w-5" />}
@@ -177,7 +177,7 @@ export function Mk9AnalyticsApp() {
           )}>
               <div className={cn("flex items-center gap-2 overflow-hidden transition-all duration-300", collapsed && "w-8 shrink-0")}>
                 <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary shrink-0">
-                  <ShieldCheck className="text-white dark:text-foreground h-5 w-5" />
+                  <ShieldCheck className="text-foreground dark:text-foreground h-5 w-5" />
                 </div>
                 {!collapsed && (
                   <span className="font-black tracking-tighter text-lg text-foreground whitespace-nowrap">
@@ -351,7 +351,7 @@ export function Mk9AnalyticsApp() {
                           : "USER"}
                   </Badge>
                 </div>
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-command-purple to-command-blue flex items-center justify-center text-white font-black text-xs shadow-lg shadow-purple-500/20">
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-command-purple to-command-blue flex items-center justify-center text-foreground font-black text-xs shadow-lg shadow-purple-500/20">
                   {user.email?.[0].toUpperCase()}
                 </div>
               </div>
@@ -464,8 +464,8 @@ function SidebarItem({
       className={cn(
         "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 relative group",
         active
-          ? "bg-command-purple/10 text-foreground dark:text-white shadow-[0_0_20px_rgba(168,85,247,0.15)] neon-border-primary"
-          : "text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:text-white",
+          ? "bg-command-purple/10 text-foreground dark:text-foreground shadow-[0_0_20px_rgba(168,85,247,0.15)] neon-border-primary"
+          : "text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:text-foreground",
         collapsed && "justify-center px-0"
       )}
     >

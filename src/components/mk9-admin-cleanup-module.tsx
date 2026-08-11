@@ -137,7 +137,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
             <AlertTriangle className="h-5 w-5 text-amber-500" />
           </div>
           <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider">
+            <h3 className="text-sm font-black text-foreground uppercase tracking-wider">
               Motor de Limpeza Seletiva
             </h3>
             <p className="text-[10px] text-amber-500/70 font-bold uppercase tracking-widest">
@@ -152,7 +152,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
               Indústria Alvo
             </label>
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="bg-input/50 border-border h-10 text-white">
+              <SelectTrigger className="bg-input/50 border-border h-10 text-foreground">
                 <SelectValue placeholder="Selecione a indústria" />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -169,7 +169,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
               Competência (Mês)
             </label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="bg-input/50 border-border h-10 text-white uppercase px-3 gap-2 shrink-0 min-w-[130px]">
+              <SelectTrigger className="bg-input/50 border-border h-10 text-foreground uppercase px-3 gap-2 shrink-0 min-w-[130px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-command-deep border-border">
@@ -189,7 +189,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
               type="number"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="bg-input/50 border-border h-10 text-white"
+              className="bg-input/50 border-border h-10 text-foreground"
             />
           </div>
         </div>
@@ -237,19 +237,19 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                 <TabsList className="bg-muted/50 border-border p-1 h-12 mb-6">
                   <TabsTrigger
                     value="visits"
-                    className="data-[state=active]:bg-mk9-accent-primary data-[state=active]:text-white font-bold uppercase text-[10px] tracking-widest"
+                    className="data-[state=active]:bg-mk9-accent-primary data-[state=active]:text-foreground font-bold uppercase text-[10px] tracking-widest"
                   >
                     Visitas ({diagnosis.sources.visits.length})
                   </TabsTrigger>
                   <TabsTrigger
                     value="frequencies"
-                    className="data-[state=active]:bg-mk9-accent-primary data-[state=active]:text-white font-bold uppercase text-[10px] tracking-widest"
+                    className="data-[state=active]:bg-mk9-accent-primary data-[state=active]:text-foreground font-bold uppercase text-[10px] tracking-widest"
                   >
                     Frequências ({diagnosis.sources.frequencies.length})
                   </TabsTrigger>
                   <TabsTrigger
                     value="imports"
-                    className="data-[state=active]:bg-mk9-accent-primary data-[state=active]:text-white font-bold uppercase text-[10px] tracking-widest"
+                    className="data-[state=active]:bg-mk9-accent-primary data-[state=active]:text-foreground font-bold uppercase text-[10px] tracking-widest"
                   >
                     Importações ({diagnosis.sources.imports.length})
                   </TabsTrigger>
@@ -276,7 +276,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                             className="border-white/20 data-[state=checked]:bg-mk9-accent-primary"
                           />
                           <div className="flex flex-col">
-                            <span className="text-sm font-bold text-white uppercase tracking-tight">
+                            <span className="text-sm font-bold text-foreground uppercase tracking-tight">
                               {v.scheduled_date}
                             </span>
                             <span className="text-[9px] text-muted-foreground font-mono">
@@ -313,7 +313,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                             className="border-white/20 data-[state=checked]:bg-mk9-accent-primary"
                           />
                           <div className="flex flex-col">
-                            <span className="text-sm font-bold text-white uppercase tracking-tight">
+                            <span className="text-sm font-bold text-foreground uppercase tracking-tight">
                               VIGÊNCIA: {f.valid_from}
                             </span>
                             <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">
@@ -350,7 +350,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                             className="border-white/20 data-[state=checked]:bg-mk9-accent-primary"
                           />
                           <div className="flex flex-col">
-                            <span className="text-sm font-bold text-white uppercase tracking-tight truncate max-w-[300px]">
+                            <span className="text-sm font-bold text-foreground uppercase tracking-tight truncate max-w-[300px]">
                               {i.filename}
                             </span>
                             <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">
@@ -415,7 +415,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                     Visitas
                   </span>
-                  <span className="text-sm font-black text-white">
+                  <span className="text-sm font-black text-foreground">
                     {selections.visitIds.length}
                   </span>
                 </div>
@@ -423,7 +423,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                     Frequências
                   </span>
-                  <span className="text-sm font-black text-white">
+                  <span className="text-sm font-black text-foreground">
                     {selections.frequencyIds.length}
                   </span>
                 </div>
@@ -431,7 +431,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                     Importações
                   </span>
-                  <span className="text-sm font-black text-white">
+                  <span className="text-sm font-black text-foreground">
                     {selections.importIds.length}
                   </span>
                 </div>
@@ -444,7 +444,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                   selections.importIds.length === 0
                 }
                 onClick={() => setConfirmOpen(true)}
-                className="w-full bg-rose-500 hover:bg-rose-600 text-white font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 border-none"
+                className="w-full bg-rose-500 hover:bg-rose-600 text-foreground font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 border-none"
               >
                 EXECUTAR LIMPEZA
               </Button>
@@ -454,7 +454,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
       )}
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent className="bg-command-deep border-border text-white">
+        <AlertDialogContent className="bg-command-deep border-border text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-rose-500 font-black tracking-tighter uppercase flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" /> Confirmação de Segurança
@@ -472,11 +472,11 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
               value={justification}
               onChange={(e) => setJustification(e.target.value)}
               placeholder="Ex: Correção de erro na planilha de origem..."
-              className="bg-input/50 border-border text-white h-10"
+              className="bg-input/50 border-border text-foreground h-10"
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-muted/50 border-border text-muted-foreground hover:text-white">
+            <AlertDialogCancel className="bg-muted/50 border-border text-muted-foreground hover:text-foreground">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
@@ -491,7 +491,7 @@ export function Mk9AdminCleanupModule(props: { month: number; year: number }) {
                   selections,
                 });
               }}
-              className="bg-rose-500 hover:bg-rose-600 text-white font-black uppercase tracking-widest"
+              className="bg-rose-500 hover:bg-rose-600 text-foreground font-black uppercase tracking-widest"
             >
               {executeMut.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />

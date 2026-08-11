@@ -143,7 +143,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
         actions={
           <Button
             onClick={() => setShowNew(true)}
-            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-black uppercase tracking-widest px-6 shadow-lg shadow-mk9-accent-primary/20 border-none"
+            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-mk9-accent-primary/20 border-none"
           >
             <UserPlus className="h-4 w-4 mr-2" /> Novo Usuário
           </Button>
@@ -162,7 +162,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
             <div className="p-2 rounded-lg bg-mk9-accent-primary/10 border border-mk9-accent-primary/20">
               <UserPlus className="h-4 w-4 text-mk9-accent-primary" />
             </div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider">
+            <h3 className="text-sm font-black text-foreground uppercase tracking-wider">
               Novo Cadastro de Acesso
             </h3>
           </div>
@@ -177,7 +177,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                 required
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="bg-input/50 border-border text-white h-10"
+                className="bg-input/50 border-border text-foreground h-10"
               />
             </div>
             <div className="space-y-1.5">
@@ -187,7 +187,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
               <Input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="bg-input/50 border-border text-white h-10"
+                className="bg-input/50 border-border text-foreground h-10"
               />
             </div>
             <div className="space-y-1.5">
@@ -200,7 +200,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                 required
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="bg-input/50 border-border text-white h-10"
+                className="bg-input/50 border-border text-foreground h-10"
               />
             </div>
             <div className="space-y-1.5">
@@ -211,7 +211,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                 value={form.role}
                 onValueChange={(v) => setForm({ ...form, role: v as Role })}
               >
-                <SelectTrigger className="bg-input/50 border-border h-10 text-white">
+                <SelectTrigger className="bg-input/50 border-border h-10 text-foreground">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-command-deep border-border">
@@ -228,14 +228,14 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                 type="button"
                 variant="ghost"
                 onClick={() => setShowNew(false)}
-                className="text-muted-foreground hover:text-white"
+                className="text-muted-foreground hover:text-foreground"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={busy}
-                className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-black uppercase tracking-widest px-8"
+                className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-foreground font-black uppercase tracking-widest px-8"
               >
                 {busy ? "Processando..." : "Finalizar Cadastro"}
               </Button>
@@ -250,7 +250,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nome ou e-mail..."
-              className="pl-10 bg-white/[0.03] border-border text-white placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
+              className="pl-10 bg-white/[0.03] border-border text-foreground placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -280,7 +280,7 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                   <tr key={u.userId} className="group hover:bg-white/[0.02] transition-colors">
                     <td className="px-4 py-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">
+                        <span className="text-sm font-bold text-foreground group-hover:text-mk9-accent-primary transition-colors">
                           {u.name || "Sem Nome"}
                         </span>
                         <span className="text-[10px] text-muted-foreground font-mono tracking-tight uppercase">
@@ -348,14 +348,14 @@ export function Mk9UsersModule({ currentUserId }: { currentUserId: string | null
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-white"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                           >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="bg-command-deep border-border text-white"
+                          className="bg-command-deep border-border text-foreground"
                         >
                           <DropdownMenuItem
                             onClick={() => toggleActive(u)}

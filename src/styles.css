@@ -205,3 +205,46 @@
 
 #lovable-badge { display: none !important; }
 
+
+.logo-mk9-text {
+  color: var(--foreground);
+}
+.logo-mk9-text span {
+  color: var(--primary);
+}
+
+/* Global Overrides for Light Mode Contrast */
+:root {
+  /* Prevent Radix Select/Dropdown items from being white on white */
+  [data-radix-popper-content-wrapper] {
+    --popover-foreground: oklch(0.18 0.04 260);
+  }
+}
+
+.light [data-radix-select-viewport] [data-radix-collection-item],
+.light [data-radix-menu-content] [role="menuitem"],
+.light [role="option"] {
+  color: var(--foreground) !important;
+}
+
+.light [data-radix-select-viewport] [data-radix-collection-item][data-highlighted],
+.light [data-radix-menu-content] [role="menuitem"][data-highlighted],
+.light [role="option"][data-highlighted] {
+  background-color: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+}
+
+.light [data-radix-select-viewport] [data-radix-collection-item][data-state="checked"],
+.light [role="option"][aria-selected="true"] {
+  background-color: color-mix(in oklab, var(--primary) 15%, transparent) !important;
+  color: var(--primary) !important;
+}
+
+/* Specific fix for Dashboard/Topbar Logo identity in Light Mode */
+.light .logo-mk9-text {
+  color: var(--foreground) !important;
+}
+
+.light .logo-mk9-text .text-white {
+    color: var(--foreground) !important;
+}
