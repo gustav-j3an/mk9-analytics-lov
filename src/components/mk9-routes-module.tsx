@@ -7,6 +7,9 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
+import { Eye } from "lucide-react";
+
 import {
   AlertTriangle,
   CalendarClock,
@@ -139,11 +142,14 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
   }, [rawRoutes, nameFilter]);
 
   const grouped = useMemo(() => {
-    // Promotor → weekday → storeId → { store, items[] }
-    const m = new Map<string, Map<number, Map<string, { store: Route; items: Route[] }>>>();
+    // PromotorName → { id, days: Map<weekday, Map<storeId, { store, items[] }>> }
+    const m = new Map<string, { id: string; days: Map<number, Map<string, { store: Route; items: Route[] }>> }>();
     for (const r of routes) {
-      if (!m.has(r.promoterName)) m.set(r.promoterName, new Map());
-      const days = m.get(r.promoterName)!;
+      if (!m.has(r.promoterName)) {
+        m.set(r.promoterName, { id: r.promoterId || "", days: new Map() });
+      }
+      const pData = m.get(r.promoterName)!;
+      const days = pData.days;
       if (!days.has(r.weekday)) days.set(r.weekday, new Map());
       const stMap = days.get(r.weekday)!;
       const key = (r.storeId ?? r.storeName) as string;
@@ -152,6 +158,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
     }
     return m;
   }, [routes]);
+
 
   const ufs = Array.from(new Set(stores.map((s) => s.uf).filter(Boolean))) as string[];
 
@@ -313,17 +320,38 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           )}
           {Array.from(grouped.keys())
             .sort((a, b) => a.localeCompare(b, "pt-BR"))
-            .map((promoter) => {
-              const days = grouped.get(promoter)!;
+            .map((promoterName) => {
+              const pData = grouped.get(promoterName)!;
+              const days = pData.days;
               return (
-                <Card key={promoter}>
+                <Card key={promoterName}>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-primary" />
-                        {promoter}
+                        {promoterName}
                       </div>
+
+                      <Link
+                        to="/roteiros/promotor/$promoterId"
+                        params={{
+                          promoterId: pData.id,
+                        }}
+                        search={{ date: referenceDate }}
+                      >
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 border-primary/20 hover:bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest px-4"
+                        >
+                          <Eye className="h-3.5 w-3.5 mr-2" />
+                          Ver Rota
+                        </Button>
+                      </Link>
+
+
                     </CardTitle>
+
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {Array.from(days.keys())
@@ -346,7 +374,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                               )}
                             </div>
                             <div className="space-y-2">
-                              {Array.from(stMap.values()).map(({ store, items }) => (
+                              {Array.from(stMap.values()).map(({ store, items }: any) => (
                                 <div
                                   key={store.storeId ?? store.storeName}
                                   className="flex items-start justify-between gap-3 border-l-2 border-primary/40 pl-3"
@@ -362,7 +390,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                                       ) : null}
                                     </p>
                                     <div className="flex flex-wrap items-center gap-1 mt-1">
-                                      {items.map((it) => (
+                                      {items.map((it: any) => (
                                         <div
                                           key={it.id}
                                           className="inline-flex items-center gap-1 rounded-md bg-background border px-1.5 py-0.5 text-xs"
