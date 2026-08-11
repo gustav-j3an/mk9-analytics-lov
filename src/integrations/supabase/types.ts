@@ -733,6 +733,148 @@ export type Database = {
           },
         ]
       }
+      mk9_freelancer_dailies: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          freelancer_id: string
+          id: string
+          notes: string | null
+          payment_date: string | null
+          payment_status: Database["public"]["Enums"]["mk9_finance_status"]
+          status: Database["public"]["Enums"]["mk9_freelancer_daily_status"]
+          supervisor_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          date: string
+          freelancer_id: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_status?: Database["public"]["Enums"]["mk9_finance_status"]
+          status?: Database["public"]["Enums"]["mk9_freelancer_daily_status"]
+          supervisor_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          freelancer_id?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_status?: Database["public"]["Enums"]["mk9_finance_status"]
+          status?: Database["public"]["Enums"]["mk9_freelancer_daily_status"]
+          supervisor_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_freelancer_dailies_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_freelancers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_freelancer_dailies_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_supervisors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mk9_freelancer_daily_items: {
+        Row: {
+          created_at: string
+          daily_id: string
+          id: string
+          industry_id: string
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          daily_id: string
+          id?: string
+          industry_id: string
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          daily_id?: string
+          id?: string
+          industry_id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_freelancer_daily_items_daily_id_fkey"
+            columns: ["daily_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_freelancer_dailies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_freelancer_daily_items_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_freelancer_daily_items_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mk9_freelancers: {
+        Row: {
+          active: boolean
+          city: string | null
+          created_at: string
+          default_daily_rate: number | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          uf: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          city?: string | null
+          created_at?: string
+          default_daily_rate?: number | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          uf?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          city?: string | null
+          created_at?: string
+          default_daily_rate?: number | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          uf?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mk9_import_items: {
         Row: {
           action: string
@@ -2523,6 +2665,8 @@ export type Database = {
     }
     Enums: {
       mk9_actual_visit_origin: "CHECKLIST"
+      mk9_finance_status: "A PAGAR" | "PAGO"
+      mk9_freelancer_daily_status: "PLANEJADA" | "REALIZADA" | "CANCELADA"
       mk9_import_status:
         | "pending"
         | "previewing"
@@ -2685,6 +2829,8 @@ export const Constants = {
   public: {
     Enums: {
       mk9_actual_visit_origin: ["CHECKLIST"],
+      mk9_finance_status: ["A PAGAR", "PAGO"],
+      mk9_freelancer_daily_status: ["PLANEJADA", "REALIZADA", "CANCELADA"],
       mk9_import_status: [
         "pending",
         "previewing",
