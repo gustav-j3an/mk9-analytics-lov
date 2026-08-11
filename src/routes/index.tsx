@@ -62,12 +62,12 @@ export const Route = createFileRoute("/")({
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v1.8.4: FREELANCERS & GLOBAL UI. O módulo de Freelancers e componentes de interface compartilhados foram estabilizados para contraste perfeito no Light Mode.",
+        content: "MK9 Command Center v1.8.5: DIÁRIAS DATA FIX. Correção crítica na separação de conceitos entre Loja e Indústria no módulo de diárias.",
       },
-      { property: "og:title", content: "MK9 | v1.8.4" },
+      { property: "og:title", content: "MK9 | v1.8.5" },
       {
         property: "og:description",
-        content: "Sistema operacional unificado com suporte nativo a temas claro e escuro.",
+        content: "MK9 Command Center v1.8.5: DIÁRIAS DATA FIX. Correção crítica na separação de conceitos entre Loja e Indústria no módulo de diárias.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
