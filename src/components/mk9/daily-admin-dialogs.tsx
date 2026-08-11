@@ -268,7 +268,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Valor da Diária (R$)*</Label>
+              <Label>Valor Unitário por Indústria (R$)*</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -277,6 +277,9 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                 className="bg-muted/50 border-border"
                 required
               />
+              <p className="text-[10px] text-muted-foreground font-bold uppercase">
+                Total Previsto: R$ {(Number(formData.amount) * attendances.reduce((acc, a) => acc + (a.industryIds?.length || 0), 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </p>
             </div>
             <div className="space-y-2">
               <Label>Supervisor Responsável</Label>
