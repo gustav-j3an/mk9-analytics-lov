@@ -168,7 +168,7 @@ export function Mk9AnalyticsApp() {
         <aside
           className={cn(
             "bg-card border-r border-border transition-all duration-300 ease-in-out flex flex-col shrink-0 z-30 fixed inset-y-0 left-0 md:relative",
-            collapsed ? "w-20" : "w-64",
+            collapsed ? "-translate-x-full md:translate-x-0 md:w-20" : "translate-x-0 w-64",
           )}
         >
           <div className="h-16 flex items-center px-4 border-b border-border bg-background/50 justify-between shrink-0">
