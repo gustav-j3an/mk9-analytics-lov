@@ -243,12 +243,22 @@ export function Mk9AnalyticsApp() {
                   { id: "promotores", icon: Users, label: "Promotores" },
                   { id: "freelancers", icon: UserCheck, label: "Freelancers" },
                 ]},
+                
                 isAdmin && { title: "Administração", items: [
                   { id: "cleanup_admin", icon: ShieldAlert, label: "Limpeza Manual" },
                   { id: "usuarios", icon: Users, label: "Usuários" },
                   { id: "auditoria_controle", icon: ShieldCheck, label: "Auditoria Controle" },
                 ]}
-              ].filter(Boolean).map((cat: any, i) => (
+              ].filter((cat): cat is any => {
+                if (!cat) return false;
+                // Se a categoria tiver items, filtra os itens nulos e verifica se sobrou algo
+                if (cat.items) {
+                  const visibleItems = cat.items.filter(Boolean);
+                  return visibleItems.length > 0;
+                }
+                return true;
+              }).map((cat: any, i) => (
+
                 <div key={i} className="space-y-1">
                   {!collapsed && (
                     <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">
