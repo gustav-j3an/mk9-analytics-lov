@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { ThemeSettings } from "@/lib/mk9-theme/ThemeToggle";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -26,6 +26,12 @@ import { Mk9PresenceModule } from "./mk9-presence-module";
 import { UserCheck, WalletCards } from "lucide-react";
 import { Mk9FreelancersModule } from "./mk9-freelancers-module";
 import { Mk9DailiesModule } from "./mk9-dailies-module";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
 
 
 import {
