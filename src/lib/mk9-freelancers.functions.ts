@@ -28,6 +28,7 @@ export const createFreelancer = createServerFn({ method: "POST" })
   .inputValidator(z.object({
     name: z.string().min(2),
     phone: z.string().optional().nullable(),
+    cpf: z.string().optional().nullable(),
     city: z.string().optional().nullable(),
     uf: z.string().optional().nullable(),
     default_daily_rate: z.number().optional().nullable(),
@@ -52,6 +53,7 @@ export const updateFreelancer = createServerFn({ method: "POST" })
     id: z.string().uuid(),
     name: z.string().min(2),
     phone: z.string().optional().nullable(),
+    cpf: z.string().optional().nullable(),
     city: z.string().optional().nullable(),
     uf: z.string().optional().nullable(),
     default_daily_rate: z.number().optional().nullable(),
