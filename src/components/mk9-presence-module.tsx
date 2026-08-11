@@ -211,11 +211,12 @@ export function Mk9PresenceModule() {
   };
 
   const localStats = useMemo(() => {
-    const s = { present: 0, absent: 0, medical: 0, unmarked: 0 };
+    const s = { present: 0, absent: 0, medical: 0, vacation: 0, unmarked: 0 };
     Object.values(localPresence).forEach(p => {
       if (p.status === 'PRESENT') s.present++;
       else if (p.status === 'ABSENT') s.absent++;
       else if (p.status === 'MEDICAL_CERTIFICATE') s.medical++;
+      else if (p.status === 'VACATION') s.vacation++;
       else s.unmarked++;
     });
     return s;
