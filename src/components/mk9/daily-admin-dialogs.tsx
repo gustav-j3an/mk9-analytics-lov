@@ -152,7 +152,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
   const addItem = () => {
     setFormData((prev: any) => ({
       ...prev,
-      items: [...prev.items, { storeId: "", industryIds: [] }]
+      items: [...prev.items, { storeId: "", industryIds: [] as string[] }]
     }));
   };
 
@@ -172,9 +172,10 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
 
   const toggleIndustry = (itemIndex: number, industryId: string) => {
     const item = formData.items[itemIndex];
-    const newIndustries = item.industryIds.includes(industryId)
-      ? item.industryIds.filter((id: string) => id !== industryId)
-      : [...item.industryIds, industryId];
+    const currentIndustries = item.industryIds || [];
+    const newIndustries = currentIndustries.includes(industryId)
+      ? currentIndustries.filter((id: string) => id !== industryId)
+      : [...currentIndustries, industryId];
     
     updateItem(itemIndex, { industryIds: newIndustries });
   };
@@ -368,9 +369,17 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                     </Label>
                     <Mk9StoreAutocomplete 
                       value={item.storeId} 
-                      onChange={(store) => updateItem(idx, { storeId: store.id })}
+                      onChange={(store) => updateItem(idx, { 
+                        storeId: store.id,
+                        _storeLabel: store.name // Armazenamos o label localmente para exibição estável
+                      })}
                       placeholder="Pesquisar loja por nome, rede, cidade ou UF..."
                     />
+                    {item._storeLabel && item.storeId && (
+                      <div className="text-[10px] font-bold text-primary px-1 mt-1">
+                        SELECIONADO: {item._storeLabel}
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -387,7 +396,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                         >
                           <Checkbox 
                             id={`ind-${idx}-${ind.id}`}
-                            checked={item.industryIds.includes(ind.id)}
+                            checked={(item.industryIds || []).includes(ind.id)}
                             onCheckedChange={() => {}} // Controlled by the parent div click
                             className="border-white/20 data-[state=checked]:bg-command-purple data-[state=checked]:border-command-purple pointer-events-none"
                           />
