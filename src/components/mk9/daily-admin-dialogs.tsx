@@ -175,10 +175,18 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.freelancerId) return toast.error("Selecione um freelancer");
-    if (formData.items.length === 0) return toast.error("Adicione pelo menos um atendimento");
-    if (formData.items.some((it: any) => !it.storeId || it.industryIds.length === 0)) {
-      return toast.error("Preencha a loja e selecione indústrias para todos os atendimentos");
+    if (!formData.freelancerId) {
+      toast.error("Selecione um freelancer");
+      return;
+    }
+    if (formData.items.length === 0) {
+      toast.error("Adicione pelo menos um atendimento");
+      return;
+    }
+    const invalidItem = formData.items.some((it: any) => !it.storeId || it.industryIds.length === 0);
+    if (invalidItem) {
+      toast.error("Preencha a loja e selecione indústrias para todos os atendimentos");
+      return;
     }
     mutation.mutate(formData);
   };
