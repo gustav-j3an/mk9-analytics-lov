@@ -28,7 +28,7 @@ O Dashboard agora é a única Home Operacional, centralizando a inteligência se
 
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import { Loader2, Activity, ShieldCheck } from "lucide-react";
@@ -41,17 +41,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v3.1.5 — ROTA PDF",
+    title: "MK9 | v3.1.5 — ROTA ESTÁVEL",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v3.1.5: ROTA PDF. Geração e download de roteiros individuais em PDF A4 Paisagem.",
-
+        content: "MK9 Command Center v3.1.5: ROTA ESTÁVEL. Gestão simplificada e matriz operacional estável.",
       },
-      { property: "og:title", content: "MK9 | v3.1.5" },
+      { property: "og:title", content: "MK9 | v3.1.5 — ROTA ESTÁVEL" },
       {
         property: "og:description",
-        content: "MK9 Command Center v3.1.5: ROTA PDF. Geração e download de roteiros individuais em PDF A4 Paisagem.",
+        content: "MK9 Command Center v3.1.5: ROTA ESTÁVEL. Gestão simplificada e matriz operacional estável.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -140,9 +139,7 @@ function LoginContent() {
                   MK9 Command Center • <span className="text-primary/80">v3.1.5</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  ROTA PDF
-
-
+                  ROTA ESTÁVEL
                 </p>
               </div>
             </div>
