@@ -12,6 +12,7 @@ export const listFreelancers = createServerFn({ method: "GET" })
     let query = admin
       .from('mk9_freelancers')
       .select('*')
+      .order('active', { ascending: false })
       .order('name');
     
     if (!data?.includeInactive) {
@@ -29,6 +30,7 @@ export const createFreelancer = createServerFn({ method: "POST" })
     phone: z.string().optional().nullable(),
     city: z.string().optional().nullable(),
     uf: z.string().optional().nullable(),
+    default_daily_rate: z.number().optional().nullable(),
     notes: z.string().optional().nullable(),
   }))
   .handler(async ({ data }) => {
@@ -52,6 +54,7 @@ export const updateFreelancer = createServerFn({ method: "POST" })
     phone: z.string().optional().nullable(),
     city: z.string().optional().nullable(),
     uf: z.string().optional().nullable(),
+    default_daily_rate: z.number().optional().nullable(),
     notes: z.string().optional().nullable(),
     active: z.boolean().optional(),
   }))
