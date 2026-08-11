@@ -1,3 +1,49 @@
+/*
+# Contexto do Projeto — MK9 Command Center (ex-MK9 Analytics)
+
+Use este prompt para me dar (ou dar a outra IA, ex: Lovable) o contexto completo do projeto antes de pedir qualquer ajuste ou nova feature.
+
+## O que é o projeto
+Sistema interno de gestão de promotores de campo (trade marketing), usado para controlar roteiros, checklists de visitas, indústrias atendidas, lojas, promotores e relatórios financeiros/operacionais. Rebatizado de "MK9 Analytics" para "MK9 Command Center" (identidade visual do dashboard), mas ainda é chamado de MK9 Analytics internamente.
+
+## Stack atual
+React, TypeScript, TanStack Start, Supabase, Postgres, Tailwind, shadcn/ui, Server Functions, SSR.
+
+**Regra importante: não reconstruir do zero, não trocar stack, não redesenhar arquitetura sem necessidade real. O objetivo é continuidade, correção de regressões e evolução seguindo o que já existe.**
+
+## Design system
+Tema dark premium, accent roxo neon, suporte azul/ciano, visual SaaS enterprise moderno. Esse padrão vale para TODOS os módulos, não só o dashboard.
+
+## Módulos do sistema
+- **Operação:** Cockpit (Visão Geral), Conciliação/Auditoria, Qualidade, Gestão Operacional, Importar Checklist, Roteiros, Presença, Equipes, Freelancers e Diárias.
+- **Relatórios:** Indústrias PDF.
+- **Financeiro:** Fechamento de Diárias, Gestão de Pagamentos.
+- **Cadastros:** Indústrias, Lojas, Promotores, Supervisores, Freelancers.
+- **Administração:** Limpeza Manual, Usuários.
+
+## Dados de referência
+- 27 indústrias no banco (26 ativas, 1 arquivada) — ex: KING, COPRA, COOPATOS, AO QUADRADO, EMBAVI, RB ALIMENTOS.
+- KING tem competência operacional própria (não é mês calendário) — ex: 23/mês anterior a 22/mês atual.
+
+## Funcionalidades Recentes (v1.4.0 - v1.5.1)
+- **Gestão de Supervisores:** Cadastro centralizado e vínculo com promotores/equipes.
+- **Controle de Presença:** Registro diário, KPIs por equipe e exportação Excel.
+- **Freelancers & Diárias:** Cadastro com valor padrão (SST), registro de itens da diária (lojas/indústrias).
+- **Fechamento Financeiro:** Painel de fechamento quinzenal com status A PAGAR/PAGO e marcação em lote.
+
+## Processo obrigatório de conclusão de tarefa
+Reproduzir -> achar causa raiz -> identificar arquivo/função -> corrigir -> validar no preview (login, dashboard, sidebar, rota afetada, refresh) — só então considerar concluído.
+
+## Prioridades atuais
+- Estabilizar o fluxo financeiro de Freelancers.
+- Manter paridade entre Dashboard/Cockpit/PDF.
+- Garantir reatividade total (invalidação de cache) em todos os CRUDs.
+
+---
+
+**Peça específico de hoje:** [descreva aqui o que você quer resolver ou construir agora]
+*/
+
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
