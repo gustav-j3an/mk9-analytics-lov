@@ -218,47 +218,70 @@ export function Mk9AnalyticsApp() {
           <div className="flex-1 overflow-y-auto py-6 custom-scrollbar">
             <nav className="px-3 space-y-6">
               {[
-                { title: "Visão Geral", items: [
-                  { id: "dashboard", icon: BarChart3, label: "Dashboard" },
-                ]},
+                { 
+                  title: "Visão Geral", 
+                  items: [
+                    { id: "dashboard", icon: BarChart3, label: "Dashboard" },
+                  ]
+                },
 
-                { title: "Operação", items: [
-                  isAdmin && { id: "importacoes", icon: Settings2, label: "Gestão Operacional" },
-                  isAdmin && { id: "checklists", icon: Upload, label: "Importar Checklist" },
-                  { id: "roteiros", icon: Route, label: "Roteiros" },
-                  { id: "presenca", icon: CheckCircle2, label: "Presença" },
-                  { id: "diarias", icon: WalletCards, label: "Controle de Diárias" },
-                ].filter((item): item is Exclude<typeof item, boolean> => !!item)},
+                { 
+                  title: "Operação", 
+                  items: [
+                    { id: "importacoes", icon: Settings2, label: "Gestão Operacional", adminOnly: true },
+                    { id: "checklists", icon: Upload, label: "Importar Checklist", adminOnly: true },
+                    { id: "roteiros", icon: Route, label: "Roteiros" },
+                    { id: "presenca", icon: CheckCircle2, label: "Presença" },
+                    { id: "diarias", icon: WalletCards, label: "Controle de Diárias" },
+                  ]
+                },
 
-                { title: "Análise e Controle", items: [
-                  { id: "conciliacao", icon: ClipboardCheck, label: "Conciliação" },
-                  isAdmin && { id: "qualidade", icon: PackageCheck, label: "Qualidade" },
-                  { id: "relatorio_industria", icon: FileSpreadsheet, label: "Indústrias (PDF)" },
-                ].filter((item): item is Exclude<typeof item, boolean> => !!item)},
+                { 
+                  title: "Análise e Controle", 
+                  items: [
+                    { id: "conciliacao", icon: ClipboardCheck, label: "Conciliação" },
+                    { id: "qualidade", icon: PackageCheck, label: "Qualidade", adminOnly: true },
+                    { id: "relatorio_industria", icon: FileSpreadsheet, label: "Indústrias (PDF)" },
+                  ]
+                },
 
-                { title: "Cadastros", items: [
-                  { id: "industrias", icon: Factory, label: "Indústrias" },
-                  { id: "lojas", icon: Store, label: "Lojas" },
-                  { id: "supervisores", icon: UserCheck, label: "Supervisores" },
-                  { id: "promotores", icon: Users, label: "Promotores" },
-                  { id: "freelancers", icon: UserCheck, label: "Freelancers" },
-                ]},
+                { 
+                  title: "Cadastros", 
+                  items: [
+                    { id: "industrias", icon: Factory, label: "Indústrias" },
+                    { id: "lojas", icon: Store, label: "Lojas" },
+                    { id: "supervisores", icon: UserCheck, label: "Supervisores" },
+                    { id: "promotores", icon: Users, label: "Promotores" },
+                    { id: "freelancers", icon: UserCheck, label: "Freelancers" },
+                  ]
+                },
                 
-                isAdmin && { title: "Administração", items: [
-                  { id: "cleanup_admin", icon: ShieldAlert, label: "Limpeza Manual" },
-                  { id: "usuarios", icon: Users, label: "Usuários" },
-                  { id: "auditoria_controle", icon: ShieldCheck, label: "Auditoria Controle" },
-                ]}
-              ].filter((cat): cat is any => {
-                if (!cat) return false;
-                // Se a categoria tiver items, filtra os itens nulos e verifica se sobrou algo
-                if (cat.items) {
-                  const visibleItems = cat.items.filter(Boolean);
-                  return visibleItems.length > 0;
+                { 
+                  title: "Administração", 
+                  adminOnly: true,
+                  items: [
+                    { id: "cleanup_admin", icon: ShieldAlert, label: "Limpeza Manual", adminOnly: true },
+                    { id: "usuarios", icon: Users, label: "Usuários", adminOnly: true },
+                    { id: "auditoria_controle", icon: ShieldCheck, label: "Auditoria Controle", adminOnly: true },
+                  ]
                 }
-                return true;
-              }).map((cat: any, i) => (
+              ].map(section => {
+                // Filtro rigoroso: remove itens adminOnly para quem não é ADMIN
+                const visibleItems = section.items.filter(item => {
+                  if (item.adminOnly && !isAdmin) return false;
+                  return true;
+                });
 
+                // Se a seção inteira for adminOnly e o usuário não for ADMIN, ou se não sobrou nenhum item
+                if ((section.adminOnly && !isAdmin) || visibleItems.length === 0) {
+                  return null;
+                }
+
+                return {
+                  ...section,
+                  items: visibleItems
+                };
+              }).filter(Boolean).map((cat: any, i) => (
                 <div key={i} className="space-y-1">
                   {!collapsed && (
                     <p className="px-4 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">
