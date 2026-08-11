@@ -53,7 +53,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
 
   const [formData, setFormData] = useState<any>({
     freelancerId: "",
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toLocaleDateString('en-CA'),
     amount: 0,
     status: "PLANEJADA",
     paymentStatus: "A PAGAR",
@@ -87,7 +87,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
     if (daily) {
       setFormData({
         freelancerId: daily.freelancer_id || "",
-        date: daily.date || new Date().toISOString().split('T')[0],
+        date: daily.date || new Date().toLocaleDateString('en-CA'),
         amount: Number(daily.amount) || 0,
         status: daily.status || "PLANEJADA",
         paymentStatus: daily.payment_status || "A PAGAR",
@@ -120,7 +120,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
     } else {
       setFormData({
         freelancerId: "",
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toLocaleDateString('en-CA'),
         amount: 0,
         status: "PLANEJADA",
         paymentStatus: "A PAGAR",
@@ -320,7 +320,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                 onValueChange={(val) => setFormData({ 
                   ...formData, 
                   paymentStatus: val,
-                  paymentDate: val === 'PAGO' ? (formData.paymentDate || new Date().toISOString().split('T')[0]) : null
+                  paymentDate: val === 'PAGO' ? (formData.paymentDate || new Date().toLocaleDateString('en-CA')) : null
                 })}
               >
                 <SelectTrigger className="bg-muted/50 border-border">

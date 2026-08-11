@@ -62,8 +62,8 @@ export function Mk9DailiesModule() {
 
   // Filters
   const [filters, setFilters] = useState({
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-CA'),
+    endDate: new Date().toLocaleDateString('en-CA'),
     freelancerId: "all",
     supervisorId: "all",
     status: "all",
@@ -278,7 +278,7 @@ export function Mk9DailiesModule() {
             ) : (
               filteredDailies.map((d: any) => (
                 <TableRow key={d.id} className="border-border/50 hover:bg-muted/50 transition-colors group">
-                  <TableCell className="text-foreground/80 font-medium py-4">{new Date(d.date).toLocaleDateString('pt-BR')}</TableCell>
+                  <TableCell className="text-foreground/80 font-medium py-4">{d.date ? new Date(d.date + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</TableCell>
                   <TableCell className="text-foreground font-bold">{d.freelancer?.name}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-0.5">
@@ -352,7 +352,7 @@ export function Mk9DailiesModule() {
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Data</label>
-                  <p className="text-sm font-bold text-foreground">{new Date(viewing.date).toLocaleDateString('pt-BR')}</p>
+                  <p className="text-sm font-bold text-foreground">{viewing.date ? new Date(viewing.date + 'T12:00:00').toLocaleDateString('pt-BR') : '-'}</p>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Valor</label>
@@ -414,10 +414,10 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
   const listFn = useServerFn(listDailies);
   const markPaidFn = useServerFn(markAsPaid);
   const [closingFilters, setClosingFilters] = useState({
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-CA'),
+    endDate: new Date().toLocaleDateString('en-CA'),
   });
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [paymentDate, setPaymentDate] = useState(new Date().toLocaleDateString('en-CA'));
 
   const { data: dailies, isLoading } = useQuery({
     queryKey: ["mk9-closing-dailies", closingFilters.startDate, closingFilters.endDate],
