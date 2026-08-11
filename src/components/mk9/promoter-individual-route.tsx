@@ -165,7 +165,7 @@ export function PromoterIndividualRoute() {
               <Input
                 type="date"
                 value={referenceDate}
-                onChange={(e) => navigate({ search: { ...search, date: e.target.value } })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => navigate({ search: { ...search, date: e.target.value } })}
                 className="h-9 pl-9 bg-card border-border/50 text-xs font-bold uppercase tracking-tighter"
               />
             </div>
