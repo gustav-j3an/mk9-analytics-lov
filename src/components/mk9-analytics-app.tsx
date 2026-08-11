@@ -482,16 +482,17 @@ function SidebarItem({
     </button>
   );
 
-  if (collapsed) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>{content}</TooltipTrigger>
+  // IMPORTANTE: a estrutura do Tooltip é sempre a mesma para evitar que o Radix
+  // remonte a árvore (Presence) quando a sidebar recolhe/expande — isso causava
+  // um loop infinito de atualização de refs ("Maximum update depth exceeded").
+  return (
+    <Tooltip open={collapsed ? undefined : false}>
+      <TooltipTrigger asChild>{content}</TooltipTrigger>
+      {collapsed && (
         <TooltipContent side="right" className="bg-popover border-border text-popover-foreground">
           {label}
         </TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  return content;
+      )}
+    </Tooltip>
+  );
 }
