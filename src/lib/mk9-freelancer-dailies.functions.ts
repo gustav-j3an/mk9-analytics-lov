@@ -44,6 +44,7 @@ export const createDaily = createServerFn({ method: "POST" })
     date: z.string(),
     amount: z.number(),
     status: z.enum(['PLANEJADA', 'REALIZADA', 'CANCELADA']).optional().default('PLANEJADA'),
+    paymentStatus: z.enum(['A PAGAR', 'PAGO']).optional().default('A PAGAR'),
     supervisorId: z.string().uuid().optional().nullable(),
     notes: z.string().optional().nullable(),
     items: z.array(z.object({
@@ -63,6 +64,7 @@ export const createDaily = createServerFn({ method: "POST" })
         date: data.date,
         amount: data.amount,
         status: data.status,
+        payment_status: data.paymentStatus,
         supervisor_id: data.supervisorId,
         notes: data.notes
       })
@@ -106,6 +108,8 @@ export const updateDaily = createServerFn({ method: "POST" })
     date: z.string(),
     amount: z.number(),
     status: z.enum(['PLANEJADA', 'REALIZADA', 'CANCELADA']),
+    paymentStatus: z.enum(['A PAGAR', 'PAGO']).optional(),
+    paymentDate: z.string().optional().nullable(),
     supervisorId: z.string().uuid().optional().nullable(),
     notes: z.string().optional().nullable(),
     items: z.array(z.object({
@@ -124,6 +128,8 @@ export const updateDaily = createServerFn({ method: "POST" })
         date: data.date,
         amount: data.amount,
         status: data.status,
+        payment_status: data.paymentStatus,
+        payment_date: data.paymentDate,
         supervisor_id: data.supervisorId,
         notes: data.notes
       })
@@ -194,6 +200,27 @@ export const deleteDaily = createServerFn({ method: "POST" })
     return { success: true };
   });
 
+export const markAsPaid = createServerFn({ method: "POST" })
+  .inputValidator(z.object({
+    dailyIds: z.array(z.string().uuid()),
+    paymentDate: z.string()
+  }))
+  .handler(async ({ data }) => {
+    const ctx = await requireMk9Role(['ADMIN', 'SUPERVISOR']);
+    const admin = supabaseAdmin as any;
+    const { error } = await admin
+      .from('mk9_freelancer_dailies')
+      .update({ 
+        payment_status: 'PAGO',
+        payment_date: data.paymentDate
+      })
+      .in('id', data.dailyIds);
+    
+    if (error) throw error;
+    await logAudit(ctx, 'DAILY_RATE_MARKED_PAID', 'mk9_freelancer_dailies', data.dailyIds.join(','), data);
+    return { success: true };
+  });
+
 export const getDailiesExportData = createServerFn({ method: "GET" })
   .inputValidator(z.object({
     startDate: z.string(),
@@ -201,6 +228,7 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
     freelancerId: z.string().uuid().optional(),
     supervisorId: z.string().uuid().optional(),
     status: z.string().optional(),
+    paymentStatus: z.string().optional(),
   }))
   .handler(async ({ data }) => {
     const admin = supabaseAdmin as any;
@@ -223,6 +251,7 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
     if (data.freelancerId) query = query.eq('freelancer_id', data.freelancerId);
     if (data.supervisorId) query = query.eq('supervisor_id', data.supervisorId);
     if (data.status) query = query.eq('status', data.status);
+    if (data.paymentStatus) query = query.eq('payment_status', data.paymentStatus);
 
     const { data: dailies, error } = await query;
     if (error) throw error;
@@ -230,7 +259,12 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
     // Resumo
     const totalDailies = dailies.length;
     const totalAmount = dailies
-      .filter((d: any) => d.status === 'REALIZADA')
+      .reduce((acc: number, d: any) => acc + Number(d.amount), 0);
+    const totalPaid = dailies
+      .filter((d: any) => d.payment_status === 'PAGO')
+      .reduce((acc: number, d: any) => acc + Number(d.amount), 0);
+    const totalToPay = dailies
+      .filter((d: any) => d.payment_status === 'A PAGAR')
       .reduce((acc: number, d: any) => acc + Number(d.amount), 0);
     
     const uniqueFreelancers = new Set(dailies.map((d: any) => d.freelancer_id)).size;
@@ -240,7 +274,9 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
     const summary = [
       { campo: "Período", valor: `${data.startDate} a ${data.endDate}` },
       { campo: "Total de diárias", valor: totalDailies },
-      { campo: "Total financeiro (REALIZADA)", valor: totalAmount },
+      { campo: "Total financeiro", valor: totalAmount },
+      { campo: "Total A PAGAR", valor: totalToPay },
+      { campo: "Total PAGO", valor: totalPaid },
       { campo: "Freelancers utilizados", valor: uniqueFreelancers },
       { campo: "Lojas atendidas", valor: uniqueStores },
       { campo: "Indústrias atendidas", valor: uniqueIndustries },
@@ -253,6 +289,8 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       SUPERVISOR: d.supervisor?.name || "-",
       VALOR: Number(d.amount),
       STATUS: d.status,
+      "STATUS FINANCEIRO": d.payment_status,
+      "DATA PAGAMENTO": d.payment_date || "-",
       "QTD LOJAS": new Set(d.items.map((it: any) => it.store_id)).size,
       "QTD INDÚSTRIAS": d.items.length,
       OBSERVAÇÃO: d.notes || "-"
@@ -267,7 +305,12 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       UF: it.store?.uf || "-",
       INDÚSTRIA: it.industry?.name,
       "VALOR DA DIÁRIA": Number(d.amount),
-      STATUS: d.status
+      STATUS: d.status,
+      "STATUS FINANCEIRO": d.payment_status,
+      "DATA PAGAMENTO": d.payment_date || "-",
+      CIDADE: d.freelancer?.city || "-",
+      UF: d.freelancer?.uf || "-",
+      TELEFONE: d.freelancer?.phone || "-"
     })));
 
     return { summary, dailiesList, itemsList };
