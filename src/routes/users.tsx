@@ -25,19 +25,9 @@ function UsersPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const verifyAccess = async () => {
-      if (!loading) {
-        if (!session) {
-          navigate({ to: "/", replace: true });
-          return;
-        }
-        const isAdmin = await checkAdmin();
-        if (!isAdmin) {
-          navigate({ to: "/", replace: true });
-        }
-      }
-    };
-    verifyAccess();
+    if (!loading && !session) {
+      navigate({ to: "/", replace: true });
+    }
   }, [loading, session, navigate]);
 
   if (loading || !session) {
