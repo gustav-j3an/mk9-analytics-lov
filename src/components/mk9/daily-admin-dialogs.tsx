@@ -199,7 +199,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-command-deep border-white/10 text-white">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-command-deep border-border text-white">
         <DialogHeader>
           <DialogTitle>{daily ? "Editar Diária" : "Nova Diária"}</DialogTitle>
         </DialogHeader>
@@ -219,12 +219,12 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                   });
                 }}
               >
-                <SelectTrigger className="bg-white/5 border-white/10">
+                <SelectTrigger className="bg-white/5 border-border">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
                   {freelancersQ.data?.length === 0 ? (
-                    <div className="p-2 text-xs text-slate-500 text-center">
+                    <div className="p-2 text-xs text-muted-foreground text-center">
                       Nenhum freelancer ativo.
                       <Button 
                         variant="link" 
@@ -253,7 +253,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="bg-white/5 border-white/10"
+                className="bg-white/5 border-border"
                 required
               />
             </div>
@@ -267,7 +267,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                 step="0.01"
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="bg-white/5 border-white/10"
+                className="bg-white/5 border-border"
                 required
               />
             </div>
@@ -277,7 +277,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                 value={formData.supervisorId} 
                 onValueChange={(val) => setFormData({ ...formData, supervisorId: val })}
               >
-                <SelectTrigger className="bg-white/5 border-white/10">
+                <SelectTrigger className="bg-white/5 border-border">
                   <SelectValue placeholder="Nenhum" />
                 </SelectTrigger>
                 <SelectContent>
@@ -296,7 +296,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
               value={formData.status} 
               onValueChange={(val) => setFormData({ ...formData, status: val })}
             >
-              <SelectTrigger className="bg-white/5 border-white/10">
+              <SelectTrigger className="bg-white/5 border-border">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -318,7 +318,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                   paymentDate: val === 'PAGO' ? (formData.paymentDate || new Date().toISOString().split('T')[0]) : null
                 })}
               >
-                <SelectTrigger className="bg-white/5 border-white/10">
+                <SelectTrigger className="bg-white/5 border-border">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -334,7 +334,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
                   type="date"
                   value={formData.paymentDate || ""}
                   onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
-                  className="bg-white/5 border-white/10"
+                  className="bg-white/5 border-border"
                 />
               </div>
             )}
@@ -343,14 +343,14 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
           <div className="space-y-4">
             <div className="flex justify-between items-center border-b border-white/5 pb-2">
               <Label className="text-lg font-bold">Atendimentos</Label>
-              <Button type="button" variant="outline" size="sm" onClick={addItem} className="border-white/10 hover:bg-white/5">
+              <Button type="button" variant="outline" size="sm" onClick={addItem} className="border-border hover:bg-white/5">
                 <Plus className="w-4 h-4 mr-1" /> Adicionar Loja
               </Button>
             </div>
 
             <div className="space-y-4">
               {formData.items.map((item: any, idx: number) => (
-                <div key={idx} className="p-4 rounded-lg bg-white/5 border border-white/10 space-y-4 relative">
+                <div key={idx} className="p-4 rounded-lg bg-white/5 border border-border space-y-4 relative">
                   <Button 
                     type="button" 
                     variant="ghost" 
@@ -395,7 +395,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
               ))}
               
               {formData.items.length === 0 && (
-                <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-lg text-slate-500 italic">
+                <div className="text-center py-8 border-2 border-dashed border-white/5 rounded-lg text-muted-foreground italic">
                   Nenhuma loja adicionada.
                 </div>
               )}
@@ -407,12 +407,12 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
             <Textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="bg-white/5 border-white/10"
+              className="bg-white/5 border-border"
               placeholder="Informações adicionais sobre a diária..."
             />
           </div>
 
-          <DialogFooter className="sticky bottom-0 bg-command-deep pt-4 border-t border-white/10">
+          <DialogFooter className="sticky bottom-0 bg-command-deep pt-4 border-t border-border">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>

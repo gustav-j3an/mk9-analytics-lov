@@ -69,7 +69,7 @@ export function QualityIssueDetailSheet({
 
   return (
     <Sheet open={!!issueId} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-[400px] sm:w-[540px] bg-command-deep border-white/10 text-white p-0">
+      <SheetContent className="w-[400px] sm:w-[540px] bg-command-deep border-border text-white p-0">
         <SheetHeader className="p-6 border-b border-white/5">
           <div className="flex items-center gap-2 mb-2">
              <Badge 
@@ -80,21 +80,21 @@ export function QualityIssueDetailSheet({
              >
                {issue?.severity}
              </Badge>
-             <Badge variant="outline" className="uppercase text-[10px] font-black tracking-widest border-white/10 text-slate-400">
+             <Badge variant="outline" className="uppercase text-[10px] font-black tracking-widest border-border text-muted-foreground">
                {issue?.status}
              </Badge>
           </div>
           <SheetTitle className="text-xl font-bold text-white leading-tight">
             {issue ? issueTypeLabel(issue.issueType) : "Carregando..."}
           </SheetTitle>
-          <SheetDescription className="text-slate-400 text-sm mt-2">
+          <SheetDescription className="text-muted-foreground text-sm mt-2">
             {issue?.description}
           </SheetDescription>
         </SheetHeader>
 
         <ScrollArea className="h-[calc(100vh-180px)] p-6">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4 text-slate-500">
+            <div className="flex flex-col items-center justify-center py-20 gap-4 text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin" />
               <p className="text-xs font-black uppercase tracking-widest">Buscando detalhes...</p>
             </div>
@@ -110,16 +110,16 @@ export function QualityIssueDetailSheet({
               {/* Informações Principais */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Data/Hora</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Data/Hora</p>
                   <div className="flex items-center gap-2 text-sm font-medium">
-                    <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                     {dateTimeLabel(issue.lastSeenAt)}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Competência</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Competência</p>
                   <div className="flex items-center gap-2 text-sm font-medium">
-                    <Info className="h-3.5 w-3.5 text-slate-400" />
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" />
                     {competenceLabel(issue.competenceMonth, issue.competenceYear)}
                   </div>
                 </div>
@@ -129,7 +129,7 @@ export function QualityIssueDetailSheet({
 
               {/* Entidades Relacionadas */}
               <div className="space-y-4">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Entidades Envolvidas</h4>
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Entidades Envolvidas</h4>
                 
                 <div className="space-y-3">
                   {/* Indústria */}
@@ -139,7 +139,7 @@ export function QualityIssueDetailSheet({
                         <Building2 className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Indústria</p>
+                        <p className="text-[9px] font-black uppercase text-muted-foreground tracking-tighter">Indústria</p>
                         <p className="text-sm font-bold truncate max-w-[200px]">
                           {String(issue.evidence?.industryName ?? issue.industryId ?? "N/D")}
                         </p>
@@ -149,7 +149,7 @@ export function QualityIssueDetailSheet({
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-8 text-[10px] font-black uppercase text-slate-400 hover:text-white"
+                        className="h-8 text-[10px] font-black uppercase text-muted-foreground hover:text-white"
                         onClick={() => onNavigateToEntity?.('industry', issue.industryId!)}
                       >
                         Ver Indústria
@@ -164,7 +164,7 @@ export function QualityIssueDetailSheet({
                         <Store className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Loja</p>
+                        <p className="text-[9px] font-black uppercase text-muted-foreground tracking-tighter">Loja</p>
                         <p className="text-sm font-bold truncate max-w-[200px]">
                           {String(issue.evidence?.storeName ?? issue.storeId ?? "N/D")}
                         </p>
@@ -174,7 +174,7 @@ export function QualityIssueDetailSheet({
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-8 text-[10px] font-black uppercase text-slate-400 hover:text-white"
+                        className="h-8 text-[10px] font-black uppercase text-muted-foreground hover:text-white"
                         onClick={() => onNavigateToEntity?.('store', issue.storeId!)}
                       >
                         Ver Loja
@@ -190,7 +190,7 @@ export function QualityIssueDetailSheet({
                           <UserIcon className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Promotor</p>
+                          <p className="text-[9px] font-black uppercase text-muted-foreground tracking-tighter">Promotor</p>
                             <p className="text-sm font-bold truncate max-w-[200px]">
                               {String(issue.evidence?.promoterName ?? issue.assignedToName ?? issue.promoterId ?? "N/D")}
                             </p>

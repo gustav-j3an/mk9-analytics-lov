@@ -569,7 +569,7 @@ export function Mk9ChecklistImportModule({
             "h-8 px-4 text-[10px] font-black uppercase tracking-widest transition-all",
             viewMode === "individual"
               ? "bg-command-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.2)]"
-              : "text-slate-500 hover:text-white",
+              : "text-muted-foreground hover:text-white",
           )}
         >
           Individual
@@ -581,7 +581,7 @@ export function Mk9ChecklistImportModule({
             "h-8 px-4 text-[10px] font-black uppercase tracking-widest transition-all",
             viewMode === "batch"
               ? "bg-command-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.2)]"
-              : "text-slate-500 hover:text-white",
+              : "text-muted-foreground hover:text-white",
           )}
         >
           Em Lote
@@ -1030,7 +1030,7 @@ function BatchFileRow({
           <div className="flex items-center gap-2 mt-0.5">
             <span className={cn("text-[10px] font-bold uppercase", cfg.color)}>{cfg.label}</span>
             {file.industryName && (
-              <span className="text-[10px] text-slate-400 underline">
+              <span className="text-[10px] text-muted-foreground underline">
                 Indústria: {file.industryName}
               </span>
             )}
@@ -1342,7 +1342,7 @@ function IndividualImport({
           {preview && (
             <Button
               variant="outline"
-              className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest px-6"
+              className="h-9 border-border text-muted-foreground hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest px-6"
               onClick={() => discardMut.mutate()}
             >
               Descartar
@@ -1473,12 +1473,12 @@ function IndividualImport({
                 <h3 className="text-sm font-black text-white uppercase tracking-widest">
                   Prévia da Importação
                 </h3>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">
                   {preview.filename} · {preview.industryName}
                 </p>
               </div>
             </div>
-            <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <div className="px-3 py-1 rounded-full bg-white/5 border border-border text-[10px] font-black text-muted-foreground uppercase tracking-widest">
               {MONTHS_PT[preview.operationMonth - 1]}/{preview.operationYear}
             </div>
           </div>
@@ -1742,7 +1742,7 @@ function IndividualImport({
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-white truncate">{imp.filename}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">
                         {imp.industryName} · {MONTHS[imp.operationMonth - 1]} {imp.operationYear}
                         {c.persisted != null &&
                           ` · ${c.persisted} novas / ${c.skipped ?? 0} já existentes`}
@@ -1773,7 +1773,7 @@ function IndividualImport({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-slate-400 hover:text-white"
+                            className="h-8 w-8 text-muted-foreground hover:text-white"
                             title="Corrigir competência"
                             onClick={() => setCorrectDialogOpen({ id: imp.id })}
                           >
@@ -1782,7 +1782,7 @@ function IndividualImport({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-slate-400 hover:text-red-400"
+                            className="h-8 w-8 text-muted-foreground hover:text-red-400"
                             title="Desfazer importação"
                             onClick={() => setRevertDialogOpen({ id: imp.id })}
                           >
@@ -1922,16 +1922,16 @@ function PhaseRow({ active, done, label }: { active: boolean; done: boolean; lab
       ) : active ? (
         <Loader2 className="h-4 w-4 animate-spin text-command-purple" />
       ) : (
-        <div className="h-4 w-4 rounded-full border border-white/10 bg-white/5" />
+        <div className="h-4 w-4 rounded-full border border-border bg-white/5" />
       )}
       <span
         className={cn(
           "text-[10px] tracking-widest uppercase",
           done
-            ? "text-slate-500 line-through"
+            ? "text-muted-foreground line-through"
             : active
               ? "font-black text-white"
-              : "text-slate-400 font-bold",
+              : "text-muted-foreground font-bold",
         )}
       >
         {label}

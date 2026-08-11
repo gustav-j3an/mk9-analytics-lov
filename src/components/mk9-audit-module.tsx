@@ -188,14 +188,14 @@ export function Mk9AuditModule({
 
       <Mk9Panel>
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
             Parâmetros de Auditoria
           </h3>
           <div className="flex items-center gap-2">
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 text-slate-400 hover:text-white hover:bg-white/5"
+              className="h-8 text-muted-foreground hover:text-white hover:bg-white/5"
               onClick={() => {
                 industryQ.refetch();
                 storeQ.refetch();
@@ -209,14 +209,14 @@ export function Mk9AuditModule({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Mês
             </label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 {MONTHS_PT.map((m, i) => (
                   <SelectItem key={m} value={String(i + 1)}>
                     {m}
@@ -226,14 +226,14 @@ export function Mk9AuditModule({
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Ano
             </label>
             <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 {[2024, 2025, 2026].map((y) => (
                   <SelectItem key={y} value={String(y)}>
                     {y}
@@ -243,14 +243,14 @@ export function Mk9AuditModule({
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Indústria
             </label>
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 <SelectItem value="__ALL__">Todas as indústrias</SelectItem>
                 {(industriesQ.data ?? []).map((i: any) => (
                   <SelectItem key={i.id} value={i.id}>
@@ -261,14 +261,14 @@ export function Mk9AuditModule({
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Promotor
             </label>
             <Select value={promoterId} onValueChange={setPromoterId}>
-              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 <SelectItem value="__ALL__">Todos os promotores</SelectItem>
                 {(promotersQ.data ?? []).map((p: any) => (
                   <SelectItem key={p.id} value={p.id}>
@@ -279,14 +279,14 @@ export function Mk9AuditModule({
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               UF
             </label>
             <Select value={uf} onValueChange={setUf}>
-              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 <SelectItem value="__ALL__">Todas as UFs</SelectItem>
                 {UFS.map((u) => (
                   <SelectItem key={u} value={u}>
@@ -356,18 +356,18 @@ export function Mk9AuditModule({
           {tab !== "review" && (
             <div className="flex items-center gap-2">
               <div className="relative w-full sm:w-auto">
-                <SearchIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+                <SearchIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Filtrar resultados..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 h-9 w-full sm:w-[240px] bg-command-deep border-white/10 text-white text-xs"
+                  className="pl-9 h-9 w-full sm:w-[240px] bg-command-deep border-border text-white text-xs"
                 />
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 border-white/10 bg-white/5 text-slate-400 hover:text-white"
+                className="h-9 border-border bg-white/5 text-muted-foreground hover:text-white"
               >
                 <Download className="h-3.5 w-3.5 mr-2" /> Exportar
               </Button>
@@ -399,19 +399,19 @@ function IndustryTable({ q }: { q: any }) {
     <Table>
       <TableHeader className="bg-white/5">
         <TableRow className="border-white/5 hover:bg-transparent">
-          <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Indústria
           </TableHead>
-          <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Período
           </TableHead>
-          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Contratadas
           </TableHead>
-          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Realizadas
           </TableHead>
-          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Cobertura
           </TableHead>
         </TableRow>
@@ -423,7 +423,7 @@ function IndustryTable({ q }: { q: any }) {
             className="border-white/5 hover:bg-white/[0.02] transition-colors"
           >
             <TableCell className="font-bold text-white">{r.industryName}</TableCell>
-            <TableCell className="text-[10px] text-slate-500 font-medium">
+            <TableCell className="text-[10px] text-muted-foreground font-medium">
               {fmtDate(r.window.startDate)} — {fmtDate(r.window.endDate)}
             </TableCell>
             <TableCell className="text-right font-medium text-slate-300">{r.contratadas}</TableCell>
@@ -461,19 +461,19 @@ function StoreTable({ q, search }: { q: any; search: string }) {
     <Table>
       <TableHeader className="bg-white/5">
         <TableRow className="border-white/5 hover:bg-transparent">
-          <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Loja / Rede
           </TableHead>
-          <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Indústria
           </TableHead>
-          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Contratadas
           </TableHead>
-          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Realizadas
           </TableHead>
-          <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Status
           </TableHead>
         </TableRow>
@@ -486,11 +486,11 @@ function StoreTable({ q, search }: { q: any; search: string }) {
           >
             <TableCell>
               <div className="font-bold text-white uppercase tracking-tight">{r.storeName}</div>
-              <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest">
+              <div className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">
                 {r.chain ?? "—"}
               </div>
             </TableCell>
-            <TableCell className="text-[10px] font-bold text-slate-400">{r.industryName}</TableCell>
+            <TableCell className="text-[10px] font-bold text-muted-foreground">{r.industryName}</TableCell>
             <TableCell className="text-right font-medium text-slate-300">{r.contratadas}</TableCell>
             <TableCell className="text-right font-medium text-emerald-400">
               {r.realizadas}
@@ -528,19 +528,19 @@ function PromoterTable({ q, search }: { q: any; search: string }) {
     <Table>
       <TableHeader className="bg-white/5">
         <TableRow className="border-white/5 hover:bg-transparent">
-          <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Promotor
           </TableHead>
-          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Lojas
           </TableHead>
-          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Contratadas
           </TableHead>
-          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Realizadas
           </TableHead>
-          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-slate-500">
+          <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Cobertura
           </TableHead>
         </TableRow>
@@ -552,7 +552,7 @@ function PromoterTable({ q, search }: { q: any; search: string }) {
             className="border-white/5 hover:bg-white/[0.02] transition-colors"
           >
             <TableCell className="font-bold text-white">{r.promoterName}</TableCell>
-            <TableCell className="text-right font-medium text-slate-400">{r.storesCount}</TableCell>
+            <TableCell className="text-right font-medium text-muted-foreground">{r.storesCount}</TableCell>
             <TableCell className="text-right font-medium text-slate-300">{r.contratadas}</TableCell>
             <TableCell className="text-right font-medium text-emerald-400">
               {r.realizadas}

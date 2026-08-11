@@ -78,7 +78,7 @@ export function Mk9HomologationModule() {
       case "ERROR":
         return <XCircle className="h-4 w-4 text-red-500" />;
       default:
-        return <Activity className="h-4 w-4 text-slate-400" />;
+        return <Activity className="h-4 w-4 text-muted-foreground" />;
     }
   };
 

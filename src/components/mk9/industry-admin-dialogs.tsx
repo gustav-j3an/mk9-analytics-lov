@@ -139,12 +139,12 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg bg-command-deep border-white/10 text-white">
+      <DialogContent className="max-w-lg bg-command-deep border-border text-white">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             Nova indústria
           </DialogTitle>
-          <DialogDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+          <DialogDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
             Cadastro manual de indústria no Command Center.
           </DialogDescription>
         </DialogHeader>
@@ -153,13 +153,13 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
           <div className="space-y-1.5">
             <Label
               htmlFor="ind-name"
-              className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+              className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1"
             >
               Nome *
             </Label>
             <Input
               id="ind-name"
-              className="bg-black/40 border-white/10 h-10 text-white"
+              className="bg-input/50 border-border h-10 text-white"
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
@@ -171,13 +171,13 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
           <div className="space-y-1.5">
             <Label
               htmlFor="ind-display"
-              className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+              className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1"
             >
               Nome complementar
             </Label>
             <Input
               id="ind-display"
-              className="bg-black/40 border-white/10 h-10 text-white"
+              className="bg-input/50 border-border h-10 text-white"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={120}
@@ -186,13 +186,13 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
           <div className="space-y-1.5">
             <Label
               htmlFor="ind-cnpj"
-              className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+              className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1"
             >
               CNPJ
             </Label>
             <Input
               id="ind-cnpj"
-              className="bg-black/40 border-white/10 h-10 text-white"
+              className="bg-input/50 border-border h-10 text-white"
               value={cnpj}
               onChange={(e) => setCnpj(e.target.value)}
               placeholder="00.000.000/0000-00"
@@ -201,13 +201,13 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
           <div className="space-y-1.5">
             <Label
               htmlFor="ind-notes"
-              className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+              className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1"
             >
               Observação operacional
             </Label>
             <Textarea
               id="ind-notes"
-              className="bg-black/40 border-white/10 text-white min-h-[80px]"
+              className="bg-input/50 border-border text-white min-h-[80px]"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               maxLength={1000}
@@ -219,35 +219,35 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
               <p className="text-xs font-bold text-white uppercase tracking-tight">
                 Exige checklist
               </p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
                 Participa do fluxo de importação.
               </p>
             </div>
             <Switch checked={requiresChecklist} onCheckedChange={setRequiresChecklist} />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Modelo de Controle
             </Label>
             <Select value={controlMode} onValueChange={(v) => setControlMode(v as any)}>
-              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white">
+              <SelectTrigger className="bg-input/50 border-border h-10 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 <SelectItem value="VISIT_CONTROLLED">Monitorada (Dashboard/Analytics)</SelectItem>
                 <SelectItem value="FIXED_OPERATION">Operação Fixa (Apenas Roteiro)</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Tipo de período
             </Label>
             <Select value={periodType} onValueChange={(v) => setPeriodType(v as any)}>
-              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white">
+              <SelectTrigger className="bg-input/50 border-border h-10 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 <SelectItem value="CALENDAR_MONTH">Mês civil</SelectItem>
                 <SelectItem value="CUSTOM_CYCLE">Período personalizado</SelectItem>
               </SelectContent>
@@ -258,7 +258,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
               <div className="space-y-1.5">
                 <Label
                   htmlFor="ind-start"
-                  className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+                  className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1"
                 >
                   Dia inicial
                 </Label>
@@ -267,7 +267,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
                   type="number"
                   min={1}
                   max={31}
-                  className="bg-black/40 border-white/10 h-10 text-white"
+                  className="bg-input/50 border-border h-10 text-white"
                   value={startDay}
                   onChange={(e) => setStartDay(e.target.value)}
                 />
@@ -275,7 +275,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
               <div className="space-y-1.5">
                 <Label
                   htmlFor="ind-end"
-                  className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+                  className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1"
                 >
                   Dia final
                 </Label>
@@ -284,7 +284,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
                   type="number"
                   min={1}
                   max={31}
-                  className="bg-black/40 border-white/10 h-10 text-white"
+                  className="bg-input/50 border-border h-10 text-white"
                   value={endDay}
                   onChange={(e) => setEndDay(e.target.value)}
                 />
@@ -313,7 +313,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
         </div>
 
         <DialogFooter className="mt-6 border-t border-white/5 pt-4">
-          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>
+          <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
             CANCELAR
           </Button>
           <Button
@@ -404,12 +404,12 @@ export function IndustryEditDialog({
 
   return (
     <Dialog open={!!industry} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg bg-command-deep border-white/10 text-white">
+      <DialogContent className="max-w-lg bg-command-deep border-border text-white">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             Editar indústria
           </DialogTitle>
-          <DialogDescription className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+          <DialogDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
             {industry?.name}
           </DialogDescription>
         </DialogHeader>
@@ -417,13 +417,13 @@ export function IndustryEditDialog({
           <div className="space-y-1.5">
             <Label
               htmlFor="edit-name"
-              className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+              className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1"
             >
               Nome *
             </Label>
             <Input
               id="edit-name"
-              className="bg-black/40 border-white/10 h-10 text-white"
+              className="bg-input/50 border-border h-10 text-white"
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={120}
@@ -432,13 +432,13 @@ export function IndustryEditDialog({
           <div className="space-y-1.5">
             <Label
               htmlFor="edit-display"
-              className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+              className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1"
             >
               Nome complementar
             </Label>
             <Input
               id="edit-display"
-              className="bg-black/40 border-white/10 h-10 text-white"
+              className="bg-input/50 border-border h-10 text-white"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={120}
@@ -447,13 +447,13 @@ export function IndustryEditDialog({
           <div className="space-y-1.5">
             <Label
               htmlFor="edit-cnpj"
-              className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+              className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1"
             >
               CNPJ
             </Label>
             <Input
               id="edit-cnpj"
-              className="bg-black/40 border-white/10 h-10 text-white"
+              className="bg-input/50 border-border h-10 text-white"
               value={cnpj}
               onChange={(e) => setCnpj(e.target.value)}
               placeholder="00.000.000/0000-00"
@@ -462,13 +462,13 @@ export function IndustryEditDialog({
           <div className="space-y-1.5">
             <Label
               htmlFor="edit-notes"
-              className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+              className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1"
             >
               Observação operacional
             </Label>
             <Textarea
               id="edit-notes"
-              className="bg-black/40 border-white/10 text-white min-h-[80px]"
+              className="bg-input/50 border-border text-white min-h-[80px]"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               maxLength={1000}
@@ -480,35 +480,35 @@ export function IndustryEditDialog({
               <p className="text-xs font-bold text-white uppercase tracking-tight">
                 Exige checklist
               </p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
                 Controla a participação no fluxo.
               </p>
             </div>
             <Switch checked={requiresChecklist} onCheckedChange={setRequiresChecklist} />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Modelo de Controle
             </Label>
             <Select value={controlMode} onValueChange={(v) => setControlMode(v as any)}>
-              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white">
+              <SelectTrigger className="bg-input/50 border-border h-10 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 <SelectItem value="VISIT_CONTROLLED">Monitorada (Dashboard/Analytics)</SelectItem>
                 <SelectItem value="FIXED_OPERATION">Operação Fixa (Apenas Roteiro)</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Tipo de período
             </Label>
             <Select value={periodType} onValueChange={(v) => setPeriodType(v as any)}>
-              <SelectTrigger className="bg-black/40 border-white/10 h-10 text-white">
+              <SelectTrigger className="bg-input/50 border-border h-10 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 <SelectItem value="CALENDAR_MONTH">Mês civil</SelectItem>
                 <SelectItem value="CUSTOM_CYCLE">Período personalizado</SelectItem>
               </SelectContent>
@@ -519,7 +519,7 @@ export function IndustryEditDialog({
               <div className="space-y-1.5">
                 <Label
                   htmlFor="edit-start"
-                  className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+                  className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1"
                 >
                   Dia inicial
                 </Label>
@@ -528,7 +528,7 @@ export function IndustryEditDialog({
                   type="number"
                   min={1}
                   max={31}
-                  className="bg-black/40 border-white/10 h-10 text-white"
+                  className="bg-input/50 border-border h-10 text-white"
                   value={startDay}
                   onChange={(e) => setStartDay(e.target.value)}
                 />
@@ -536,7 +536,7 @@ export function IndustryEditDialog({
               <div className="space-y-1.5">
                 <Label
                   htmlFor="edit-end"
-                  className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+                  className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1"
                 >
                   Dia final
                 </Label>
@@ -545,7 +545,7 @@ export function IndustryEditDialog({
                   type="number"
                   min={1}
                   max={31}
-                  className="bg-black/40 border-white/10 h-10 text-white"
+                  className="bg-input/50 border-border h-10 text-white"
                   value={endDay}
                   onChange={(e) => setEndDay(e.target.value)}
                 />
@@ -567,7 +567,7 @@ export function IndustryEditDialog({
             EXCLUIR
           </Button>
           <div className="flex gap-2">
-            <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={onClose}>
+            <Button variant="ghost" className="text-muted-foreground hover:text-white" onClick={onClose}>
               CANCELAR
             </Button>
             <Button

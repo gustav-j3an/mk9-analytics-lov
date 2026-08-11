@@ -29,30 +29,30 @@ export function Mk9FreelancersModule() {
     }
   });
 
-  if (isLoading) return <div className="p-8 text-center text-slate-400"><Loader2 className="animate-spin inline mr-2" /> Carregando...</div>;
+  if (isLoading) return <div className="p-8 text-center text-muted-foreground"><Loader2 className="animate-spin inline mr-2" /> Carregando...</div>;
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-black text-white tracking-tighter uppercase">Gestão de Freelancers</h2>
-          <p className="text-slate-500 font-bold text-[10px] uppercase tracking-widest">Cadastro e Gestão de Prestadores Avulsos</p>
+          <p className="text-muted-foreground font-bold text-[10px] uppercase tracking-widest">Cadastro e Gestão de Prestadores Avulsos</p>
         </div>
         <Button className="w-full md:w-auto bg-command-purple hover:bg-command-purple/80 font-black tracking-widest text-[11px] h-11 px-6 shadow-[0_0_20px_rgba(168,85,247,0.2)]" onClick={() => { setEditing(null); setOpen(true); }}>
           <Plus className="w-4 h-4 mr-2" /> NOVO FREELANCER
         </Button>
       </div>
 
-      <div className="border border-white/10 rounded-lg bg-[#111122]">
+      <div className="border border-border rounded-lg bg-[#111122]">
         <Table>
           <TableHeader>
-            <TableRow className="border-white/10 hover:bg-transparent">
-              <TableHead className="text-slate-400">Nome</TableHead>
-              <TableHead className="text-slate-400">Cidade/UF</TableHead>
-              <TableHead className="text-slate-400">Telefone</TableHead>
-              <TableHead className="text-slate-400">Vlr Padrão</TableHead>
-              <TableHead className="text-slate-400">Status</TableHead>
-              <TableHead className="text-right text-slate-400">Ações</TableHead>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground">Nome</TableHead>
+              <TableHead className="text-muted-foreground">Cidade/UF</TableHead>
+              <TableHead className="text-muted-foreground">Telefone</TableHead>
+              <TableHead className="text-muted-foreground">Vlr Padrão</TableHead>
+              <TableHead className="text-muted-foreground">Status</TableHead>
+              <TableHead className="text-right text-muted-foreground">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -89,10 +89,10 @@ export function Mk9FreelancersModule() {
       </div>
 
       {freelancers?.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-white/10 rounded-xl bg-white/5 text-center">
+        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-border rounded-xl bg-white/5 text-center">
           <Users className="w-12 h-12 text-slate-600 mb-4" />
           <h3 className="text-xl font-bold text-white mb-2">Nenhum freelancer cadastrado</h3>
-          <p className="text-slate-400 max-w-xs mb-6">Comece cadastrando um prestador para realizar diárias e atendimentos avulsos.</p>
+          <p className="text-muted-foreground max-w-xs mb-6">Comece cadastrando um prestador para realizar diárias e atendimentos avulsos.</p>
           <Button className="bg-command-purple hover:bg-command-purple/80" onClick={() => { setEditing(null); setOpen(true); }}>
             <Plus className="w-4 h-4 mr-2" /> Cadastrar Primeiro Freelancer
           </Button>

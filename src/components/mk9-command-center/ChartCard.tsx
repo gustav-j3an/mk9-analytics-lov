@@ -15,7 +15,7 @@ export function ChartCard({ title, subtitle, children, className }: ChartCardPro
       <div className="mb-6">
         <h3 className="text-sm font-black text-white uppercase tracking-[0.1em]">{title}</h3>
         {subtitle && (
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
             {subtitle}
           </p>
         )}

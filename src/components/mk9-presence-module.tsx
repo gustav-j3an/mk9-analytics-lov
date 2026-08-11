@@ -220,11 +220,11 @@ export function Mk9PresenceModule() {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="h-8 w-[140px] bg-black/40 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider"
+              className="h-8 w-[140px] bg-input/50 border-white/5 text-[10px] font-bold text-white uppercase tracking-wider"
             />
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="h-8 w-8 p-0 border-white/10 text-slate-400 hover:text-white">
+                <Button variant="outline" className="h-8 w-8 p-0 border-border text-muted-foreground hover:text-white">
                   <Settings className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
@@ -248,7 +248,7 @@ export function Mk9PresenceModule() {
             <Button
               onClick={exportToExcel}
               variant="outline"
-              className="h-8 gap-2 border-white/10 text-slate-400 hover:text-white uppercase text-[10px] font-black tracking-widest px-4"
+              className="h-8 gap-2 border-border text-muted-foreground hover:text-white uppercase text-[10px] font-black tracking-widest px-4"
             >
               <Download className="h-4 w-4" />
               Excel
@@ -268,7 +268,7 @@ export function Mk9PresenceModule() {
       <Mk9Panel>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
-             <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+             <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
                Lista de Presença
              </h3>
              <Button 
@@ -282,19 +282,19 @@ export function Mk9PresenceModule() {
           </div>
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Nome ou matrícula..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-9 w-[220px] bg-command-deep border-white/10 text-white text-xs"
+                className="pl-9 h-9 w-[220px] bg-command-deep border-border text-white text-xs"
               />
             </div>
             <Select value={teamFilter} onValueChange={setTeamFilter}>
-              <SelectTrigger className="h-9 w-[180px] bg-command-deep border-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
+              <SelectTrigger className="h-9 w-[180px] bg-command-deep border-border text-white text-[10px] font-bold uppercase tracking-wider">
                 <SelectValue placeholder="EQUIPE" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 <SelectItem value="ALL">TODAS EQUIPES</SelectItem>
                 <SelectItem value="NONE">SEM EQUIPE (AVULSOS)</SelectItem>
                 {teams?.map(t => (
@@ -304,10 +304,10 @@ export function Mk9PresenceModule() {
             </Select>
             
             <Select value={supervisorFilter} onValueChange={setSupervisorFilter}>
-              <SelectTrigger className="h-9 w-[180px] bg-command-deep border-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
+              <SelectTrigger className="h-9 w-[180px] bg-command-deep border-border text-white text-[10px] font-bold uppercase tracking-wider">
                 <SelectValue placeholder="SUPERVISOR" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 <SelectItem value="ALL">TODOS SUPERVISORES</SelectItem>
                 <SelectItem value="NONE">SEM SUPERVISOR</SelectItem>
                 {supervisors?.map(s => (
@@ -317,10 +317,10 @@ export function Mk9PresenceModule() {
             </Select>
 
             <Select value={ufFilter} onValueChange={setUfFilter}>
-              <SelectTrigger className="h-9 w-[80px] bg-command-deep border-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
+              <SelectTrigger className="h-9 w-[80px] bg-command-deep border-border text-white text-[10px] font-bold uppercase tracking-wider">
                 <SelectValue placeholder="UF" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 <SelectItem value="__ALL__">TODAS</SelectItem>
                 {ufs.map(uf => (
                   <SelectItem key={uf} value={uf}>{uf}</SelectItem>
@@ -342,10 +342,10 @@ export function Mk9PresenceModule() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-white/5 bg-white/[0.02]">
-                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-slate-500">Promotor</th>
-                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-slate-500">Matrícula</th>
-                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-slate-500 text-center w-[300px]">Status</th>
-                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-slate-500">Observação</th>
+                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Promotor</th>
+                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Matrícula</th>
+                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center w-[300px]">Status</th>
+                    <th className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground">Observação</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -356,10 +356,10 @@ export function Mk9PresenceModule() {
                         <td className="px-4 py-3">
                           <div className="flex flex-col">
                             <span className="text-[11px] font-black text-white uppercase tracking-tighter">{item.name}</span>
-                            <span className="text-[9px] text-slate-500 font-bold">{item.uf || "-"}</span>
+                            <span className="text-[9px] text-muted-foreground font-bold">{item.uf || "-"}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-[10px] font-mono text-slate-400">
+                        <td className="px-4 py-3 text-[10px] font-mono text-muted-foreground">
                           {item.registration_number || "-"}
                         </td>
                         <td className="px-4 py-3">

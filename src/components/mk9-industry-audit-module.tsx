@@ -97,10 +97,10 @@ export function Mk9IndustryAuditModule() {
       <Mk9Panel>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nome..."
-              className="pl-10 bg-white/[0.03] border-white/10 text-white placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
+              className="pl-10 bg-white/[0.03] border-border text-white placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -112,7 +112,7 @@ export function Mk9IndustryAuditModule() {
               onClick={() => setFilter("all")}
               className={cn(
                 "text-[10px] font-black uppercase tracking-widest border-white/5",
-                filter === "all" ? "bg-white/10 text-white" : "text-slate-400"
+                filter === "all" ? "bg-white/10 text-white" : "text-muted-foreground"
               )}
             >
               Tudo
@@ -123,7 +123,7 @@ export function Mk9IndustryAuditModule() {
               onClick={() => setFilter("suggested_fixed")}
               className={cn(
                 "text-[10px] font-black uppercase tracking-widest border-white/5",
-                filter === "suggested_fixed" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" : "text-slate-400"
+                filter === "suggested_fixed" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" : "text-muted-foreground"
               )}
             >
               Sugestão: Fixa
@@ -134,7 +134,7 @@ export function Mk9IndustryAuditModule() {
               onClick={() => setFilter("suggested_visit")}
               className={cn(
                 "text-[10px] font-black uppercase tracking-widest border-white/5",
-                filter === "suggested_visit" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "text-slate-400"
+                filter === "suggested_visit" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "text-muted-foreground"
               )}
             >
               Sugestão: Monitorada
@@ -146,13 +146,13 @@ export function Mk9IndustryAuditModule() {
           <Table>
             <TableHeader>
               <TableRow className="border-white/5 hover:bg-transparent">
-                <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Indústria</TableHead>
-                <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Histórico Checklist</TableHead>
-                <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Roteiro</TableHead>
-                <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Frequência</TableHead>
-                <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Visitas</TableHead>
-                <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Modelo Atual</TableHead>
-                <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Sugestão</TableHead>
+                <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Indústria</TableHead>
+                <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Histórico Checklist</TableHead>
+                <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Roteiro</TableHead>
+                <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Frequência</TableHead>
+                <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Visitas</TableHead>
+                <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Modelo Atual</TableHead>
+                <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-right">Sugestão</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -230,7 +230,7 @@ export function Mk9IndustryAuditModule() {
             <Info className="h-5 w-5" />
             <h3 className="font-black uppercase tracking-widest text-xs">Resumo do Diagnóstico</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-[11px] leading-relaxed text-slate-400">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-[11px] leading-relaxed text-muted-foreground">
             <div className="space-y-2">
               <p className="font-bold text-white mb-1 uppercase tracking-tighter underline decoration-command-purple/30">Lógica de Reclassificação:</p>
               <ul className="list-disc pl-4 space-y-1">

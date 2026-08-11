@@ -151,10 +151,10 @@ export function Mk9CockpitModule({
         actions={
           <div className="glass-command p-1 md:p-1.5 rounded-xl flex flex-wrap items-center gap-1.5 md:gap-2 border border-white/5">
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-8 min-w-[110px] md:min-w-[130px] bg-black/40 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase tracking-wider px-2 md:px-3 gap-1 md:gap-2 shrink-0">
+              <SelectTrigger className="h-8 min-w-[110px] md:min-w-[130px] bg-input/50 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase tracking-wider px-2 md:px-3 gap-1 md:gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 {MONTHS_PT.map((m, i) => (
                   <SelectItem
                     key={m}
@@ -168,10 +168,10 @@ export function Mk9CockpitModule({
             </Select>
 
             <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-              <SelectTrigger className="h-8 w-[70px] md:w-[80px] bg-black/40 border-white/5 text-[9px] md:text-[10px] font-bold text-white">
+              <SelectTrigger className="h-8 w-[70px] md:w-[80px] bg-input/50 border-white/5 text-[9px] md:text-[10px] font-bold text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 {[year - 1, year, year + 1].map((y) => (
                   <SelectItem key={y} value={String(y)} className="text-[10px] font-bold">
                     {y}
@@ -181,10 +181,10 @@ export function Mk9CockpitModule({
             </Select>
 
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-8 w-[140px] md:w-[160px] bg-black/40 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase">
+              <SelectTrigger className="h-8 w-[140px] md:w-[160px] bg-input/50 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase">
                 <SelectValue placeholder="Indústria" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 <SelectItem value={ALL} className="text-[10px] font-bold uppercase">
                   Todas as Indústrias
                 </SelectItem>
@@ -197,10 +197,10 @@ export function Mk9CockpitModule({
             </Select>
 
             <Select value={promoterId} onValueChange={setPromoterId}>
-              <SelectTrigger className="h-8 w-[140px] md:w-[160px] bg-black/40 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase">
+              <SelectTrigger className="h-8 w-[140px] md:w-[160px] bg-input/50 border-white/5 text-[9px] md:text-[10px] font-bold text-white uppercase">
                 <SelectValue placeholder="Promotor" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 <SelectItem value={ALL} className="text-[10px] font-bold uppercase">
                   Todos os Promotores
                 </SelectItem>
@@ -215,7 +215,7 @@ export function Mk9CockpitModule({
             <Button
               size="icon"
               variant="ghost"
-              className="h-8 w-8 text-slate-500 hover:text-white hover:bg-white/5"
+              className="h-8 w-8 text-muted-foreground hover:text-white hover:bg-white/5"
               onClick={() => q.refetch()}
               disabled={q.isFetching}
             >
@@ -324,7 +324,7 @@ export function Mk9CockpitModule({
 
           <Mk9Panel title="🚨 Prioridades de Comando">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
                 Alertas Ativos
               </h3>
             </div>
@@ -332,24 +332,24 @@ export function Mk9CockpitModule({
               {data.priorities.map((p: any, idx: number) => (
                 <div
                   key={p.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors group gap-3"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-border transition-colors group gap-3"
                 >
                   <div className="flex items-center gap-3 md:gap-4">
-                    <span className="h-7 w-7 md:h-8 md:w-8 shrink-0 rounded-lg bg-white/5 flex items-center justify-center text-[9px] md:text-[10px] font-black text-slate-500">
+                    <span className="h-7 w-7 md:h-8 md:w-8 shrink-0 rounded-lg bg-white/5 flex items-center justify-center text-[9px] md:text-[10px] font-black text-muted-foreground">
                       {idx + 1}
                     </span>
                     <div>
                       <p className="text-sm font-black text-white uppercase tracking-tight">
                         {p.title}
                       </p>
-                      <p className="text-xs text-slate-500 font-medium">{p.description}</p>
+                      <p className="text-xs text-muted-foreground font-medium">{p.description}</p>
                     </div>
                   </div>
                   {p.deepLink && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 gap-2 text-slate-400 group-hover:text-command-purple transition-colors"
+                      className="h-8 gap-2 text-muted-foreground group-hover:text-command-purple transition-colors"
                       onClick={() => go(p.deepLink)}
                     >
                       Tratar <ArrowRight className="h-4 w-4" />
@@ -363,7 +363,7 @@ export function Mk9CockpitModule({
 
         <div className="space-y-6">
           <Mk9Panel className="h-full">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-6">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-6">
               Ações Rápidas
             </h3>
             <div className="grid grid-cols-2 gap-3">
@@ -376,8 +376,8 @@ export function Mk9CockpitModule({
                     onClick={() => go(a.target)}
                     className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-command-purple/10 hover:border-command-purple/30 transition-all group"
                   >
-                    <Icon className="h-6 w-6 text-slate-500 group-hover:text-command-purple mb-2 transition-colors" />
-                    <span className="text-[9px] font-black text-slate-400 group-hover:text-white uppercase tracking-widest text-center">
+                    <Icon className="h-6 w-6 text-muted-foreground group-hover:text-command-purple mb-2 transition-colors" />
+                    <span className="text-[9px] font-black text-muted-foreground group-hover:text-white uppercase tracking-widest text-center">
                       {a.label}
                     </span>
                   </button>
@@ -386,7 +386,7 @@ export function Mk9CockpitModule({
             </div>
 
             <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
                 Saúde do Sistema
               </h3>
               <div
@@ -407,7 +407,7 @@ export function Mk9CockpitModule({
                   {data.health.level}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 italic leading-relaxed px-1">
+              <p className="text-xs text-muted-foreground italic leading-relaxed px-1">
                 {data.health.reason}
               </p>
             </div>

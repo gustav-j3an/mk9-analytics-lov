@@ -42,7 +42,7 @@ export function Mk9PageHeader({ title, subtitle, icon: Icon, actions }: Mk9PageH
         <div>
           <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase">{title}</h1>
           {subtitle && (
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">
               {subtitle}
             </p>
           )}
@@ -93,12 +93,12 @@ export function Mk9MetricCard({
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">
             {label}
           </p>
           <h3 className="text-xl md:text-2xl font-black text-white tracking-tighter">{value}</h3>
           {hint && (
-            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">
+            <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">
               {hint}
             </p>
           )}
@@ -123,7 +123,7 @@ export function Mk9Badge({
   variant?: "default" | "success" | "warning" | "danger" | "info";
 }) {
   const variants = {
-    default: "border-white/10 bg-white/5 text-slate-300",
+    default: "border-border bg-white/5 text-slate-300",
     success: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
     warning: "border-amber-500/20 bg-amber-500/10 text-amber-400",
     danger: "border-rose-500/20 bg-rose-500/10 text-rose-400",
@@ -147,7 +147,7 @@ export function Mk9LoadingState({ message = "Carregando dados..." }: { message?:
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-4">
       <Loader2 className="h-10 w-10 animate-spin text-command-purple/20" />
-      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{message}</p>
+      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{message}</p>
     </div>
   );
 }
@@ -162,7 +162,7 @@ export function Mk9EmptyState({
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-4 border border-dashed border-white/5 rounded-2xl bg-white/[0.01]">
       <Inbox className="h-10 w-10 text-slate-700" />
-      <p className="text-sm font-medium text-slate-500 italic">{message}</p>
+      <p className="text-sm font-medium text-muted-foreground italic">{message}</p>
       {action && <div className="mt-2">{action}</div>}
     </div>
   );

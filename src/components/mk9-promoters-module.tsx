@@ -87,10 +87,10 @@ export function Mk9PromotersModule() {
       <Mk9Panel>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nome, matrícula ou UF..."
-              className="pl-10 bg-white/[0.03] border-white/10 text-white placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
+              className="pl-10 bg-white/[0.03] border-border text-white placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -100,7 +100,7 @@ export function Mk9PromotersModule() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+              <tr className="border-b border-white/5 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                 <th className="px-4 py-4 text-left font-black">Promotor</th>
                 <th className="px-4 py-4 text-left font-black">Matrícula</th>
                 <th className="px-4 py-4 text-left font-black">Localização</th>
@@ -124,7 +124,7 @@ export function Mk9PromotersModule() {
                           {p.name}
                         </span>
                         {p.contact && (
-                          <span className="text-[10px] text-slate-500 uppercase tracking-tight">
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-tight">
                             {p.contact}
                           </span>
                         )}
@@ -137,7 +137,7 @@ export function Mk9PromotersModule() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-1.5">
-                        <MapPin className="h-3 w-3 text-slate-500" />
+                        <MapPin className="h-3 w-3 text-muted-foreground" />
                         <span className="text-xs font-medium text-slate-300">
                           {p.city} / {p.uf}
                         </span>
@@ -156,14 +156,14 @@ export function Mk9PromotersModule() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-white"
                           >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="bg-command-deep border-white/10 text-white"
+                          className="bg-command-deep border-border text-white"
                         >
                           <DropdownMenuItem
                             onClick={() => setEditingPromoter(p)}

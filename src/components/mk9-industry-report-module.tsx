@@ -212,14 +212,14 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
       <Mk9Panel>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
           <div className="sm:col-span-2">
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Indústria
             </Label>
             <Select value={industryId} onValueChange={setIndustryId}>
-              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 {(industriesQ.data ?? []).map((i) => (
                   <SelectItem key={i.id} value={i.id}>
                     {i.name}
@@ -229,14 +229,14 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
             </Select>
           </div>
           <div>
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Mês
             </Label>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger className="h-9 min-w-[130px] bg-command-deep border-white/10 text-white uppercase px-3 gap-2 shrink-0">
+              <SelectTrigger className="h-9 min-w-[130px] bg-command-deep border-border text-white uppercase px-3 gap-2 shrink-0">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 {MONTHS_PT.map((m, i) => (
                   <SelectItem key={m} value={String(i + 1)}>
                     {m}
@@ -246,25 +246,25 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
             </Select>
           </div>
           <div>
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Ano
             </Label>
             <Input
               type="number"
-              className="h-9 bg-command-deep border-white/10 text-white"
+              className="h-9 bg-command-deep border-border text-white"
               value={year}
               onChange={(e) => setYear(Number(e.target.value) || year)}
             />
           </div>
           <div>
-            <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               UF
             </Label>
             <Select value={uf || "__all"} onValueChange={(v) => setUf(v === "__all" ? "" : v)}>
-              <SelectTrigger className="h-9 bg-command-deep border-white/10 text-white">
+              <SelectTrigger className="h-9 bg-command-deep border-border text-white">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10 text-white">
+              <SelectContent className="bg-command-deep border-border text-white">
                 <SelectItem value="__all">Todas</SelectItem>
                 {ufOptions.map((u) => (
                   <SelectItem key={u} value={u}>
@@ -279,7 +279,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
 
       {!industryId && (
         <Mk9Panel className="py-20 text-center">
-          <p className="text-slate-500">
+          <p className="text-muted-foreground">
             Selecione uma indústria para visualizar os dados e gerar relatórios.
           </p>
         </Mk9Panel>
@@ -288,7 +288,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
       {industryId && reportQ.isLoading && (
         <Mk9Panel className="py-20 text-center flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-mk9-accent-primary" />
-          <p className="text-slate-400">Calculando indicadores operacionais...</p>
+          <p className="text-muted-foreground">Calculando indicadores operacionais...</p>
         </Mk9Panel>
       )}
 
@@ -331,12 +331,12 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
 
           <Mk9Panel className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 Período de Competência
               </p>
               <p className="text-white font-medium">
                 {fmtBR(report.window.startDate)} a {fmtBR(report.window.endDate)}{" "}
-                <span className="text-slate-500 ml-2">· {report.window.totalDays} dias</span>
+                <span className="text-muted-foreground ml-2">· {report.window.totalDays} dias</span>
               </p>
             </div>
 
@@ -345,7 +345,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                 onClick={() => downloadPdf("full")}
                 disabled={!!downloading}
                 variant="outline"
-                className="h-9 w-full sm:w-auto border-white/10 text-slate-400 hover:text-white hover:bg-white/5 uppercase text-[10px] font-black tracking-widest"
+                className="h-9 w-full sm:w-auto border-border text-muted-foreground hover:text-white hover:bg-white/5 uppercase text-[10px] font-black tracking-widest"
               >
                 {downloading === "full" ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -380,7 +380,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
               <div className="overflow-x-auto custom-scrollbar-horizontal">
                 <table className="w-full">
                   <thead>
-                    <tr className="text-left text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5">
+                    <tr className="text-left text-[10px] uppercase tracking-widest text-muted-foreground border-b border-white/5">
                       <th className="pb-3 font-bold text-left">UF</th>
                       <th className="pb-3 font-bold text-right">Lojas</th>
                       <th className="pb-3 font-bold text-right">Contratadas</th>
@@ -397,8 +397,8 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                         <td className="py-3 text-slate-300 text-right">{u.stores}</td>
                         <td className="py-3 text-slate-300 text-right">{u.expected}</td>
                         <td className="py-3 text-white text-right">{u.actual}</td>
-                        <td className="py-3 text-slate-400 text-right">{u.pending}</td>
-                        <td className="py-3 text-slate-400 text-right">{u.extra}</td>
+                        <td className="py-3 text-muted-foreground text-right">{u.pending}</td>
+                        <td className="py-3 text-muted-foreground text-right">{u.extra}</td>
                         <td className="py-3 text-right">
                           <Mk9Badge variant={u.coveragePct >= 90 ? "success" : "warning"}>
                             {u.coveragePct}%
@@ -416,7 +416,7 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
             <div className="overflow-x-auto custom-scrollbar-horizontal">
               <table className="w-full">
                 <thead>
-                  <tr className="text-left text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5">
+                  <tr className="text-left text-[10px] uppercase tracking-widest text-muted-foreground border-b border-white/5">
                     <th className="pb-3 font-bold text-left">Loja</th>
                     <th className="pb-3 font-bold text-left">UF</th>
                     <th className="pb-3 font-bold text-left">Freq.</th>
@@ -441,13 +441,13 @@ export function Mk9IndustryReportModule({ initialMonth, initialYear }: { initial
                         <td className="py-3">
                           <div className="text-white font-medium">{s.storeName}</div>
                           {s.chain && (
-                            <div className="text-[10px] text-slate-500 uppercase tracking-tighter">
+                            <div className="text-[10px] text-muted-foreground uppercase tracking-tighter">
                               {s.chain}
                             </div>
                           )}
                         </td>
-                        <td className="py-3 text-slate-400 font-mono">{s.uf ?? "—"}</td>
-                        <td className="py-3 text-slate-400 text-xs">{freqLabel}</td>
+                        <td className="py-3 text-muted-foreground font-mono">{s.uf ?? "—"}</td>
+                        <td className="py-3 text-muted-foreground text-xs">{freqLabel}</td>
                         <td className="py-3 text-slate-300 font-medium text-right">{s.expected}</td>
                         <td className="py-3 text-white font-bold text-right">{s.actual}</td>
                         <td className="py-3 text-right">
@@ -517,37 +517,37 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="h-9 border-white/10 hover:bg-white/5 text-slate-300"
+          className="h-9 border-border hover:bg-white/5 text-slate-300"
           disabled={!industryId}
         >
           <Settings2 className="mr-2 h-4 w-4" /> CONFIGURAR PERÍODO
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-command-deep border-white/10 text-white max-w-md">
+      <DialogContent className="bg-command-deep border-border text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary">
             Configuração de Competência
           </DialogTitle>
         </DialogHeader>
         {!current ? (
-          <div className="py-10 text-center text-slate-500 flex flex-col items-center gap-3">
+          <div className="py-10 text-center text-muted-foreground flex flex-col items-center gap-3">
             <Loader2 className="h-5 w-5 animate-spin" />
             <p>Carregando configurações...</p>
           </div>
         ) : (
           <div className="space-y-6 pt-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 Tipo de Período
               </Label>
               <Select
                 value={current.periodType}
                 onValueChange={(v) => setForm({ ...current, periodType: v })}
               >
-                <SelectTrigger className="bg-black/40 border-white/10 h-10">
+                <SelectTrigger className="bg-input/50 border-border h-10">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-command-deep border-white/10">
+                <SelectContent className="bg-command-deep border-border">
                   <SelectItem value="CALENDAR_MONTH">Mês calendário (dia 1 ao último)</SelectItem>
                   <SelectItem value="CUSTOM_CYCLE">Ciclo personalizado</SelectItem>
                 </SelectContent>
@@ -555,27 +555,27 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   Dia Inicial
                 </Label>
                 <Input
                   type="number"
                   min={1}
                   max={31}
-                  className="bg-black/40 border-white/10 h-10"
+                  className="bg-input/50 border-border h-10"
                   value={current.startDay}
                   onChange={(e) => setForm({ ...current, startDay: Number(e.target.value) || 1 })}
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   Dia Final
                 </Label>
                 <Input
                   type="number"
                   min={1}
                   max={31}
-                  className="bg-black/40 border-white/10 h-10"
+                  className="bg-input/50 border-border h-10"
                   value={current.endDay}
                   onChange={(e) => setForm({ ...current, endDay: Number(e.target.value) || 31 })}
                 />
@@ -588,23 +588,23 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
               />
               <div className="space-y-0.5">
                 <p className="text-xs font-medium">Ciclo começa no mês anterior</p>
-                <p className="text-[10px] text-slate-500">
+                <p className="text-[10px] text-muted-foreground">
                   Ex: KING (23 do mês anterior ao 22 atual)
                 </p>
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 Agrupamento Semanal
               </Label>
               <Select
                 value={current.weekGrouping}
                 onValueChange={(v) => setForm({ ...current, weekGrouping: v })}
               >
-                <SelectTrigger className="bg-black/40 border-white/10 h-10">
+                <SelectTrigger className="bg-input/50 border-border h-10">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-command-deep border-white/10">
+                <SelectContent className="bg-command-deep border-border">
                   <SelectItem value="CALENDAR_WEEK">Segunda a domingo</SelectItem>
                   <SelectItem value="CYCLE_WEEK">Blocos de 7 dias</SelectItem>
                 </SelectContent>
@@ -620,7 +620,7 @@ function PeriodConfigDialog({ industryId }: { industryId: string }) {
         <DialogFooter className="mt-6 border-t border-white/5 pt-4">
           <Button
             variant="ghost"
-            className="text-slate-400 hover:text-white"
+            className="text-muted-foreground hover:text-white"
             onClick={() => setOpen(false)}
           >
             CANCELAR

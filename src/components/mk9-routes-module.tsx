@@ -164,7 +164,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
         actions={
           <Button
             onClick={() => setCreating(true)}
-            className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest px-6"
+            className="h-9 bg-command-purple hover:bg-command-purple/80 text-foreground border-none shadow-[0_0_15px_rgba(168,85,247,0.3)] uppercase text-[10px] font-black tracking-widest px-6"
           >
             <Plus className="h-4 w-4 mr-2" /> Novo Item
           </Button>
@@ -176,35 +176,35 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
             <CalendarClock className="h-5 w-5" />
           </div>
-          <h3 className="text-sm font-black text-white uppercase tracking-widest">
+          <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
             Filtros Operacionais
           </h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-3 items-end">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Referência
             </label>
             <Input
               type="date"
               value={referenceDate}
               onChange={(e) => setReferenceDate(e.target.value)}
-              className="h-9 bg-black/40 border-white/5 text-xs text-white"
+              className="h-9 bg-background/60 border-border/50 text-xs text-foreground"
             />
           </div>
           <div className="col-span-2 space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Promotor
             </label>
             <Select
               value={filterPromoter || "all"}
               onValueChange={(v) => setFilterPromoter(v === "all" ? "" : v)}
             >
-              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 bg-background/60 border-border/50 text-xs text-foreground">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 <SelectItem value="all">Todos</SelectItem>
                 {promoters.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
@@ -215,17 +215,17 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
             </Select>
           </div>
           <div className="col-span-2 space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Indústria
             </label>
             <Select
               value={filterIndustry || "all"}
               onValueChange={(v) => setFilterIndustry(v === "all" ? "" : v)}
             >
-              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 bg-background/60 border-border/50 text-xs text-foreground">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 <SelectItem value="all">Todas</SelectItem>
                 {industries.map((i) => (
                   <SelectItem key={i.id} value={i.id}>
@@ -236,17 +236,17 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               UF
             </label>
             <Select
               value={filterUf || "all"}
               onValueChange={(v) => setFilterUf(v === "all" ? "" : v)}
             >
-              <SelectTrigger className="h-9 bg-black/40 border-white/5 text-xs text-white">
+              <SelectTrigger className="h-9 bg-background/60 border-border/50 text-xs text-foreground">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-white/10">
+              <SelectContent className="bg-command-deep border-border">
                 <SelectItem value="all">Todas</SelectItem>
                 {ufs.map((u) => (
                   <SelectItem key={u} value={u}>
@@ -257,19 +257,19 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
             </Select>
           </div>
           <div className="col-span-4 space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Busca Rápida
             </label>
             <Input
               placeholder="Buscar por promotor, loja ou indústria…"
               value={nameFilter}
               onChange={(e) => setNameFilter(e.target.value)}
-              className="h-9 bg-black/40 border-white/5 text-xs text-white"
+              className="h-9 bg-background/60 border-border/50 text-xs text-foreground"
             />
           </div>
           <Button
             variant="outline"
-            className="h-9 border-white/10 text-slate-400 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest"
+            className="h-9 border-border text-muted-foreground hover:text-foreground hover:bg-white/5 text-[10px] font-black uppercase tracking-widest"
             onClick={() => qc.invalidateQueries({ queryKey: ["mk9-routes-versioned"] })}
           >
             <RefreshCw className="h-4 w-4 mr-2" /> Atualizar
@@ -285,7 +285,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           <Button
             size="sm"
             onClick={() => setCreating(true)}
-            className="h-9 bg-command-purple hover:bg-command-purple/80 text-white border-none uppercase text-[10px] font-black tracking-widest px-6"
+            className="h-9 bg-command-purple hover:bg-command-purple/80 text-foreground border-none uppercase text-[10px] font-black tracking-widest px-6"
           >
             <Plus className="h-4 w-4 mr-2" /> Novo item de roteiro
           </Button>
@@ -368,11 +368,11 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                                           className="inline-flex items-center gap-1 rounded-md bg-background border px-1.5 py-0.5 text-xs"
                                         >
                                           <span>{it.industryName}</span>
-                                          <div className="flex items-center gap-0.5 ml-1 border-l pl-1 border-white/10">
+                                          <div className="flex items-center gap-0.5 ml-1 border-l pl-1 border-border">
                                             <Button
                                               variant="ghost"
                                               size="icon"
-                                              className="h-5 w-5 text-slate-400 hover:text-white"
+                                              className="h-5 w-5 text-muted-foreground hover:text-foreground"
                                               title="Editar item"
                                               onClick={() => setEditing(it)}
                                             >
@@ -381,7 +381,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                                             <Button
                                               variant="ghost"
                                               size="icon"
-                                              className="h-5 w-5 text-slate-400 hover:text-destructive"
+                                              className="h-5 w-5 text-muted-foreground hover:text-destructive"
                                               title="Excluir rota"
                                               onClick={() => setDeleting(it)}
                                             >
@@ -390,7 +390,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                                             <Button
                                               variant="ghost"
                                               size="icon"
-                                              className="h-5 w-5 text-slate-400 hover:text-primary"
+                                              className="h-5 w-5 text-muted-foreground hover:text-primary"
                                               title="Histórico de versões"
                                               onClick={() =>
                                                 setHistoryKey({
@@ -496,26 +496,26 @@ function DeleteConfirmDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <div className="space-y-2 text-xs text-slate-400 bg-white/5 p-4 rounded-lg border border-white/10">
+          <div className="space-y-2 text-xs text-muted-foreground bg-white/5 p-4 rounded-lg border border-border">
             <div className="flex justify-between">
               <span className="uppercase font-bold tracking-widest text-[9px]">Promotor:</span>
-              <span className="text-white font-medium">{item.promoterName}</span>
+              <span className="text-foreground font-medium">{item.promoterName}</span>
             </div>
             <div className="flex justify-between">
               <span className="uppercase font-bold tracking-widest text-[9px]">Loja:</span>
-              <span className="text-white font-medium">{item.storeName}</span>
+              <span className="text-foreground font-medium">{item.storeName}</span>
             </div>
             <div className="flex justify-between">
               <span className="uppercase font-bold tracking-widest text-[9px]">Indústria:</span>
-              <span className="text-white font-medium">{item.industryName}</span>
+              <span className="text-foreground font-medium">{item.industryName}</span>
             </div>
             <div className="flex justify-between">
               <span className="uppercase font-bold tracking-widest text-[9px]">Dia:</span>
-              <span className="text-white font-medium">{WEEKDAY_PT[item.weekday]}</span>
+              <span className="text-foreground font-medium">{WEEKDAY_PT[item.weekday]}</span>
             </div>
           </div>
 
-          <p className="text-xs text-slate-500 italic">
+          <p className="text-xs text-muted-foreground italic">
             "Esta ação removerá apenas este atendimento do roteiro planejado. Visitas realizadas e históricos permanecem intactos."
           </p>
         </div>
