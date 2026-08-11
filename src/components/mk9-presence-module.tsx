@@ -240,7 +240,7 @@ export function Mk9PresenceModule() {
             <Button
               onClick={handleSave}
               disabled={saveMutation.isPending}
-              className="h-8 gap-2 bg-primary hover:bg-primary/80 text-foreground border-none uppercase text-[10px] font-black tracking-widest px-4"
+              className="h-8 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground border-none uppercase text-[10px] font-black tracking-widest px-4"
             >
               {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Salvar
@@ -404,9 +404,9 @@ export function Mk9PresenceModule() {
 
 function PresenceButton({ active, onClick, variant }: { active: boolean, onClick: () => void, variant: 'present' | 'absent' | 'medical' }) {
   const configs = {
-    present: { label: 'Presente', icon: Check, activeClass: 'bg-emerald-500 text-foreground shadow-[0_0_10px_rgba(16,185,129,0.3)]', inactiveClass: 'text-emerald-500 hover:bg-emerald-500/10 border-emerald-500/20' },
-    absent: { label: 'Falta', icon: X, activeClass: 'bg-rose-500 text-foreground shadow-[0_0_10px_rgba(244,63,94,0.3)]', inactiveClass: 'text-rose-500 hover:bg-rose-500/10 border-rose-500/20' },
-    medical: { label: 'Atestado', icon: Plus, activeClass: 'bg-amber-500 text-foreground shadow-[0_0_10px_rgba(245,158,11,0.3)]', inactiveClass: 'text-amber-500 hover:bg-amber-500/10 border-amber-500/20' }
+    present: { label: 'Presente', icon: Check, activeClass: 'bg-emerald-500 text-white shadow-sm', inactiveClass: 'text-emerald-500 hover:bg-emerald-500/10 border-emerald-500/20' },
+    absent: { label: 'Falta', icon: X, activeClass: 'bg-rose-500 text-white shadow-sm', inactiveClass: 'text-rose-500 hover:bg-rose-500/10 border-rose-500/20' },
+    medical: { label: 'Atestado', icon: Plus, activeClass: 'bg-amber-500 text-white shadow-sm', inactiveClass: 'text-amber-500 hover:bg-amber-500/10 border-amber-500/20' }
   };
   
   const config = configs[variant];
