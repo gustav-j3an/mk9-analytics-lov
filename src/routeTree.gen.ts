@@ -17,9 +17,11 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CockpitRouteImport } from './routes/cockpit'
 import { Route as CleanupRouteImport } from './routes/cleanup'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RoteirosIndexRouteImport } from './routes/roteiros.index'
 import { Route as ApiReportsIndustryUnattendedPdfRouteImport } from './routes/api/reports/industry-unattended-pdf'
 import { Route as ApiReportsIndustryPdfRouteImport } from './routes/api/reports/industry-pdf'
 import { Route as ApiChecklistsPreviewRouteImport } from './routes/api/checklists/preview'
+import { Route as RoteirosPromotorRouteImport } from './routes/roteiros.promotor.'
 
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
@@ -61,6 +63,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoteirosIndexRoute = RoteirosIndexRouteImport.update({
+  id: '/roteiros/',
+  path: '/roteiros/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiReportsIndustryUnattendedPdfRoute =
   ApiReportsIndustryUnattendedPdfRouteImport.update({
     id: '/api/reports/industry-unattended-pdf',
@@ -77,6 +84,11 @@ const ApiChecklistsPreviewRoute = ApiChecklistsPreviewRouteImport.update({
   path: '/api/checklists/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoteirosPromotorRoute = RoteirosPromotorRouteImport.update({
+  id: '/roteiros/promotor/',
+  path: '/roteiros/promotor/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -87,6 +99,8 @@ export interface FileRoutesByFullPath {
   '/mk9-portal': typeof Mk9PortalRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
+  '/roteiros/': typeof RoteirosIndexRoute
+  '/roteiros/promotor/': typeof RoteirosPromotorRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
@@ -100,6 +114,8 @@ export interface FileRoutesByTo {
   '/mk9-portal': typeof Mk9PortalRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
+  '/roteiros': typeof RoteirosIndexRoute
+  '/roteiros/promotor': typeof RoteirosPromotorRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
@@ -114,6 +130,8 @@ export interface FileRoutesById {
   '/mk9-portal': typeof Mk9PortalRoute
   '/reset-password': typeof ResetPasswordRoute
   '/users': typeof UsersRoute
+  '/roteiros/': typeof RoteirosIndexRoute
+  '/roteiros/promotor/': typeof RoteirosPromotorRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
@@ -129,6 +147,8 @@ export interface FileRouteTypes {
     | '/mk9-portal'
     | '/reset-password'
     | '/users'
+    | '/roteiros/'
+    | '/roteiros/promotor/'
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
@@ -142,6 +162,8 @@ export interface FileRouteTypes {
     | '/mk9-portal'
     | '/reset-password'
     | '/users'
+    | '/roteiros'
+    | '/roteiros/promotor'
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
@@ -155,6 +177,8 @@ export interface FileRouteTypes {
     | '/mk9-portal'
     | '/reset-password'
     | '/users'
+    | '/roteiros/'
+    | '/roteiros/promotor/'
     | '/api/checklists/preview'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
@@ -169,6 +193,8 @@ export interface RootRouteChildren {
   Mk9PortalRoute: typeof Mk9PortalRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   UsersRoute: typeof UsersRoute
+  RoteirosIndexRoute: typeof RoteirosIndexRoute
+  RoteirosPromotorRoute: typeof RoteirosPromotorRoute
   ApiChecklistsPreviewRoute: typeof ApiChecklistsPreviewRoute
   ApiReportsIndustryPdfRoute: typeof ApiReportsIndustryPdfRoute
   ApiReportsIndustryUnattendedPdfRoute: typeof ApiReportsIndustryUnattendedPdfRoute
@@ -232,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/roteiros/': {
+      id: '/roteiros/'
+      path: '/roteiros'
+      fullPath: '/roteiros/'
+      preLoaderRoute: typeof RoteirosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/reports/industry-unattended-pdf': {
       id: '/api/reports/industry-unattended-pdf'
       path: '/api/reports/industry-unattended-pdf'
@@ -253,6 +286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChecklistsPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/roteiros/promotor/': {
+      id: '/roteiros/promotor/'
+      path: '/roteiros/promotor'
+      fullPath: '/roteiros/promotor/'
+      preLoaderRoute: typeof RoteirosPromotorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -265,6 +305,8 @@ const rootRouteChildren: RootRouteChildren = {
   Mk9PortalRoute: Mk9PortalRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   UsersRoute: UsersRoute,
+  RoteirosIndexRoute: RoteirosIndexRoute,
+  RoteirosPromotorRoute: RoteirosPromotorRoute,
   ApiChecklistsPreviewRoute: ApiChecklistsPreviewRoute,
   ApiReportsIndustryPdfRoute: ApiReportsIndustryPdfRoute,
   ApiReportsIndustryUnattendedPdfRoute: ApiReportsIndustryUnattendedPdfRoute,
