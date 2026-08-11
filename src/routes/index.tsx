@@ -41,16 +41,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v3.1.6 — ROTA DOCUMENT",
+    title: "MK9 | v3.1.7 — ROTA PDF FIXED",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v3.1.6: ROTA DOCUMENT. Novo componente de documento para visualização limpa da matriz operacional.",
+        content: "MK9 Command Center v3.1.7: ROTA PDF FIXED. Geração binária estável de documentos A4 Paisagem para roteiros individuais.",
       },
-      { property: "og:title", content: "MK9 | v3.1.6 — ROTA DOCUMENT" },
+      { property: "og:title", content: "MK9 | v3.1.7 — ROTA PDF FIXED" },
       {
         property: "og:description",
-        content: "MK9 Command Center v3.1.6: ROTA DOCUMENT. Novo componente de documento para visualização limpa da matriz operacional.",
+        content: "MK9 Command Center v3.1.7: ROTA PDF FIXED. Geração binária estável de documentos A4 Paisagem para roteiros individuais.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -136,10 +136,11 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v3.1.6</span>
+                  MK9 Command Center • <span className="text-primary/80">v3.1.7</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  ROTA PDF v2
+                  ROTA PDF FIXED
+
                 </p>
               </div>
             </div>
