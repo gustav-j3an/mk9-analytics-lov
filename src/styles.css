@@ -205,3 +205,10 @@
 
 #lovable-badge { display: none !important; }
 
+
+.logo-mk9-text {
+  color: var(--foreground);
+}
+.logo-mk9-text span {
+  color: var(--primary);
+}

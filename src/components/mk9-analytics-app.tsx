@@ -142,14 +142,14 @@ export function Mk9AnalyticsApp() {
       <div className="md:hidden h-14 shrink-0 bg-card border-b border-border flex items-center justify-between px-4 z-30">
         <div className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary">
-            <ShieldCheck className="text-white dark:text-foreground h-4 w-4" />
+            <ShieldCheck className="text-foreground dark:text-foreground h-4 w-4" />
           </div>
           <span className="font-black tracking-tighter text-sm text-foreground">MK9</span>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="text-white"
+          className="text-foreground"
           onClick={() => setCollapsed(!collapsed)}
         >
           {collapsed ? <ChevronsRight className="h-5 w-5" /> : <ChevronsLeft className="h-5 w-5" />}
@@ -177,10 +177,10 @@ export function Mk9AnalyticsApp() {
           )}>
               <div className={cn("flex items-center gap-2 overflow-hidden transition-all duration-300", collapsed && "w-8 shrink-0")}>
                 <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary shrink-0">
-                  <ShieldCheck className="text-white dark:text-foreground h-5 w-5" />
+                  <ShieldCheck className="text-foreground dark:text-foreground h-5 w-5" />
                 </div>
                 {!collapsed && (
-                  <span className="font-black tracking-tighter text-lg text-foreground whitespace-nowrap">
+                  <span className="font-black tracking-tighter text-lg text-foreground whitespace-nowrap logo-mk9-text">
                     MK9 <span className="text-primary">COMMAND</span>
                   </span>
                 )}
