@@ -20,7 +20,7 @@ export function IndustryCard({ industries }: IndustryCardProps) {
 
   return (
     <div className="glass-command p-6 rounded-2xl shadow-xl">
-      <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6">
+      <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-6">
         Performance por Indústria
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -30,7 +30,7 @@ export function IndustryCard({ industries }: IndustryCardProps) {
             className="bg-command-card-alt/50 border border-border/50 p-4 rounded-xl hover:bg-command-card-alt transition-colors"
           >
             <div className="flex justify-between items-start mb-3">
-              <span className="text-white text-sm font-bold">{industry.name}</span>
+              <span className="text-foreground text-sm font-bold">{industry.name}</span>
               <span
                 className={cn(
                   "text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted/50",

@@ -90,7 +90,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] bg-command-deep border-border text-white">
+      <DialogContent className="sm:max-w-[500px] bg-popover border-border text-foreground">
         <DialogHeader>
           <DialogTitle>{freelancer ? "Editar Freelancer" : "Novo Freelancer"}</DialogTitle>
           <DialogDescription className="text-muted-foreground">

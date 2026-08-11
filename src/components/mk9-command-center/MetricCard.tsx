@@ -75,7 +75,7 @@ export function MetricCard({
           {label}
         </h3>
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold tracking-tight text-white">{value}</span>
+          <span className="text-2xl font-bold tracking-tight text-foreground">{value}</span>
         </div>
         {hint && (
           <p className="text-[10px] text-muted-foreground/80 font-medium truncate">{hint}</p>

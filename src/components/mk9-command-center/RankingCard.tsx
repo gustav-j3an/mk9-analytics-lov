@@ -15,7 +15,7 @@ interface RankingCardProps {
 export function RankingCard({ items }: RankingCardProps) {
   return (
     <div className="glass-command p-6 rounded-2xl shadow-xl">
-      <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6">
+      <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-6">
         Ranking de Promotores
       </h3>
       <div className="space-y-4">
@@ -36,13 +36,13 @@ export function RankingCard({ items }: RankingCardProps) {
               {item.position}
             </div>
             <div className="flex-1">
-              <p className="text-white text-sm font-medium group-hover:text-primary transition-colors">
+              <p className="text-foreground text-sm font-medium group-hover:text-primary transition-colors">
                 {item.name}
               </p>
               <p className="text-[10px] text-muted-foreground">{item.id}</p>
             </div>
             <div className="text-right">
-              <p className="text-white text-sm font-bold">{item.score}%</p>
+              <p className="text-foreground text-sm font-bold">{item.score}%</p>
               <p className="text-[10px] text-muted-foreground">{item.visits} visitas</p>
             </div>
           </div>

@@ -139,7 +139,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg bg-command-deep border-border text-white">
+      <DialogContent className="max-w-lg bg-popover border-border text-white">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             Nova indústria
@@ -233,7 +233,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
               <SelectTrigger className="bg-input/50 border-border h-10 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border">
+              <SelectContent className="bg-popover border-border">
                 <SelectItem value="VISIT_CONTROLLED">Monitorada (Dashboard/Analytics)</SelectItem>
                 <SelectItem value="FIXED_OPERATION">Operação Fixa (Apenas Roteiro)</SelectItem>
               </SelectContent>
@@ -247,7 +247,7 @@ export function IndustryCreateDialog({ open, onClose }: { open: boolean; onClose
               <SelectTrigger className="bg-input/50 border-border h-10 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border">
+              <SelectContent className="bg-popover border-border">
                 <SelectItem value="CALENDAR_MONTH">Mês civil</SelectItem>
                 <SelectItem value="CUSTOM_CYCLE">Período personalizado</SelectItem>
               </SelectContent>
@@ -404,7 +404,7 @@ export function IndustryEditDialog({
 
   return (
     <Dialog open={!!industry} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg bg-command-deep border-border text-white">
+      <DialogContent className="max-w-lg bg-popover border-border text-white">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             Editar indústria
@@ -494,7 +494,7 @@ export function IndustryEditDialog({
               <SelectTrigger className="bg-input/50 border-border h-10 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border">
+              <SelectContent className="bg-popover border-border">
                 <SelectItem value="VISIT_CONTROLLED">Monitorada (Dashboard/Analytics)</SelectItem>
                 <SelectItem value="FIXED_OPERATION">Operação Fixa (Apenas Roteiro)</SelectItem>
               </SelectContent>
@@ -508,7 +508,7 @@ export function IndustryEditDialog({
               <SelectTrigger className="bg-input/50 border-border h-10 text-white">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-command-deep border-border">
+              <SelectContent className="bg-popover border-border">
                 <SelectItem value="CALENDAR_MONTH">Mês civil</SelectItem>
                 <SelectItem value="CUSTOM_CYCLE">Período personalizado</SelectItem>
               </SelectContent>
@@ -554,7 +554,7 @@ export function IndustryEditDialog({
           )}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
             <Switch checked={usesPreviousMonth} onCheckedChange={setUsesPreviousMonth} />
-            <Label className="text-xs text-foreground/80">Utilizar mês anterior como referência</Label>
+            <Label className="text-xs text-white/80">Utilizar mês anterior como referência</Label>
           </div>
         </div>
         <DialogFooter className="mt-6 border-t border-border/50 pt-4 flex sm:justify-between items-center gap-4">
@@ -763,15 +763,15 @@ export function IndustryArchiveDialog({
               <ul className="space-y-0.5 text-muted-foreground">
                 <li>
                   Frequências vigentes:{" "}
-                  <span className="tabular-nums text-foreground">{impact.activeFrequencies}</span>
+                  <span className="tabular-nums text-white">{impact.activeFrequencies}</span>
                 </li>
                 <li>
                   Roteiros ativos:{" "}
-                  <span className="tabular-nums text-foreground">{impact.activeRoutes}</span>
+                  <span className="tabular-nums text-white">{impact.activeRoutes}</span>
                 </li>
                 <li>
                   Visitas registradas:{" "}
-                  <span className="tabular-nums text-foreground">{impact.visits}</span>
+                  <span className="tabular-nums text-white">{impact.visits}</span>
                 </li>
               </ul>
             )}

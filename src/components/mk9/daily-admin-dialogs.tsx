@@ -199,7 +199,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-command-deep border-border text-white">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-popover border-border text-foreground">
         <DialogHeader>
           <DialogTitle>{daily ? "Editar Diária" : "Nova Diária"}</DialogTitle>
         </DialogHeader>
@@ -412,7 +412,7 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
             />
           </div>
 
-          <DialogFooter className="sticky bottom-0 bg-command-deep pt-4 border-t border-border">
+          <DialogFooter className="sticky bottom-0 bg-popover pt-4 border-t border-border">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>

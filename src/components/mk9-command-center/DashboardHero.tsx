@@ -20,7 +20,7 @@ export function DashboardHero({ percentage, label, status }: DashboardHeroProps)
             <h2 className="text-muted-foreground text-sm font-bold uppercase tracking-widest">
               {label}
             </h2>
-            <p className="text-white text-5xl font-black tracking-tighter">{percentage}%</p>
+            <p className="text-foreground text-5xl font-black tracking-tighter">{percentage}%</p>
           </div>
 
           <div className="flex items-center gap-2">

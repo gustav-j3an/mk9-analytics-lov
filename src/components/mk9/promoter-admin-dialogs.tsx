@@ -127,7 +127,7 @@ export function PromoterDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-command-deep border-border text-white max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <DialogContent className="bg-popover border-border text-white max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             {promoter ? "Editar Promotor" : "Novo Promotor"}
@@ -206,7 +206,7 @@ export function PromoterDialog({
                 <SelectTrigger className="bg-input/50 border-border h-10 text-white text-xs">
                   <SelectValue placeholder="Sem Supervisor" />
                 </SelectTrigger>
-                <SelectContent className="bg-command-deep border-border text-white">
+                <SelectContent className="bg-popover border-border text-white">
                   <SelectItem value="NONE">Sem Supervisor</SelectItem>
                   {supervisors?.map(s => (
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
@@ -222,7 +222,7 @@ export function PromoterDialog({
                 <SelectTrigger className="bg-input/50 border-border h-10 text-white text-xs">
                   <SelectValue placeholder="Sem Equipe" />
                 </SelectTrigger>
-                <SelectContent className="bg-command-deep border-border text-white">
+                <SelectContent className="bg-popover border-border text-white">
                   <SelectItem value="NONE">Sem Equipe (Avulso)</SelectItem>
                   {teams?.map(t => (
                     <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
@@ -310,7 +310,7 @@ export function PromoterDeleteDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-command-deep border-border text-white max-w-md">
+      <DialogContent className="bg-popover border-border text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-rose-500 font-black tracking-tighter uppercase">
             <AlertTriangle className="h-5 w-5" />
@@ -342,7 +342,7 @@ export function PromoterDeleteDialog({
                   <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                     Matrícula
                   </p>
-                  <p className="text-xs font-mono text-foreground/80">
+                  <p className="text-xs font-mono text-white/80">
                     {promoter?.employeeNumber || "—"}
                   </p>
                 </div>
@@ -350,7 +350,7 @@ export function PromoterDeleteDialog({
                   <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
                     Região
                   </p>
-                  <p className="text-xs text-foreground/80">
+                  <p className="text-xs text-white/80">
                     {promoter?.uf || "—"} / {promoter?.city || "—"}
                   </p>
                 </div>

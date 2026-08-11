@@ -76,7 +76,7 @@ export function StoreDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-command-deep border-border text-white max-w-md">
+      <DialogContent className="bg-popover border-border text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight text-mk9-accent-primary uppercase">
             {store ? "Editar Loja" : "Nova Loja"}
@@ -184,7 +184,7 @@ export function StoreArchiveDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-command-deep border-border text-white max-w-md">
+      <DialogContent className="bg-popover border-border text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-rose-500 uppercase font-black tracking-tighter">
             <AlertTriangle className="h-5 w-5" />
