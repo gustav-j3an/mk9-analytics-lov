@@ -180,7 +180,7 @@ export function Mk9AnalyticsApp() {
                   <ShieldCheck className="text-foreground dark:text-foreground h-5 w-5" />
                 </div>
                 {!collapsed && (
-                  <span className="font-black tracking-tighter text-lg text-foreground whitespace-nowrap logo-mk9-text">
+                  <span className="font-black tracking-tighter text-lg text-foreground whitespace-nowrap">
                     MK9 <span className="text-primary">COMMAND</span>
                   </span>
                 )}
