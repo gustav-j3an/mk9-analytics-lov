@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ThemeSettings } from "@/lib/mk9-theme/ThemeToggle";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Mk9ImportModule } from "@/components/mk9-import-module";
@@ -118,7 +119,7 @@ export function Mk9AnalyticsApp() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-[#080812] text-foreground flex flex-col md:flex-row overflow-hidden font-sans dark">
+    <main className="min-h-screen w-full bg-background text-foreground flex flex-col md:flex-row overflow-hidden font-sans">
       {/* Mobile Top Header */}
       <div className="md:hidden h-14 shrink-0 bg-[#111122] border-b border-white/5 flex items-center justify-between px-4 z-30">
         <div className="flex items-center gap-2">
@@ -445,6 +446,7 @@ export function Mk9AnalyticsApp() {
             </h2>
           </div>
           <div className="flex items-center gap-4">
+            <ThemeSettings />
             <div className="flex items-center gap-1 md:gap-2 bg-white/5 p-1 rounded-lg border border-white/5">
               <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
                 <SelectTrigger className="w-24 md:w-32 h-7 border-none bg-transparent shadow-none focus:ring-0 text-[9px] md:text-[10px] font-bold text-white uppercase tracking-tighter shrink-0 px-1 md:px-2 gap-0.5 md:gap-1">
