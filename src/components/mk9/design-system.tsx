@@ -73,13 +73,13 @@ export function Mk9MetricCard({
   className,
 }: Mk9MetricCardProps) {
   const colorMap = {
-    purple: "text-purple-400 bg-purple-500/10 border-purple-500/20 shadow-purple-500/5",
-    blue: "text-blue-400 bg-blue-500/10 border-blue-500/20 shadow-blue-500/5",
-    emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/5",
-    amber: "text-amber-400 bg-amber-500/10 border-amber-500/20 shadow-amber-500/5",
-    rose: "text-rose-400 bg-rose-500/10 border-rose-500/20 shadow-rose-500/5",
-    sky: "text-sky-400 bg-sky-500/10 border-sky-500/20 shadow-sky-500/5",
-    orange: "text-orange-400 bg-orange-500/10 border-orange-500/20 shadow-orange-500/5",
+    purple: "text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20 shadow-purple-500/5",
+    blue: "text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20 shadow-blue-500/5",
+    emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/5",
+    amber: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20 shadow-amber-500/5",
+    rose: "text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20 shadow-rose-500/5",
+    sky: "text-sky-600 dark:text-sky-400 bg-sky-500/10 border-sky-500/20 shadow-sky-500/5",
+    orange: "text-orange-600 dark:text-orange-400 bg-orange-500/10 border-orange-500/20 shadow-orange-500/5",
   };
 
   return (
