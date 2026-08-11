@@ -136,6 +136,7 @@ export function Mk9AnalyticsApp() {
   }
 
   return (
+    <TooltipProvider delayDuration={0}>
     <main className="min-h-screen w-full bg-background text-foreground flex flex-col md:flex-row overflow-hidden font-sans">
       {/* Mobile Top Header */}
       <div className="md:hidden h-14 shrink-0 bg-card border-b border-border flex items-center justify-between px-4 z-30">
