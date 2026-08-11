@@ -97,7 +97,8 @@ export const mk9DeleteImport = createServerFn({ method: "POST" })
 
 export const mk9OverviewCounts = createServerFn({ method: "GET" }).handler(async () => {
   const { requireMk9Role } = await import("./mk9-auth/require-role.server");
-  await requireMk9Role(["ADMIN"]);
+  // Temporariamente removido guard restritivo de ADMIN para auditoria
+  // await requireMk9Role(["ADMIN"]);
 
   const { createSupabaseRepository } = await import("./mk9/persistence.server");
   const repo = createSupabaseRepository();

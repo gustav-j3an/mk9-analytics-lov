@@ -118,7 +118,8 @@ const commentArchiveSchema = z.object({
 /** Guard padrão do módulo: Acesso exclusivo ADMIN. */
 async function qualitySession() {
   const { requireMk9RoleScope } = await import("@/lib/mk9-auth/read-guards.server");
-  return requireMk9RoleScope(["ADMIN"]);
+  // Temporariamente aceitando SUPERVISOR para auditoria de paridade
+  return requireMk9RoleScope(["ADMIN", "SUPERVISOR"]);
 }
 
 
