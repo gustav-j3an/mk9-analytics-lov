@@ -13,7 +13,7 @@ export async function verifyDashboardParity() {
 
   try {
     const { getMk9AnalyticsDashboardFn } = await import("@/lib/mk9-analytics/analytics.functions");
-    const dashboard = await getMk9AnalyticsDashboardFn({ month, year });
+    const dashboard = await getMk9AnalyticsDashboardFn({ data: { month, year } });
 
     console.log(`Period: ${dashboard.period.current}`);
     console.log(`Industries mapped: ${dashboard.industries.length}`);
