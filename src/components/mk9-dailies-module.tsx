@@ -181,9 +181,9 @@ export function Mk9DailiesModule() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <KPICard label="Total no Período" value={kpis.count} icon={ArrowUpRight} />
-        <KPICard label="Valor Total" value={`R$ ${kpis.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-emerald-400" />
-        <KPICard label="A PAGAR" value={`R$ ${kpis.toPay.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-amber-400" />
-        <KPICard label="PAGO" value={`R$ ${kpis.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-blue-400" />
+        <KPICard label="Valor Total" value={`R$ ${kpis.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-emerald-600 dark:text-emerald-400" />
+        <KPICard label="A PAGAR" value={`R$ ${kpis.toPay.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-amber-600 dark:text-amber-400" />
+        <KPICard label="PAGO" value={`R$ ${kpis.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} icon={TrendingUp} color="text-blue-600 dark:text-blue-400" />
         <KPICard label="Freelancers" value={kpis.freelancers} icon={Users} />
       </div>
 
