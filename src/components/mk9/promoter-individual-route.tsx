@@ -9,10 +9,13 @@ import {
   Loader2,
   Search as SearchIcon,
   Users,
+  Eye,
+  Layout
 } from "lucide-react";
 import { Mk9PageHeader, Mk9Panel } from "./design-system";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { PromoterRouteDocument } from "./PromoterRouteDocument";
 import {
   Table,
   TableBody,
@@ -133,6 +136,29 @@ export function PromoterIndividualRoute() {
     );
   }
 
+  if (search.previewDocument === 'true') {
+    return (
+      <div className="animate-in fade-in duration-500">
+        <div className="print:hidden fixed top-4 right-4 z-50">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate({ search: { ...search, previewDocument: undefined } })}
+            className="bg-white border-slate-200 text-slate-600 hover:text-slate-900 font-black uppercase tracking-widest text-[10px]"
+          >
+            <Layout className="h-4 w-4 mr-2" />
+            Voltar para Interface
+          </Button>
+        </div>
+        <PromoterRouteDocument 
+          promoterName={promoter?.name || "N/A"}
+          referenceDate={referenceDate}
+          totalVisits={totalVisits}
+          rows={matrix}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 relative">
       {/* Print-only Header */}
@@ -213,9 +239,15 @@ export function PromoterIndividualRoute() {
             </div>
           </div>
 
-
-
-
+          <Button
+            variant="outline"
+            onClick={() => navigate({ search: { ...search, previewDocument: 'true' } })}
+            disabled={matrix.length === 0}
+            className="h-10 border-primary/20 hover:bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 min-w-[140px]"
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Visualizar Rota
+          </Button>
         </div>
       </div>
 
