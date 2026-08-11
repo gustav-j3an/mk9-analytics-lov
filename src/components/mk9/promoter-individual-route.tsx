@@ -11,9 +11,9 @@ import {
   Search as SearchIcon,
   Users,
 } from "lucide-react";
-import { Mk9PageHeader, Mk9Panel } from "@/components/mk9/design-system";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Mk9PageHeader, Mk9Panel } from "./design-system";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import {
   Table,
   TableBody,
@@ -21,11 +21,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { mk9RoutesListVersioned } from "@/lib/mk9-routes.functions";
-import { mk9ListPromoters } from "@/lib/mk9-data.functions";
-import { cn } from "@/lib/utils";
+} from "../ui/table";
+import { Badge } from "../ui/badge";
+import { mk9RoutesListVersioned } from "../../lib/mk9-routes.functions";
+import { mk9ListPromoters } from "../../lib/mk9-data.functions";
+import { cn } from "../../lib/utils";
+
 
 const WEEKDAYS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
 
