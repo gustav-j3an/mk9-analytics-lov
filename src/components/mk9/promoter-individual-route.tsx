@@ -188,7 +188,7 @@ export function PromoterIndividualRoute() {
             <Input
               placeholder="Buscar por loja ou indústria..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
               className="h-9 pl-10 bg-background border-border/50 text-xs"
             />
           </div>
