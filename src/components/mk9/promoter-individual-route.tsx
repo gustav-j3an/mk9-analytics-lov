@@ -5,11 +5,8 @@ import { useParams, useNavigate, useSearch } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Calendar,
-  Download,
-  FileDown,
   Info,
   Loader2,
-  Printer,
   Search as SearchIcon,
   Users,
 } from "lucide-react";
@@ -28,8 +25,6 @@ import { Badge } from "../ui/badge";
 import { mk9RoutesListVersioned } from "../../lib/mk9-routes.functions";
 import { mk9ListPromoters } from "../../lib/mk9-data.functions";
 import { cn } from "../../lib/utils";
-import { toast } from "sonner";
-import { generatePromoterRoutePdf } from "../../lib/mk9-promoter-route-pdf.client";
 
 
 
@@ -55,7 +50,7 @@ export function PromoterIndividualRoute() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const referenceDate = search.date || new Date().toISOString().slice(0, 10);
-  const [isExporting, setIsExporting] = useState(false);
+  
 
 
 
@@ -123,28 +118,6 @@ export function PromoterIndividualRoute() {
     return matrix.reduce((acc, row) => acc + row.days.size, 0);
   }, [matrix]);
 
-  const handleExportPdf = async () => {
-    if (!promoter?.name || matrix.length === 0) {
-      toast.error("Não há rota disponível para gerar o PDF.");
-      return;
-    }
-
-    try {
-      setIsExporting(true);
-      await generatePromoterRoutePdf({
-        promoterName: promoter.name,
-        referenceDate,
-        totalVisits,
-        matrix,
-      });
-      toast.success("PDF gerado com sucesso!");
-    } catch (error) {
-      console.error("[PDF_GEN_ERROR]", error);
-      toast.error("Não foi possível gerar o PDF.");
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
 
 
@@ -240,19 +213,6 @@ export function PromoterIndividualRoute() {
             </div>
           </div>
 
-          <Button
-            variant="outline"
-            onClick={handleExportPdf}
-            disabled={matrix.length === 0 || isExporting}
-            className="h-10 border-primary/20 hover:bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 min-w-[140px]"
-          >
-            {isExporting ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <FileDown className="h-4 w-4 mr-2" />
-            )}
-            {isExporting ? "Gerando PDF..." : "Baixar PDF"}
-          </Button>
 
 
 
