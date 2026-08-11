@@ -1,6 +1,8 @@
 // Persistência do módulo Checklists. SERVER-ONLY.
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { storeCompactKey, storeTokenSetKey } from "@/lib/mk9/normalization";
+import { identifyStoreChain } from "@/lib/mk9/chain-normalization";
+
 import type { ChecklistPreview, ChecklistValidationReport } from "./types";
 
 export async function writeValidationReport(importId: string, report: ChecklistValidationReport) {
@@ -166,7 +168,9 @@ export async function ensureChecklistStores(
       name_normalized: c.storeNormalized,
       uf: c.uf,
       origin: "CHECKLIST_IMPORT",
+      chain: identifyStoreChain(c.storeName),
       is_incomplete: true,
+
       created_by_checklist_import_id: importId,
       notes: "Loja criada automaticamente pela importação do checklist",
       last_import_id: null,

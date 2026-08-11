@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { getNormalizedChain } from "./mk9/chain-normalization";
+
 import { requireMk9Role, logAudit } from "@/lib/mk9-auth/require-role.server";
 
 export const listDailies = createServerFn({ method: "GET" })
@@ -267,7 +269,9 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       CPF: d.freelancer?.cpf || "-",
       TELEFONE: d.freelancer?.phone || "-",
       LOJA: it.store?.name || "-",
-      REDE: it.store?.chain || "-",
+      REDE: it.store ? getNormalizedChain(it.store) : "-",
+
+
       CIDADE: it.store?.city || "-",
       UF: it.store?.uf || "-",
       INDÚSTRIA: it.industry?.name || "-",
