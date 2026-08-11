@@ -34,6 +34,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    cpf: "",
     city: "",
     uf: "",
     default_daily_rate: "",
@@ -45,6 +46,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
       setFormData({
         name: freelancer.name || "",
         phone: freelancer.phone || "",
+        cpf: freelancer.cpf || "",
         city: freelancer.city || "",
         uf: freelancer.uf || "",
         default_daily_rate: freelancer.default_daily_rate?.toString() || "",
@@ -54,6 +56,7 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
       setFormData({
         name: "",
         phone: "",
+        cpf: "",
         city: "",
         uf: "",
         default_daily_rate: "",
@@ -107,6 +110,23 @@ export function FreelancerAdminDialog({ freelancer, open, onOpenChange }: Freela
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="col-span-3 bg-muted/50 border-border"
               required
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="cpf" className="text-right">CPF</Label>
+            <Input
+              id="cpf"
+              placeholder="000.000.000-00"
+              value={formData.cpf}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '').slice(0, 11);
+                let masked = val;
+                if (val.length > 9) masked = val.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+                else if (val.length > 6) masked = val.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
+                else if (val.length > 3) masked = val.replace(/(\d{3})(\d{1,3})/, "$1.$2");
+                setFormData({ ...formData, cpf: masked });
+              }}
+              className="col-span-3 bg-muted/50 border-border"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
