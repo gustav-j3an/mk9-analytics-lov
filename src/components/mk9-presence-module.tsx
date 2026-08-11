@@ -89,14 +89,29 @@ export function Mk9PresenceModule() {
 
   useEffect(() => {
     if (presenceItems) {
-      const newState: Record<string, { status: any, observation: string }> = {};
-      presenceItems.forEach(item => {
-        newState[item.id] = { 
-          status: item.status || null, 
-          observation: item.observation || "" 
-        };
+      setLocalPresence(prev => {
+        const newState: Record<string, { status: any, observation: string }> = { ...prev };
+        presenceItems.forEach(item => {
+          // Só atualiza se o item ainda não estiver no estado local (inicialização)
+          // ou se for uma mudança real vinda do servidor que não estamos editando
+          if (!prev[item.id] || (prev[item.id].status === null && item.status !== null)) {
+            newState[item.id] = { 
+              status: item.status || null, 
+              observation: item.observation || "" 
+            };
+          } else {
+            // Se já existe no estado local, preservamos a observação local se estivermos editando
+            // mas podemos atualizar o status se ele mudar no servidor?
+            // Para resolver o bug da observação sumindo, a chave é NÃO sobrescrever
+            // o que o usuário acabou de digitar se o query disparar um refetch.
+            newState[item.id] = {
+              status: prev[item.id].status,
+              observation: prev[item.id].observation || item.observation || ""
+            };
+          }
+        });
+        return newState;
       });
-      setLocalPresence(newState);
     }
   }, [presenceItems]);
 
