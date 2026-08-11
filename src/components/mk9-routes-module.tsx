@@ -7,6 +7,9 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
+import { Eye } from "lucide-react";
+
 import {
   AlertTriangle,
   CalendarClock,
