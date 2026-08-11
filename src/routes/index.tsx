@@ -1,16 +1,13 @@
 /*
-# MISSÃO 1 — REMOVER PDF V2 E ESTABILIZAR O BUILD
+# MISSÃO 2 — TRANSFORMAR VISUALIZAR ROTA EM DOCUMENTO IMPRIMÍVEL
 MK9 COMMAND CENTER
-ROTEIROS → ROTA INDIVIDUAL
 
-DECISÃO DE ARQUITETURA:
-Não vamos mais gerar a Rota Individual reconstruindo a tabela através de jsPDF/jspdf-autotable/html2canvas, pois o PDF atual não possui paridade visual com a tela e causou Build Errors.
-A tela "VISUALIZAR ROTA" já possui o visual aprovado e será usada como base para a versão impressa.
+A tela "VISUALIZAR ROTA" está visualmente aprovada. Agora, ESSA PRÓPRIA TELA será a origem da impressão/PDF, seguindo o princípio: "O QUE EU VEJO = O QUE EU IMPRIMO".
 
 OBJETIVO:
-Remover a implementação direta de PDF (v2) e estabilizar o projeto, mantendo a "Visualizar Rota" funcional.
+Criar um modo print via CSS (@media print) que configure a página para A4 Paisagem, oculte elementos de interface (sidebar, botões) e preserve a paridade visual absoluta, incluindo os checks azuis.
 
-STATUS: v3.1.8 — BUILD STABILIZED
+STATUS: v3.1.9 — PRINT READY
 */
 
 
@@ -28,16 +25,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v3.1.8 — BUILD STABILIZED",
+    title: "MK9 | v3.1.9 — PRINT READY",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v3.1.8: BUILD STABILIZED. Remoção da implementação instável de PDF e estabilização do motor de roteiros.",
+        content: "MK9 Command Center v3.1.9: PRINT READY. Otimização da Rota Individual para impressão A4 Paisagem com paridade total.",
       },
-      { property: "og:title", content: "MK9 | v3.1.8 — BUILD STABILIZED" },
+      { property: "og:title", content: "MK9 | v3.1.9 — PRINT READY" },
       {
         property: "og:description",
-        content: "MK9 Command Center v3.1.8: BUILD STABILIZED. Remoção da implementação instável de PDF e estabilização do motor de roteiros.",
+        content: "MK9 Command Center v3.1.9: PRINT READY. Otimização da Rota Individual para impressão A4 Paisagem com paridade total.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -123,10 +120,10 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v3.1.8</span>
+                  MK9 Command Center • <span className="text-primary/80">v3.1.9</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  BUILD STABILIZED
+                  PRINT READY
 
                 </p>
               </div>
