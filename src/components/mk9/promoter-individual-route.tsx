@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Calendar,
   Download,
+  FileDown,
   Info,
   Loader2,
   Printer,
@@ -28,6 +29,8 @@ import { mk9RoutesListVersioned } from "../../lib/mk9-routes.functions";
 import { mk9ListPromoters } from "../../lib/mk9-data.functions";
 import { cn } from "../../lib/utils";
 import { toast } from "sonner";
+import { generatePromoterRoutePdf } from "../../lib/mk9-promoter-route-pdf.client";
+
 
 
 
@@ -52,7 +55,8 @@ export function PromoterIndividualRoute() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const referenceDate = search.date || new Date().toISOString().slice(0, 10);
-  const [isPrinting, setIsPrinting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
 
 
 
@@ -119,9 +123,29 @@ export function PromoterIndividualRoute() {
     return matrix.reduce((acc, row) => acc + row.days.size, 0);
   }, [matrix]);
 
-  const handlePrint = () => {
-    window.print();
+  const handleExportPdf = async () => {
+    if (!promoter?.name || matrix.length === 0) {
+      toast.error("Não há rota disponível para gerar o PDF.");
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      await generatePromoterRoutePdf({
+        promoterName: promoter.name,
+        referenceDate,
+        totalVisits,
+        matrix,
+      });
+      toast.success("PDF gerado com sucesso!");
+    } catch (error) {
+      console.error("[PDF_GEN_ERROR]", error);
+      toast.error("Não foi possível gerar o PDF.");
+    } finally {
+      setIsExporting(false);
+    }
   };
+
 
 
   if (routesQ.isLoading || promotersQ.isLoading) {
@@ -218,13 +242,18 @@ export function PromoterIndividualRoute() {
 
           <Button
             variant="outline"
-            onClick={handlePrint}
-            disabled={matrix.length === 0}
-            className="h-10 border-primary/20 hover:bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
+            onClick={handleExportPdf}
+            disabled={matrix.length === 0 || isExporting}
+            className="h-10 border-primary/20 hover:bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 min-w-[140px]"
           >
-            <Printer className="h-4 w-4 mr-2" />
-            Imprimir PDF
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <FileDown className="h-4 w-4 mr-2" />
+            )}
+            {isExporting ? "Gerando PDF..." : "Baixar PDF"}
           </Button>
+
 
 
         </div>
@@ -273,8 +302,7 @@ export function PromoterIndividualRoute() {
 
             </TableHeader>
             <TableBody className="print:bg-white">
-              {(isPrinting ? matrix : filteredMatrix).length === 0 ? (
-
+              {filteredMatrix.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="h-32 text-center text-muted-foreground">
                     <div className="flex flex-col items-center gap-2">
@@ -284,7 +312,8 @@ export function PromoterIndividualRoute() {
                   </TableCell>
                 </TableRow>
               ) : (
-                (isPrinting ? matrix : filteredMatrix).map((row, idx) => (
+                filteredMatrix.map((row, idx) => (
+
                   <TableRow key={idx} className="hover:bg-primary/5 transition-colors border-border/40 group print:border-gray-300 print:break-inside-avoid print:bg-white">
                     <TableCell className="font-bold text-xs uppercase tracking-tighter text-foreground py-3 print:text-black print:border print:border-gray-300">
                       {row.industryName}

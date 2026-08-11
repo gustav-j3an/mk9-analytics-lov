@@ -41,17 +41,17 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v2.8.0 — CHAIN NORMALIZED",
+    title: "MK9 | v3.1.5 — ROTA PDF",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v2.8.0: CHAIN NORMALIZED. Normalização automática de redes de lojas e melhorias na exportação operacional.",
+        content: "MK9 Command Center v3.1.5: ROTA PDF. Geração e download de roteiros individuais em PDF A4 Paisagem.",
 
       },
-      { property: "og:title", content: "MK9 | v2.8.0" },
+      { property: "og:title", content: "MK9 | v3.1.5" },
       {
         property: "og:description",
-        content: "MK9 Command Center v2.8.0: CHAIN NORMALIZED. Normalização automática de redes de lojas e melhorias na exportação operacional.",
+        content: "MK9 Command Center v3.1.5: ROTA PDF. Geração e download de roteiros individuais em PDF A4 Paisagem.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -137,10 +137,11 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v2.8.0</span>
+                  MK9 Command Center • <span className="text-primary/80">v3.1.5</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  CHAIN NORMALIZED
+                  ROTA PDF
+
 
                 </p>
               </div>
