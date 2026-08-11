@@ -152,8 +152,9 @@ export function DailyAdminDialog({ daily, open, onOpenChange }: DailyFormProps) 
   const addItem = () => {
     setFormData((prev: any) => ({
       ...prev,
-      items: [...prev.items, { storeId: "", industryIds: [] as string[] }]
+      items: [...(prev.items || []), { storeId: "", industryIds: [] as string[] }]
     }));
+
   };
 
   const removeItem = (index: number) => {
