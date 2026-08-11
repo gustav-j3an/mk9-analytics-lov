@@ -199,9 +199,8 @@ export function Mk9AnalyticsApp() {
               {[
                 { title: "Visão Geral", items: [
                   { id: "dashboard", icon: BarChart3, label: "Dashboard" },
-                  { id: "cockpit", icon: Gauge, label: "Cockpit" },
-
                 ]},
+
                 { title: "Operação", items: [
                   { id: "importacoes", icon: Settings2, label: "Gestão Operacional" },
                   { id: "checklists", icon: Upload, label: "Importar Checklist" },
