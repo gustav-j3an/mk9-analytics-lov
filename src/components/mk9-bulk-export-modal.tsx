@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -195,9 +194,6 @@ export function BulkExportModal() {
 
   async function handleDownload() {
     if (!exportData?.download_url) return;
-    const { mk9AuthHeaders } = await import("@/lib/mk9-auth/fetch-headers");
-    // Lovable Cloud storage uses standard signed URLs or public buckets usually.
-    // Here we assume it's a relative path in our 'reports' bucket.
     try {
       const { supabase } = await import("@/integrations/supabase/client");
       const { data } = await supabase.storage
@@ -232,8 +228,8 @@ export function BulkExportModal() {
           Exportar não atendidas em massa
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
+      <DialogContent className="max-w-3xl max-h-[100dvh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle>Exportar lojas não atendidas em massa</DialogTitle>
           <DialogDescription>
             Gere relatórios de lojas sem visitas (contratadas {">"} 0 e realizadas = 0) para
@@ -241,305 +237,363 @@ export function BulkExportModal() {
           </DialogDescription>
         </DialogHeader>
 
-        {step === "setup" && (
-          <div className="space-y-6 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Competência</Label>
-                <div className="flex gap-2">
-                  <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MONTHS_PT.map((m, i) => (
-                        <SelectItem key={m} value={String(i + 1)}>
-                          {m}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+        <div className="flex-1 overflow-y-auto px-6">
+          {step === "setup" && (
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Competência</Label>
+                  <div className="flex gap-2">
+                    <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MONTHS_PT.map((m, i) => (
+                          <SelectItem key={m} value={String(i + 1)}>
+                            {m}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number"
+                      className="w-24"
+                      value={year}
+                      onChange={(e) => setYear(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Formato</Label>
+                  <RadioGroup
+                    value={format}
+                    onValueChange={(v: any) => setFormat(v)}
+                    className="flex h-10 items-center gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="zip" id="f-zip" />
+                      <Label htmlFor="f-zip" className="font-normal">
+                        ZIP (Individual)
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="pdf" id="f-pdf" />
+                      <Label htmlFor="f-pdf" className="font-normal">
+                        PDF Único
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Indústrias ({selectedIds.length} selecionadas)</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="chk-only"
+                        checked={checklistOnly}
+                        onCheckedChange={(c) => setChecklistOnly(!!c)}
+                      />
+                      <Label htmlFor="chk-only" className="text-xs font-normal">
+                        Somente com checklist
+                      </Label>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={toggleAll}
+                      className="h-7 px-2 text-xs"
+                    >
+                      {selectedIds.length === filteredIndustries.length
+                        ? "Desmarcar todas"
+                        : "Selecionar todas"}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    type="number"
-                    className="w-24"
-                    value={year}
-                    onChange={(e) => setYear(Number(e.target.value))}
+                    placeholder="Buscar indústrias..."
+                    className="pl-9"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Formato</Label>
-                <RadioGroup
-                  value={format}
-                  onValueChange={(v: any) => setFormat(v)}
-                  className="flex h-10 items-center gap-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="zip" id="f-zip" />
-                    <Label htmlFor="f-zip" className="font-normal">
-                      ZIP (Individual)
-                    </Label>
+
+                <ScrollArea className="h-48 rounded-md border bg-muted/20">
+                  <div className="p-2">
+                    {filteredIndustries.map((ind) => (
+                      <div
+                        key={ind.id}
+                        className="flex items-center space-x-2 rounded-sm p-1.5 hover:bg-muted/50"
+                      >
+                        <Checkbox
+                          id={`ind-${ind.id}`}
+                          checked={selectedIds.includes(ind.id)}
+                          onCheckedChange={(checked: boolean) => {
+                            if (checked) setSelectedIds([...selectedIds, ind.id]);
+                            else setSelectedIds(selectedIds.filter((id) => id !== ind.id));
+                          }}
+                        />
+                        <Label
+                          htmlFor={`ind-${ind.id}`}
+                          className="flex-1 cursor-pointer text-sm font-normal"
+                        >
+                          {ind.name}
+                        </Label>
+                      </div>
+                    ))}
+                    {filteredIndustries.length === 0 && (
+                      <div className="py-8 text-center text-xs text-muted-foreground">
+                        Nenhuma indústria encontrada.
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="pdf" id="f-pdf" />
-                    <Label htmlFor="f-pdf" className="font-normal">
-                      PDF Único
-                    </Label>
-                  </div>
-                </RadioGroup>
+                </ScrollArea>
               </div>
             </div>
+          )}
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Indústrias ({selectedIds.length} selecionadas)</Label>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="chk-only"
-                      checked={checklistOnly}
-                      onCheckedChange={(c) => setChecklistOnly(!!c)}
-                    />
-                    <Label htmlFor="chk-only" className="text-xs font-normal">
-                      Somente com checklist
-                    </Label>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleAll}
-                    className="h-7 px-2 text-xs"
-                  >
-                    {selectedIds.length === filteredIndustries.length
-                      ? "Desmarcar todas"
-                      : "Selecionar todas"}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar indústrias..."
-                  className="pl-9"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+          {step === "preview" && preview && (
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-4 gap-4">
+                <PreviewKpi label="Indústrias" value={preview.selectedCount} icon={Archive} />
+                <PreviewKpi
+                  label="Com pendência"
+                  value={preview.withPendingCount}
+                  icon={AlertCircle}
+                  tone="bad"
+                />
+                <PreviewKpi
+                  label="Lojas zeradas"
+                  value={preview.totalUnattendedStores}
+                  icon={FileText}
+                />
+                <PreviewKpi
+                  label="PDFs p/ gerar"
+                  value={preview.pdfCount}
+                  icon={Check}
+                  tone="good"
                 />
               </div>
 
-              <ScrollArea className="h-48 rounded-md border bg-muted/20">
-                <div className="p-2">
-                  {filteredIndustries.map((ind) => (
-                    <div
-                      key={ind.id}
-                      className="flex items-center space-x-2 rounded-sm p-1.5 hover:bg-muted/50"
-                    >
-                      <Checkbox
-                        id={`ind-${ind.id}`}
-                        checked={selectedIds.includes(ind.id)}
-                        onCheckedChange={(checked: boolean) => {
-                          if (checked) setSelectedIds([...selectedIds, ind.id]);
-                          else setSelectedIds(selectedIds.filter((id) => id !== ind.id));
-                        }}
-                      />
-                      <Label
-                        htmlFor={`ind-${ind.id}`}
-                        className="flex-1 cursor-pointer text-sm font-normal"
-                      >
-                        {ind.name}
-                      </Label>
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold">Detalhamento por Indústria</h4>
+                {preview.items.some((i) => i.status === "FAILED") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                    onClick={handleRetryErrorItems}
+                    disabled={loadingPreview}
+                  >
+                    {loadingPreview ? (
+                      <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    ) : (
+                      <Clock className="mr-1 h-3 w-3" />
+                    )}
+                    Tentar novamente todas com erro
+                  </Button>
+                )}
+              </div>
+
+              <ScrollArea className="h-64 rounded-md border">
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-muted/50 border-b text-xs uppercase text-muted-foreground">
+                    <tr>
+                      <th className="p-2 text-left">Indústria</th>
+                      <th className="p-2 text-center">Contratadas</th>
+                      <th className="p-2 text-center">Atendidas</th>
+                      <th className="p-2 text-center">Zeradas</th>
+                      <th className="p-2 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {preview.items.map((item) => (
+                      <tr key={item.industryId} className="border-b last:border-0 hover:bg-muted/30">
+                        <td className="p-2">
+                          <div className="font-medium">{item.industryName}</div>
+                          <div className="text-[10px] text-muted-foreground">{item.periodLabel}</div>
+                        </td>
+                        <td className="p-2 text-center">{item.contractedStores ?? "—"}</td>
+                        <td className="p-2 text-center text-emerald-600">
+                          {item.attendedStores ?? "—"}
+                        </td>
+                        <td className="p-2 text-center font-semibold text-rose-600">
+                          {item.unattendedStores ?? "—"}
+                        </td>
+                        <td className="p-2 text-right">
+                          <div className="flex flex-col items-end gap-1">
+                            {item.status === "READY" ? (
+                              <Badge
+                                variant="outline"
+                                className="bg-emerald-50 text-emerald-700 border-emerald-200"
+                              >
+                                Pronto
+                              </Badge>
+                            ) : item.status === "EMPTY" ? (
+                              <Badge variant="outline" className="text-muted-foreground">
+                                Sem pendência
+                              </Badge>
+                            ) : (
+                              <div className="flex items-center gap-1">
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 px-1.5 text-[10px] text-rose-600"
+                                    >
+                                      Ver detalhes
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle className="flex items-center gap-2 text-rose-600">
+                                        <AlertCircle className="h-5 w-5" />
+                                        Erro: {item.industryName}
+                                      </DialogTitle>
+                                    </DialogHeader>
+                                    <div className="space-y-4 py-4">
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                          <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+                                            Código
+                                          </Label>
+                                          <div className="font-mono text-sm font-semibold">
+                                            {item.errorCode || "ENGINE_ERROR"}
+                                          </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                          <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+                                            Status HTTP
+                                          </Label>
+                                          <div className="font-mono text-sm font-semibold">
+                                            {item.httpStatus || 500}
+                                          </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                          <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+                                            Etapa
+                                          </Label>
+                                          <div className="text-sm font-semibold">
+                                            {item.errorStage || "PREVIEW"}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="space-y-1 rounded-md bg-muted/50 p-3">
+                                        <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+                                          Mensagem
+                                        </Label>
+                                        <div className="text-sm font-medium leading-relaxed">
+                                          {item.errorMessage ||
+                                            "Não foi possível calcular o relatório desta indústria."}
+                                        </div>
+                                      </div>
+                                      <Button
+                                        className="w-full"
+                                        onClick={() => handleGeneratePreview([item.industryId])}
+                                        disabled={loadingPreview}
+                                      >
+                                        {loadingPreview ? (
+                                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        ) : (
+                                          <Clock className="mr-2 h-4 w-4" />
+                                        )}
+                                        Tentar novamente
+                                      </Button>
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                                <Badge
+                                  variant="outline"
+                                  className="bg-rose-50 text-rose-700 border-rose-200 cursor-default"
+                                >
+                                  Erro
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </ScrollArea>
+            </div>
+          )}
+
+          {step === "processing" && (
+            <div className="space-y-8 py-10">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="relative mb-6">
+                  {isFinished ? (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                      <Check className="h-8 w-8" />
                     </div>
-                  ))}
-                  {filteredIndustries.length === 0 && (
-                    <div className="py-8 text-center text-xs text-muted-foreground">
-                      Nenhuma indústria encontrada.
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-sky-600">
+                      <Loader2 className="h-8 w-8 animate-spin" />
                     </div>
                   )}
                 </div>
-              </ScrollArea>
-            </div>
 
-            <DialogFooter>
-              <Button
-                className="w-full"
-                onClick={() => handleGeneratePreview()}
-                disabled={loadingPreview || selectedIds.length === 0}
-              >
-                {loadingPreview ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  "Gerar prévia"
-                )}
-              </Button>
-            </DialogFooter>
-          </div>
-        )}
+                <h3 className="text-xl font-semibold">
+                  {isFinished ? "Exportação concluída" : "Gerando relatórios..."}
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {isFinished
+                    ? `${exportData.total_unattended_stores} lojas zeradas identificadas em ${exportData.industries_with_pending_count} indústrias.`
+                    : `Processando ${exportData?.progress_current || 0} de ${exportData?.progress_total || 0} indústrias.`}
+                </p>
+              </div>
 
-        {step === "preview" && preview && (
-          <div className="space-y-6 py-4">
-            <div className="grid grid-cols-4 gap-4">
-              <PreviewKpi label="Indústrias" value={preview.selectedCount} icon={Archive} />
-              <PreviewKpi
-                label="Com pendência"
-                value={preview.withPendingCount}
-                icon={AlertCircle}
-                tone="bad"
-              />
-              <PreviewKpi
-                label="Lojas zeradas"
-                value={preview.totalUnattendedStores}
-                icon={FileText}
-              />
-              <PreviewKpi label="PDFs p/ gerar" value={preview.pdfCount} icon={Check} tone="good" />
-            </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-medium">
+                  <span>Progresso total</span>
+                  <span>{Math.round(progress)}%</span>
+                </div>
+                <Progress value={progress} className="h-2" />
+              </div>
 
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold">Detalhamento por Indústria</h4>
-              {preview.items.some((i) => i.status === "FAILED") && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-                  onClick={handleRetryErrorItems}
-                  disabled={loadingPreview}
-                >
-                  {loadingPreview ? (
-                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                  ) : (
-                    <Clock className="mr-1 h-3 w-3" />
-                  )}
-                  Tentar novamente todas com erro
+              {isFinished ? (
+                <Button className="w-full" size="lg" onClick={handleDownload}>
+                  <Download className="mr-2 h-5 w-5" />
+                  Baixar arquivo ({format.toUpperCase()})
                 </Button>
+              ) : (
+                <div className="rounded-lg border bg-muted/20 p-4">
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>Isso pode levar alguns instantes. Não feche esta janela.</span>
+                  </div>
+                </div>
               )}
             </div>
+          )}
+        </div>
 
-            <ScrollArea className="h-64 rounded-md border">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-muted/50 border-b text-xs uppercase text-muted-foreground">
-                  <tr>
-                    <th className="p-2 text-left">Indústria</th>
-                    <th className="p-2 text-center">Contratadas</th>
-                    <th className="p-2 text-center">Atendidas</th>
-                    <th className="p-2 text-center">Zeradas</th>
-                    <th className="p-2 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {preview.items.map((item) => (
-                    <tr key={item.industryId} className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="p-2">
-                        <div className="font-medium">{item.industryName}</div>
-                        <div className="text-[10px] text-muted-foreground">{item.periodLabel}</div>
-                      </td>
-                      <td className="p-2 text-center">{item.contractedStores ?? "—"}</td>
-                      <td className="p-2 text-center text-emerald-600">
-                        {item.attendedStores ?? "—"}
-                      </td>
-                      <td className="p-2 text-center font-semibold text-rose-600">
-                        {item.unattendedStores ?? "—"}
-                      </td>
-                      <td className="p-2 text-right">
-                        <div className="flex flex-col items-end gap-1">
-                          {item.status === "READY" ? (
-                            <Badge
-                              variant="outline"
-                              className="bg-emerald-50 text-emerald-700 border-emerald-200"
-                            >
-                              Pronto
-                            </Badge>
-                          ) : item.status === "EMPTY" ? (
-                            <Badge variant="outline" className="text-muted-foreground">
-                              Sem pendência
-                            </Badge>
-                          ) : (
-                            <div className="flex items-center gap-1">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 px-1.5 text-[10px] text-rose-600"
-                                  >
-                                    Ver detalhes
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle className="flex items-center gap-2 text-rose-600">
-                                      <AlertCircle className="h-5 w-5" />
-                                      Erro: {item.industryName}
-                                    </DialogTitle>
-                                  </DialogHeader>
-                                  <div className="space-y-4 py-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                      <div className="space-y-1">
-                                        <Label className="text-xs text-muted-foreground uppercase tracking-wider">
-                                          Código
-                                        </Label>
-                                        <div className="font-mono text-sm font-semibold">
-                                          {item.errorCode || "ENGINE_ERROR"}
-                                        </div>
-                                      </div>
-                                      <div className="space-y-1">
-                                        <Label className="text-xs text-muted-foreground uppercase tracking-wider">
-                                          Status HTTP
-                                        </Label>
-                                        <div className="font-mono text-sm font-semibold">
-                                          {item.httpStatus || 500}
-                                        </div>
-                                      </div>
-                                      <div className="space-y-1">
-                                        <Label className="text-xs text-muted-foreground uppercase tracking-wider">
-                                          Etapa
-                                        </Label>
-                                        <div className="text-sm font-semibold">
-                                          {item.errorStage || "PREVIEW"}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className="space-y-1 rounded-md bg-muted/50 p-3">
-                                      <Label className="text-xs text-muted-foreground uppercase tracking-wider">
-                                        Mensagem
-                                      </Label>
-                                      <div className="text-sm font-medium leading-relaxed">
-                                        {item.errorMessage ||
-                                          "Não foi possível calcular o relatório desta indústria."}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <DialogFooter>
-                                    <Button
-                                      className="w-full"
-                                      onClick={() => handleGeneratePreview([item.industryId])}
-                                      disabled={loadingPreview}
-                                    >
-                                      {loadingPreview ? (
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      ) : (
-                                        <Clock className="mr-2 h-4 w-4" />
-                                      )}
-                                      Tentar novamente
-                                    </Button>
-                                  </DialogFooter>
-                                </DialogContent>
-                              </Dialog>
-                              <Badge
-                                variant="outline"
-                                className="bg-rose-50 text-rose-700 border-rose-200 cursor-default"
-                              >
-                                Erro
-                              </Badge>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </ScrollArea>
+        <DialogFooter className="p-6 pt-4 border-t">
+          {step === "setup" && (
+            <Button
+              className="w-full"
+              onClick={() => handleGeneratePreview()}
+              disabled={loadingPreview || selectedIds.length === 0}
+            >
+              {loadingPreview ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                "Gerar prévia"
+              )}
+            </Button>
+          )}
 
-            <DialogFooter className="gap-2">
+          {step === "preview" && preview && (
+            <div className="flex w-full gap-2">
               <Button variant="outline" onClick={() => setStep("setup")}>
                 Voltar
               </Button>
@@ -550,58 +604,15 @@ export function BulkExportModal() {
               >
                 Gerar relatórios ({preview.pdfCount})
               </Button>
-            </DialogFooter>
-          </div>
-        )}
-
-        {step === "processing" && (
-          <div className="space-y-8 py-10">
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="relative mb-6">
-                {isFinished ? (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                    <Check className="h-8 w-8" />
-                  </div>
-                ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-sky-600">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                  </div>
-                )}
-              </div>
-
-              <h3 className="text-xl font-semibold">
-                {isFinished ? "Exportação concluída" : "Gerando relatórios..."}
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {isFinished
-                  ? `${exportData.total_unattended_stores} lojas zeradas identificadas em ${exportData.industries_with_pending_count} indústrias.`
-                  : `Processando ${exportData?.progress_current || 0} de ${exportData?.progress_total || 0} indústrias.`}
-              </p>
             </div>
+          )}
 
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-medium">
-                <span>Progresso total</span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-            </div>
-
-            {isFinished ? (
-              <Button className="w-full" size="lg" onClick={handleDownload}>
-                <Download className="mr-2 h-5 w-5" />
-                Baixar arquivo ({format.toUpperCase()})
-              </Button>
-            ) : (
-              <div className="rounded-lg border bg-muted/20 p-4">
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  <span>Isso pode levar alguns instantes. Não feche esta janela.</span>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+          {step === "processing" && isFinished && (
+            <Button variant="outline" className="w-full" onClick={reset}>
+              Fechar
+            </Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
