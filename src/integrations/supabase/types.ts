@@ -2700,7 +2700,7 @@ export type Database = {
       mk9_sync_mode: "full" | "add_only" | "registry_only" | "routes_only"
       mk9_visit_status: "planned" | "completed" | "cancelled" | "skipped"
       mk9_week_grouping: "CALENDAR_WEEK" | "CYCLE_WEEK"
-      presence_status: "PRESENT" | "ABSENT" | "MEDICAL_CERTIFICATE"
+      presence_status: "PRESENT" | "ABSENT" | "MEDICAL_CERTIFICATE" | "VACATION"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2867,7 +2867,7 @@ export const Constants = {
       mk9_sync_mode: ["full", "add_only", "registry_only", "routes_only"],
       mk9_visit_status: ["planned", "completed", "cancelled", "skipped"],
       mk9_week_grouping: ["CALENDAR_WEEK", "CYCLE_WEEK"],
-      presence_status: ["PRESENT", "ABSENT", "MEDICAL_CERTIFICATE"],
+      presence_status: ["PRESENT", "ABSENT", "MEDICAL_CERTIFICATE", "VACATION"],
     },
   },
 } as const
