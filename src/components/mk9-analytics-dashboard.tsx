@@ -40,6 +40,7 @@ import {
   Info,
   ChevronDown,
   ChevronUp,
+  MoreVertical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatPercentage } from "@/lib/mk9/normalization";
@@ -54,10 +55,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { getMk9AnalyticsDashboardFn } from "@/lib/mk9-analytics/analytics.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
+import { CollapsibleDashboardSection } from "./mk9/CollapsibleDashboardSection";
 
 const MONTHS_PT = [
+
   "Janeiro",
   "Fevereiro",
   "Março",
