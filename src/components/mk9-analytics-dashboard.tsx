@@ -38,6 +38,8 @@ import {
   TrendingDown,
   Target,
   Info,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatPercentage } from "@/lib/mk9/normalization";
@@ -79,6 +81,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
   const [year, setYear] = useState(initialYear || new Date().getFullYear());
   const [industryId, setIndustryId] = useState("__ALL__");
   const [uf, setUf] = useState("__ALL__");
+  const [matrixCollapsed, setMatrixCollapsed] = useState(true);
 
   const analyticsFn = useServerFn(getMk9AnalyticsDashboardFn);
   const industriesFn = useServerFn(mk9ListIndustries);
@@ -511,29 +514,54 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <AnalyticsChartCard
           title={
-            <div className="flex items-center gap-2">
-              <span>Matriz de Execução</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-popover border-border text-foreground text-[10px] max-w-[250px] p-3 space-y-2">
-                    <p className="font-black text-command-purple uppercase tracking-widest text-[9px]">O que é isso?</p>
-                    <p>Mostra quantas lojas existem em cada faixa de execução, agrupadas pela frequência mensal contratada.</p>
-                    <div className="pt-2 border-t border-border/50">
-                      <p className="text-muted-foreground italic">Exemplo:</p>
-                      <p><span className="text-foreground font-bold">4x/mês + 0%</span> → lojas com 4 visitas mensais contratadas que ainda não tiveram nenhuma visita realizada.</p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <div 
+              className="flex items-center justify-between w-full cursor-pointer group/title"
+              onClick={() => setMatrixCollapsed(!matrixCollapsed)}
+              role="button"
+              aria-expanded={!matrixCollapsed}
+              aria-controls="execution-matrix-content"
+            >
+              <div className="flex items-center gap-2">
+                <span>Matriz de Execução</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-popover border-border text-foreground text-[10px] max-w-[250px] p-3 space-y-2">
+                      <p className="font-black text-command-purple uppercase tracking-widest text-[9px]">O que é isso?</p>
+                      <p>Mostra quantas lojas existem em cada faixa de execução, agrupadas pela frequência mensal contratada.</p>
+                      <div className="pt-2 border-t border-border/50">
+                        <p className="text-muted-foreground italic">Exemplo:</p>
+                        <p><span className="text-foreground font-bold">4x/mês + 0%</span> → lojas com 4 visitas mensais contratadas que ainda não tiveram nenhuma visita realizada.</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-black text-primary uppercase tracking-tighter opacity-0 group-hover/title:opacity-100 transition-opacity">
+                  {matrixCollapsed ? "Ver matriz" : "Ocultar matriz"}
+                </span>
+                {matrixCollapsed ? (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-hover/title:text-primary" />
+                ) : (
+                  <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform group-hover/title:text-primary" />
+                )}
+              </div>
             </div>
           }
           subtitle="Lojas por frequência contratada e cobertura"
-          className="xl:col-span-2"
+          className={cn("xl:col-span-2 transition-all duration-500 ease-in-out", matrixCollapsed ? "h-fit" : "h-full")}
+          height={matrixCollapsed ? 0 : 300}
         >
-          <div className="flex flex-col gap-4 h-full overflow-x-auto pb-2 custom-scrollbar">
+          <div 
+            id="execution-matrix-content"
+            className={cn(
+              "flex flex-col gap-4 overflow-hidden transition-all duration-500 ease-in-out",
+              matrixCollapsed ? "max-h-0 opacity-0 pointer-events-none" : "max-h-[1000px] opacity-100 pt-4"
+            )}
+          >
             <div className="grid grid-cols-5 gap-2 min-w-[600px]">
               {[
                 { label: "0%", sub: "SEM VISITA", color: "text-rose-500" },
