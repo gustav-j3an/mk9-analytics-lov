@@ -2,51 +2,16 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-} from "recharts";
-import {
   Activity,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle2,
   Clock,
-  MapPin,
-  Building2,
-  LayoutDashboard,
-  ArrowRight,
-  Filter,
-  RefreshCw,
   Search,
-  ExternalLink,
-  Zap,
-  Database,
-  Cpu,
-  History,
-  TrendingDown,
-  Target,
-  Info,
-  ChevronDown,
-  ChevronUp,
-  MoreVertical,
+  CheckCircle2,
+  AlertTriangle,
+  Factory
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatPercentage } from "@/lib/mk9/normalization";
-import { Mk9Panel, Mk9Badge, Mk9LoadingState, Mk9ErrorState } from "./mk9/design-system";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AnalyticsMetricCard, AnalyticsChartCard, AnalyticsTable } from "./mk9/AnalyticsComponents";
+import { Mk9LoadingState, Mk9ErrorState } from "./mk9/design-system";
 import {
   Select,
   SelectContent,
@@ -55,29 +20,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { getMk9AnalyticsDashboardFn } from "@/lib/mk9-analytics/analytics.functions";
 import { mk9ListIndustries } from "@/lib/mk9-data.functions";
-import { CollapsibleDashboardSection } from "./mk9/CollapsibleDashboardSection";
 
 const MONTHS_PT = [
-  "Janeiro",
-  "Fevereiro",
-  "Março",
-  "Abril",
-  "Maio",
-  "Junho",
-  "Julho",
-  "Agosto",
-  "Setembro",
-  "Outubro",
-  "Novembro",
-  "Dezembro",
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
 function nf(v: number) {
@@ -88,19 +38,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
   const [month, setMonth] = useState(initialMonth || new Date().getMonth() + 1);
   const [year, setYear] = useState(initialYear || new Date().getFullYear());
   const [industryId, setIndustryId] = useState("__ALL__");
-  const [uf, setUf] = useState("__ALL__");
-
-  const toggleAllSections = (open: boolean) => {
-    window.dispatchEvent(new CustomEvent("mk9_dashboard_section_sync", {
-      detail: { storageKey: "__ALL__", isOpen: open }
-    }));
-  };
-
-  const restoreDefaults = () => {
-    window.dispatchEvent(new CustomEvent("mk9_dashboard_section_sync", {
-      detail: { storageKey: "__RESTORE_DEFAULT__" }
-    }));
-  };
+  const [search, setSearch] = useState("");
 
   const analyticsFn = useServerFn(getMk9AnalyticsDashboardFn);
   const industriesFn = useServerFn(mk9ListIndustries);
@@ -123,11 +61,10 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
     year,
     month,
     industryId: industryId === "__ALL__" ? null : industryId,
-    uf: uf === "__ALL__" ? null : uf,
   };
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["mk9-analytics-data", year, month, industryId, uf],
+    queryKey: ["mk9-analytics-data-minimal", year, month, industryId],
     queryFn: () => analyticsFn({ data: params }),
     staleTime: 60000,
   });
@@ -137,59 +74,22 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
     return [currentYear - 1, currentYear, currentYear + 1];
   }, []);
 
-  if (isLoading) return <Mk9LoadingState message="Inicializando Comando Analítico..." />;
-  if (error)
-    return <Mk9ErrorState message="Erro ao carregar matriz analítica." onRetry={() => refetch()} />;
-  if (!data)
-    return (
-      <Mk9ErrorState message="Nenhum dado retornado para este período." onRetry={() => refetch()} />
-    );
+  const filteredIndustries = useMemo(() => {
+    if (!data?.industries) return [];
+    let list = data.industries;
+    if (search) {
+      const s = search.toLowerCase();
+      list = list.filter((i: any) => i.industryName.toLowerCase().includes(s));
+    }
+    return list;
+  }, [data?.industries, search]);
 
-  const {
-    executive: rawExecutive,
-    industries = [],
-    ufs = [],
-    frequencies = [],
-    matrix = [],
-    projection: rawProjection,
-    topPriorities = [],
-    lastUpdate,
-  } = data;
+  if (isLoading) return <Mk9LoadingState message="Carregando visão rápida..." />;
+  if (error) return <Mk9ErrorState message="Erro ao carregar dashboard." onRetry={() => refetch()} />;
+  if (!data) return <Mk9ErrorState message="Nenhum dado retornado." onRetry={() => refetch()} />;
 
-  const executive = {
-    coverage: rawExecutive?.coverage ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
-    pending: rawExecutive?.pending ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
-    extras: rawExecutive?.extras ?? { current: 0 },
-    zeroVisits: rawExecutive?.zeroVisits ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
-    contracted: rawExecutive?.contracted ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
-    realized: rawExecutive?.realized ?? { current: 0, previous: 0, delta: 0, percentChange: 0 },
-  };
+  const { executive } = data;
 
-  const projection = {
-    realized: rawProjection?.realized ?? 0,
-    projected: rawProjection?.projected ?? 0,
-    contracted: rawProjection?.contracted ?? 0,
-    riskStatus: (rawProjection?.riskStatus ?? "N/D") as string,
-    daysRemaining: rawProjection?.daysRemaining ?? 0,
-  };
-
-  return (
-    <div className="space-y-8 animate-fade-in pb-20 selection:bg-purple-500/30">
-      <div className="flex items-center justify-end gap-2">
-         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-2 text-[10px]">
-                    <MoreVertical className="h-3 w-3" />
-                    Organizar painel
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
-                <DropdownMenuItem onClick={() => toggleAllSections(true)} className="text-xs font-bold uppercase tracking-tighter cursor-pointer">Expandir tudo</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => toggleAllSections(false)} className="text-xs font-bold uppercase tracking-tighter cursor-pointer">Recolher tudo</DropdownMenuItem>
-                <DropdownMenuItem onClick={restoreDefaults} className="text-xs font-bold uppercase tracking-tighter cursor-pointer">Restaurar padrão</DropdownMenuItem>
-            </DropdownMenuContent>
-         </DropdownMenu>
-      </div>
 
       {/* FILTROS */}
       <CollapsibleDashboardSection title="Filtros" storageKey="filters" defaultOpen={true}>
