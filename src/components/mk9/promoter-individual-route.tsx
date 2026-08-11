@@ -123,9 +123,29 @@ export function PromoterIndividualRoute() {
     return matrix.reduce((acc, row) => acc + row.days.size, 0);
   }, [matrix]);
 
-  const handlePrint = () => {
-    window.print();
+  const handleExportPdf = async () => {
+    if (!promoter?.name || matrix.length === 0) {
+      toast.error("Não há rota disponível para gerar o PDF.");
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      await generatePromoterRoutePdf({
+        promoterName: promoter.name,
+        referenceDate,
+        totalVisits,
+        matrix,
+      });
+      toast.success("PDF gerado com sucesso!");
+    } catch (error) {
+      console.error("[PDF_GEN_ERROR]", error);
+      toast.error("Não foi possível gerar o PDF.");
+    } finally {
+      setIsExporting(false);
+    }
   };
+
 
 
   if (routesQ.isLoading || promotersQ.isLoading) {
