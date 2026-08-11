@@ -71,7 +71,7 @@ export function Mk9PromotersModule() {
         actions={
           <Button
             onClick={() => setShowCreate(true)}
-            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-white font-black uppercase tracking-widest px-6 shadow-lg shadow-mk9-accent-primary/20 border-none"
+            className="bg-mk9-accent-primary hover:bg-mk9-accent-primary/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-mk9-accent-primary/20 border-none"
           >
             <Plus className="h-4 w-4 mr-2" /> Novo Promotor
           </Button>
@@ -90,7 +90,7 @@ export function Mk9PromotersModule() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por nome, matrícula ou UF..."
-              className="pl-10 bg-white/[0.03] border-border text-white placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
+              className="pl-10 bg-muted/50 border-border text-foreground placeholder:text-slate-600 focus:ring-mk9-accent-primary/20"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -120,7 +120,7 @@ export function Mk9PromotersModule() {
                   <tr key={p.id} className="group hover:bg-white/[0.02] transition-colors">
                     <td className="px-4 py-4">
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-white group-hover:text-mk9-accent-primary transition-colors">
+                        <span className="text-sm font-bold text-foreground group-hover:text-mk9-accent-primary transition-colors">
                           {p.name}
                         </span>
                         {p.contact && (
@@ -156,14 +156,14 @@ export function Mk9PromotersModule() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-white"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                           >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="bg-command-deep border-border text-white"
+                          className="bg-popover border-border text-foreground"
                         >
                           <DropdownMenuItem
                             onClick={() => setEditingPromoter(p)}
