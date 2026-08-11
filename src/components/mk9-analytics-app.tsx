@@ -173,9 +173,9 @@ export function Mk9AnalyticsApp() {
         >
           <div className={cn(
             "h-16 flex items-center border-b border-border bg-background/50 shrink-0 transition-all duration-300",
-            collapsed ? "flex-col justify-center gap-1 px-2" : "justify-between px-4"
+            collapsed ? "justify-center gap-1 px-2" : "justify-between px-4"
           )}>
-            <div className={cn("flex items-center gap-2 overflow-hidden transition-all duration-300", collapsed && "justify-center")}>
+            <div className={cn("flex items-center gap-2 overflow-hidden transition-all duration-300", collapsed && "w-8 shrink-0")}>
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary shrink-0">
                 <ShieldCheck className="text-white h-5 w-5" />
               </div>
