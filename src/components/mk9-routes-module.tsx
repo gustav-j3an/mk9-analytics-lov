@@ -330,9 +330,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                         to="/roteiros/promotor/$promoterId"
                         params={{
                           promoterId:
-                            Array.from(days.values())
-                              .next()
-                              .value.items[0].promoterId || "",
+                            Array.from(days.values())[0].values().next().value.items[0].promoterId || "",
                         }}
                         search={{ date: referenceDate }}
                       >
@@ -345,6 +343,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                           Ver Rota
                         </Button>
                       </Link>
+
                     </CardTitle>
 
                   </CardHeader>
