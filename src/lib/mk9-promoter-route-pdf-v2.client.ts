@@ -1,8 +1,34 @@
-
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
-console.log("[DEBUG_PDF] Imports carregados:", { jsPDF: !!jsPDF, autoTable: !!autoTable });
+// Teste de exportação mínima para diagnosticar se o problema é o jspdf-autotable
+export function testJsPdfSimple() {
+  try {
+    const doc = new jsPDF();
+    doc.text("MK9 TESTE SIMPLES", 10, 10);
+    doc.save("teste-simples.pdf");
+    return true;
+  } catch (e: any) {
+    console.error("[DEBUG_PDF] Erro no jsPDF simples:", e);
+    throw e;
+  }
+}
+
+export function testAutoTableSimple() {
+  try {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      head: [['ID', 'NOME']],
+      body: [['1', 'TESTE']],
+    });
+    doc.save("teste-autotable.pdf");
+    return true;
+  } catch (e: any) {
+    console.error("[DEBUG_PDF] Erro no autoTable simples:", e);
+    throw e;
+  }
+}
+
 
 
 interface MatrixRow {
