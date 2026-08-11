@@ -142,11 +142,14 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
   }, [rawRoutes, nameFilter]);
 
   const grouped = useMemo(() => {
-    // Promotor → weekday → storeId → { store, items[] }
-    const m = new Map<string, Map<number, Map<string, { store: Route; items: Route[] }>>>();
+    // PromotorName → { id, days: Map<weekday, Map<storeId, { store, items[] }>> }
+    const m = new Map<string, { id: string; days: Map<number, Map<string, { store: Route; items: Route[] }>> }>();
     for (const r of routes) {
-      if (!m.has(r.promoterName)) m.set(r.promoterName, new Map());
-      const days = m.get(r.promoterName)!;
+      if (!m.has(r.promoterName)) {
+        m.set(r.promoterName, { id: r.promoterId || "", days: new Map() });
+      }
+      const pData = m.get(r.promoterName)!;
+      const days = pData.days;
       if (!days.has(r.weekday)) days.set(r.weekday, new Map());
       const stMap = days.get(r.weekday)!;
       const key = (r.storeId ?? r.storeName) as string;
@@ -155,6 +158,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
     }
     return m;
   }, [routes]);
+
 
   const ufs = Array.from(new Set(stores.map((s) => s.uf).filter(Boolean))) as string[];
 
