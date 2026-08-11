@@ -126,6 +126,7 @@ export async function loadOperationCore(
     return emptyCore(today, year, month, `${year}-01-01`, `${year}-12-31`, queryCount, startedAt);
   }
 
+
   // ---- indústrias e configurações de período --------------------------------
   // No longer needed: let indQuery = supabase.from("mk9_industries").select("id,name,requires_checklist,checklist_enabled_at").order("name", { ascending: true });
   // No longer needed: if (filters.industryId) indQuery = indQuery.eq("id", filters.industryId);
@@ -352,8 +353,9 @@ export async function loadOperationCore(
       .eq("operation_month", month)
       .eq("operation_year", year)
       .is("reverted_at", null)
-      .eq("is_operational_current" as any, true)
+      .or('is_operational_current.eq.true,status.eq.confirmed')
   );
+
 
   const importIdByIndustry = new Map<string, string>();
   for (const imp of currentImports ?? []) {

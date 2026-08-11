@@ -119,8 +119,9 @@ export async function listBulkOperationalActualVisits(params: {
     .select("id, industry_id, is_operational_current, started_at")
     .in("industry_id", industryIds)
     .is("reverted_at", null)
-    .eq("is_operational_current" as any, true)
+    .or('is_operational_current.eq.true,status.eq.confirmed')
     .order('started_at', { ascending: false });
+
 
   const activeImportIds = industryIds.map(id => {
     const active = allRecentImports?.find(i => i.industry_id === id);
