@@ -307,29 +307,36 @@ export function Mk9PortalDashboard() {
                       
                       <div className="flex flex-col gap-2 mt-1">
                         {route.evidenceStatus ? (
-                          <div className="flex items-center justify-between bg-secondary/20 rounded-lg p-2 border border-border/30">
-                            <div className="flex items-center gap-2">
-                              {route.evidenceStatus === 'PENDING' && <Clock className="w-4 h-4 text-amber-500" />}
-                              {route.evidenceStatus === 'APPROVED' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
-                              {route.evidenceStatus === 'REJECTED' && <XCircle className="w-4 h-4 text-rose-500" />}
-                              <span className="text-[9px] font-black uppercase tracking-widest">
-                                {route.evidenceStatus === 'PENDING' && 'Pendente'}
-                                {route.evidenceStatus === 'APPROVED' && 'Aprovada'}
-                                {route.evidenceStatus === 'REJECTED' && 'Rejeitada'}
-                              </span>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between bg-secondary/20 rounded-lg p-2 border border-border/30">
+                              <div className="flex items-center gap-2">
+                                {route.evidenceStatus === 'PENDING' && <Clock className="w-4 h-4 text-amber-500" />}
+                                {route.evidenceStatus === 'APPROVED' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                                {route.evidenceStatus === 'REJECTED' && <XCircle className="w-4 h-4 text-rose-500" />}
+                                <span className="text-[9px] font-black uppercase tracking-widest">
+                                  {route.evidenceStatus === 'PENDING' && 'Pendente'}
+                                  {route.evidenceStatus === 'APPROVED' && 'Aprovada'}
+                                  {route.evidenceStatus === 'REJECTED' && 'Rejeitada'}
+                                </span>
+                              </div>
+                              
+                              {route.evidenceStatus === 'PENDING' && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-6 text-[8px] font-black uppercase tracking-tighter"
+                                  onClick={() => captureGpsAndTriggerFile(route.id)}
+                                  disabled={uploadingRouteId === route.id || gpsLoading === route.id}
+                                >
+                                  {gpsLoading === route.id ? (
+                                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                  ) : (
+                                    <RotateCcw className="w-3 h-3 mr-1" />
+                                  )}
+                                  Substituir
+                                </Button>
+                              )}
                             </div>
-                            
-                            {route.evidenceStatus === 'PENDING' && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 text-[8px] font-black uppercase tracking-tighter"
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={uploadingRouteId === route.id}
-                              >
-                                <RotateCcw className="w-3 h-3 mr-1" /> Substituir
-                              </Button>
-                            )}
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
