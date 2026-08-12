@@ -21,6 +21,7 @@ export type Database = {
           industry_id: string
           notes: string | null
           origin: Database["public"]["Enums"]["mk9_actual_visit_origin"]
+          promoter_id: string | null
           scheduled_date: string
           source_import_id: string | null
           status: string
@@ -33,6 +34,7 @@ export type Database = {
           industry_id: string
           notes?: string | null
           origin?: Database["public"]["Enums"]["mk9_actual_visit_origin"]
+          promoter_id?: string | null
           scheduled_date: string
           source_import_id?: string | null
           status?: string
@@ -45,6 +47,7 @@ export type Database = {
           industry_id?: string
           notes?: string | null
           origin?: Database["public"]["Enums"]["mk9_actual_visit_origin"]
+          promoter_id?: string | null
           scheduled_date?: string
           source_import_id?: string | null
           status?: string
@@ -57,6 +60,13 @@ export type Database = {
             columns: ["industry_id"]
             isOneToOne: false
             referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_actual_visits_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_promoters"
             referencedColumns: ["id"]
           },
           {
@@ -1633,6 +1643,7 @@ export type Database = {
           uf: string | null
           updated_at: string
           updated_by: string | null
+          user_id: string | null
         }
         Insert: {
           archive_reason?: string | null
@@ -1657,6 +1668,7 @@ export type Database = {
           uf?: string | null
           updated_at?: string
           updated_by?: string | null
+          user_id?: string | null
         }
         Update: {
           archive_reason?: string | null
@@ -1681,6 +1693,7 @@ export type Database = {
           uf?: string | null
           updated_at?: string
           updated_by?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
