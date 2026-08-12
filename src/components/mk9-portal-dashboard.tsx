@@ -234,7 +234,7 @@ export function Mk9PortalDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-primary/30 pb-20">
+    <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-primary/30 pb-20 pt-[env(safe-area-inset-top)]">
       {/* Header Minimalista (Missão 6A) */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -418,7 +418,7 @@ export function Mk9PortalDashboard() {
       </main>
 
       {/* Footer Nav Minimalista */}
-      <nav className="fixed bottom-0 w-full bg-background/80 backdrop-blur-lg border-t border-border px-8 h-18 flex items-center justify-between z-50">
+      <nav className="fixed bottom-0 w-full bg-background/80 backdrop-blur-lg border-t border-border px-8 h-18 pb-[env(safe-area-inset-bottom)] flex items-center justify-between z-50">
         <button className="flex flex-col items-center gap-1.5 text-primary group">
           <div className="p-1 rounded-lg bg-primary/10 group-active:scale-95 transition-transform">
             <LayoutDashboard className="w-6 h-6" />

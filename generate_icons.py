@@ -1,0 +1,14 @@
+import fs
+import base64
+
+svg_content = """
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="100" fill="#9b87f5"/>
+  <path d="M128 128H384V384H128V128Z" fill="white" fill-opacity="0.1"/>
+  <path d="M256 160L352 320H160L256 160Z" stroke="white" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="240" r="40" stroke="white" stroke-width="24"/>
+</svg>
+"""
+
+with open("public/pwa-icon.svg", "w") as f:
+    f.write(svg_content)
