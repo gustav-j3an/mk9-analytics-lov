@@ -33,7 +33,7 @@ export const Route = createFileRoute("/")({
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v3.4.0: IMPORT ENGINE STABILIZATION. Correção das falhas silenciosas na importação de indústrias.",
+        content: "MK9 Command Center v3.5.0: Investigating CICOPAL 28->0 persistence gap.",
       },
       { property: "og:title", content: "MK9 | v3.4.0 — IMPORT ENGINE STABILIZATION" },
       {
