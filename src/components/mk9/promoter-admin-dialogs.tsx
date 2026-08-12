@@ -470,7 +470,7 @@ export function PromoterDeleteDialog({
               </div>
             </div>
 
-            {impact && (impact.routes > 0 || impact.visits > 0) ? (
+            {impact && (impact.routesCount > 0 || impact.visitsCount > 0) ? (
               <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -479,8 +479,8 @@ export function PromoterDeleteDialog({
                   </p>
                 </div>
                 <p className="text-xs text-amber-400 opacity-80 leading-relaxed">
-                  Este agente possui <strong>{impact.visits} visitas</strong> e{" "}
-                  <strong>{impact.routes} roteiros</strong> registrados. Para manter a integridade
+                  Este agente possui <strong>{impact.visitsCount} visitas</strong> e{" "}
+                  <strong>{impact.routesCount} roteiros</strong> registrados. Para manter a integridade
                   dos relatórios, ele será <strong>arquivado</strong> e removido da listagem ativa.
                 </p>
               </div>
