@@ -116,18 +116,33 @@ export async function listBulkOperationalActualVisits(params: {
   // Para performance em lote, buscamos a importação vigente ou a mais recente de cada indústria
   const { data: allRecentImports } = await supabaseAdmin
     .from("mk9_checklist_imports")
-    .select("id, industry_id, is_operational_current, started_at")
+    .select("id, industry_id, is_operational_current, status, started_at")
     .in("industry_id", industryIds)
     .is("reverted_at", null)
-    .or('is_operational_current.eq.true,status.eq.confirmed')
+    .in("status", ["done", "confirmed", "committing"])
     .order('started_at', { ascending: false });
 
+  const activeImportIdsByIndustry = new Map<string, string[]>();
+  for (const imp of allRecentImports ?? []) {
+    const list = activeImportIdsByIndustry.get(imp.industry_id) || [];
+    if (imp.is_operational_current) {
+      list.push(imp.id);
+    }
+    activeImportIdsByIndustry.set(imp.industry_id, list);
+  }
 
-  const activeImportIds = industryIds.map(id => {
-    const active = allRecentImports?.find(i => i.industry_id === id);
-    if (active) return active.id;
-    return null;
-  }).filter(Boolean) as string[];
+  // Fallback para quem não tem is_operational_current=true (usa a mais recente)
+  for (const id of industryIds) {
+    if (!activeImportIdsByIndustry.has(id) || activeImportIdsByIndustry.get(id)!.length === 0) {
+      const last = allRecentImports?.find(i => i.industry_id === id);
+      if (last) {
+        activeImportIdsByIndustry.set(id, [last.id]);
+      }
+    }
+  }
+
+  const allActiveIds = Array.from(activeImportIdsByIndustry.values()).flat();
+
 
 
   // 2. Query de visitas em lote
