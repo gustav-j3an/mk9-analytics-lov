@@ -153,7 +153,9 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__ALL__">Todas Indústrias</SelectItem>
-              {(industriesQ.data || []).map(ind => <SelectItem key={ind.id} value={ind.id}>{ind.name}</SelectItem>)}
+              {(industriesQ.data || [])
+                .filter(ind => ind.requires_checklist)
+                .map(ind => <SelectItem key={ind.id} value={ind.id}>{ind.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -200,7 +202,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             <thead className="bg-muted/30">
               <tr>
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Indústria</th>
-                <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Frequência</th>
+                
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Previstas</th>
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Realizadas</th>
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Pendentes</th>
