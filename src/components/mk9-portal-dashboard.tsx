@@ -1,9 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMk9Session } from "@/lib/mk9-auth/session";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyPromoterRoute, getMyPromoterProfile } from "@/lib/mk9-portal/portal.functions";
+import { uploadVisitEvidence } from "@/lib/mk9-portal/evidence.functions";
+import imageCompression from 'browser-image-compression';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 import { 
   ClipboardCheck, 
@@ -14,7 +18,13 @@ import {
   LayoutDashboard,
   CheckCircle2,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  Camera,
+  Image as ImageIcon,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  RotateCcw
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
