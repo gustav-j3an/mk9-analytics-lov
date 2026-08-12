@@ -29,18 +29,20 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function DashboardPage() {
-  const { loading, session } = useMk9Session();
+  const { loading, session, roles } = useMk9Session();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirecionamento preventivo client-side se a sessão cair ou não existir
-    if (!loading && !session) {
-      console.warn(
-        "[MK9-DASHBOARD] Usuário não autenticado em /dashboard. Redirecionando para /",
-      );
-      navigate({ to: "/", replace: true });
+    if (!loading) {
+      if (!session) {
+        console.warn("[MK9-DASHBOARD] Usuário não autenticado em /dashboard. Redirecionando para /");
+        navigate({ to: "/", replace: true });
+      } else if (roles.includes("PROMOTOR") && !roles.includes("ADMIN") && !roles.includes("SUPERVISOR")) {
+        console.warn("[MK9-DASHBOARD] PROMOTOR tentando acessar dashboard administrativo. Redirecionando para /mk9-portal");
+        navigate({ to: "/mk9-portal", replace: true });
+      }
     }
-  }, [loading, session, navigate]);
+  }, [loading, session, roles, navigate]);
 
   if (loading || !session) {
     return (
