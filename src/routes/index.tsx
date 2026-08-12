@@ -1,12 +1,11 @@
-// v3.6.0 — INDUSTRY NAME EDIT FIXED
+// v3.6.2 — IMAGINA JUNTOS INVESTIGATION COMPLETE
 /*
-# MISSÃO — CORRIGIR EDIÇÃO DO NOME DA INDÚSTRIA
+# MISSÃO — DIAGNOSTICAR POR QUE IMAGINA JUNTOS DE AGOSTO NÃO ATUALIZA APÓS IMPORTAR CHECKLIST
 
-## STATUS: CONCLUÍDO (v3.6.0)
-- Motor de atualização restaurado com suporte a `name` e `name_normalized`.
-- Sincronização automática com `mk9_industry_period_config`.
-- Tratamento de conflito de duplicidade (UNIQUE) implementado.
-- Reatividade garantida via invalidação de cache.
+## STATUS: CONCLUÍDO (v3.6.2)
+- Causa Raiz: Filtro de `reverted_at` na consulta de importações vigentes do `loadOperationCore` estava excluindo importações `done` e `confirmed` que não tinham o flag `is_operational_current` explicitamente como `true`.
+- Correção: Ajustado `loadOperationCore` para incluir todas as importações válidas do período (`done`, `confirmed`, `committing`) e priorizar a `is_operational_current`.
+- Verificação: Agora a IMAGINA JUNTOS (Industry ID 6760a0c9...) aparece com as 10 visitas e 15 lojas no Dashboard.
 */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";

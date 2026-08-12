@@ -345,21 +345,25 @@ export async function loadOperationCore(
   };
 
   // 1) Identificar importações vigentes para o período
-  const { data: currentImports } = await safeQuery(
+  // REGRA MK9 (v1.3.15): Buscamos todas as importações válidas e determinamos a vigente
+  const { data: allImports } = await safeQuery(
     supabase
       .from("mk9_checklist_imports")
-      .select("id, industry_id")
+      .select("id, industry_id, is_operational_current")
       .in("industry_id", industryIds)
       .eq("operation_month", month)
       .eq("operation_year", year)
       .is("reverted_at", null)
-      .or('is_operational_current.eq.true,status.eq.confirmed')
+      .in("status", ["done", "confirmed", "committing"])
   );
 
-
   const importIdByIndustry = new Map<string, string>();
-  for (const imp of currentImports ?? []) {
-    importIdByIndustry.set(imp.industry_id, imp.id);
+  for (const imp of allImports ?? []) {
+    // Se já temos uma marcada como 'current', ela tem precedência absoluta
+    const existing = importIdByIndustry.get(imp.industry_id);
+    if (!existing || imp.is_operational_current) {
+      importIdByIndustry.set(imp.industry_id, imp.id);
+    }
   }
 
   // Se um importId específico foi filtrado, ele sobrepõe a regra de 'is_operational_current' para aquela indústria
