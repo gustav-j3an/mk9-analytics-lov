@@ -1,62 +1,11 @@
-// v3.7.3 — MISSION 2 PLAN DEPLOYED
+// v3.7.2 — ARCHITECTURE AUDIT COMPLETE
 /*
-# MISSÃO 2 — EVIDÊNCIAS DE VISITA E STORAGE
-
-**MK9 Command Center — Portal do Promotor**
-
-## Contexto validado
-A Missão 1/1.1 foi homologada.
-
-Já existe:
-* role `PROMOTOR`;
-* vínculo `auth.users.id ↔ mk9_promoters.user_id`;
-* `getCurrentPromoter()`;
-* `getMyPromoterRoute()`;
-* isolamento de dados por RLS;
-* `mk9_actual_visits.promoter_id`;
-* Supabase Storage já configurado para outros usos.
-
-Ainda NÃO existe:
-* upload de fotos;
-* tabela de evidências;
-* bucket de fotos de campo;
-* GPS;
-* aprovação/rejeição;
-* checklist automático.
-
----
-
-# OBJETIVO DA MISSÃO 2
-Permitir que o Promotor:
-1. abra uma visita da própria rota;
-2. selecione/tire UMA foto;
-3. envie a foto;
-4. o sistema registre a evidência;
-5. a evidência fique com status `PENDING`;
-6. a foto fique armazenada de forma PRIVADA.
-
-Ainda NÃO transformar a evidência em visita realizada.
-
----
-
-# 1. CRIAR TABELA DE EVIDÊNCIAS
-Criar tabela: `mk9_visit_evidence`
-Campos: `id`, `promoter_id`, `planned_route_id`, `store_id`, `industry_id`, `photo_path`, `status` (PENDING, APPROVED, REJECTED), `captured_at`, `created_at`, `reviewed_by`, `reviewed_at`, `rejection_reason`.
-
-# 2. BUCKET PRIVADO
-Criar bucket `visit-evidence` (PRIVADO). Path: `promoters/{promoterId}/{yyyy}/{mm}/{evidenceId}.jpg`.
-
-# 3. SEGURANÇA (RLS)
-* PROMOTOR: Apenas as próprias evidências. Upload apenas para seu path.
-* Validação: `planned_route_id` deve pertencer ao Promotor da sessão.
-
-# 4. COMPRESSÃO E FORMATOS
-Client-side compression (max 1600px). JPEG/PNG/WEBP. Max 5MB.
-
-# 5. REENVIO
-Permitir substituir foto enquanto `PENDING`.
-
-**NÃO iniciar Missão 3 automaticamente.**
+# MISSÃO — REMOVER LANDING PAGE “O FUTURO DA AUDITORIA”
+## STATUS: CONCLUÍDO (v3.7.1)
+- Remoção: A interface de Landing Page (Hero, Slogans, Features) foi completamente removida.
+- Restauração: O componente `Mk9LoginForm` agora é o centro da página inicial para usuários não autenticados.
+- Fluxo: Usuários sem sessão caem diretamente no login. Usuários autenticados seguem para Dashboard ou Portal.
+- Preservação: Nenhuma alteração em lógica de sessão, roles ou no Dashboard v3.7.0.
 */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -144,7 +93,7 @@ function LoginPage() {
         </ClientOnly>
 
         <p className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">
-          v3.7.3 — MISSION 2 PLAN DEPLOYED
+          v3.7.2 — ARCHITECTURE AUDIT COMPLETE
         </p>
       </div>
     </div>
