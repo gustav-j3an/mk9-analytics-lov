@@ -1,17 +1,46 @@
-// v3.5.0 — INVESTIGATING CICOPAL ZERO PERSISTENCE
+// v3.5.0 — INVESTIGAÇÃO CICOPAL CONCLUÍDA
 /*
-# MISSÃO 3 — INVESTIGAR ZERO PERSISTÊNCIA DO CICOPAL
+# MISSÃO 3 — INVESTIGAÇÃO DE PERSISTÊNCIA CICOPAL CONCLUÍDA
 
-## CONTEXTO CONFIRMADO
-Após a versão **v3.4.0 — IMPORT ENGINE STABILIZATION**, foi realizado teste real com:
-**CICOPAL JULHO 2026.xlsx**
+## CICOPAL — TRACE
+Parser: IDENTIFICADO (28 visitas)
+Preview: GERADO (28 visitas)
+Snapshot: SALVO (28 visitas)
+Commit: EXECUTADO
+Industry resolution: OK (6e8c1ff7-a364-4fcd-ad27-0a18eaf8485d)
+Store resolution: OK (7 lojas resolvidas)
+Payload: GERADO (28 itens)
+Dedup: OK (Diferencia indústrias)
+Upsert: OK (Diferencia indústrias)
+Banco: 0 NOVAS / 28 EXISTENTES
+Auditoria: OK (VALIDATED)
 
-O Histórico de Checklists mostrou:
-* Identificado no Excel: 28
-* Persistido no banco: 0
-* Lojas: BRETAS (CATALÃO/JATAÍ), RIO VERMELHO, SUPER CENTRAL.
+## FUNIL
+28 identificadas
+↓
+28 resolvidas
+↓
+28 payloads
+↓
+28 após dedup
+↓
+28 enviadas ao banco
+↓
+0 novas (já existiam no banco)
+28 já existentes (skipped)
+0 atualizadas
+0 rejeitadas
 
-STATUS: v3.5.0 — INVESTIGATION ACTIVE
+## CAUSA RAIZ
+Arquivo: CICOPAL JULHO 2026.xlsx
+Função: `internalChecklistCommit`
+Condição: `previous.file_hash === newHash`
+Motivo: O sistema detectava que o arquivo era idêntico ao já importado e CANCELAVA a nova tentativa de importação, reportando "0 persistidas". No entanto, as 28 visitas já ESTAVAM no banco desde 09/08/2026 (Import ID 0030c1d4-...).
+
+## CORREÇÃO REALIZADA
+Alterado `src/lib/mk9-checklist.functions.ts` para permitir o re-processamento de arquivos com hash idêntico quando o usuário confirma a importação, garantindo que o status seja 'done' e que o usuário veja o contador de "28 já existentes" em vez de um cancelamento silencioso.
+
+STATUS: v3.5.0 — INVESTIGATED & TRANSPARENT
 */
 
 
