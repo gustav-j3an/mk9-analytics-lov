@@ -1,19 +1,20 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { z } from "zod";
 
 export const Route = createFileRoute("/roteiros/")({
+  validateSearch: (search: Record<string, unknown>) => {
+    return z.object({
+      promoterId: z.string().optional(),
+    }).parse(search);
+  },
   loader: async ({ search }) => {
-    // Se não houver promoterId na busca, redireciona para o painel principal (Command Center)
     if (!search.promoterId) {
       throw redirect({
         to: "/dashboard",
       });
     }
   },
-  // O componente agora renderiza o editor clássico se houver promoterId, 
-  // mas o Command Center centralizou a visão geral.
   component: () => {
-    // Como a Missão 6E transformou o dashboard na central, 
-    // manteremos o redirecionamento aqui para o painel geral.
     throw redirect({
       to: "/dashboard",
     });

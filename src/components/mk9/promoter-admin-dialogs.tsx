@@ -302,7 +302,7 @@ export function PromoterDialog({
                   <SelectContent className="bg-popover border-border text-foreground">
                     <SelectItem value="NONE">Nenhum vínculo</SelectItem>
                     {profiles?.map((p: any) => (
-                      <SelectItem key={p.user_id} value={p.user_id}>{p.name || p.email} ({p.email})</SelectItem>
+                      <SelectItem key={p.user_id} value={p.user_id}>{p.name || p.email} ({p.name || "Sem Nome"})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
