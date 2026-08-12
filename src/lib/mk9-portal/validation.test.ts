@@ -18,7 +18,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       })),
       insert: vi.fn()
     })),
-    rpc: vi.fn(() => Promise.resolve({ data: { success: true }, error: null as any }))
+    rpc: vi.fn(() => Promise.resolve({ data: { success: true, visit_id: "visit-123" }, error: null }))
   }
 }));
 
