@@ -2,26 +2,6 @@ import { describe, it, expect, vi } from "vitest";
 import { processVisitEvidenceLogic } from "./validation.server";
 
 // Mocks
-const mockSingle = vi.fn(() => Promise.resolve({ 
-  data: { 
-    id: "ev-123", 
-    status: "PENDING", 
-    industry_id: "ind-123", 
-    store_id: "store-123", 
-    promoter_id: "prom-123",
-    captured_at: "2026-08-10T12:00:00Z",
-    planned_route: { operation_month: 8, operation_year: 2026 }
-  }, 
-  error: null as any
-}));
-
-const mockInsert = vi.fn(() => Promise.resolve({ error: null as any }));
-const mockUpdate = vi.fn(() => ({ 
-  eq: vi.fn(() => ({ 
-    eq: vi.fn(() => Promise.resolve({ error: null as any })) 
-  })) 
-}));
-
 const mockRpc = vi.fn(() => Promise.resolve({ data: { success: true }, error: null as any }));
 
 vi.mock("@/integrations/supabase/client.server", () => ({
@@ -30,12 +10,16 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
           eq: vi.fn(() => ({
-            single: mockSingle
+            single: vi.fn()
           }))
         }))
       })),
-      update: mockUpdate,
-      insert: mockInsert
+      update: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          eq: vi.fn(() => Promise.resolve({ error: null as any }))
+        }))
+      })),
+      insert: vi.fn()
     })),
     rpc: mockRpc
   }
@@ -66,7 +50,7 @@ describe("MK9 Validation Center - Server Logic (Missão 5.1)", () => {
   });
 
   it("TESTE D - Erro na RPC deve ser propagado", async () => {
-    mockRpc.mockReturnValueOnce(Promise.resolve({ data: null, error: { message: "EVIDENCIA_NAO_ENCONTRADA" } as any }));
+    mockRpc.mockReturnValueOnce(Promise.resolve({ data: null as any, error: { message: "EVIDENCIA_NAO_ENCONTRADA" } as any }));
     await expect(processVisitEvidenceLogic({ 
       evidenceId: "ev-123", action: "APPROVE" 
     })).rejects.toThrow("EVIDENCIA_NAO_ENCONTRADA_OU_JA_PROCESSADA");
