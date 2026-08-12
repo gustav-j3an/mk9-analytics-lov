@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getCurrentPromoter } from "@/lib/mk9-auth/promoter-resolver.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { validateVisitLocation } from "./location";
 
 export const uploadVisitEvidence = createServerFn({ method: "POST" })
   .inputValidator((data) => 
@@ -10,6 +11,9 @@ export const uploadVisitEvidence = createServerFn({ method: "POST" })
       photoPath: z.string(),
       capturedAt: z.string().datetime().optional(),
       mimeType: z.string().optional(),
+      latitude: z.number().optional(),
+      longitude: z.number().optional(),
+      accuracy: z.number().optional(),
     }).parse(data)
   )
   .handler(async ({ data }) => {
@@ -29,7 +33,13 @@ export const uploadVisitEvidence = createServerFn({ method: "POST" })
     // 1. Validar que a planned_route pertence ao promotor e obter IDs relacionados
     const { data: route, error: routeError } = await supabaseAdmin
       .from("mk9_planned_routes")
-      .select("id, promoter_id, store_id, industry_id")
+      .select(`
+        id, 
+        promoter_id, 
+        store_id, 
+        industry_id,
+        store:mk9_stores(latitude, longitude)
+      `)
       .eq("id", data.plannedRouteId)
       .eq("promoter_id", promoter.id)
       .single();
@@ -40,7 +50,28 @@ export const uploadVisitEvidence = createServerFn({ method: "POST" })
       throw new Error("INVALID_ROUTE_OR_ACCESS_DENIED");
     }
 
-    // 2. Verificar se já existe evidência para esta visita
+    // 2. Validar Localização
+    let locationData = {
+      distance: null as number | null,
+      status: 'UNAVAILABLE' as any,
+    };
+
+    if (data.latitude !== undefined && data.longitude !== undefined && data.accuracy !== undefined) {
+      const storeCoords = (route.store as any);
+      const validation = validateVisitLocation(
+        data.latitude,
+        data.longitude,
+        data.accuracy,
+        storeCoords?.latitude ?? null,
+        storeCoords?.longitude ?? null
+      );
+      locationData = {
+        distance: validation.distance,
+        status: validation.status
+      };
+    }
+
+    // 3. Verificar se já existe evidência para esta visita
     const { data: existingEvidence, error: fetchError } = await supabaseAdmin
       .from("mk9_visit_evidence")
       .select("id, photo_path, status")
