@@ -1,12 +1,13 @@
-// v3.6.0 — INDUSTRY NAME EDIT FIXED
+// v3.6.1 — IMAGINA JUNTOS DIAGNOSIS INITIATED
 /*
-# MISSÃO — CORRIGIR EDIÇÃO DO NOME DA INDÚSTRIA
+# MISSÃO — DIAGNOSTICAR POR QUE IMAGINA JUNTOS DE AGOSTO NÃO ATUALIZA APÓS IMPORTAR CHECKLIST
 
-## STATUS: CONCLUÍDO (v3.6.0)
-- Motor de atualização restaurado com suporte a `name` e `name_normalized`.
-- Sincronização automática com `mk9_industry_period_config`.
-- Tratamento de conflito de duplicidade (UNIQUE) implementado.
-- Reatividade garantida via invalidação de cache.
+## STATUS: EM EXECUÇÃO (v3.6.1)
+- Identificado `industry_id`: 6760a0c9-7582-4f14-aa00-3d760a6d6f78.
+- Confirmado: 10 visitas em `mk9_actual_visits` para Agosto/2026 vinculadas ao `source_import_id` 8df8d4ab...
+- Confirmado: 15 lojas mapeadas no snapshot de importação.
+- Confirmado: Indústria ativa e configurada como `VISIT_CONTROLLED`.
+- Investigação: Por que o Dashboard mostra 0 se os registros existem no banco.
 */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
