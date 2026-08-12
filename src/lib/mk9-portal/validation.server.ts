@@ -67,6 +67,7 @@ export async function processVisitEvidenceLogic(data: {
 
   // APROVAÇÃO: Fluxo Transacional via RPC mk9_approve_visit_evidence
   // MISSÃO 5.1: Garantir atomicidade real e conciliação cross-origin.
+  // @ts-ignore - RPC definida via migração SQL
   const { data: result, error: rpcError } = await supabaseAdmin.rpc('mk9_approve_visit_evidence', {
     p_evidence_id: data.evidenceId,
     p_reviewer_id: ctx.userId,
@@ -74,27 +75,11 @@ export async function processVisitEvidenceLogic(data: {
   });
 
   if (rpcError) {
-    // Tratamento específico de erros da RPC
-    if (rpcError.message.includes("EVIDENCIA_NAO_ENCONTRADA")) {
+    if (rpcError.message?.includes("EVIDENCIA_NAO_ENCONTRADA")) {
       throw new Error("EVIDENCIA_NAO_ENCONTRADA_OU_JA_PROCESSADA");
     }
     throw rpcError;
   }
-
-
-  // 4. Marcar evidência como APPROVED
-  const { error: approveError } = await supabaseAdmin
-    .from("mk9_visit_evidence")
-    .update({
-      status: "APPROVED",
-      reviewed_by: ctx.userId,
-      reviewed_at: now,
-      updated_at: now
-    })
-    .eq("id", data.evidenceId)
-    .eq("status", "PENDING");
-
-  if (approveError) throw approveError;
 
   return { success: true };
 }
