@@ -69,7 +69,7 @@ export async function processVisitEvidenceLogic(data: {
   // MISSÃO 5.1: Garantir atomicidade real e conciliação cross-origin.
   const { data: rpcResult, error: rpcError } = await supabaseAdmin.rpc('mk9_approve_visit_evidence', {
     p_evidence_id: data.evidenceId,
-    p_reviewer_id: ctx.userId,
+    p_reviewer_id: ctx.userId as string,
     p_now: now
   });
 
@@ -80,7 +80,10 @@ export async function processVisitEvidenceLogic(data: {
     throw rpcError;
   }
 
-  if (!rpcResult?.success) {
+  // Cast para o tipo esperado conforme o contrato da RPC no banco
+  const result = rpcResult as unknown as { success: boolean; visit_id: string } | null;
+
+  if (!result?.success) {
     throw new Error("FALHA_NA_APROVACAO_RPC");
   }
 
