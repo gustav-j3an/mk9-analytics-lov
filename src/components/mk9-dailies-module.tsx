@@ -535,6 +535,23 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
           </div>
 
           <div className="space-y-4">
+            {/* Validação de Consistência MK9 (v2.6.0) */}
+            {(() => {
+              const summaryTotal = Object.values((dailies || []).reduce((acc: any, d: any) => {
+                if(!acc[d.freelancer_id]) acc[d.freelancer_id] = { amount: 0 };
+                acc[d.freelancer_id].amount += calculateFinancialTotal(d);
+                return acc;
+              }, {})).reduce((acc: number, f: any) => acc + f.amount, 0);
+
+              if (Math.abs(summaryTotal - totals.amount) > 0.01) {
+                return (
+                  <div className="p-2 bg-rose-500/20 border border-rose-500 text-rose-500 text-[10px] font-bold rounded text-center">
+                    ERRO DE CONSISTÊNCIA FINANCEIRA: {summaryTotal} != {totals.amount}
+                  </div>
+                );
+              }
+              return null;
+            })()}
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Resumo por Freelancer</label>
             <div className="space-y-2">
               {isLoading ? <p className="text-xs text-muted-foreground italic">Carregando...</p> : 
