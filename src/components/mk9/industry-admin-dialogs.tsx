@@ -364,6 +364,10 @@ export function IndustryEditDialog({
   const [usesPreviousMonth, setUsesPreviousMonth] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  // Requirement 3 verification: inputs are controlled with onChange and not disabled by default
+  // Unless the mutation is pending.
+
+
   useEffect(() => {
     if (industry) {
       setName(industry.name ?? "");

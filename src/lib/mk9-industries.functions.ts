@@ -115,27 +115,33 @@ export const mk9UpdateIndustry = createServerFn({ method: "POST" })
     const ctx = await requireMk9Role(["ADMIN"]);
     const { normalizeName } = await import("@/lib/mk9/normalization");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Recalcula name_normalized conforme requisito 5
+    const nameNormalized = normalizeName(data.name);
+
     const { data: rows, error } = await supabaseAdmin.rpc(
       "mk9_admin_update_industry" as any,
       {
         p_industry_id: data.industryId,
         p_expected_updated_at: data.expectedUpdatedAt,
         p_name: data.name,
-        p_name_normalized: normalizeName(data.name),
+        p_name_normalized: nameNormalized,
         p_display_name: data.displayName ?? null,
         p_notes: data.notes ?? null,
         p_requires_checklist: data.requiresChecklist ?? null,
         p_control_mode: data.controlMode ?? null,
         p_cnpj: data.cnpj ?? null,
         p_period_type: data.periodType ?? null,
-        p_start_day: data.startDay ?? null,
-        p_end_day: data.endDay ?? null,
-        p_uses_previous_month: data.usesPreviousMonth ?? null,
+        p_start_day: data.periodType === "CUSTOM_CYCLE" ? (data.startDay ?? 1) : null,
+        p_end_day: data.periodType === "CUSTOM_CYCLE" ? (data.endDay ?? 31) : null,
+        p_uses_previous_month: data.usesPreviousMonth ?? false,
         p_actor: ctx.userId,
       } as any,
     );
+
     if (error)
       throw new Error(industryRpcMessage(error.message, "Não foi possível salvar o cadastro."));
+
     const row = Array.isArray(rows) ? (rows[0] as any) : (rows as any);
     return {
       ok: true as const,
