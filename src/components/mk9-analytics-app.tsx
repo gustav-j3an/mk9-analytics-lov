@@ -11,7 +11,7 @@ import { Mk9CockpitModule } from "@/components/mk9-cockpit-module";
 import type { ResolvedNavigation } from "@/lib/mk9-quality/evidence-view";
 import { Mk9AnalyticsDashboard } from "@/components/mk9-analytics-dashboard";
 import { Mk9RoutesModule } from "@/components/mk9-routes-module";
-import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
+import { Mk9UsersModule } from "@/components/mk9-users-module";
 import { Mk9ValidationCenterModule } from "./mk9-validation-center-module";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import { toast } from "sonner";
