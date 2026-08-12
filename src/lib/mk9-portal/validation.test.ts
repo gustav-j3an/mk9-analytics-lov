@@ -12,13 +12,13 @@ const mockSingle = vi.fn(() => Promise.resolve({
     captured_at: "2026-08-10T12:00:00Z",
     planned_route: { operation_month: 8, operation_year: 2026 }
   }, 
-  error: null 
+  error: null as any
 }));
 
-const mockInsert = vi.fn(() => Promise.resolve({ error: null }));
+const mockInsert = vi.fn(() => Promise.resolve({ error: null as any }));
 const mockUpdate = vi.fn(() => ({ 
   eq: vi.fn(() => ({ 
-    eq: vi.fn(() => Promise.resolve({ error: null })) 
+    eq: vi.fn(() => Promise.resolve({ error: null as any })) 
   })) 
 }));
 
@@ -47,6 +47,7 @@ describe("MK9 Validation Center - Server Logic (Missão 5)", () => {
   it("TESTE B - ADMIN aprova evidência e cria actual_visit", async () => {
     mockInsert.mockClear();
     mockSingle.mockClear();
+    mockInsert.mockReturnValue(Promise.resolve({ error: null }));
     const result = await processVisitEvidenceLogic({ 
       evidenceId: "ev-123", action: "APPROVE" 
     });
@@ -76,7 +77,8 @@ describe("MK9 Validation Center - Server Logic (Missão 5)", () => {
     await processVisitEvidenceLogic({ 
       evidenceId: "ev-123", action: "APPROVE" 
     });
-    const callArgs = mockInsert.mock.calls[0][0] as any;
+    // @ts-ignore
+    const callArgs = mockInsert.mock.calls[0][0];
     expect(callArgs.scheduled_date).toBe("2026-08-10");
   });
 });
