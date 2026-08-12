@@ -1,20 +1,16 @@
-// v3.3.0 — INDUSTRY IMPORT DIAGNOSIS DEPLOYED
+// v3.4.0 — IMPORT ENGINE STABILIZATION
 /*
-# MISSÃO — IDENTIFICAR POR QUE ALGUMAS INDÚSTRIAS NÃO SÃO IMPORTADAS
-MK9 COMMAND CENTER
-MÓDULO: MOTOR DE IMPORTAÇÃO (LOTE E INDIVIDUAL)
+# MISSÃO 2 — CORRIGIR AS CAUSAS RAIZ ENCONTRADAS NA IMPORTAÇÃO
 
-Existe um bug na importação de indústrias que está ignorando registros silenciosamente.
-Algumas indústrias não estão entrando no sistema mesmo constando no Excel.
+Basear esta missão exclusivamente no diagnóstico v3.3.0 já concluído.
 
-A. Importação em lote: Algumas linhas são "puladas" sem erro.
-B. Importação individual: O preview mostra os dados, mas o commit persiste 0 registros.
+Causas confirmadas:
+1. Parser heurístico descarta algumas linhas silenciosamente.
+2. Indústrias podem existir no banco, mas não aparecer nos fluxos de checklist por `requires_checklist = false`.
+3. Datas não reconhecidas podem fazer colunas inteiras de visitas serem ignoradas.
+4. O sistema não informa adequadamente ao usuário o que foi descartado.
 
-O objetivo desta missão é IDENTIFICAR a causa raiz através de logs profundos e telemetria.
-Não implementar a correção definitiva nesta missão — apenas diagnosticar com 100% de certeza.
-Não queira tentativa de correção às cegas.
-
-STATUS: v3.3.0 — DIAGNOSIS MODE ACTIVE
+STATUS: v3.4.0 — STABILIZATION ACTIVE
 */
 
 
@@ -32,16 +28,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v3.3.0 — INDUSTRY IMPORT DIAGNOSIS",
+    title: "MK9 | v3.4.0 — IMPORT ENGINE STABILIZATION",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v3.3.0: INDUSTRY IMPORT DIAGNOSIS. Diagnóstico profundo das falhas silenciosas na importação de indústrias.",
+        content: "MK9 Command Center v3.4.0: IMPORT ENGINE STABILIZATION. Correção das falhas silenciosas na importação de indústrias.",
       },
-      { property: "og:title", content: "MK9 | v3.3.0 — INDUSTRY IMPORT DIAGNOSIS" },
+      { property: "og:title", content: "MK9 | v3.4.0 — IMPORT ENGINE STABILIZATION" },
       {
         property: "og:description",
-        content: "MK9 Command Center v3.3.0: INDUSTRY IMPORT DIAGNOSIS. Diagnóstico profundo das falhas silenciosas na importação de indústrias.",
+        content: "MK9 Command Center v3.4.0: IMPORT ENGINE STABILIZATION. Correção das falhas silenciosas na importação de indústrias.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -127,10 +123,10 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v3.3.0</span>
+                  MK9 Command Center • <span className="text-primary/80">v3.4.0</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  DIAGNOSIS MODE ACTIVE
+                  STABILIZATION ACTIVE
                 </p>
               </div>
             </div>
