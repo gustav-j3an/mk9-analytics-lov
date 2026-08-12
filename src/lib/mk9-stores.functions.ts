@@ -26,6 +26,8 @@ export const mk9CreateStore = createServerFn({ method: "POST" })
         name_normalized: normalizeName(data.name),
         chain: data.chain || null,
         uf: data.uf || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
         notes: data.city ? `Cidade: ${data.city}` : null,
       })
       .select()
@@ -56,6 +58,8 @@ export const mk9UpdateStore = createServerFn({ method: "POST" })
         name_normalized: normalizeName(data.data.name),
         chain: data.data.chain || null,
         uf: data.data.uf || null,
+        latitude: data.data.latitude || null,
+        longitude: data.data.longitude || null,
         notes: data.data.city ? `Cidade: ${data.data.city}` : null,
         updated_at: new Date().toISOString(),
       })
