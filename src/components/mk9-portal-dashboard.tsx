@@ -38,6 +38,72 @@ export function Mk9PortalDashboard() {
   const getRouteFn = useServerFn(getMyPromoterRoute);
   const getProfileFn = useServerFn(getMyPromoterProfile);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [uploadingRouteId, setUploadingRouteId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  const uploadEvidenceFn = useServerFn(uploadVisitEvidence);
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>, routeId: string) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error("Formato de arquivo inválido. Use JPEG, PNG ou WEBP.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Arquivo muito grande. Limite de 5MB.");
+      return;
+    }
+
+    try {
+      setUploadingRouteId(routeId);
+      
+      // Compressão
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1600,
+        useWebWorker: true,
+      };
+      
+      const compressedFile = await imageCompression(file, options);
+      
+      // Upload para o Storage
+      const promoterId = promoterProfile?.id;
+      if (!promoterId) throw new Error("ID do promotor não encontrado");
+
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const fileName = `${crypto.randomUUID()}.jpg`;
+      const filePath = `promoters/${promoterId}/${year}/${month}/${fileName}`;
+
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('visit-evidence')
+        .upload(filePath, compressedFile);
+
+      if (storageError) throw storageError;
+
+      // Registro no Banco via Server Function
+      await uploadEvidenceFn({
+        data: {
+          plannedRouteId: routeId,
+          photoPath: filePath,
+          capturedAt: now.toISOString()
+        }
+      });
+
+      toast.success("Evidência enviada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["mk9-portal-routes"] });
+    } catch (err: any) {
+      console.error("[UPLOAD] Erro:", err);
+      toast.error("Falha ao enviar evidência. Tente novamente.");
+    } finally {
+      setUploadingRouteId(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/", replace: true });
@@ -185,13 +251,55 @@ export function Mk9PortalDashboard() {
                         </Badge>
                       </div>
                       
-                      <div className="flex items-center gap-2 mt-1">
-                        <Button className="flex-1 h-9 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20">
-                          Abrir Checklist
-                        </Button>
-                        <Button variant="outline" size="icon" className="h-9 w-9 shrink-0 border-border/50">
-                          <MapPin className="w-4 h-4" />
-                        </Button>
+                      <div className="flex flex-col gap-2 mt-1">
+                        {route.evidenceStatus ? (
+                          <div className="flex items-center justify-between bg-secondary/20 rounded-lg p-2 border border-border/30">
+                            <div className="flex items-center gap-2">
+                              {route.evidenceStatus === 'PENDING' && <Clock className="w-4 h-4 text-amber-500" />}
+                              {route.evidenceStatus === 'APPROVED' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                              {route.evidenceStatus === 'REJECTED' && <XCircle className="w-4 h-4 text-rose-500" />}
+                              <span className="text-[9px] font-black uppercase tracking-widest">
+                                {route.evidenceStatus === 'PENDING' && 'Pendente'}
+                                {route.evidenceStatus === 'APPROVED' && 'Aprovada'}
+                                {route.evidenceStatus === 'REJECTED' && 'Rejeitada'}
+                              </span>
+                            </div>
+                            
+                            {route.evidenceStatus === 'PENDING' && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 text-[8px] font-black uppercase tracking-tighter"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploadingRouteId === route.id}
+                              >
+                                <RotateCcw className="w-3 h-3 mr-1" /> Substituir
+                              </Button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              className="flex-1 h-9 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20"
+                              disabled={uploadingRouteId === route.id}
+                              onClick={() => {
+                                // Pequeno hack para guardar o ID da rota atual
+                                (window as any)._currentRouteId = route.id;
+                                fileInputRef.current?.click();
+                              }}
+                            >
+                              {uploadingRouteId === route.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              ) : (
+                                <Camera className="w-4 h-4 mr-2" />
+                              )}
+                              Realizar Visita
+                            </Button>
+                            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0 border-border/50">
+                              <MapPin className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -235,6 +343,19 @@ export function Mk9PortalDashboard() {
           <span className="text-[9px] font-black uppercase tracking-tighter">Perfil</span>
         </button>
       </nav>
+
+      {/* Input de arquivo invisível para captura de evidência */}
+      <input 
+        type="file" 
+        accept="image/*" 
+        capture="environment"
+        ref={fileInputRef}
+        className="hidden"
+        onChange={(e) => {
+          const rid = (window as any)._currentRouteId;
+          if (rid) handleFileChange(e, rid);
+        }}
+      />
     </div>
   );
 }
