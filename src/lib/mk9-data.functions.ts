@@ -409,6 +409,22 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
     const { scope } = await requireMk9ReadScope();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("mk9_profiles")
+    .select("user_id, name, email")
+    .eq("active", true)
+    .order("name", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r: any) => ({
+    user_id: r.user_id,
+    name: r.name,
+    email: r.email,
+  }));
+});
+
+export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (
       scope.allowedIndustryIds?.length === 0 ||
