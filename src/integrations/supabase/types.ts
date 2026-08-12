@@ -17,6 +17,7 @@ export type Database = {
       mk9_actual_visits: {
         Row: {
           created_at: string
+          evidence_id: string | null
           id: string
           industry_id: string
           notes: string | null
@@ -30,6 +31,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          evidence_id?: string | null
           id?: string
           industry_id: string
           notes?: string | null
@@ -43,6 +45,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          evidence_id?: string | null
           id?: string
           industry_id?: string
           notes?: string | null
@@ -55,6 +58,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "mk9_actual_visits_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: true
+            referencedRelation: "mk9_visit_evidence"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mk9_actual_visits_industry_id_fkey"
             columns: ["industry_id"]
@@ -2810,7 +2820,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "PROMOTOR"
-      mk9_actual_visit_origin: "CHECKLIST"
+      mk9_actual_visit_origin: "CHECKLIST" | "PORTAL"
       mk9_finance_status: "A PAGAR" | "PAGO"
       mk9_freelancer_daily_status: "PLANEJADA" | "REALIZADA" | "CANCELADA"
       mk9_import_status:
@@ -2975,7 +2985,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user", "PROMOTOR"],
-      mk9_actual_visit_origin: ["CHECKLIST"],
+      mk9_actual_visit_origin: ["CHECKLIST", "PORTAL"],
       mk9_finance_status: ["A PAGAR", "PAGO"],
       mk9_freelancer_daily_status: ["PLANEJADA", "REALIZADA", "CANCELADA"],
       mk9_import_status: [
