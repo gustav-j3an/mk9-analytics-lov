@@ -1889,6 +1889,86 @@ export type Database = {
         }
         Relationships: []
       }
+      mk9_visit_evidence: {
+        Row: {
+          captured_at: string
+          created_at: string
+          delete_after: string | null
+          id: string
+          industry_id: string
+          photo_path: string
+          planned_route_id: string
+          promoter_id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          captured_at?: string
+          created_at?: string
+          delete_after?: string | null
+          id?: string
+          industry_id: string
+          photo_path: string
+          planned_route_id: string
+          promoter_id: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          captured_at?: string
+          created_at?: string
+          delete_after?: string | null
+          id?: string
+          industry_id?: string
+          photo_path?: string
+          planned_route_id?: string
+          promoter_id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mk9_visit_evidence_industry_id_fkey"
+            columns: ["industry_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_industries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_visit_evidence_planned_route_id_fkey"
+            columns: ["planned_route_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_planned_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_visit_evidence_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_promoters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mk9_visit_evidence_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "mk9_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mk9_visit_reconciliations: {
         Row: {
           actual_date: string | null
@@ -2013,11 +2093,36 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       mk9_admin_archive_industry: {
         Args: {
           p_actor: string
@@ -2680,6 +2785,7 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user" | "PROMOTOR"
       mk9_actual_visit_origin: "CHECKLIST"
       mk9_finance_status: "A PAGAR" | "PAGO"
       mk9_freelancer_daily_status: "PLANEJADA" | "REALIZADA" | "CANCELADA"
@@ -2844,6 +2950,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user", "PROMOTOR"],
       mk9_actual_visit_origin: ["CHECKLIST"],
       mk9_finance_status: ["A PAGAR", "PAGO"],
       mk9_freelancer_daily_status: ["PLANEJADA", "REALIZADA", "CANCELADA"],
