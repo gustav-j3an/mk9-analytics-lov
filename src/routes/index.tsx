@@ -1,4 +1,4 @@
-// v3.7.1 — RESTORED LOGIN FLOW
+// v3.7.2 — ARCHITECTURE AUDIT COMPLETE
 /*
 # MISSÃO — REMOVER LANDING PAGE “O FUTURO DA AUDITORIA”
 ## STATUS: CONCLUÍDO (v3.7.1)
@@ -93,7 +93,7 @@ function LoginPage() {
         </ClientOnly>
 
         <p className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">
-          v3.7.1 — RESTORED LOGIN FLOW
+          v3.7.2 — ARCHITECTURE AUDIT COMPLETE
         </p>
       </div>
     </div>
