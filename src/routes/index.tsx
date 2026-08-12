@@ -377,7 +377,7 @@ function LoginPage() {
         </ClientOnly>
 
         <p className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">
-          v3.7.2 — ARCHITECTURE AUDIT COMPLETE
+          v3.7.3 — MISSÃO 2.1 — HOMOLOGAÇÃO REAL DE EVIDÊNCIAS
         </p>
       </div>
     </div>
