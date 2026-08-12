@@ -5,6 +5,12 @@ import { getNormalizedChain } from "./mk9/chain-normalization";
 
 import { requireMk9Role, logAudit } from "@/lib/mk9-auth/require-role.server";
 
+export function calculateFinancialTotal(daily: any) {
+  const industryCount = daily.items?.length || 0;
+  const unitRate = Number(daily.amount) || 0;
+  return unitRate * industryCount;
+}
+
 export const listDailies = createServerFn({ method: "GET" })
   .inputValidator(z.object({
     startDate: z.string().optional(),
