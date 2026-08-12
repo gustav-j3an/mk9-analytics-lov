@@ -35,7 +35,7 @@ export const uploadVisitEvidence = createServerFn({ method: "POST" })
       .select("id, photo_path")
       .eq("planned_route_id", route.id)
       .eq("status", "PENDING")
-      .single();
+      .maybeSingle();
 
     if (existingEvidence) {
       // 3. Atualizar evidência existente (Substituição)
