@@ -111,6 +111,36 @@ export function PromoterDialog({
     }
   }, [promoter, open]);
 
+  const createUserFn = useServerFn(mk9CreateUser);
+  const [creatingUser, setCreatingUser] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPass, setNewUserPass] = useState("Mk9@2026"); // Senha padrão sugerida
+
+  const handleCreateUser = async () => {
+    if (!newUserEmail || newUserEmail.length < 5) {
+      toast.error("Informe um e-mail válido.");
+      return;
+    }
+    setCreatingUser(true);
+    try {
+      const res = await createUserFn({ 
+        data: { 
+          email: newUserEmail, 
+          password: newUserPass, 
+          name: name,
+          role: "PROMOTOR"
+        } 
+      });
+      setUserId(res.userId);
+      await queryClient.invalidateQueries({ queryKey: ["mk9-profiles-list"] });
+      toast.success("Usuário criado e vinculado com sucesso.");
+    } catch (err: any) {
+      toast.error(err.message || "Falha ao criar usuário.");
+    } finally {
+      setCreatingUser(false);
+    }
+  };
+
   const mut = useMutation({
     mutationFn: async () => {
       const payload = {
@@ -252,22 +282,66 @@ export function PromoterDialog({
               </Select>
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-              Vínculo de Acesso (Portal)
-            </Label>
-            <Select value={userId || "NONE"} onValueChange={(val) => setUserId(val === "NONE" ? null : val)}>
-              <SelectTrigger className="bg-input/50 border-border h-10 text-foreground text-xs">
-                <SelectValue placeholder="Sem Acesso Vinculado" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border text-foreground">
-                <SelectItem value="NONE">Sem Acesso Vinculado</SelectItem>
-                {profiles?.map((p: any) => (
+          <div className="p-4 border border-border/50 rounded-xl bg-muted/20 space-y-4">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4 text-mk9-accent-primary" />
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                Acesso ao Portal do Promotor
+              </h4>
+            </div>
 
-                  <SelectItem key={p.user_id} value={p.user_id}>{p.name} ({p.email})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                  Vincular Usuário Existente
+                </Label>
+                <Select value={userId || "NONE"} onValueChange={(val) => setUserId(val === "NONE" ? null : val)}>
+                  <SelectTrigger className="bg-input/50 border-border h-10 text-foreground text-xs">
+                    <SelectValue placeholder="Selecione um acesso..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border text-foreground">
+                    <SelectItem value="NONE">Nenhum vínculo</SelectItem>
+                    {profiles?.map((p: any) => (
+                      <SelectItem key={p.user_id} value={p.user_id}>{p.name || p.email} ({p.email})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {!userId && (
+                <div className="pt-2 border-t border-border/30 space-y-3">
+                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest text-center">
+                    OU CRIAR NOVO ACESSO
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="E-mail do novo acesso"
+                      className="bg-input/50 border-border h-9 text-xs"
+                      value={newUserEmail}
+                      onChange={(e) => setNewUserEmail(e.target.value)}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="h-9 border-mk9-accent-primary/50 text-mk9-accent-primary hover:bg-mk9-accent-primary/10 text-[10px] font-black uppercase tracking-widest"
+                      onClick={handleCreateUser}
+                      disabled={creatingUser || !newUserEmail}
+                    >
+                      {creatingUser ? <Loader2 className="h-3 w-3 animate-spin" /> : "CRIAR ACESSO"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {userId && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                  <Check className="h-4 w-4 text-emerald-500" />
+                  <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">
+                    Acesso Vinculado
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-1.5">
