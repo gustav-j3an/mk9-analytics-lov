@@ -155,9 +155,9 @@ export async function listBulkOperationalActualVisits(params: {
     .gte("scheduled_date", startDate)
     .lte("scheduled_date", endDate);
 
-  if (activeImportIds.length > 0) {
+  if (allActiveIds.length > 0) {
     query = query.or(
-      `source_import_id.is.null,source_import_id.in.(${activeImportIds.map((id) => `"${id}"`).join(",")})`,
+      `source_import_id.is.null,source_import_id.in.(${allActiveIds.map((id: string) => `"${id}"`).join(",")})`,
     );
   } else {
     query = query.is("source_import_id", null);
