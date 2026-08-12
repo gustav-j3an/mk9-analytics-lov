@@ -46,7 +46,9 @@ export const getMyPromoterRoute = createServerFn({ method: "GET" })
       requiresChecklist: (r.industry as any)?.requires_checklist,
       weekday: r.weekday,
       operationMonth: r.operation_month,
-      operationYear: r.operation_year
+      operationYear: r.operation_year,
+      evidenceStatus: (r.evidence as any)?.[0]?.status || null,
+      evidenceId: (r.evidence as any)?.[0]?.id || null
     }));
   });
 
