@@ -19,9 +19,9 @@ export const getMyPromoterRoute = createServerFn({ method: "GET" })
       .from("mk9_planned_routes")
       .select(`
         *,
-        store:mk9_stores(id, name, chain, uf),
+        store:mk9_stores(id, name, chain, uf, latitude, longitude),
         industry:mk9_industries(id, name, requires_checklist),
-        evidence:mk9_visit_evidence(id, status, photo_path)
+        evidence:mk9_visit_evidence(id, status, photo_path, location_status, distance_from_store_meters, accuracy_meters)
       `)
       .eq("promoter_id", promoter.id)
       .eq("operation_month", data.month)
@@ -48,7 +48,12 @@ export const getMyPromoterRoute = createServerFn({ method: "GET" })
       operationMonth: r.operation_month,
       operationYear: r.operation_year,
       evidenceStatus: (r.evidence as any)?.[0]?.status || null,
-      evidenceId: (r.evidence as any)?.[0]?.id || null
+      evidenceId: (r.evidence as any)?.[0]?.id || null,
+      locationStatus: (r.evidence as any)?.[0]?.location_status || null,
+      distanceFromStore: (r.evidence as any)?.[0]?.distance_from_store_meters || null,
+      accuracy: (r.evidence as any)?.[0]?.accuracy_meters || null,
+      storeLat: (r.store as any)?.latitude || null,
+      storeLon: (r.store as any)?.longitude || null
     }));
   });
 

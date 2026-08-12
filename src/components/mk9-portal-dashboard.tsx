@@ -24,7 +24,8 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
-  RotateCcw
+  RotateCcw,
+  Navigation
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,12 @@ export function Mk9PortalDashboard() {
   const getProfileFn = useServerFn(getMyPromoterProfile);
   const [authError, setAuthError] = useState<string | null>(null);
   const [uploadingRouteId, setUploadingRouteId] = useState<string | null>(null);
+  const [gpsLoading, setGpsLoading] = useState<string | null>(null);
+  const [capturedLocation, setCapturedLocation] = useState<{
+    lat: number;
+    lon: number;
+    accuracy: number;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const uploadEvidenceFn = useServerFn(uploadVisitEvidence);
@@ -46,6 +53,11 @@ export function Mk9PortalDashboard() {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>, routeId: string) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    if (!capturedLocation) {
+      toast.error("Localização não capturada. Tente novamente.");
+      return;
+    }
 
     if (!file.type.startsWith('image/')) {
       toast.error("Formato de arquivo inválido. Use JPEG, PNG ou WEBP.");
@@ -91,7 +103,10 @@ export function Mk9PortalDashboard() {
           plannedRouteId: routeId,
           photoPath: filePath,
           capturedAt: now.toISOString(),
-          mimeType: compressedFile.type
+          mimeType: compressedFile.type,
+          latitude: capturedLocation.lat,
+          longitude: capturedLocation.lon,
+          accuracy: capturedLocation.accuracy
         }
       });
 
@@ -102,8 +117,47 @@ export function Mk9PortalDashboard() {
       toast.error("Falha ao enviar evidência. Tente novamente.");
     } finally {
       setUploadingRouteId(null);
+      setCapturedLocation(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const captureGpsAndTriggerFile = async (routeId: string) => {
+    if (!navigator.geolocation) {
+      toast.error("Seu navegador não suporta geolocalização.");
+      return;
+    }
+
+    setGpsLoading(routeId);
+    
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCapturedLocation({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+          accuracy: pos.coords.accuracy
+        });
+        setGpsLoading(null);
+        (window as any)._currentRouteId = routeId;
+        fileInputRef.current?.click();
+      },
+      (err) => {
+        setGpsLoading(null);
+        console.error("[GPS] Erro:", err);
+        if (err.code === 1) {
+          toast.error("Permissão de localização negada. Precisamos do GPS para validar a visita.");
+        } else if (err.code === 3) {
+          toast.error("Tempo esgotado ao tentar obter localização.");
+        } else {
+          toast.error("Falha ao obter localização. Verifique o GPS.");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
   };
 
   useEffect(() => {
@@ -181,8 +235,8 @@ export function Mk9PortalDashboard() {
             <Button variant="outline" className="w-full text-[10px] font-black uppercase tracking-widest" onClick={() => signOut()}>
               Sair da conta
             </Button>
-          </div>
-        ) : (
+                          </div>
+                        ) : (
           <>
             {/* Saudação */}
             <section className="space-y-1">
@@ -254,47 +308,82 @@ export function Mk9PortalDashboard() {
                       
                       <div className="flex flex-col gap-2 mt-1">
                         {route.evidenceStatus ? (
-                          <div className="flex items-center justify-between bg-secondary/20 rounded-lg p-2 border border-border/30">
-                            <div className="flex items-center gap-2">
-                              {route.evidenceStatus === 'PENDING' && <Clock className="w-4 h-4 text-amber-500" />}
-                              {route.evidenceStatus === 'APPROVED' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
-                              {route.evidenceStatus === 'REJECTED' && <XCircle className="w-4 h-4 text-rose-500" />}
-                              <span className="text-[9px] font-black uppercase tracking-widest">
-                                {route.evidenceStatus === 'PENDING' && 'Pendente'}
-                                {route.evidenceStatus === 'APPROVED' && 'Aprovada'}
-                                {route.evidenceStatus === 'REJECTED' && 'Rejeitada'}
-                              </span>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between bg-secondary/20 rounded-lg p-2 border border-border/30">
+                              <div className="flex items-center gap-2">
+                                {route.evidenceStatus === 'PENDING' && <Clock className="w-4 h-4 text-amber-500" />}
+                                {route.evidenceStatus === 'APPROVED' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                                {route.evidenceStatus === 'REJECTED' && <XCircle className="w-4 h-4 text-rose-500" />}
+                                <span className="text-[9px] font-black uppercase tracking-widest">
+                                  {route.evidenceStatus === 'PENDING' && 'Pendente'}
+                                  {route.evidenceStatus === 'APPROVED' && 'Aprovada'}
+                                  {route.evidenceStatus === 'REJECTED' && 'Rejeitada'}
+                                </span>
+                              </div>
+                              
+                              {route.evidenceStatus === 'PENDING' && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-6 text-[8px] font-black uppercase tracking-tighter"
+                                  onClick={() => captureGpsAndTriggerFile(route.id)}
+                                  disabled={uploadingRouteId === route.id || gpsLoading === route.id}
+                                >
+                                  {gpsLoading === route.id ? (
+                                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                  ) : (
+                                    <RotateCcw className="w-3 h-3 mr-1" />
+                                  )}
+                                  Substituir
+                                </Button>
+                              )}
                             </div>
-                            
-                            {route.evidenceStatus === 'PENDING' && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 text-[8px] font-black uppercase tracking-tighter"
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={uploadingRouteId === route.id}
-                              >
-                                <RotateCcw className="w-3 h-3 mr-1" /> Substituir
-                              </Button>
+                            {route.locationStatus && (
+                              <div className="flex flex-col gap-1.5 p-2 rounded-lg bg-background/40 border border-border/30 mt-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-1.5">
+                                    <Navigation className={`w-3 h-3 ${
+                                      route.locationStatus === 'MATCH' ? 'text-emerald-500' :
+                                      route.locationStatus === 'REVIEW' ? 'text-amber-500' :
+                                      route.locationStatus === 'OUTSIDE' ? 'text-rose-500' : 'text-muted-foreground'
+                                    }`} />
+                                    <span className="text-[8px] font-black uppercase tracking-tighter">
+                                      GPS: {route.locationStatus === 'UNAVAILABLE' ? 'Não Cadastrado' : 
+                                            route.locationStatus === 'MATCH' ? 'Compatível' :
+                                            route.locationStatus === 'REVIEW' ? 'Revisar' : 'Fora do Raio'}
+                                    </span>
+                                  </div>
+                                  {route.distanceFromStore !== null && (
+                                    <span className="text-[8px] font-bold text-muted-foreground">
+                                      {route.distanceFromStore < 1000 
+                                        ? `${Math.round(route.distanceFromStore)}m` 
+                                        : `${(route.distanceFromStore / 1000).toFixed(1)}km`}
+                                    </span>
+                                  )}
+                                </div>
+                                {route.accuracy && (
+                                  <p className="text-[7px] font-bold text-muted-foreground/60 uppercase tracking-tighter">
+                                    Precisão: ±{Math.round(route.accuracy)}m
+                                  </p>
+                                )}
+                              </div>
                             )}
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
                             <Button 
                               className="flex-1 h-9 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20"
-                              disabled={uploadingRouteId === route.id}
-                              onClick={() => {
-                                // Pequeno hack para guardar o ID da rota atual
-                                (window as any)._currentRouteId = route.id;
-                                fileInputRef.current?.click();
-                              }}
+                              disabled={uploadingRouteId === route.id || gpsLoading === route.id}
+                              onClick={() => captureGpsAndTriggerFile(route.id)}
                             >
                               {uploadingRouteId === route.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              ) : gpsLoading === route.id ? (
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
                               ) : (
                                 <Camera className="w-4 h-4 mr-2" />
                               )}
-                              Realizar Visita
+                              {gpsLoading === route.id ? "GPS..." : "Realizar Visita"}
                             </Button>
                             <Button variant="outline" size="icon" className="h-9 w-9 shrink-0 border-border/50">
                               <MapPin className="w-4 h-4" />

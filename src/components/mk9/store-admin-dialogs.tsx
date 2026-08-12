@@ -42,6 +42,8 @@ export function StoreDialog({
   const [chain, setChain] = useState("");
   const [city, setCity] = useState("");
   const [uf, setUf] = useState("");
+  const [latitude, setLatitude] = useState<string>("");
+  const [longitude, setLongitude] = useState<string>("");
 
   useEffect(() => {
     if (store) {
@@ -51,17 +53,28 @@ export function StoreDialog({
       const cityMatch = store.notes?.match(/Cidade: (.*)/);
       setCity(cityMatch ? cityMatch[1] : store.city || "");
       setUf(store.uf || "");
+      setLatitude(store.latitude?.toString() || "");
+      setLongitude(store.longitude?.toString() || "");
     } else {
       setName("");
       setChain("");
       setCity("");
       setUf("");
+      setLatitude("");
+      setLongitude("");
     }
   }, [store, open]);
 
   const mut = useMutation({
     mutationFn: async () => {
-      const payload = { name, chain, city, uf: uf.toUpperCase() };
+      const payload = { 
+        name, 
+        chain, 
+        city, 
+        uf: uf.toUpperCase(),
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null
+      };
       if (store) {
         return updateFn({ data: { id: store.id, data: payload } });
       }
@@ -152,6 +165,43 @@ export function StoreDialog({
                 placeholder="SP"
               />
             </div>
+          </div>
+
+          <div className="space-y-4 pt-2 border-t border-border/30">
+            <Label className="text-[10px] font-black text-mk9-accent-primary uppercase tracking-[0.2em] ml-1">
+              Localização (GPS)
+            </Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                  Latitude
+                </Label>
+                <Input
+                  type="number"
+                  step="any"
+                  className="bg-input/50 border-border h-10 text-foreground font-mono"
+                  value={latitude}
+                  onChange={(e) => setLatitude(e.target.value)}
+                  placeholder="-23.5505"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                  Longitude
+                </Label>
+                <Input
+                  type="number"
+                  step="any"
+                  className="bg-input/50 border-border h-10 text-foreground font-mono"
+                  value={longitude}
+                  onChange={(e) => setLongitude(e.target.value)}
+                  placeholder="-46.6333"
+                />
+              </div>
+            </div>
+            <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-tight ml-1">
+              Coordenadas decimais (WGS84). Use ponto para decimais.
+            </p>
           </div>
         </div>
         <DialogFooter className="mt-4 border-t border-border/50 pt-4">
