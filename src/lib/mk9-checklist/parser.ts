@@ -361,7 +361,21 @@ export function parseChecklistWorkbook(
 
 
 
-      if (/^(total|totais|geral|subtotal)/i.test(storeName)) continue;
+      // MK9 REFINEMENT (v3.4.0): A line is only a summary/footer if it matches keywords
+      // AND has no visit marks. This prevents discarding stores like "TOTAL LUBRIFICANTES".
+      const isSummaryName = /^(total|totais|geral|subtotal)/i.test(storeName);
+      let hasMarks = false;
+      for (const { col } of dateCols) {
+        if (isDayMarked(row[col])) {
+          hasMarks = true;
+          break;
+        }
+      }
+
+      if (isSummaryName && !hasMarks) {
+        debug("line-ignored", "Linha de resumo ignorada", { storeName, excelRow: r + 1 });
+        continue;
+      }
 
       const uf = ufValue;
       const weekly = weeklyCol >= 0 ? parseNumber(row[weeklyCol]) : null;
