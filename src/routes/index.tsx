@@ -1,4 +1,4 @@
-// v3.7.2 — ARCHITECTURE AUDIT COMPLETE
+// v3.8.0 — MISSÃO 3 INICIADA
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
@@ -84,7 +84,7 @@ function LoginPage() {
         </ClientOnly>
 
         <p className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">
-          v3.7.2 — ARCHITECTURE AUDIT COMPLETE
+          v3.8.0 — MISSÃO 3 INICIADA
         </p>
       </div>
     </div>
