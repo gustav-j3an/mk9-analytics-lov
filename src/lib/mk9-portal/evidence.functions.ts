@@ -98,6 +98,12 @@ export const uploadVisitEvidence = createServerFn({ method: "POST" })
         .update({
           photo_path: data.photoPath,
           captured_at: data.capturedAt || new Date().toISOString(),
+          latitude: data.latitude,
+          longitude: data.longitude,
+          accuracy_meters: data.accuracy,
+          distance_from_store_meters: locationData.distance,
+          location_status: locationData.status,
+          location_captured_at: data.capturedAt || new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .eq("id", existingEvidence.id);
@@ -131,7 +137,13 @@ export const uploadVisitEvidence = createServerFn({ method: "POST" })
         industry_id: route.industry_id,
         photo_path: data.photoPath,
         status: "PENDING",
-        captured_at: data.capturedAt || new Date().toISOString()
+        captured_at: data.capturedAt || new Date().toISOString(),
+        latitude: data.latitude,
+        longitude: data.longitude,
+        accuracy_meters: data.accuracy,
+        distance_from_store_meters: locationData.distance,
+        location_status: locationData.status,
+        location_captured_at: data.capturedAt || new Date().toISOString()
       })
       .select("id")
       .single();
