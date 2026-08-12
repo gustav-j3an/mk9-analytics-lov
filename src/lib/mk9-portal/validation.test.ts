@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { processVisitEvidenceLogic } from "./validation.server";
 
-// Mock Supabase
+// Mocks
 const mockSingle = vi.fn(() => Promise.resolve({ 
   data: { 
     id: "ev-123", 
@@ -22,6 +22,8 @@ const mockUpdate = vi.fn(() => ({
   })) 
 }));
 
+const mockRpc = vi.fn(() => Promise.resolve({ data: { success: true }, error: null as any }));
+
 vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
     from: vi.fn(() => ({
@@ -34,7 +36,8 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       })),
       update: mockUpdate,
       insert: mockInsert
-    }))
+    })),
+    rpc: mockRpc
   }
 }));
 
@@ -43,44 +46,29 @@ vi.mock("@/lib/mk9-auth/require-role.server", () => ({
   requireMk9Role: vi.fn(() => Promise.resolve({ userId: "user-123", roles: ["ADMIN"] }))
 }));
 
-describe("MK9 Validation Center - Server Logic (Missão 5)", () => {
-  it("TESTE B - ADMIN aprova evidência e cria actual_visit", async () => {
-    mockInsert.mockClear();
-    mockSingle.mockClear();
-    mockInsert.mockReturnValue(Promise.resolve({ error: null }));
+describe("MK9 Validation Center - Server Logic (Missão 5.1)", () => {
+  it("TESTE B - ADMIN aprova evidência via RPC", async () => {
+    mockRpc.mockClear();
     const result = await processVisitEvidenceLogic({ 
       evidenceId: "ev-123", action: "APPROVE" 
     });
     expect(result.success).toBe(true);
-    expect(mockInsert).toHaveBeenCalled();
+    expect(mockRpc).toHaveBeenCalledWith('mk9_approve_visit_evidence', expect.objectContaining({
+      p_evidence_id: "ev-123",
+      p_reviewer_id: "user-123"
+    }));
   });
 
   it("TESTE C - REJEITAR exige motivo", async () => {
-    mockInsert.mockClear();
     await expect(processVisitEvidenceLogic({ 
       evidenceId: "ev-123", action: "REJECT" 
     })).rejects.toThrow("MOTIVO_REJEICAO_OBRIGATORIO");
   });
 
-  it("TESTE D - Idempotência (Visita já existente não quebra aprovação)", async () => {
-    mockInsert.mockClear();
-    mockInsert.mockReturnValue(Promise.resolve({ error: { code: '23505', message: 'Unique constraint violation' } }));
-    const result = await processVisitEvidenceLogic({ 
+  it("TESTE D - Erro na RPC deve ser propagado", async () => {
+    mockRpc.mockReturnValueOnce(Promise.resolve({ data: null, error: { message: "EVIDENCIA_NAO_ENCONTRADA" } as any }));
+    await expect(processVisitEvidenceLogic({ 
       evidenceId: "ev-123", action: "APPROVE" 
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("TESTE 10/08/2026 - Data deve ser persistida sem deslocamento UTC", async () => {
-    mockInsert.mockClear();
-    mockInsert.mockReturnValue(Promise.resolve({ error: null }));
-    await processVisitEvidenceLogic({ 
-      evidenceId: "ev-123", action: "APPROVE" 
-    });
-    // @ts-ignore
-    const callArgs = mockInsert.mock.calls[0] ? mockInsert.mock.calls[0][0] : null;
-    expect(callArgs).not.toBeNull();
-    // @ts-ignore
-    expect(callArgs.scheduled_date).toBe("2026-08-10");
+    })).rejects.toThrow("EVIDENCIA_NAO_ENCONTRADA_OU_JA_PROCESSADA");
   });
 });
