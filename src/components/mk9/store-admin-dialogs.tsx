@@ -42,6 +42,8 @@ export function StoreDialog({
   const [chain, setChain] = useState("");
   const [city, setCity] = useState("");
   const [uf, setUf] = useState("");
+  const [latitude, setLatitude] = useState<string>("");
+  const [longitude, setLongitude] = useState<string>("");
 
   useEffect(() => {
     if (store) {
@@ -51,17 +53,28 @@ export function StoreDialog({
       const cityMatch = store.notes?.match(/Cidade: (.*)/);
       setCity(cityMatch ? cityMatch[1] : store.city || "");
       setUf(store.uf || "");
+      setLatitude(store.latitude?.toString() || "");
+      setLongitude(store.longitude?.toString() || "");
     } else {
       setName("");
       setChain("");
       setCity("");
       setUf("");
+      setLatitude("");
+      setLongitude("");
     }
   }, [store, open]);
 
   const mut = useMutation({
     mutationFn: async () => {
-      const payload = { name, chain, city, uf: uf.toUpperCase() };
+      const payload = { 
+        name, 
+        chain, 
+        city, 
+        uf: uf.toUpperCase(),
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null
+      };
       if (store) {
         return updateFn({ data: { id: store.id, data: payload } });
       }
