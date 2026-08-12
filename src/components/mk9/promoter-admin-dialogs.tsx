@@ -30,6 +30,8 @@ import {
 } from "@/lib/mk9-promoters.functions";
 import { listPresenceTeams } from "@/lib/mk9-presence-teams.functions";
 import { listSupervisors } from "@/lib/mk9-supervisors.functions";
+import { mk9ListProfiles } from "@/lib/mk9-data.functions";
+
 
 export function PromoterDialog({
   open,
@@ -45,6 +47,14 @@ export function PromoterDialog({
   const updateFn = useServerFn(mk9UpdatePromoter);
   const listTeamsFn = useServerFn(listPresenceTeams);
   const listSupervisorsFn = useServerFn(listSupervisors);
+  const listProfilesFn = useServerFn(mk9ListProfiles);
+
+  const { data: profiles } = useQuery({
+    queryKey: ["mk9-profiles-list"],
+    queryFn: () => listProfilesFn(),
+    enabled: open
+  });
+
   
   const { data: teams } = useQuery({
     queryKey: ["mk9-presence-teams-list"],
@@ -239,6 +249,23 @@ export function PromoterDialog({
               </Select>
             </div>
           </div>
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
+              Vínculo de Acesso (Portal)
+            </Label>
+            <Select value={userId || "NONE"} onValueChange={(val) => setUserId(val === "NONE" ? null : val)}>
+              <SelectTrigger className="bg-input/50 border-border h-10 text-foreground text-xs">
+                <SelectValue placeholder="Sem Acesso Vinculado" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border text-foreground">
+                <SelectItem value="NONE">Sem Acesso Vinculado</SelectItem>
+                {profiles?.map(p => (
+                  <SelectItem key={p.user_id} value={p.user_id}>{p.name} ({p.email})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-1.5">
             <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
               Contato (Telefone/Email)
