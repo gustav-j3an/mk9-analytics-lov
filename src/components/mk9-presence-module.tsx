@@ -192,7 +192,7 @@ export function Mk9PresenceModule() {
         } 
       });
 
-      const { generatePresenceVisualExport } = await import("@/lib/mk9-presence-export.client");
+      const { generatePresenceVisualExport } = await import("@/lib/mk9-presence-export-xlsx");
       
       await generatePresenceVisualExport({
         items: exportItems,
