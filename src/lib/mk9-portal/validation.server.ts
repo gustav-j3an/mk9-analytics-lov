@@ -67,10 +67,9 @@ export async function processVisitEvidenceLogic(data: {
 
   // APROVAÇÃO: Fluxo Transacional via RPC mk9_approve_visit_evidence
   // MISSÃO 5.1: Garantir atomicidade real e conciliação cross-origin.
-  // @ts-ignore - RPC return type mapping in Database types can be generic Json
   const { data: rpcResult, error: rpcError } = await supabaseAdmin.rpc('mk9_approve_visit_evidence', {
     p_evidence_id: data.evidenceId,
-    p_reviewer_id: ctx.userId as string,
+    p_reviewer_id: ctx.userId,
     p_now: now
   });
 
@@ -81,7 +80,7 @@ export async function processVisitEvidenceLogic(data: {
     throw rpcError;
   }
 
-  if (!(rpcResult as any)?.success) {
+  if (!rpcResult?.success) {
     throw new Error("FALHA_NA_APROVACAO_RPC");
   }
 
