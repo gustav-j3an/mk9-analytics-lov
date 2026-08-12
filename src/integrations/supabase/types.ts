@@ -2329,6 +2329,10 @@ export type Database = {
         Args: { _decisions: Json; _force?: boolean; _import_id: string }
         Returns: Json
       }
+      mk9_approve_visit_evidence: {
+        Args: { p_evidence_id: string; p_now: string; p_reviewer_id: string }
+        Returns: Json
+      }
       mk9_assert_privileged: { Args: never; Returns: undefined }
       mk9_merge_stores: {
         Args: { canonical: string; other: string }
