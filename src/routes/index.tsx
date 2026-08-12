@@ -1,17 +1,20 @@
-// v3.2.0 — PRESENÇA VISUAL DEPLOYED
+// v3.3.0 — INDUSTRY IMPORT DIAGNOSIS DEPLOYED
 /*
-# MISSÃO — TRANSFORMAR A EXPORTAÇÃO DE PRESENÇA NO MODELO "PRESENÇA VISUAL"
+# MISSÃO — IDENTIFICAR POR QUE ALGUMAS INDÚSTRIAS NÃO SÃO IMPORTADAS
 MK9 COMMAND CENTER
-MÓDULO: CONTROLE DE PRESENÇA
+MÓDULO: MOTOR DE IMPORTAÇÃO (LOTE E INDIVIDUAL)
 
-A exportação Excel do Controle de Presença agora segue o design "Presença Visual":
-- Cabeçalho corporativo azul-marinho;
-- KPIs visuais no topo com cores suaves;
-- Tabela com status formatados e zebrado discreto;
-- Congelamento de painéis e filtros automáticos.
-Preservar 100% da paridade visual (✓, cores, layout) delegando a geração do documento ao motor de impressão do navegador (Salvar como PDF ou Imprimir).
+Existe um bug na importação de indústrias que está ignorando registros silenciosamente.
+Algumas indústrias não estão entrando no sistema mesmo constando no Excel.
 
-STATUS: v3.1.10 — PRINT FLOW DEPLOYED
+A. Importação em lote: Algumas linhas são "puladas" sem erro.
+B. Importação individual: O preview mostra os dados, mas o commit persiste 0 registros.
+
+O objetivo desta missão é IDENTIFICAR a causa raiz através de logs profundos e telemetria.
+Não implementar a correção definitiva nesta missão — apenas diagnosticar com 100% de certeza.
+Não queira tentativa de correção às cegas.
+
+STATUS: v3.3.0 — DIAGNOSIS MODE ACTIVE
 */
 
 
@@ -29,16 +32,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v3.1.10 — PRINT FLOW DEPLOYED",
+    title: "MK9 | v3.3.0 — INDUSTRY IMPORT DIAGNOSIS",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v3.1.10: PRINT FLOW DEPLOYED. Implementação do fluxo oficial de impressão e salvamento de PDF nativo.",
+        content: "MK9 Command Center v3.3.0: INDUSTRY IMPORT DIAGNOSIS. Diagnóstico profundo das falhas silenciosas na importação de indústrias.",
       },
-      { property: "og:title", content: "MK9 | v3.1.10 — PRINT FLOW DEPLOYED" },
+      { property: "og:title", content: "MK9 | v3.3.0 — INDUSTRY IMPORT DIAGNOSIS" },
       {
         property: "og:description",
-        content: "MK9 Command Center v3.1.10: PRINT FLOW DEPLOYED. Implementação do fluxo oficial de impressão e salvamento de PDF nativo.",
+        content: "MK9 Command Center v3.3.0: INDUSTRY IMPORT DIAGNOSIS. Diagnóstico profundo das falhas silenciosas na importação de indústrias.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -124,11 +127,10 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v3.1.10</span>
+                  MK9 Command Center • <span className="text-primary/80">v3.3.0</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  PRINT FLOW DEPLOYED
-
+                  DIAGNOSIS MODE ACTIVE
                 </p>
               </div>
             </div>
