@@ -8,6 +8,8 @@ const storeSchema = z.object({
   city: z.string().max(120).nullable().optional(),
   uf: z.string().length(2).nullable().optional(),
   channel: z.string().max(120).nullable().optional(),
+  latitude: z.number().min(-90).max(90).nullable().optional(),
+  longitude: z.number().min(-180).max(180).nullable().optional(),
 });
 
 export const mk9CreateStore = createServerFn({ method: "POST" })
