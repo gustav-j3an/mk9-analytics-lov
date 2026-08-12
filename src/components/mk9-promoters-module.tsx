@@ -179,7 +179,7 @@ export function Mk9PromotersModule() {
                           </DropdownMenuItem>
                           
                           <DropdownMenuItem
-                            onClick={() => navigate({ to: "/roteiros/", search: { promoterId: p.id } as any })}
+                            onClick={() => (navigate as any)({ to: "/roteiros", search: { promoterId: p.id } })}
                             className="gap-2 cursor-pointer hover:bg-accent text-mk9-accent-primary"
                           >
                             <RouteIcon className="h-3.5 w-3.5" /> Gerenciar Rota
