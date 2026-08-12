@@ -1,4 +1,4 @@
-// v3.8.3 — MISSÃO 4 (CENTRAL DE VALIDAÇÃO) CONCLUÍDA / INÍCIO MISSÃO 5.1
+
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
@@ -83,9 +83,6 @@ function LoginPage() {
           <Mk9LoginForm />
         </ClientOnly>
 
-        <p className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">
-          v3.8.3 — MISSÃO 4 (CENTRAL DE VALIDAÇÃO) CONCLUÍDA / INÍCIO MISSÃO 5.1
-        </p>
       </div>
     </div>
   );

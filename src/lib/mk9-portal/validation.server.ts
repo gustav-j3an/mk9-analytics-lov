@@ -67,9 +67,9 @@ export async function processVisitEvidenceLogic(data: {
 
   // APROVAÇÃO: Fluxo Transacional via RPC mk9_approve_visit_evidence
   // MISSÃO 5.1: Garantir atomicidade real e conciliação cross-origin.
-  const { error: rpcError } = await supabaseAdmin.rpc('mk9_approve_visit_evidence', {
+  const { data: rpcResult, error: rpcError } = await supabaseAdmin.rpc('mk9_approve_visit_evidence', {
     p_evidence_id: data.evidenceId,
-    p_reviewer_id: ctx.userId as string,
+    p_reviewer_id: ctx.userId,
     p_now: now
   });
 
@@ -78,6 +78,11 @@ export async function processVisitEvidenceLogic(data: {
       throw new Error("EVIDENCIA_NAO_ENCONTRADA_OU_JA_PROCESSADA");
     }
     throw rpcError;
+  }
+
+  // O tipo agora é conhecido via Database['public']['Functions']['mk9_approve_visit_evidence']['Returns']
+  if (!rpcResult?.success) {
+    throw new Error("FALHA_NA_APROVACAO_RPC");
   }
 
   return { success: true };

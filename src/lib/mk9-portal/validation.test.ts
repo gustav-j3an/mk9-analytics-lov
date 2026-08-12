@@ -18,7 +18,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       })),
       insert: vi.fn()
     })),
-    rpc: vi.fn(() => Promise.resolve({ data: { success: true }, error: null as any }))
+    rpc: vi.fn(() => Promise.resolve({ data: { success: true, visit_id: "visit-123" }, error: null }))
   }
 }));
 
@@ -29,15 +29,15 @@ vi.mock("@/lib/mk9-auth/require-role.server", () => ({
 describe("MK9 Validation Center - Server Logic (Missão 5.1)", () => {
   it("TESTE B - ADMIN aprova evidência via RPC", async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // @ts-ignore
-    supabaseAdmin.rpc.mockClear();
+    // @ts-expect-error - mocked property
+    vi.mocked(supabaseAdmin.rpc).mockClear();
     
     const result = await processVisitEvidenceLogic({ 
       evidenceId: "ev-123", action: "APPROVE" 
     });
     
     expect(result.success).toBe(true);
-    // @ts-ignore
+    // @ts-expect-error - mocked property
     expect(supabaseAdmin.rpc).toHaveBeenCalledWith('mk9_approve_visit_evidence', expect.objectContaining({
       p_evidence_id: "ev-123",
       p_reviewer_id: "user-123"
@@ -52,8 +52,8 @@ describe("MK9 Validation Center - Server Logic (Missão 5.1)", () => {
 
   it("TESTE D - Erro na RPC deve ser propagado", async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // @ts-ignore
-    supabaseAdmin.rpc.mockReturnValueOnce(Promise.resolve({ data: null as any, error: { message: "EVIDENCIA_NAO_ENCONTRADA" } as any }));
+    // @ts-expect-error - mocked property
+    vi.mocked(supabaseAdmin.rpc).mockReturnValueOnce(Promise.resolve({ data: null, error: { message: "EVIDENCIA_NAO_ENCONTRADA" } as any }));
     
     await expect(processVisitEvidenceLogic({ 
       evidenceId: "ev-123", action: "APPROVE" 
