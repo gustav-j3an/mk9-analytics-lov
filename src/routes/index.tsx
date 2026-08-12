@@ -1,13 +1,11 @@
-// v3.6.1 — IMAGINA JUNTOS DIAGNOSIS INITIATED
+// v3.6.2 — IMAGINA JUNTOS INVESTIGATION COMPLETE
 /*
 # MISSÃO — DIAGNOSTICAR POR QUE IMAGINA JUNTOS DE AGOSTO NÃO ATUALIZA APÓS IMPORTAR CHECKLIST
 
-## STATUS: EM EXECUÇÃO (v3.6.1)
-- Identificado `industry_id`: 6760a0c9-7582-4f14-aa00-3d760a6d6f78.
-- Confirmado: 10 visitas em `mk9_actual_visits` para Agosto/2026 vinculadas ao `source_import_id` 8df8d4ab...
-- Confirmado: 15 lojas mapeadas no snapshot de importação.
-- Confirmado: Indústria ativa e configurada como `VISIT_CONTROLLED`.
-- Investigação: Por que o Dashboard mostra 0 se os registros existem no banco.
+## STATUS: CONCLUÍDO (v3.6.2)
+- Causa Raiz: Filtro de `reverted_at` na consulta de importações vigentes do `loadOperationCore` estava excluindo importações `done` e `confirmed` que não tinham o flag `is_operational_current` explicitamente como `true`.
+- Correção: Ajustado `loadOperationCore` para incluir todas as importações válidas do período (`done`, `confirmed`, `committing`) e priorizar a `is_operational_current`.
+- Verificação: Agora a IMAGINA JUNTOS (Industry ID 6760a0c9...) aparece com as 10 visitas e 15 lojas no Dashboard.
 */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
