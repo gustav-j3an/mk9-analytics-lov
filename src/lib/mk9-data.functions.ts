@@ -397,18 +397,9 @@ export const mk9ListRoutesDetailed = createServerFn({ method: "POST" })
     }));
   });
 
-export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) =>
-    z
-      .object({
-        month: z.number().int().min(1).max(12),
-        year: z.number().int().min(2020).max(2100),
-      })
-      .parse(data),
-  )
-  .handler(async ({ data }) => {
-    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
-    const { scope } = await requireMk9ReadScope();
+export const mk9ListProfiles = createServerFn({ method: "GET" }).handler(async () => {
+  const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+  const { scope } = await requireMk9ReadScope();
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("mk9_profiles")
@@ -424,7 +415,17 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
 });
 
 export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
-
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        month: z.number().int().min(1).max(12),
+        year: z.number().int().min(2020).max(2100),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { requireMk9ReadScope } = await import("@/lib/mk9-auth/read-guards.server");
+    const { scope } = await requireMk9ReadScope();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (
       scope.allowedIndustryIds?.length === 0 ||
@@ -465,6 +466,7 @@ export const mk9ListVisitsDetailed = createServerFn({ method: "POST" })
       industryName: r.industry?.name ?? "—",
     }));
   });
+
 
 export const mk9DashboardContractMetrics = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
