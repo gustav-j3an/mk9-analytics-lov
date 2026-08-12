@@ -1,4 +1,4 @@
-// v3.8.1 — MISSÃO 3 (GPS) CONCLUÍDA
+// v3.8.2 — MISSÃO 3.1 (HOMOLOGAÇÃO GPS) EM CURSO
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
@@ -84,7 +84,7 @@ function LoginPage() {
         </ClientOnly>
 
         <p className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">
-          v3.8.1 — MISSÃO 3 (GPS) CONCLUÍDA
+          v3.8.2 — MISSÃO 3.1 (HOMOLOGAÇÃO GPS) EM CURSO
         </p>
       </div>
     </div>
