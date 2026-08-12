@@ -173,8 +173,9 @@ export function buildIndustryRows(input: {
 
   return ctxs
     .filter((ctx) => {
-      // Regra de Filtro Analítico: Somente indústrias VISIT_CONTROLLED participam dos indicadores.
+      // REGRA DASHBOARD v3.7.0: Somente indústrias com checklist ativo participam do Dashboard.
       if (ctx.controlMode !== "VISIT_CONTROLLED") return false;
+      if (!ctx.requiresChecklist) return false;
 
       const rows = rowsByIndustry.get(ctx.id) ?? [];
       return (

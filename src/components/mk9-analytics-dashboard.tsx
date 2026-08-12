@@ -153,7 +153,9 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__ALL__">Todas Indústrias</SelectItem>
-              {(industriesQ.data || []).map(ind => <SelectItem key={ind.id} value={ind.id}>{ind.name}</SelectItem>)}
+              {(industriesQ.data || [])
+                .filter(ind => ind.requiresChecklist)
+                .map(ind => <SelectItem key={ind.id} value={ind.id}>{ind.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -200,7 +202,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
             <thead className="bg-muted/30">
               <tr>
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Indústria</th>
-                <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Frequência</th>
+                
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Previstas</th>
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Realizadas</th>
                 <th className="px-6 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">Pendentes</th>
@@ -219,9 +221,6 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                       <span className="font-bold text-sm text-foreground">{ind.industryName}</span>
                       <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
                     </div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="text-[10px] font-black text-muted-foreground uppercase">{ind.frequency || "Mista"}</span>
                   </td>
                   <td className="px-6 py-4 text-center font-mono text-xs">{nf(ind.contracted?.current || 0)}</td>
                   <td className="px-6 py-4 text-center font-mono text-xs text-emerald-500/80">{nf(ind.realized?.current || 0)}</td>
@@ -255,10 +254,6 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                 <span className="text-[10px] font-black text-primary">{formatPercentage(ind.coverage.current)}</span>
               </div>
               <div className="grid grid-cols-2 gap-y-2 text-[10px] font-bold uppercase">
-                <div className="flex flex-col text-left">
-                  <span className="text-muted-foreground tracking-widest mb-0.5">Frequência</span>
-                  <span>{ind.frequency || "Mista"}</span>
-                </div>
                 <div className="flex flex-col text-right">
                   <span className="text-muted-foreground tracking-widest mb-0.5">Previstas</span>
                   <span>{nf(ind.contracted?.current || 0)}</span>
@@ -320,11 +315,7 @@ export function Mk9AnalyticsDashboard({ initialMonth, initialYear }: { initialMo
                           {formatPercentage(s.coverage)}
                         </Badge>
                       </div>
-                      <div className="grid grid-cols-4 gap-2 text-[9px] font-bold uppercase text-muted-foreground">
-                        <div className="space-y-0.5">
-                          <span className="tracking-tighter">Frequência</span>
-                          <p className="text-foreground">{s.frequency || "-"}</p>
-                        </div>
+                      <div className="grid grid-cols-3 gap-2 text-[9px] font-bold uppercase text-muted-foreground">
                         <div className="space-y-0.5">
                           <span className="tracking-tighter">Previstas</span>
                           <p className="text-foreground">{nf(s.contracted)}</p>

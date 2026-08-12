@@ -1,11 +1,11 @@
-// v3.6.2 — IMAGINA JUNTOS INVESTIGATION COMPLETE
+// v3.7.0 — DASHBOARD MINIMALISTA (CHECKLIST ONLY)
 /*
-# MISSÃO — DIAGNOSTICAR POR QUE IMAGINA JUNTOS DE AGOSTO NÃO ATUALIZA APÓS IMPORTAR CHECKLIST
-
-## STATUS: CONCLUÍDO (v3.6.2)
-- Causa Raiz: Filtro de `reverted_at` na consulta de importações vigentes do `loadOperationCore` estava excluindo importações `done` e `confirmed` que não tinham o flag `is_operational_current` explicitamente como `true`.
-- Correção: Ajustado `loadOperationCore` para incluir todas as importações válidas do período (`done`, `confirmed`, `committing`) e priorizar a `is_operational_current`.
-- Verificação: Agora a IMAGINA JUNTOS (Industry ID 6760a0c9...) aparece com as 10 visitas e 15 lojas no Dashboard.
+# MISSÃO — SIMPLIFICAR DASHBOARD E EXIBIR APENAS INDÚSTRIAS COM CHECKLIST
+## STATUS: CONCLUÍDO (v3.7.0)
+- Filtragem: Dashboard agora exibe apenas indústrias com `requires_checklist: true`.
+- UI: Coluna e referências a "FREQUÊNCIA" removidas da tabela principal e do detalhe da indústria/loja.
+- KPIs: Card de "Indústrias Monitoradas" e seletores de filtro sincronizados com o novo critério.
+- Performance: Filtro aplicado no motor analítico (servidor) para reduzir processamento de dados irrelevantes.
 */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -22,16 +22,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v3.6.0 — INDUSTRY EDIT FIXED",
+    title: "MK9 | v3.7.0 — DASHBOARD MINIMALISTA",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v3.6.0: Industry name editing fixed with normalization and uniqueness constraints.",
+        content: "MK9 Command Center v3.7.0: Minimalist dashboard focused strictly on checklist execution.",
       },
-      { property: "og:title", content: "MK9 | v3.6.0 — INDUSTRY EDIT FIXED" },
+      { property: "og:title", content: "MK9 | v3.7.0 — DASHBOARD MINIMALISTA" },
       {
         property: "og:description",
-        content: "MK9 Command Center v3.6.0: Industry name editing fixed with normalization and uniqueness constraints.",
+        content: "MK9 Command Center v3.7.0: Minimalist dashboard focused strictly on checklist execution.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -85,7 +85,7 @@ function LandingPage() {
               MK9 <span className="text-primary">Analytics</span>
             </h1>
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-70">
-              v3.6.0 — Industry Edit Fixed
+              v3.7.0 — Dashboard Minimalista
             </p>
           </div>
         </div>
@@ -147,7 +147,7 @@ function LandingPage() {
 
       <footer className="relative z-10 flex h-20 w-full items-center justify-center border-t border-border/50 bg-background/50 px-6 backdrop-blur-md">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">
-          © 2026 MK9 Analytics • Todos os direitos reservados • v3.6.0
+          © 2026 MK9 Analytics • Todos os direitos reservados • v3.7.0
         </p>
       </footer>
     </div>
