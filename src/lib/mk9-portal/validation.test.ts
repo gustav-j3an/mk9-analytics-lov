@@ -78,7 +78,9 @@ describe("MK9 Validation Center - Server Logic (Missão 5)", () => {
       evidenceId: "ev-123", action: "APPROVE" 
     });
     // @ts-ignore
-    const callArgs = mockInsert.mock.calls[0][0];
+    const callArgs = mockInsert.mock.calls[0] ? mockInsert.mock.calls[0][0] : null;
+    expect(callArgs).not.toBeNull();
+    // @ts-ignore
     expect(callArgs.scheduled_date).toBe("2026-08-10");
   });
 });
