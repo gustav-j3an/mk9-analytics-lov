@@ -114,7 +114,7 @@ export function PromoterDialog({
   const createUserFn = useServerFn(mk9CreateUser);
   const [creatingUser, setCreatingUser] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState("");
-  const [newUserPass, setNewUserPass] = useState("Mk9@2026"); // Senha padrão sugerida
+
 
   const handleCreateUser = async () => {
     if (!newUserEmail || newUserEmail.length < 5) {
@@ -126,11 +126,11 @@ export function PromoterDialog({
       const res = await createUserFn({ 
         data: { 
           email: newUserEmail, 
-          password: newUserPass, 
           name: name,
           role: "PROMOTOR"
         } 
       });
+
       setUserId(res.userId);
       await queryClient.invalidateQueries({ queryKey: ["mk9-profiles-list"] });
       toast.success("Usuário criado e vinculado com sucesso.");

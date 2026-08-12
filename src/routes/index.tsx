@@ -28,7 +28,7 @@ export const Route = createFileRoute("/")({
 
 function LoginPage() {
   const { session, loading, roles, signOut } = useMk9Session();
-  const search = Route.useSearch() as { session_expired?: string };
+  const search = Route.useSearch() as { session_expired?: string; type?: string };
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,6 +39,7 @@ function LoginPage() {
       return;
     }
 
+    // MISSÃO 6D.2: Redirecionamento inteligente baseado em Role
     if (!loading && session) {
       if (roles.includes("PROMOTOR") && !roles.includes("ADMIN") && !roles.includes("SUPERVISOR")) {
         navigate({ to: "/mk9-portal", replace: true });
@@ -46,7 +47,7 @@ function LoginPage() {
         navigate({ to: "/dashboard", replace: true });
       }
     }
-  }, [session, loading, navigate, search.session_expired, signOut]);
+  }, [session, loading, navigate, search.session_expired, signOut, roles]);
 
   if (loading || session) {
     return (
