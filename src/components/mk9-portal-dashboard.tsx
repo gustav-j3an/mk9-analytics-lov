@@ -25,13 +25,15 @@ import {
   CheckCircle,
   XCircle,
   RotateCcw,
-  Navigation
+  Navigation,
+  Check
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeSettings } from "@/lib/mk9-theme/ThemeToggle";
+import { cn } from "@/lib/utils";
 
 export function Mk9PortalDashboard() {
   const { session, loading, signOut } = useMk9Session();
@@ -72,7 +74,6 @@ export function Mk9PortalDashboard() {
     try {
       setUploadingRouteId(routeId);
       
-      // Compressão
       const options = {
         maxSizeMB: 1,
         maxWidthOrHeight: 1600,
@@ -81,7 +82,6 @@ export function Mk9PortalDashboard() {
       
       const compressedFile = await imageCompression(file, options);
       
-      // Upload para o Storage
       const promoterId = promoterProfile?.id;
       if (!promoterId) throw new Error("ID do promotor não encontrado");
 
@@ -97,7 +97,6 @@ export function Mk9PortalDashboard() {
 
       if (storageError) throw storageError;
 
-      // Registro no Banco via Server Function
       await uploadEvidenceFn({
         data: {
           plannedRouteId: routeId,
@@ -188,37 +187,77 @@ export function Mk9PortalDashboard() {
     enabled: !!session && !!promoterProfile,
   });
 
+  const today = now.getDay(); 
+  
+  // Agrupamento por loja
+  const groupedTodayRoutes = useMemo(() => {
+    const todayItems = (routes ?? []).filter(r => r.weekday === today);
+    const stores: Record<string, { 
+      storeName: string, 
+      storeChain: string, 
+      storeUf: string, 
+      items: typeof todayItems 
+    }> = {};
 
-  const today = now.getDay(); // 0-6 (Sun-Sat)
-  // Ajuste se o banco usar 1-7 ou 0-6
-  const todayRoutes = useMemo(() => {
-    return (routes ?? []).filter(r => r.weekday === today);
+    todayItems.forEach(item => {
+      const key = item.storeId;
+      if (!stores[key]) {
+        stores[key] = {
+          storeName: item.storeName,
+          storeChain: item.storeChain,
+          storeUf: item.storeUf,
+          items: []
+        };
+      }
+      stores[key].items.push(item);
+    });
+
+    return Object.values(stores);
   }, [routes, today]);
 
   const stats = useMemo(() => {
+    const todayItems = (routes ?? []).filter(r => r.weekday === today);
+    const completed = todayItems.filter(r => r.evidenceStatus === 'APPROVED' || r.evidenceStatus === 'PENDING').length;
     return {
       total: routes?.length ?? 0,
-      today: todayRoutes.length,
-      // Mocked for now until we have actual_visits integration in the portal
-      completed: 0 
+      today: groupedTodayRoutes.length,
+      completed
     };
-  }, [routes, todayRoutes]);
+  }, [routes, today, groupedTodayRoutes]);
+
+  if (loading || isLoadingProfile) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-primary/30">
-      {/* Header Mobile-First */}
+    <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-primary/30 pb-20">
+      {/* Header Minimalista (Missão 6A) */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-lg glow-primary">
-            <ClipboardCheck className="text-foreground h-5 w-5" />
+            <CheckCircle2 className="text-foreground h-5 w-5" />
           </div>
-          <span className="font-black tracking-tighter text-lg uppercase">
-            MK9 <span className="text-primary">PORTAL</span>
-          </span>
+          <div className="flex flex-col">
+            <span className="font-black tracking-tighter text-sm uppercase leading-none">
+              MK9 <span className="text-primary">PORTAL</span>
+            </span>
+            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
+              Minha Rota
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <div className="hidden xs:flex flex-col items-end">
+            <span className="text-[10px] font-black uppercase tracking-tighter max-w-[80px] truncate">
+              {promoterProfile?.name || 'Promotor'}
+            </span>
+          </div>
           <ThemeSettings />
-          <Button variant="ghost" size="icon" onClick={() => signOut()} className="text-rose-500">
+          <Button variant="ghost" size="icon" onClick={() => signOut()} className="text-rose-500 h-9 w-9">
             <LogOut className="h-5 w-5" />
           </Button>
         </div>
@@ -226,239 +265,186 @@ export function Mk9PortalDashboard() {
 
       <main className="flex-1 p-4 space-y-6 max-w-md mx-auto w-full">
         {authError ? (
-          <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-6 text-center space-y-4">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-6 text-center space-y-4 mt-8">
             <AlertTriangle className="h-10 w-10 text-destructive mx-auto" />
             <h2 className="text-sm font-black uppercase tracking-widest text-destructive">Acesso Pendente</h2>
             <p className="text-xs font-bold text-muted-foreground leading-relaxed">
               {authError}
             </p>
-            <Button variant="outline" className="w-full text-[10px] font-black uppercase tracking-widest" onClick={() => signOut()}>
+            <Button variant="outline" className="w-full text-[10px] font-black uppercase tracking-widest h-11" onClick={() => signOut()}>
               Sair da conta
             </Button>
-                          </div>
-                        ) : (
+          </div>
+        ) : (
           <>
-            {/* Saudação */}
+            {/* Saudação e Data */}
             <section className="space-y-1">
-              <h1 className="text-2xl font-black tracking-tight text-foreground uppercase">
-                Olá, {promoterProfile?.name?.split(' ')[0] || 'Promotor'}
+              <h1 className="text-xl font-black tracking-tight text-foreground uppercase">
+                HOJE
               </h1>
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                {new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(now)}
+                {new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' }).format(now)}
               </p>
             </section>
 
-
-        {/* KPIs Rápidos */}
-        <section className="grid grid-cols-2 gap-3">
-          <Card className="bg-card/40 border-border/50 backdrop-blur-sm">
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-              <span className="text-3xl font-black text-primary">{stats.today}</span>
-              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter mt-1">
-                Lojas Hoje
-              </span>
-            </CardContent>
-          </Card>
-          <Card className="bg-card/40 border-border/50 backdrop-blur-sm">
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-              <span className="text-3xl font-black text-primary">{stats.total}</span>
-              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter mt-1">
-                Total Mês
-              </span>
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* Roteiro do Dia */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-              <Clock className="w-4 h-4 text-primary" />
-              Roteiro de Hoje
-            </h2>
-            <Badge variant="outline" className="text-[10px] font-bold border-primary/30 text-primary">
-              {todayRoutes.length} LOJAS
-            </Badge>
-          </div>
-
-          {isLoadingRoutes || isLoadingProfile ? (
-            <div className="flex justify-center py-12">
-              <Clock className="w-8 h-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : todayRoutes.length > 0 ? (
-            <div className="space-y-3">
-              {todayRoutes.map((route) => (
-                <Card key={route.id} className="bg-card/40 border-border/50 hover:border-primary/50 transition-colors overflow-hidden group">
-                  <CardContent className="p-0">
-                    <div className="p-4 flex flex-col gap-3">
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="space-y-1">
-                          <h3 className="font-black text-sm uppercase leading-none text-foreground group-hover:text-primary transition-colors">
-                            {route.storeName}
-                          </h3>
-                          <p className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 uppercase tracking-tighter">
-                            <MapPin className="w-3 h-3 shrink-0" />
-                            {route.storeChain || 'Independente'} • {route.storeUf}
-                          </p>
-                        </div>
-                        <Badge className="bg-primary/20 text-primary border-primary/30 shrink-0 text-[9px] font-black uppercase tracking-tighter">
-                          {route.industryName}
-                        </Badge>
+            {/* Roteiro do Dia Agrupado por Loja (Missão 6A) */}
+            <section className="space-y-4">
+              {isLoadingRoutes ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : groupedTodayRoutes.length > 0 ? (
+                <div className="space-y-4">
+                  {groupedTodayRoutes.map((storeGroup) => (
+                    <Card key={storeGroup.storeName + storeGroup.storeUf} className="bg-card border-border/50 shadow-sm overflow-hidden">
+                      <div className="p-4 bg-muted/30 border-b border-border/50">
+                         <div className="flex justify-between items-start">
+                           <div className="space-y-0.5">
+                             <h3 className="font-black text-sm uppercase leading-tight text-foreground">
+                               {storeGroup.storeName}
+                             </h3>
+                             <p className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 uppercase tracking-tighter">
+                               <MapPin className="w-3 h-3 shrink-0" />
+                               {storeGroup.storeChain || 'Independente'} • {storeGroup.storeUf}
+                             </p>
+                           </div>
+                         </div>
                       </div>
                       
-                      <div className="flex flex-col gap-2 mt-1">
-                        {route.evidenceStatus ? (
-                          <div className="flex flex-col gap-2">
-                            <div className="flex flex-col gap-2 bg-secondary/20 rounded-lg p-3 border border-border/30">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  {route.evidenceStatus === 'PENDING' && <Clock className="w-4 h-4 text-amber-500" />}
-                                  {route.evidenceStatus === 'APPROVED' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
-                                  {route.evidenceStatus === 'REJECTED' && <XCircle className="w-4 h-4 text-rose-500" />}
-                                  <span className="text-[9px] font-black uppercase tracking-widest">
-                                    {route.evidenceStatus === 'PENDING' && 'Pendente de validação'}
-                                    {route.evidenceStatus === 'APPROVED' && 'Visita aprovada'}
-                                    {route.evidenceStatus === 'REJECTED' && 'Visita rejeitada'}
-                                  </span>
-                                </div>
-                                
-                                {route.evidenceStatus === 'PENDING' && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-6 text-[8px] font-black uppercase tracking-tighter"
-                                    onClick={() => captureGpsAndTriggerFile(route.id)}
-                                    disabled={uploadingRouteId === route.id || gpsLoading === route.id}
-                                  >
-                                    {gpsLoading === route.id ? (
-                                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                                    ) : (
-                                      <RotateCcw className="w-3 h-3 mr-1" />
-                                    )}
-                                    Substituir
-                                  </Button>
-                                )}
+                      <CardContent className="p-4 space-y-4">
+                        {storeGroup.items.map((route) => (
+                          <div key={route.id} className="space-y-3">
+                            <div className="flex items-center justify-between gap-2">
+                               <div className="flex flex-col">
+                                 <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Indústria</span>
+                                 <span className="text-xs font-bold uppercase">{route.industryName}</span>
+                               </div>
 
-                                {route.evidenceStatus === 'REJECTED' && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-6 text-[8px] font-black uppercase tracking-tighter text-rose-500 hover:text-rose-400"
-                                    onClick={() => captureGpsAndTriggerFile(route.id)}
-                                    disabled={uploadingRouteId === route.id || gpsLoading === route.id}
-                                  >
-                                    <RotateCcw className="w-3 h-3 mr-1" />
-                                    Reenviar
-                                  </Button>
-                                )}
-                              </div>
-
-                              {route.evidenceStatus === 'REJECTED' && route.rejectionReason && (
-                                <div className="mt-2 p-2 bg-rose-500/10 rounded border border-rose-500/20">
-                                  <p className="text-[8px] font-bold text-rose-400 uppercase tracking-tighter mb-1">Motivo da Rejeição:</p>
-                                  <p className="text-[9px] font-medium text-foreground italic leading-tight">
-                                    "{route.rejectionReason}"
-                                  </p>
-                                </div>
-                              )}
+                               {route.evidenceStatus === 'APPROVED' ? (
+                                 <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] font-black px-2 py-0.5">
+                                   ✓ APROVADA
+                                 </Badge>
+                               ) : route.evidenceStatus === 'PENDING' ? (
+                                 <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[9px] font-black px-2 py-0.5">
+                                   PENDENTE
+                                 </Badge>
+                               ) : route.evidenceStatus === 'REJECTED' ? (
+                                 <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[9px] font-black px-2 py-0.5">
+                                   REJEITADA
+                                 </Badge>
+                               ) : (
+                                 <Badge variant="outline" className="text-[9px] font-black px-2 py-0.5 opacity-50">
+                                   SEM EVIDÊNCIA
+                                 </Badge>
+                               )}
                             </div>
-                            {route.locationStatus && (
-                              <div className="flex flex-col gap-1.5 p-2 rounded-lg bg-background/40 border border-border/30 mt-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-1.5">
-                                    <Navigation className={`w-3 h-3 ${
-                                      route.locationStatus === 'MATCH' ? 'text-emerald-500' :
-                                      route.locationStatus === 'REVIEW' ? 'text-amber-500' :
-                                      route.locationStatus === 'OUTSIDE' ? 'text-rose-500' : 'text-muted-foreground'
-                                    }`} />
-                                    <span className="text-[8px] font-black uppercase tracking-tighter">
-                                      GPS: {route.locationStatus === 'UNAVAILABLE' ? 'Não Cadastrado' : 
-                                            route.locationStatus === 'MATCH' ? 'Compatível' :
-                                            route.locationStatus === 'REVIEW' ? 'Revisar' : 'Fora do Raio'}
-                                    </span>
-                                  </div>
-                                  {route.distanceFromStore !== null && (
-                                    <span className="text-[8px] font-bold text-muted-foreground">
-                                      {route.distanceFromStore < 1000 
-                                        ? `${Math.round(route.distanceFromStore)}m` 
-                                        : `${(route.distanceFromStore / 1000).toFixed(1)}km`}
-                                    </span>
-                                  )}
-                                </div>
-                                {route.accuracy && (
-                                  <p className="text-[7px] font-bold text-muted-foreground/60 uppercase tracking-tighter">
-                                    Precisão: ±{Math.round(route.accuracy)}m
-                                  </p>
-                                )}
+
+                            {/* Detalhes de Rejeição */}
+                            {route.evidenceStatus === 'REJECTED' && route.rejectionReason && (
+                              <div className="p-2.5 bg-rose-500/5 rounded-lg border border-rose-500/20">
+                                <p className="text-[8px] font-black text-rose-500 uppercase tracking-widest mb-1">Motivo da Rejeição</p>
+                                <p className="text-[10px] font-medium text-foreground leading-tight italic">
+                                  "{route.rejectionReason}"
+                                </p>
                               </div>
                             )}
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              className="flex-1 h-9 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20"
-                              disabled={uploadingRouteId === route.id || gpsLoading === route.id}
-                              onClick={() => captureGpsAndTriggerFile(route.id)}
-                            >
-                              {uploadingRouteId === route.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                              ) : gpsLoading === route.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+
+                            {/* Status de GPS simplificado (Missão 6A) */}
+                            {route.evidenceStatus && (
+                               <div className="flex items-center gap-2 text-[9px] font-bold text-muted-foreground uppercase tracking-widest bg-muted/20 p-2 rounded-lg">
+                                  {route.locationStatus === 'MATCH' ? (
+                                    <><Check className="w-3 h-3 text-emerald-500" /> Localização compatível</>
+                                  ) : route.locationStatus === 'REVIEW' ? (
+                                    <><AlertTriangle className="w-3 h-3 text-amber-500" /> Localização requer revisão</>
+                                  ) : route.locationStatus === 'OUTSIDE' ? (
+                                    <><XCircle className="w-3 h-3 text-rose-500" /> Fora da área da loja</>
+                                  ) : (
+                                    <><Navigation className="w-3 h-3" /> GPS Indisponível</>
+                                  )}
+                               </div>
+                            )}
+
+                            {/* Ações (Grandes e fáceis de tocar) */}
+                            <div className="pt-1">
+                              {route.evidenceStatus === 'APPROVED' ? (
+                                <div className="w-full h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center gap-2">
+                                   <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                   <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">VISITA CONCLUÍDA</span>
+                                </div>
                               ) : (
-                                <Camera className="w-4 h-4 mr-2" />
+                                <Button 
+                                  className={cn(
+                                    "w-full h-12 rounded-xl font-black text-xs uppercase tracking-[0.1em] shadow-lg",
+                                    route.evidenceStatus === 'REJECTED' ? "bg-rose-600 hover:bg-rose-700 shadow-rose-500/20" : "bg-primary hover:bg-primary/90 shadow-primary/20"
+                                  )}
+                                  disabled={uploadingRouteId === route.id || gpsLoading === route.id}
+                                  onClick={() => captureGpsAndTriggerFile(route.id)}
+                                >
+                                  {uploadingRouteId === route.id ? (
+                                    <><Loader2 className="w-5 h-5 animate-spin mr-2" /> ENVIANDO...</>
+                                  ) : gpsLoading === route.id ? (
+                                    <><Loader2 className="w-5 h-5 animate-spin mr-2" /> VALIDANDO GPS...</>
+                                  ) : (
+                                    <>
+                                      <Camera className="w-5 h-5 mr-2" /> 
+                                      {route.evidenceStatus === 'REJECTED' ? 'REENVIAR EVIDÊNCIA' : 'REALIZAR VISITA'}
+                                    </>
+                                  )}
+                                </Button>
                               )}
-                              {gpsLoading === route.id ? "GPS..." : "Realizar Visita"}
-                            </Button>
-                            <Button variant="outline" size="icon" className="h-9 w-9 shrink-0 border-border/50">
-                              <MapPin className="w-4 h-4" />
-                            </Button>
+                            </div>
+                            
+                            {/* Separador entre indústrias da mesma loja */}
+                            {storeGroup.items.indexOf(route) < storeGroup.items.length - 1 && (
+                              <div className="border-t border-border/30 pt-4 mt-4" />
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-card/20 border border-dashed border-border/50 rounded-xl p-8 text-center flex flex-col items-center gap-3">
-              <Calendar className="w-8 h-8 text-muted-foreground/30" />
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                Nenhuma loja programada para hoje
-              </p>
-            </div>
-          )}
-        </section>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-card/20 border border-dashed border-border/50 rounded-xl p-12 text-center flex flex-col items-center gap-4">
+                  <Calendar className="w-10 h-10 text-muted-foreground/20" />
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                    Nenhuma loja programada para hoje
+                  </p>
+                </div>
+              )}
+            </section>
+          </>
+        )}
+      </main>
 
-        {/* Roteiro Completo do Mês (Opcional ou link) */}
-        <section className="pt-4 border-t border-border/30">
-           <Button variant="ghost" className="w-full text-xs font-bold text-muted-foreground uppercase tracking-widest hover:text-primary">
-             Ver roteiro completo do mês
-           </Button>
-        </section>
-      </>
-    )}
-</main>
-
-
-
-      {/* Footer / Navbar Mobile */}
-      <nav className="sticky bottom-0 w-full bg-background/80 backdrop-blur-md border-t border-border px-6 h-16 flex items-center justify-around md:hidden">
-        <button className="flex flex-col items-center gap-1 text-primary">
-          <LayoutDashboard className="w-5 h-5" />
-          <span className="text-[9px] font-black uppercase tracking-tighter">Início</span>
+      {/* Footer Nav Minimalista */}
+      <nav className="fixed bottom-0 w-full bg-background/80 backdrop-blur-lg border-t border-border px-8 h-18 flex items-center justify-between z-50">
+        <button className="flex flex-col items-center gap-1.5 text-primary group">
+          <div className="p-1 rounded-lg bg-primary/10 group-active:scale-95 transition-transform">
+            <LayoutDashboard className="w-6 h-6" />
+          </div>
+          <span className="text-[9px] font-black uppercase tracking-widest">Minha Rota</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-muted-foreground opacity-50">
-          <CheckCircle2 className="w-5 h-5" />
-          <span className="text-[9px] font-black uppercase tracking-tighter">Checkins</span>
+        <button 
+          className="flex flex-col items-center gap-1.5 text-muted-foreground/40 group active:text-primary transition-colors"
+          onClick={() => toast.info("Histórico em breve")}
+        >
+          <div className="p-1 group-active:scale-95 transition-transform">
+            <Clock className="w-6 h-6" />
+          </div>
+          <span className="text-[9px] font-black uppercase tracking-widest">Histórico</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-muted-foreground opacity-50">
-          <User className="w-5 h-5" />
-          <span className="text-[9px] font-black uppercase tracking-tighter">Perfil</span>
+        <button 
+          className="flex flex-col items-center gap-1.5 text-rose-500/70 group"
+          onClick={() => signOut()}
+        >
+          <div className="p-1 group-active:scale-95 transition-transform">
+            <LogOut className="w-6 h-6" />
+          </div>
+          <span className="text-[9px] font-black uppercase tracking-widest">Sair</span>
         </button>
       </nav>
 
-      {/* Input de arquivo invisível para captura de evidência */}
       <input 
         type="file" 
         accept="image/*" 
