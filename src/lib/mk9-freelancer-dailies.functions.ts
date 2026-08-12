@@ -276,8 +276,6 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       TELEFONE: d.freelancer?.phone || "-",
       LOJA: it.store?.name || "-",
       REDE: it.store ? getNormalizedChain(it.store) : "-",
-
-
       CIDADE: it.store?.city || "-",
       UF: it.store?.uf || "-",
       INDÚSTRIA: it.industry?.name || "-",
@@ -287,6 +285,16 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       "DATA DE PAGAMENTO": d.payment_date ? new Date(d.payment_date + 'T12:00:00').toLocaleDateString('pt-BR') : "-",
       OBSERVAÇÃO: d.notes || "-"
     })));
+
+    // Validação de paridade (Dev-Only Check)
+    const totalByAtendimentos = itemsList.reduce((acc, it) => acc + it["VALOR DO ATENDIMENTO"], 0);
+    const totalByDailies = dailies.reduce((acc, d) => acc + calculateFinancialTotal(d), 0);
+    
+    if (Math.abs(totalByAtendimentos - totalByDailies) > 0.01) {
+      console.error(`[MK9 CONSISTENCY ERROR] Export parity failed: Atendimentos=${totalByAtendimentos} vs Dailies=${totalByDailies}`);
+    }
+
+    return { itemsList };
 
     return { itemsList };
   });
