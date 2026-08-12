@@ -193,7 +193,7 @@ export function Mk9PromotersModule() {
                           </DropdownMenuItem>
 
                           <DropdownMenuItem
-                            onClick={() => window.open(\`/roteiros/promotor/\${p.id}\`, "_blank")}
+                            onClick={() => window.open(`/roteiros/promotor/${p.id}`, "_blank")}
                             className="gap-2 cursor-pointer hover:bg-accent text-sky-400"
                           >
                             <Eye className="h-3.5 w-3.5" /> Preview da Rota
@@ -266,7 +266,7 @@ function PromoterStatusBadge({ promoterId, userId }: { promoterId: string, userI
       </div>
       <div className="flex items-center gap-1.5">
         <Mk9Badge variant={status?.plannedVisits ? "info" : "warning"}>
-          {status?.plannedVisits ? `✓ \${status.plannedVisits} VISITAS` : "SEM ROTA"}
+          {status?.plannedVisits ? `✓ ${status.plannedVisits} VISITAS` : "SEM ROTA"}
         </Mk9Badge>
       </div>
     </div>
