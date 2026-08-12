@@ -525,7 +525,7 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
               className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 font-bold text-foreground uppercase tracking-widest text-xs"
               disabled={totals.count === 0 || markMutation.isPending}
               onClick={() => {
-                if(confirm(`Confirmar liquidação de R$ ${totals.amount.toLocaleString('pt-BR')} para ${totals.count} diárias?`)) {
+                if(confirm(`Confirmar liquidação de R$ ${totals.amount.toLocaleString('pt-BR')} para ${totals.count} atendimentos?`)) {
                   markMutation.mutate((dailies || []).map((d: any) => d.id));
                 }
               }}
