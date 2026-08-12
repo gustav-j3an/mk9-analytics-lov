@@ -21,4 +21,3 @@ Transformar a Gestão de Roteiros em uma central operacional de alta performance
 - [ ] Ações de "Gerenciar Rota" e "Preview" funcionando corretamente.
 - [ ] Filtro por UF e busca por nome filtrando a tabela mestre.
 - [ ] Responsividade mantida para tablets e desktops.
-
