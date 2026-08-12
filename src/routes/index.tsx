@@ -58,16 +58,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v3.5.0 — CICOPAL INVESTIGATION",
+    title: "MK9 | v3.5.0 — CICOPAL INVESTIGATED",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v3.5.0: Investigating CICOPAL 28->0 persistence gap.",
+        content: "MK9 Command Center v3.5.0: CICOPAL persistence trace completed. 28 visits confirmed as skipped/existing.",
       },
-      { property: "og:title", content: "MK9 | v3.5.0 — CICOPAL INVESTIGATION" },
+      { property: "og:title", content: "MK9 | v3.5.0 — CICOPAL INVESTIGATED" },
       {
         property: "og:description",
-        content: "MK9 Command Center v3.5.0: Investigating CICOPAL 28->0 persistence gap.",
+        content: "MK9 Command Center v3.5.0: CICOPAL persistence trace completed. 28 visits confirmed as skipped/existing.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -156,7 +156,7 @@ function LoginContent() {
                   MK9 Command Center • <span className="text-primary/80">v3.5.0</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  INVESTIGATION ACTIVE (CICOPAL)
+                  INVESTIGATION COMPLETE (28 SKIPPED)
                 </p>
               </div>
             </div>
