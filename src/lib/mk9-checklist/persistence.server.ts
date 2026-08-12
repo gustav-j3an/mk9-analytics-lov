@@ -331,7 +331,7 @@ export async function persistActualVisits(
     .in("store_id", Array.from(new Set(list.map((r) => r.storeId))));
   if (exErr) throw new Error(exErr.message);
   const existingSet = new Set(
-    (existing ?? []).map((r: any) => `${r.store_id}|${r.scheduled_date}`),
+    (existing ?? []).map((r: any) => `${industryId}|${r.store_id}|${r.scheduled_date}`),
   );
   const skipped = keys.filter((k) => existingSet.has(k)).length;
 
