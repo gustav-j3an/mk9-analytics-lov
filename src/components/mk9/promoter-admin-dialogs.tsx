@@ -67,6 +67,8 @@ export function PromoterDialog({
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [presenceTeamId, setPresenceTeamId] = useState<string | null>(null);
   const [supervisorId, setSupervisorId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (promoter) {
@@ -79,6 +81,8 @@ export function PromoterDialog({
       setEmployeeNumber(promoter.employeeNumber || "");
       setPresenceTeamId(promoter.presence_team_id || null);
       setSupervisorId(promoter.mk9_supervisor_id || null);
+      setUserId(promoter.user_id || null);
+
     } else {
       setName("");
       setCity("");
@@ -89,6 +93,8 @@ export function PromoterDialog({
       setEmployeeNumber("");
       setPresenceTeamId(null);
       setSupervisorId(null);
+      setUserId(null);
+
     }
   }, [promoter, open]);
 
@@ -104,6 +110,8 @@ export function PromoterDialog({
         employeeNumber,
         presenceTeamId: presenceTeamId || null,
         supervisorId: supervisorId || null,
+        userId: userId || null,
+
       };
       if (promoter) {
         return updateFn({

@@ -1,9 +1,10 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { mk9ListRoutesDetailed } from "@/lib/mk9-data.functions";
+import { getMyPromoterRoute, getMyPromoterProfile } from "@/lib/mk9-portal/portal.functions";
+
 import { 
   ClipboardCheck, 
   MapPin, 
@@ -12,31 +13,50 @@ import {
   User,
   LayoutDashboard,
   CheckCircle2,
-  Clock
+  Clock,
+  AlertTriangle
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeSettings } from "@/lib/mk9-theme/ThemeToggle";
 
 export function Mk9PortalDashboard() {
-  const { session, loading, profile, signOut } = useMk9Session();
+  const { session, loading, signOut } = useMk9Session();
   const navigate = useNavigate();
-  const listRoutesFn = useServerFn(mk9ListRoutesDetailed);
+  const getRouteFn = useServerFn(getMyPromoterRoute);
+  const getProfileFn = useServerFn(getMyPromoterProfile);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/", replace: true });
   }, [loading, session, navigate]);
 
+  const { data: promoterProfile, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ["mk9-portal-profile"],
+    queryFn: () => getProfileFn(),
+    enabled: !!session,
+    retry: false,
+    meta: {
+      onError: (err: any) => {
+        if (err.message === "PROMOTER_NOT_LINKED") {
+          setAuthError("Seu acesso ainda não está vinculado a um cadastro de promotor. Entre em contato com seu supervisor.");
+        }
+      }
+    }
+  });
+
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
 
-  const { data: routes, isLoading } = useQuery({
+  const { data: routes, isLoading: isLoadingRoutes } = useQuery({
     queryKey: ["mk9-portal-routes", month, year],
-    queryFn: () => listRoutesFn({ data: { month, year } }),
-    enabled: !!session,
+    queryFn: () => getRouteFn({ data: { month, year } }),
+    enabled: !!session && !!promoterProfile,
   });
+
 
   const today = now.getDay(); // 0-6 (Sun-Sat)
   // Ajuste se o banco usar 1-7 ou 0-6
@@ -74,15 +94,29 @@ export function Mk9PortalDashboard() {
       </header>
 
       <main className="flex-1 p-4 space-y-6 max-w-md mx-auto w-full">
-        {/* Saudação */}
-        <section className="space-y-1">
-          <h1 className="text-2xl font-black tracking-tight text-foreground uppercase">
-            Olá, {profile?.name?.split(' ')[0] || 'Promotor'}
-          </h1>
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-            {new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(now)}
-          </p>
-        </section>
+        {authError ? (
+          <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-6 text-center space-y-4">
+            <AlertTriangle className="h-10 w-10 text-destructive mx-auto" />
+            <h2 className="text-sm font-black uppercase tracking-widest text-destructive">Acesso Pendente</h2>
+            <p className="text-xs font-bold text-muted-foreground leading-relaxed">
+              {authError}
+            </p>
+            <Button variant="outline" className="w-full text-[10px] font-black uppercase tracking-widest" onClick={() => signOut()}>
+              Sair da conta
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Saudação */}
+            <section className="space-y-1">
+              <h1 className="text-2xl font-black tracking-tight text-foreground uppercase">
+                Olá, {promoterProfile?.name?.split(' ')[0] || 'Promotor'}
+              </h1>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                {new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(now)}
+              </p>
+            </section>
+
 
         {/* KPIs Rápidos */}
         <section className="grid grid-cols-2 gap-3">
@@ -116,7 +150,7 @@ export function Mk9PortalDashboard() {
             </Badge>
           </div>
 
-          {isLoading ? (
+          {isLoadingRoutes || isLoadingProfile ? (
             <div className="flex justify-center py-12">
               <Clock className="w-8 h-8 animate-spin text-muted-foreground" />
             </div>
@@ -169,8 +203,10 @@ export function Mk9PortalDashboard() {
            <Button variant="ghost" className="w-full text-xs font-bold text-muted-foreground uppercase tracking-widest hover:text-primary">
              Ver roteiro completo do mês
            </Button>
-        </section>
+          </>
+        )}
       </main>
+
 
       {/* Footer / Navbar Mobile */}
       <nav className="sticky bottom-0 w-full bg-background/80 backdrop-blur-md border-t border-border px-6 h-16 flex items-center justify-around md:hidden">
