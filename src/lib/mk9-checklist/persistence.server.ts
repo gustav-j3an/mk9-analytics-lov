@@ -321,8 +321,20 @@ export async function persistActualVisits(
   for (const r of rows) dedup.set(`${industryId}|${r.storeId}|${r.scheduledDate}`, r);
   const list = Array.from(dedup.values());
 
-  // Verifica quais já existem para reportar "skipped"
-  const keys = list.map((r) => `${industryId}|${r.storeId}|${r.scheduledDate}`);
+  // FASE 5: Conciliação com Portal. 
+  // Buscamos se já existe visita via PORTAL para estas lojas/datas.
+  const { data: portalVisits, error: pErr } = await supabaseAdmin
+    .from("mk9_actual_visits")
+    .select("store_id, scheduled_date")
+    .eq("industry_id", industryId)
+    .eq("origin", "PORTAL")
+    .in("store_id", Array.from(new Set(list.map((r) => r.storeId))));
+  
+  const portalSet = new Set(
+    (portalVisits ?? []).map((r: any) => `${industryId}|${r.store_id}|${r.scheduled_date}`)
+  );
+
+  // Verifica quais já existem (via CHECKLIST) para reportar "skipped"
   const { data: existing, error: exErr } = await supabaseAdmin
     .from("mk9_actual_visits")
     .select("store_id, scheduled_date")
@@ -330,50 +342,48 @@ export async function persistActualVisits(
     .eq("origin", "CHECKLIST")
     .in("store_id", Array.from(new Set(list.map((r) => r.storeId))));
   if (exErr) throw new Error(exErr.message);
+  
   const existingSet = new Set(
     (existing ?? []).map((r: any) => `${industryId}|${r.store_id}|${r.scheduled_date}`),
   );
-  const skipped = keys.filter((k) => existingSet.has(k)).length;
 
-  const payload = list.map((r) => ({
-    industry_id: industryId,
-    store_id: r.storeId,
-    scheduled_date: r.scheduledDate,
-    origin: "CHECKLIST" as const,
-    status: "completed",
-    source_import_id: importId,
-  }));
+  // Montar payload filtrando o que já existe no Portal ou no Checklist
+  const payload = list
+    .filter(r => !portalSet.has(`${industryId}|${r.storeId}|${r.scheduledDate}`))
+    .map((r) => ({
+      industry_id: industryId,
+      store_id: r.storeId,
+      scheduled_date: r.scheduledDate,
+      origin: "CHECKLIST" as const,
+      status: "completed",
+      source_import_id: importId,
+    }));
 
-  console.log(`[PERSISTENCE-PAYLOAD] Payload final gerado com ${payload.length} visitas para import ${importId}.`);
+  const skippedByPortal = list.filter(r => portalSet.has(`${industryId}|${r.storeId}|${r.scheduledDate}`)).length;
+  const skippedByChecklist = list.filter(r => !portalSet.has(`${industryId}|${r.storeId}|${r.scheduledDate}`) && existingSet.has(`${industryId}|${r.storeId}|${r.scheduledDate}`)).length;
 
+  console.log(`[PERSISTENCE-PAYLOAD] Import ${importId}: ${payload.length} novas, ${skippedByPortal} conciliadas portal, ${skippedByChecklist} já existiam checklist.`);
 
   const CHUNK = 500;
   let totalUpserted = 0;
   
   for (let i = 0; i < payload.length; i += CHUNK) {
     const slice = payload.slice(i, i + CHUNK);
-    console.log(`[PERSISTENCE] Upserting chunk of ${slice.length} visits...`);
-    
     const { data: upsertedData, error } = await supabaseAdmin
       .from("mk9_actual_visits")
       .upsert(slice as any, { 
         onConflict: "industry_id,store_id,scheduled_date,origin",
-        ignoreDuplicates: false // Garante que source_import_id seja atualizado
+        ignoreDuplicates: false 
       })
       .select("id");
 
     if (error) {
-      console.error(`[PERSISTENCE-ERROR] Supabase error during upsert:`, error);
       throw new Error(`Database error: ${error.message} (${error.code})`);
     }
-    
-    const count = upsertedData?.length ?? 0;
-    totalUpserted += count;
-    console.log(`[PERSISTENCE] Chunk upserted successfully: ${count} rows.`);
+    totalUpserted += upsertedData?.length ?? 0;
   }
 
-  // Auditoria pós-upsert removida após validação binária de sucesso.
-  return { persisted: totalUpserted, skipped };
+  return { persisted: totalUpserted, skipped: skippedByPortal + skippedByChecklist };
 }
 
 
