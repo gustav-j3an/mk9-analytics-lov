@@ -309,33 +309,57 @@ export function Mk9PortalDashboard() {
                       <div className="flex flex-col gap-2 mt-1">
                         {route.evidenceStatus ? (
                           <div className="flex flex-col gap-2">
-                            <div className="flex items-center justify-between bg-secondary/20 rounded-lg p-2 border border-border/30">
-                              <div className="flex items-center gap-2">
-                                {route.evidenceStatus === 'PENDING' && <Clock className="w-4 h-4 text-amber-500" />}
-                                {route.evidenceStatus === 'APPROVED' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
-                                {route.evidenceStatus === 'REJECTED' && <XCircle className="w-4 h-4 text-rose-500" />}
-                                <span className="text-[9px] font-black uppercase tracking-widest">
-                                  {route.evidenceStatus === 'PENDING' && 'Pendente'}
-                                  {route.evidenceStatus === 'APPROVED' && 'Aprovada'}
-                                  {route.evidenceStatus === 'REJECTED' && 'Rejeitada'}
-                                </span>
-                              </div>
-                              
-                              {route.evidenceStatus === 'PENDING' && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="h-6 text-[8px] font-black uppercase tracking-tighter"
-                                  onClick={() => captureGpsAndTriggerFile(route.id)}
-                                  disabled={uploadingRouteId === route.id || gpsLoading === route.id}
-                                >
-                                  {gpsLoading === route.id ? (
-                                    <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                                  ) : (
+                            <div className="flex flex-col gap-2 bg-secondary/20 rounded-lg p-3 border border-border/30">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  {route.evidenceStatus === 'PENDING' && <Clock className="w-4 h-4 text-amber-500" />}
+                                  {route.evidenceStatus === 'APPROVED' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                                  {route.evidenceStatus === 'REJECTED' && <XCircle className="w-4 h-4 text-rose-500" />}
+                                  <span className="text-[9px] font-black uppercase tracking-widest">
+                                    {route.evidenceStatus === 'PENDING' && 'Pendente de validação'}
+                                    {route.evidenceStatus === 'APPROVED' && 'Visita aprovada'}
+                                    {route.evidenceStatus === 'REJECTED' && 'Visita rejeitada'}
+                                  </span>
+                                </div>
+                                
+                                {route.evidenceStatus === 'PENDING' && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-6 text-[8px] font-black uppercase tracking-tighter"
+                                    onClick={() => captureGpsAndTriggerFile(route.id)}
+                                    disabled={uploadingRouteId === route.id || gpsLoading === route.id}
+                                  >
+                                    {gpsLoading === route.id ? (
+                                      <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                    ) : (
+                                      <RotateCcw className="w-3 h-3 mr-1" />
+                                    )}
+                                    Substituir
+                                  </Button>
+                                )}
+
+                                {route.evidenceStatus === 'REJECTED' && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-6 text-[8px] font-black uppercase tracking-tighter text-rose-500 hover:text-rose-400"
+                                    onClick={() => captureGpsAndTriggerFile(route.id)}
+                                    disabled={uploadingRouteId === route.id || gpsLoading === route.id}
+                                  >
                                     <RotateCcw className="w-3 h-3 mr-1" />
-                                  )}
-                                  Substituir
-                                </Button>
+                                    Reenviar
+                                  </Button>
+                                )}
+                              </div>
+
+                              {route.evidenceStatus === 'REJECTED' && route.rejectionReason && (
+                                <div className="mt-2 p-2 bg-rose-500/10 rounded border border-rose-500/20">
+                                  <p className="text-[8px] font-bold text-rose-400 uppercase tracking-tighter mb-1">Motivo da Rejeição:</p>
+                                  <p className="text-[9px] font-medium text-foreground italic leading-tight">
+                                    "{route.rejectionReason}"
+                                  </p>
+                                </div>
                               )}
                             </div>
                             {route.locationStatus && (

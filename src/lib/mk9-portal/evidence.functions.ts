@@ -71,11 +71,12 @@ export const uploadVisitEvidence = createServerFn({ method: "POST" })
       };
     }
 
-    // 3. Verificar se já existe evidência para esta visita
+    // 3. Verificar se já existe evidência PENDING para esta visita
     const { data: existingEvidence, error: fetchError } = await supabaseAdmin
       .from("mk9_visit_evidence")
       .select("id, photo_path, status")
       .eq("planned_route_id", route.id)
+      .eq("status", "PENDING")
       .maybeSingle();
 
     if (fetchError) {
@@ -83,11 +84,9 @@ export const uploadVisitEvidence = createServerFn({ method: "POST" })
       throw fetchError;
     }
 
-    // Regra: APPROVED ou REJECTED (bloqueado por enquanto) não podem ser substituídas
-    if (existingEvidence && existingEvidence.status !== "PENDING") {
-      await supabaseAdmin.storage.from("visit-evidence").remove([data.photoPath]);
-      throw new Error("EVIDENCE_ALREADY_PROCESSED");
-    }
+    // Se existir uma PENDING, vamos substituí-la (substituição segura já homologada).
+    // Se for APPROVED ou REJECTED, o insert abaixo criará um novo registro (reenvio),
+    // conforme regra de preservação de histórico da Missão 4.
 
     if (existingEvidence) {
       // 3. Atualizar evidência existente (Substituição Segura)
