@@ -21,6 +21,7 @@ import { Route as RoteirosIndexRouteImport } from './routes/roteiros.index'
 import { Route as RoteirosPromotorPromoterIdRouteImport } from './routes/roteiros.promotor.$promoterId'
 import { Route as ApiReportsIndustryUnattendedPdfRouteImport } from './routes/api/reports/industry-unattended-pdf'
 import { Route as ApiReportsIndustryPdfRouteImport } from './routes/api/reports/industry-pdf'
+import { Route as ApiPublicMk9DebugImaginaRouteImport } from './routes/api/public/mk9-debug-imagina'
 import { Route as ApiChecklistsPreviewRouteImport } from './routes/api/checklists/preview'
 
 const UsersRoute = UsersRouteImport.update({
@@ -85,6 +86,12 @@ const ApiReportsIndustryPdfRoute = ApiReportsIndustryPdfRouteImport.update({
   path: '/api/reports/industry-pdf',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicMk9DebugImaginaRoute =
+  ApiPublicMk9DebugImaginaRouteImport.update({
+    id: '/api/public/mk9-debug-imagina',
+    path: '/api/public/mk9-debug-imagina',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiChecklistsPreviewRoute = ApiChecklistsPreviewRouteImport.update({
   id: '/api/checklists/preview',
   path: '/api/checklists/preview',
@@ -102,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof UsersRoute
   '/roteiros/': typeof RoteirosIndexRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
+  '/api/public/mk9-debug-imagina': typeof ApiPublicMk9DebugImaginaRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
   '/roteiros/promotor/$promoterId': typeof RoteirosPromotorPromoterIdRoute
@@ -117,6 +125,7 @@ export interface FileRoutesByTo {
   '/users': typeof UsersRoute
   '/roteiros': typeof RoteirosIndexRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
+  '/api/public/mk9-debug-imagina': typeof ApiPublicMk9DebugImaginaRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
   '/roteiros/promotor/$promoterId': typeof RoteirosPromotorPromoterIdRoute
@@ -133,6 +142,7 @@ export interface FileRoutesById {
   '/users': typeof UsersRoute
   '/roteiros/': typeof RoteirosIndexRoute
   '/api/checklists/preview': typeof ApiChecklistsPreviewRoute
+  '/api/public/mk9-debug-imagina': typeof ApiPublicMk9DebugImaginaRoute
   '/api/reports/industry-pdf': typeof ApiReportsIndustryPdfRoute
   '/api/reports/industry-unattended-pdf': typeof ApiReportsIndustryUnattendedPdfRoute
   '/roteiros/promotor/$promoterId': typeof RoteirosPromotorPromoterIdRoute
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/roteiros/'
     | '/api/checklists/preview'
+    | '/api/public/mk9-debug-imagina'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
     | '/roteiros/promotor/$promoterId'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/roteiros'
     | '/api/checklists/preview'
+    | '/api/public/mk9-debug-imagina'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
     | '/roteiros/promotor/$promoterId'
@@ -180,6 +192,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/roteiros/'
     | '/api/checklists/preview'
+    | '/api/public/mk9-debug-imagina'
     | '/api/reports/industry-pdf'
     | '/api/reports/industry-unattended-pdf'
     | '/roteiros/promotor/$promoterId'
@@ -196,6 +209,7 @@ export interface RootRouteChildren {
   UsersRoute: typeof UsersRoute
   RoteirosIndexRoute: typeof RoteirosIndexRoute
   ApiChecklistsPreviewRoute: typeof ApiChecklistsPreviewRoute
+  ApiPublicMk9DebugImaginaRoute: typeof ApiPublicMk9DebugImaginaRoute
   ApiReportsIndustryPdfRoute: typeof ApiReportsIndustryPdfRoute
   ApiReportsIndustryUnattendedPdfRoute: typeof ApiReportsIndustryUnattendedPdfRoute
   RoteirosPromotorPromoterIdRoute: typeof RoteirosPromotorPromoterIdRoute
@@ -287,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiReportsIndustryPdfRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/mk9-debug-imagina': {
+      id: '/api/public/mk9-debug-imagina'
+      path: '/api/public/mk9-debug-imagina'
+      fullPath: '/api/public/mk9-debug-imagina'
+      preLoaderRoute: typeof ApiPublicMk9DebugImaginaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/checklists/preview': {
       id: '/api/checklists/preview'
       path: '/api/checklists/preview'
@@ -308,6 +329,7 @@ const rootRouteChildren: RootRouteChildren = {
   UsersRoute: UsersRoute,
   RoteirosIndexRoute: RoteirosIndexRoute,
   ApiChecklistsPreviewRoute: ApiChecklistsPreviewRoute,
+  ApiPublicMk9DebugImaginaRoute: ApiPublicMk9DebugImaginaRoute,
   ApiReportsIndustryPdfRoute: ApiReportsIndustryPdfRoute,
   ApiReportsIndustryUnattendedPdfRoute: ApiReportsIndustryUnattendedPdfRoute,
   RoteirosPromotorPromoterIdRoute: RoteirosPromotorPromoterIdRoute,
