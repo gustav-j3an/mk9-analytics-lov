@@ -1,4 +1,4 @@
-// v3.8.0 — MISSÃO 3 INICIADA
+// v3.8.1 — MISSÃO 3 (GPS) CONCLUÍDA
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Mk9LoginForm } from "@/components/mk9-login-form";
