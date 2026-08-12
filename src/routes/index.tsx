@@ -124,10 +124,10 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v3.4.0</span>
+                  MK9 Command Center • <span className="text-primary/80">v3.5.0</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  STABILIZATION ACTIVE
+                  INVESTIGATION ACTIVE (CICOPAL)
                 </p>
               </div>
             </div>
