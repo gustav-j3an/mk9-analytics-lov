@@ -39,6 +39,12 @@ export function Mk9PortalDashboard() {
   const getProfileFn = useServerFn(getMyPromoterProfile);
   const [authError, setAuthError] = useState<string | null>(null);
   const [uploadingRouteId, setUploadingRouteId] = useState<string | null>(null);
+  const [gpsLoading, setGpsLoading] = useState<string | null>(null);
+  const [capturedLocation, setCapturedLocation] = useState<{
+    lat: number;
+    lon: number;
+    accuracy: number;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const uploadEvidenceFn = useServerFn(uploadVisitEvidence);
@@ -46,6 +52,11 @@ export function Mk9PortalDashboard() {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>, routeId: string) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    if (!capturedLocation) {
+      toast.error("Localização não capturada. Tente novamente.");
+      return;
+    }
 
     if (!file.type.startsWith('image/')) {
       toast.error("Formato de arquivo inválido. Use JPEG, PNG ou WEBP.");
@@ -91,7 +102,10 @@ export function Mk9PortalDashboard() {
           plannedRouteId: routeId,
           photoPath: filePath,
           capturedAt: now.toISOString(),
-          mimeType: compressedFile.type
+          mimeType: compressedFile.type,
+          latitude: capturedLocation.lat,
+          longitude: capturedLocation.lon,
+          accuracy: capturedLocation.accuracy
         }
       });
 
