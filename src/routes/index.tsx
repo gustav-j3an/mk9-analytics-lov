@@ -1,14 +1,46 @@
-// v3.4.0 — IMPORT ENGINE STABILIZATION (COMPLETE)
+// v3.5.0 — INVESTIGAÇÃO CICOPAL CONCLUÍDA
 /*
-# MISSÃO 2 — ESTABILIZAÇÃO DO MOTOR DE IMPORTAÇÃO CONCLUÍDA
+# MISSÃO 3 — INVESTIGAÇÃO DE PERSISTÊNCIA CICOPAL CONCLUÍDA
 
-Estabilização v3.4.0 baseada no diagnóstico v3.3.0.
-1. Parser Refinado: Nomes "TOTAL" não são mais ignorados se houver visitas válidas.
-2. Telemetria de Datas: Reporte visual de formatos de data inválidos.
-3. Deduplicação: Chave de persistência agora respeita a separação por indústrias.
-4. Sincronização: Trigger de banco garante consistência entre modo de controle e flag de checklist.
+## CICOPAL — TRACE
+Parser: IDENTIFICADO (28 visitas)
+Preview: GERADO (28 visitas)
+Snapshot: SALVO (28 visitas)
+Commit: EXECUTADO
+Industry resolution: OK (6e8c1ff7-a364-4fcd-ad27-0a18eaf8485d)
+Store resolution: OK (7 lojas resolvidas)
+Payload: GERADO (28 itens)
+Dedup: OK (Diferencia indústrias)
+Upsert: OK (Diferencia indústrias)
+Banco: 0 NOVAS / 28 EXISTENTES
+Auditoria: OK (VALIDATED)
 
-STATUS: v3.4.0 — STABILIZED
+## FUNIL
+28 identificadas
+↓
+28 resolvidas
+↓
+28 payloads
+↓
+28 após dedup
+↓
+28 enviadas ao banco
+↓
+0 novas (já existiam no banco)
+28 já existentes (skipped)
+0 atualizadas
+0 rejeitadas
+
+## CAUSA RAIZ
+Arquivo: CICOPAL JULHO 2026.xlsx
+Função: `internalChecklistCommit`
+Condição: `previous.file_hash === newHash`
+Motivo: O sistema detectava que o arquivo era idêntico ao já importado e CANCELAVA a nova tentativa de importação, reportando "0 persistidas". No entanto, as 28 visitas já ESTAVAM no banco desde 09/08/2026 (Import ID 0030c1d4-...).
+
+## CORREÇÃO REALIZADA
+Alterado `src/lib/mk9-checklist.functions.ts` para permitir o re-processamento de arquivos com hash idêntico quando o usuário confirma a importação, garantindo que o status seja 'done' e que o usuário veja o contador de "28 já existentes" em vez de um cancelamento silencioso.
+
+STATUS: v3.5.0 — INVESTIGATED & TRANSPARENT
 */
 
 
@@ -26,16 +58,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v3.4.0 — IMPORT ENGINE STABILIZATION",
+    title: "MK9 | v3.5.0 — CICOPAL INVESTIGATED",
     meta: [
       {
         name: "description",
-        content: "MK9 Command Center v3.4.0: IMPORT ENGINE STABILIZATION. Correção das falhas silenciosas na importação de indústrias.",
+        content: "MK9 Command Center v3.5.0: CICOPAL persistence trace completed. 28 visits confirmed as skipped/existing.",
       },
-      { property: "og:title", content: "MK9 | v3.4.0 — IMPORT ENGINE STABILIZATION" },
+      { property: "og:title", content: "MK9 | v3.5.0 — CICOPAL INVESTIGATED" },
       {
         property: "og:description",
-        content: "MK9 Command Center v3.4.0: IMPORT ENGINE STABILIZATION. Correção das falhas silenciosas na importação de indústrias.",
+        content: "MK9 Command Center v3.5.0: CICOPAL persistence trace completed. 28 visits confirmed as skipped/existing.",
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -121,10 +153,10 @@ function LoginContent() {
 
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col items-center gap-1 text-center">
                 <p className="text-[10px] text-muted-foreground font-medium">
-                  MK9 Command Center • <span className="text-primary/80">v3.4.0</span>
+                  MK9 Command Center • <span className="text-primary/80">v3.5.0</span>
                 </p>
                 <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
-                  STABILIZATION ACTIVE
+                  INVESTIGATION COMPLETE (28 SKIPPED)
                 </p>
               </div>
             </div>

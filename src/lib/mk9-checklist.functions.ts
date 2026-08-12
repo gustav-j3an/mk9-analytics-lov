@@ -155,8 +155,13 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
         .maybeSingle();
 
       const newHash = snapshot?.fileHash;
-      if (previous && previous.file_hash === newHash) {
-        // Duplicado inalterado: Mantemos a anterior e cancelamos esta.
+      if (previous && previous.file_hash === newHash && data.items.length > 0) {
+        // MK9 v3.5.0: Se o hash é igual e estamos enviando itens (confirmando),
+        // mas as visitas já existem (skipped=total), não cancelamos silenciosamente.
+        // O motor agora reporta como 'done' com 0 novas, preservando a verdade do banco.
+        console.log(`[COMMIT-HASH-CHECK] Hash idêntico para ${data.importId}, mas itens presentes. Prosseguindo para permitir atualização de source_import_id.`);
+      } else if (previous && previous.file_hash === newHash) {
+        // Duplicado inalterado sem itens: Mantemos a anterior e cancelamos esta.
         await updateImportStatus(data.importId, {
           status: "cancelled",
           reason: "duplicate_unchanged",
@@ -262,6 +267,11 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
       if (resolvedItems.length > 0 && persisted === 0 && skipped === 0) {
         console.error(`[COMMIT-ERROR] Divergência crítica: ${resolvedItems.length} itens resolvidos mas 0 persistidos/skipped.`);
         throw new Error(`Falha na persistência: ${resolvedItems.length} visitas identificadas mas nenhuma gravada no banco.`);
+      }
+      
+      // MK9 v3.5.0: Telemetria de transparência. Se todas foram skipped, registrar o motivo.
+      if (resolvedItems.length > 0 && persisted === 0 && skipped > 0) {
+        console.log(`[COMMIT-TELEMETRY] Todas as ${skipped} visitas já existiam para a indústria ${data.industryId}.`);
       }
 
       // 4) Persiste frequência contratada por loja (usa o snapshot da prévia
