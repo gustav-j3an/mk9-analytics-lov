@@ -12,7 +12,7 @@ import type { ResolvedNavigation } from "@/lib/mk9-quality/evidence-view";
 import { Mk9AnalyticsDashboard } from "@/components/mk9-analytics-dashboard";
 import { Mk9RoutesModule } from "@/components/mk9-routes-module";
 import { Mk9IndustryReportModule } from "@/components/mk9-industry-report-module";
-import { Mk9UsersModule } from "@/components/mk9-users-module";
+import { Mk9ValidationCenterModule } from "./mk9-validation-center-module";
 import { useMk9Session } from "@/lib/mk9-auth/session";
 import { toast } from "sonner";
 import { Mk9AdminCleanupModule } from "@/components/mk9-admin-cleanup-module";
@@ -90,6 +90,7 @@ type ModuleId =
   | "presenca"
   | "freelancers"
   | "diarias"
+  | "validacao_visitas"
   | "auditoria_controle";
 
 
@@ -212,6 +213,7 @@ export function Mk9AnalyticsApp() {
                     { id: "roteiros", icon: Route, label: "Roteiros" },
                     { id: "presenca", icon: CheckCircle2, label: "Presença" },
                     { id: "diarias", icon: WalletCards, label: "Controle de Diárias" },
+                    { id: "validacao_visitas", icon: ClipboardCheck, label: "Validação de Visitas" },
                   ]
                 },
                 { 
@@ -303,7 +305,7 @@ export function Mk9AnalyticsApp() {
               {activeModule === "lojas" && "Lojas"}
               {activeModule === "promotores" && "Promotores"}
               {activeModule === "checklists" && "Checklists"}
-              {activeModule === "conciliacao" && "Conciliação"}
+              {activeModule === "validacao_visitas" && "Validação"}
               {activeModule === "qualidade" && "Qualidade"}
               {activeModule === "roteiros" && "Roteiros"}
               {activeModule === "relatorio_industria" && "Relatórios"}
@@ -396,6 +398,8 @@ export function Mk9AnalyticsApp() {
             {activeModule === "supervisores" && <Mk9SupervisorsModule />}
         {activeModule === "presenca" && <Mk9PresenceModule />}
         {activeModule === "diarias" && <Mk9DailiesModule />}
+        {activeModule === "validacao_visitas" && <Mk9ValidationCenterModule />}
+
         {activeModule === "freelancers" && <Mk9FreelancersModule />}
 
             {activeModule === "roteiros" && (
