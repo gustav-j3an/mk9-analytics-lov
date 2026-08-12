@@ -20,7 +20,8 @@ export const getMyPromoterRoute = createServerFn({ method: "GET" })
       .select(`
         *,
         store:mk9_stores(id, name, chain, uf),
-        industry:mk9_industries(id, name, requires_checklist)
+        industry:mk9_industries(id, name, requires_checklist),
+        evidence:mk9_visit_evidence(id, status, photo_path)
       `)
       .eq("promoter_id", promoter.id)
       .eq("operation_month", data.month)
@@ -45,7 +46,9 @@ export const getMyPromoterRoute = createServerFn({ method: "GET" })
       requiresChecklist: (r.industry as any)?.requires_checklist,
       weekday: r.weekday,
       operationMonth: r.operation_month,
-      operationYear: r.operation_year
+      operationYear: r.operation_year,
+      evidenceStatus: (r.evidence as any)?.[0]?.status || null,
+      evidenceId: (r.evidence as any)?.[0]?.id || null
     }));
   });
 
