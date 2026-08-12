@@ -335,19 +335,17 @@ export function Mk9PortalDashboard() {
                           <div className="flex items-center gap-2">
                             <Button 
                               className="flex-1 h-9 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20"
-                              disabled={uploadingRouteId === route.id}
-                              onClick={() => {
-                                // Pequeno hack para guardar o ID da rota atual
-                                (window as any)._currentRouteId = route.id;
-                                fileInputRef.current?.click();
-                              }}
+                              disabled={uploadingRouteId === route.id || gpsLoading === route.id}
+                              onClick={() => captureGpsAndTriggerFile(route.id)}
                             >
                               {uploadingRouteId === route.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              ) : gpsLoading === route.id ? (
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
                               ) : (
                                 <Camera className="w-4 h-4 mr-2" />
                               )}
-                              Realizar Visita
+                              {gpsLoading === route.id ? "GPS..." : "Realizar Visita"}
                             </Button>
                             <Button variant="outline" size="icon" className="h-9 w-9 shrink-0 border-border/50">
                               <MapPin className="w-4 h-4" />
