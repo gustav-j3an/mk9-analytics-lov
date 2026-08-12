@@ -183,3 +183,42 @@ export const mk9PromoterDeleteImpact = createServerFn({ method: "POST" })
     ]);
     return { routes: routes.count ?? 0, visits: visits.count ?? 0 };
   });
+
+export const mk9GetPromoterAccessStatus = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data }) => {
+    const { requireMk9Role } = await import("@/lib/mk9-auth/require-role.server");
+    await requireMk9Role(["ADMIN", "SUPERVISOR"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    
+    // Contagem de visitas planejadas (roteiro) para o mês atual
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+
+    const [plannedCount, profile] = await Promise.all([
+      supabaseAdmin
+        .from("mk9_planned_routes")
+        .select("id", { count: "exact", head: true })
+        .eq("promoter_id" as any, data.id)
+        .eq("operation_month", month)
+        .eq("operation_year", year)
+        .is("archived_at", null),
+      supabaseAdmin
+        .from("mk9_promoters")
+        .select("user_id, profiles:mk9_profiles(email, active)")
+        .eq("id", data.id)
+        .single()
+    ]);
+
+    const profileData = (profile.data as any)?.profiles;
+
+    return {
+      isLinked: !!profile.data?.user_id,
+      email: profileData?.email ?? null,
+      isActive: profileData?.active ?? false,
+      plannedVisits: plannedCount.count ?? 0,
+      month,
+      year
+    };
+  });

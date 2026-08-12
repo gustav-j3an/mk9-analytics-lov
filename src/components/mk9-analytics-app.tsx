@@ -111,6 +111,14 @@ export function Mk9AnalyticsApp() {
     localStorage.setItem("mk9_sidebar_collapsed", String(collapsed));
   }, [collapsed]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const promoterId = params.get('promoterId');
+    if (promoterId) {
+      setActiveModule("roteiros");
+    }
+  }, []);
+
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [auditFilters, setAuditFilters] = useState<Mk9AuditInitialFilters>({});

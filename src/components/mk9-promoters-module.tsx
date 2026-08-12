@@ -11,6 +11,10 @@ import {
   ShieldAlert,
   MapPin,
   IdCard,
+  MessageSquare,
+  Route as RouteIcon,
+  ExternalLink,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +25,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { mk9ListPromoters } from "@/lib/mk9-data.functions";
-import { PromoterDialog, PromoterDeleteDialog } from "@/components/mk9/promoter-admin-dialogs";
+import { useNavigate } from "@tanstack/react-router";
+import { mk9GetPromoterAccessStatus } from "@/lib/mk9-promoters.functions";
+import { PromoterDialog, PromoterDeleteDialog, PromoterInviteDialog } from "@/components/mk9/promoter-admin-dialogs";
 import {
   Mk9Panel,
   Mk9PageHeader,
@@ -42,6 +48,8 @@ export function Mk9PromotersModule() {
   const [showCreate, setShowCreate] = useState(false);
   const [editingPromoter, setEditingPromoter] = useState<any | null>(null);
   const [deletingPromoter, setDeletingPromoter] = useState<any | null>(null);
+  const [invitingPromoter, setInvitingPromoter] = useState<any | null>(null);
+  const navigate = useNavigate();
 
   const filtered = useMemo(() => {
     return promoters.filter(
@@ -102,7 +110,7 @@ export function Mk9PromotersModule() {
             <thead>
               <tr className="border-b border-border/50 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                 <th className="px-4 py-4 text-left font-black">Promotor</th>
-                <th className="px-4 py-4 text-left font-black">Matrícula</th>
+                <th className="px-4 py-4 text-left font-black">Acesso / Rota</th>
                 <th className="px-4 py-4 text-left font-black">Localização</th>
                 <th className="px-4 py-4 text-left font-black">Status</th>
                 <th className="px-4 py-4 text-right font-black">Ações</th>
@@ -131,9 +139,7 @@ export function Mk9PromotersModule() {
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-xs font-mono text-foreground/80">
-                        {p.employeeNumber || "—"}
-                      </span>
+                      <PromoterStatusBadge promoterId={p.id} userId={p.user_id} />
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-1.5">
@@ -171,9 +177,31 @@ export function Mk9PromotersModule() {
                           >
                             <Edit2 className="h-3.5 w-3.5" /> Editar
                           </DropdownMenuItem>
+                          
+                          <DropdownMenuItem
+                            onClick={() => (navigate as any)({ to: "/roteiros", search: { promoterId: p.id } })}
+                            className="gap-2 cursor-pointer hover:bg-accent text-mk9-accent-primary"
+                          >
+                            <RouteIcon className="h-3.5 w-3.5" /> Gerenciar Rota
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem
+                            onClick={() => setInvitingPromoter(p)}
+                            className="gap-2 cursor-pointer hover:bg-accent text-emerald-400"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" /> Enviar Convite
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem
+                            onClick={() => window.open(`/roteiros/promotor/${p.id}`, "_blank")}
+                            className="gap-2 cursor-pointer hover:bg-accent text-sky-400"
+                          >
+                            <Eye className="h-3.5 w-3.5" /> Preview da Rota
+                          </DropdownMenuItem>
+
                           <DropdownMenuItem
                             onClick={() => setDeletingPromoter(p)}
-                            className="gap-2 cursor-pointer text-rose-400 hover:bg-rose-400/10 focus:bg-rose-400/10"
+                            className="gap-2 cursor-pointer text-rose-400 hover:bg-rose-400/10 focus:bg-rose-400/10 border-t border-border/50 mt-1 pt-2"
                           >
                             <Trash2 className="h-3.5 w-3.5" /> Excluir
                           </DropdownMenuItem>
@@ -210,6 +238,37 @@ export function Mk9PromotersModule() {
         }}
         promoter={deletingPromoter}
       />
+      <PromoterInviteDialog
+        open={!!invitingPromoter}
+        onClose={() => setInvitingPromoter(null)}
+        promoter={invitingPromoter}
+      />
+    </div>
+  );
+}
+
+function PromoterStatusBadge({ promoterId, userId }: { promoterId: string, userId?: string | null }) {
+  const getStatusFn = useServerFn(mk9GetPromoterAccessStatus);
+  const { data: status, isLoading } = useQuery({
+    queryKey: ["mk9-promoter-access-status", promoterId],
+    queryFn: () => getStatusFn({ data: { id: promoterId } }),
+    refetchInterval: 60000,
+  });
+
+  if (isLoading) return <div className="h-4 w-20 animate-pulse bg-muted rounded" />;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-1.5">
+        <Mk9Badge variant={userId ? "success" : "default"}>
+          {userId ? "✓ ACESSO" : "SEM ACESSO"}
+        </Mk9Badge>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <Mk9Badge variant={status?.plannedVisits ? "info" : "warning"}>
+          {status?.plannedVisits ? `✓ ${status.plannedVisits} VISITAS` : "SEM ROTA"}
+        </Mk9Badge>
+      </div>
     </div>
   );
 }
