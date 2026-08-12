@@ -446,3 +446,127 @@ export function PromoterDeleteDialog({
     </Dialog>
   );
 }
+
+export function PromoterInviteDialog({
+  open,
+  onClose,
+  promoter,
+}: {
+  open: boolean;
+  onClose: () => void;
+  promoter: any;
+}) {
+  const getStatusFn = useServerFn(mk9GetPromoterAccessStatus);
+  const { data: status, isLoading } = useQuery({
+    queryKey: ["mk9-promoter-access-status", promoter?.id],
+    queryFn: () => getStatusFn({ data: { id: promoter.id } }),
+    enabled: open && !!promoter?.id,
+  });
+
+  const portalUrl = typeof window !== "undefined" ? window.location.origin + "/mk9-portal" : "https://mk9-analytics.lovable.app/mk9-portal";
+  const message = promoter ? `Olá, ${promoter.name}.
+
+Seu acesso ao MK9 Promotor está disponível.
+
+Portal:
+${portalUrl}
+
+Login:
+${status?.email || "Seu e-mail cadastrado"}
+
+Acesse pelo celular Android.
+Após entrar, você verá somente sua rota e poderá enviar a foto de cada visita.
+
+Se quiser instalar como aplicativo:
+abra o link pelo Google Chrome e escolha "Instalar aplicativo".` : "";
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message);
+    toast.success("Mensagem copiada para a área de transferência.");
+  };
+
+  const handleWhatsApp = () => {
+    if (!promoter?.contact) {
+      toast.error("Promotor não possui telefone cadastrado.");
+      return;
+    }
+    const phone = promoter.contact.replace(/\D/g, "");
+    const url = `https://wa.me/${phone.startsWith("55") ? phone : "55" + phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="bg-popover border-border text-foreground max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-mk9-accent-primary font-black tracking-tighter uppercase">
+            <MessageSquare className="h-5 w-5" />
+            Enviar Convite ao Portal
+          </DialogTitle>
+          <DialogDescription className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            Acesso exclusivo ao roteiro do promotor.
+          </DialogDescription>
+        </DialogHeader>
+
+        {isLoading ? (
+          <div className="py-10 flex flex-col items-center justify-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary/20" />
+          </div>
+        ) : (
+          <div className="space-y-6 py-4">
+            <div className="bg-muted/30 border border-border/50 rounded-xl p-4 space-y-4">
+               <div className="flex items-center justify-between border-b border-border/50 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-emerald-400" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+                      Acesso Vinculado
+                    </span>
+                  </div>
+                  <Mk9Badge variant={status?.isActive ? "success" : "danger"}>
+                    {status?.isActive ? "ATIVO" : "INATIVO"}
+                  </Mk9Badge>
+               </div>
+               
+               <div className="space-y-2">
+                 <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                   Mensagem de Boas-vindas
+                 </p>
+                 <div className="bg-background/50 p-3 rounded-lg border border-border/30 text-[11px] leading-relaxed font-mono whitespace-pre-wrap">
+                   {message}
+                 </div>
+               </div>
+            </div>
+
+            {status?.plannedVisits === 0 && (
+              <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 flex items-center gap-3">
+                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+                <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest leading-tight">
+                  Este promotor não possui roteiro para o mês de {status.month}/{status.year}.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <DialogFooter className="mt-4 border-t border-border/50 pt-4 flex-col sm:flex-row gap-2">
+          <div className="flex flex-1 gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 border-border text-muted-foreground text-[10px] font-bold uppercase tracking-widest"
+              onClick={handleCopy}
+            >
+              <Copy className="h-3.5 w-3.5 mr-2" /> COPIAR
+            </Button>
+            <Button
+              className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-widest"
+              onClick={handleWhatsApp}
+              disabled={!promoter?.contact}
+            >
+              <MessageSquare className="h-3.5 w-3.5 mr-2" /> WHATSAPP
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
