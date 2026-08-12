@@ -88,7 +88,13 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
   const today = new Date().toISOString().slice(0, 10);
 
   const [referenceDate, setReferenceDate] = useState(today);
-  const [filterPromoter, setFilterPromoter] = useState<string>("");
+  const [filterPromoter, setFilterPromoter] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('promoterId') || "";
+    }
+    return "";
+  });
   const [filterIndustry, setFilterIndustry] = useState<string>("");
   const [filterStore, setFilterStore] = useState<string>("");
   const [filterUf, setFilterUf] = useState<string>("");
