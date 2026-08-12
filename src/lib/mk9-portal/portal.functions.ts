@@ -20,7 +20,8 @@ export const getMyPromoterRoute = createServerFn({ method: "GET" })
       .select(`
         *,
         store:mk9_stores(id, name, chain, uf),
-        industry:mk9_industries(id, name, requires_checklist)
+        industry:mk9_industries(id, name, requires_checklist),
+        evidence:mk9_visit_evidence(id, status, photo_path)
       `)
       .eq("promoter_id", promoter.id)
       .eq("operation_month", data.month)
