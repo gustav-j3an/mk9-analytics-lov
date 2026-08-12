@@ -1,14 +1,17 @@
-// v3.4.0 — IMPORT ENGINE STABILIZATION (COMPLETE)
+// v3.5.0 — INVESTIGATING CICOPAL ZERO PERSISTENCE
 /*
-# MISSÃO 2 — ESTABILIZAÇÃO DO MOTOR DE IMPORTAÇÃO CONCLUÍDA
+# MISSÃO 3 — INVESTIGAR ZERO PERSISTÊNCIA DO CICOPAL
 
-Estabilização v3.4.0 baseada no diagnóstico v3.3.0.
-1. Parser Refinado: Nomes "TOTAL" não são mais ignorados se houver visitas válidas.
-2. Telemetria de Datas: Reporte visual de formatos de data inválidos.
-3. Deduplicação: Chave de persistência agora respeita a separação por indústrias.
-4. Sincronização: Trigger de banco garante consistência entre modo de controle e flag de checklist.
+## CONTEXTO CONFIRMADO
+Após a versão **v3.4.0 — IMPORT ENGINE STABILIZATION**, foi realizado teste real com:
+**CICOPAL JULHO 2026.xlsx**
 
-STATUS: v3.4.0 — STABILIZED
+O Histórico de Checklists mostrou:
+* Identificado no Excel: 28
+* Persistido no banco: 0
+* Lojas: BRETAS (CATALÃO/JATAÍ), RIO VERMELHO, SUPER CENTRAL.
+
+STATUS: v3.5.0 — INVESTIGATION ACTIVE
 */
 
 
