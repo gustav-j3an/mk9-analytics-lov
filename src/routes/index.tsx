@@ -1,13 +1,14 @@
+// v3.2.0 — PRESENÇA VISUAL DEPLOYED
 /*
-# MISSÃO 3 — ADICIONAR IMPRESSÃO DA ROTA INDIVIDUAL
+# MISSÃO — TRANSFORMAR A EXPORTAÇÃO DE PRESENÇA NO MODELO "PRESENÇA VISUAL"
 MK9 COMMAND CENTER
+MÓDULO: CONTROLE DE PRESENÇA
 
-A página "Visualizar Rota" já foi validada. Agora implementamos o fluxo oficial de impressão:
-1. Botão "IMPRIMIR ROTA" na interface principal.
-2. Acionamento automático de window.print() ao visualizar.
-3. Botão "Imprimir Agora" na tela de prévia.
-
-OBJETIVO:
+A exportação Excel do Controle de Presença agora segue o design "Presença Visual":
+- Cabeçalho corporativo azul-marinho;
+- KPIs visuais no topo com cores suaves;
+- Tabela com status formatados e zebrado discreto;
+- Congelamento de painéis e filtros automáticos.
 Preservar 100% da paridade visual (✓, cores, layout) delegando a geração do documento ao motor de impressão do navegador (Salvar como PDF ou Imprimir).
 
 STATUS: v3.1.10 — PRINT FLOW DEPLOYED

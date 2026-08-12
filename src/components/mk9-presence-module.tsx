@@ -22,6 +22,7 @@ import {
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as XLSX from "xlsx";
+import { getPresenceExportData } from "@/lib/mk9-presence-export.functions";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,7 @@ export function Mk9PresenceModule() {
   const statsFn = useServerFn(getPresenceStats);
   const listTeamsFn = useServerFn(listPresenceTeams);
   const listSupervisorsFn = useServerFn(listSupervisors);
+  const getExportDataFn = useServerFn(getPresenceExportData);
 
   const { data: presenceItems, isLoading: listLoading } = useQuery({
     queryKey: ["mk9-presence-list", date, search, ufFilter, teamFilter, supervisorFilter],
@@ -169,8 +171,8 @@ export function Mk9PresenceModule() {
     saveMutation.mutate(items);
   };
 
-  const exportToExcel = () => {
-    if (!presenceItems) return;
+  const exportToExcel = async () => {
+    if (!presenceItems || !stats) return;
     
     const teamLabel = teamFilter === 'ALL' ? 'TODOS' : 
                       teamFilter === 'NONE' ? 'SEM EQUIPE' : 
@@ -180,34 +182,33 @@ export function Mk9PresenceModule() {
                             supervisorFilter === 'NONE' ? 'SEM SUPERVISOR' :
                             supervisors?.find(s => s.id === supervisorFilter)?.name || '—';
 
-    const headerRows = [
-      ['MK9 TRADE'],
-      ['CONTROLE DE PRESENÇA'],
-      [''],
-      ['Equipe:', teamLabel],
-      ['Supervisor:', supervisorLabel],
-      ['Data:', format(parseISO(date), "dd/MM/yyyy")],
-      [''],
-      ['MATRÍCULA', 'NOME', 'UF', 'STATUS', 'OBSERVAÇÃO']
-    ];
+    try {
+      toast.loading("Gerando relatório visual...");
+      
+      const exportItems = await getExportDataFn({ 
+        data: { 
+          date, 
+          filters: { search, uf: ufFilter, teamId: teamFilter, supervisorId: supervisorFilter } 
+        } 
+      });
 
-    const dataRows = presenceItems.map(item => [
-      item.registration_number || "-",
-      item.name,
-      item.uf || "-",
-      localPresence[item.id]?.status === 'PRESENT' ? 'PRESENTE' :
-      localPresence[item.id]?.status === 'ABSENT' ? 'FALTA' :
-      localPresence[item.id]?.status === 'MEDICAL_CERTIFICATE' ? 'ATESTADO' : 
-      localPresence[item.id]?.status === 'VACATION' ? 'FÉRIAS' : 'NÃO MARCADO',
-      localPresence[item.id]?.observation || "-"
-    ]);
+      const { generatePresenceVisualExport } = await import("@/lib/mk9-presence-export.client");
+      
+      await generatePresenceVisualExport({
+        items: exportItems,
+        stats: localStats,
+        date,
+        teamLabel,
+        supervisorLabel
+      });
 
-    const ws = XLSX.utils.aoa_to_sheet([...headerRows, ...dataRows]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Presença");
-    
-    const fileName = `PRESENCA - ${teamLabel} - ${format(parseISO(date), "dd-MM-yyyy")}.xlsx`;
-    XLSX.writeFile(wb, fileName);
+      toast.dismiss();
+      toast.success("Relatório exportado com sucesso.");
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.dismiss();
+      toast.error("Erro ao gerar exportação visual.");
+    }
   };
 
   const localStats = useMemo(() => {
