@@ -268,6 +268,11 @@ export async function internalChecklistCommit(ctx: Mk9AuthContext, data: Checkli
         console.error(`[COMMIT-ERROR] Divergência crítica: ${resolvedItems.length} itens resolvidos mas 0 persistidos/skipped.`);
         throw new Error(`Falha na persistência: ${resolvedItems.length} visitas identificadas mas nenhuma gravada no banco.`);
       }
+      
+      // MK9 v3.5.0: Telemetria de transparência. Se todas foram skipped, registrar o motivo.
+      if (resolvedItems.length > 0 && persisted === 0 && skipped > 0) {
+        console.log(`[COMMIT-TELEMETRY] Todas as ${skipped} visitas já existiam para a indústria ${data.industryId}.`);
+      }
 
       // 4) Persiste frequência contratada por loja (usa o snapshot da prévia
       //    salvo em mk9_checklist_imports.preview). Fonte oficial da métrica
