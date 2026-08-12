@@ -359,8 +359,11 @@ export async function loadOperationCore(
 
   const importIdByIndustry = new Map<string, string>();
   for (const imp of allImports ?? []) {
-    // Se já temos uma marcada como 'current', ela tem precedência absoluta
+    // REGRA DE OURO MK9 (v1.3.16): Priorizamos a importação marcada como operacional (vigente).
+    // Se houver mais de uma (raro, mas possível em transições), pegamos a mais recente.
     const existing = importIdByIndustry.get(imp.industry_id);
+    
+    // Se não temos nada, ou a nova é current, ou a anterior não era current mas a nova é
     if (!existing || imp.is_operational_current) {
       importIdByIndustry.set(imp.industry_id, imp.id);
     }
