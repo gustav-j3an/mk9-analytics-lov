@@ -287,8 +287,8 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
     })));
 
     // Validação de paridade (Dev-Only Check)
-    const totalByAtendimentos = itemsList.reduce((acc, it) => acc + it["VALOR DO ATENDIMENTO"], 0);
-    const totalByDailies = dailies.reduce((acc, d) => acc + calculateFinancialTotal(d), 0);
+    const totalByAtendimentos = itemsList.reduce((acc: number, it: any) => acc + it["VALOR DO ATENDIMENTO"], 0);
+    const totalByDailies = dailies.reduce((acc: number, d: any) => acc + calculateFinancialTotal(d), 0);
     
     if (Math.abs(totalByAtendimentos - totalByDailies) > 0.01) {
       console.error(`[MK9 CONSISTENCY ERROR] Export parity failed: Atendimentos=${totalByAtendimentos} vs Dailies=${totalByDailies}`);
