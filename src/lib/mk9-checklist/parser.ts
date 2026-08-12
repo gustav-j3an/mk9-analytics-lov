@@ -94,6 +94,16 @@ function detectDateColumn(cell: unknown): string | null {
       return `${year}-${pad2(month)}-${pad2(day)}`;
     }
   }
+  
+  // MK9 v3.4.0: Telemetria de datas ignoradas
+  if (cell !== null && cell !== undefined && String(cell).trim().length > 0) {
+    const s = String(cell).trim();
+    // Se parece uma data (tem números e separadores) mas não passou no regex/validadores acima
+    if (s.match(/\d/) && s.match(/[\/\-.]/)) {
+      return "INVALID_DATE_FORMAT";
+    }
+  }
+
   return null;
 }
 
