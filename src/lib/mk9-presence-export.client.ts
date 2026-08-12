@@ -232,7 +232,7 @@ export async function generatePresenceVisualExport({
 
   // Freeze Header
   worksheet.views = [
-    { state: "frozen", xSplit: 0, ySplit: tableHeaderRowIdx, activePane: "bottomLeft" }
+    { state: "frozen", xSplit: 0, ySplit: tableHeaderRowIdx }
   ];
 
   // AutoFilter
