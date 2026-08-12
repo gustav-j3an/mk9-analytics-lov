@@ -1500,6 +1500,23 @@ function IndividualImport({
             <MiniStat label="Novas lojas" value={preview.counters.storesNew} tone="amber" />
           </div>
 
+          {preview.warnings.length > 0 && (
+            <div className="mt-4 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 space-y-2 shadow-inner">
+              <h4 className="text-[10px] font-bold text-amber-500 uppercase tracking-widest flex items-center gap-2">
+                <AlertTriangle className="w-3 h-3" />
+                Diagnóstico de Telemetria (Parser v3.4.0)
+              </h4>
+              <ul className="space-y-1.5">
+                {preview.warnings.map((w: string, i: number) => (
+                  <li key={i} className="text-xs text-amber-600 dark:text-amber-400/80 flex items-start gap-2 leading-relaxed">
+                    <span className="mt-1.5 w-1 h-1 rounded-full bg-amber-500/50 shrink-0" />
+                    {w}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="rounded-lg border bg-card/60 p-3">
             <div className="mb-2 flex items-center gap-2 text-sm font-medium">
               <AlertTriangle className="h-4 w-4 text-[color:var(--color-kpi-amber)]" />

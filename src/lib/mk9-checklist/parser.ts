@@ -94,6 +94,16 @@ function detectDateColumn(cell: unknown): string | null {
       return `${year}-${pad2(month)}-${pad2(day)}`;
     }
   }
+  
+  // MK9 v3.4.0: Telemetria de datas ignoradas
+  if (cell !== null && cell !== undefined && String(cell).trim().length > 0) {
+    const s = String(cell).trim();
+    // Se parece uma data (tem números e separadores) mas não passou no regex/validadores acima
+    if (s.match(/\d/) && s.match(/[\/\-.]/)) {
+      return "INVALID_DATE_FORMAT";
+    }
+  }
+
   return null;
 }
 
@@ -219,7 +229,11 @@ export function parseChecklistWorkbook(
           continue;
         }
         const iso = detectDateColumn(cell);
-        if (iso) localDateCols.push({ col: c, iso });
+        if (iso === "INVALID_DATE_FORMAT") {
+          out.warnings.push(`Coluna ${c + 1} na linha ${r + 1} ignorada: Formato de data não reconhecido ("${cell}").`);
+        } else if (iso) {
+          localDateCols.push({ col: c, iso });
+        }
       }
 
       // Restringe às datas entre VISITA MENSAL e REALIZADO quando ambos existem.
@@ -361,7 +375,21 @@ export function parseChecklistWorkbook(
 
 
 
-      if (/^(total|totais|geral|subtotal)/i.test(storeName)) continue;
+      // MK9 REFINEMENT (v3.4.0): A line is only a summary/footer if it matches keywords
+      // AND has no visit marks. This prevents discarding stores like "TOTAL LUBRIFICANTES".
+      const isSummaryName = /^(total|totais|geral|subtotal)/i.test(storeName);
+      let hasMarks = false;
+      for (const { col } of dateCols) {
+        if (isDayMarked(row[col])) {
+          hasMarks = true;
+          break;
+        }
+      }
+
+      if (isSummaryName && !hasMarks) {
+        debug("line-ignored", "Linha de resumo ignorada", { storeName, excelRow: r + 1 });
+        continue;
+      }
 
       const uf = ufValue;
       const weekly = weeklyCol >= 0 ? parseNumber(row[weeklyCol]) : null;

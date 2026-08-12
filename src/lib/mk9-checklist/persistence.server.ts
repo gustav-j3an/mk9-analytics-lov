@@ -316,13 +316,13 @@ export async function persistActualVisits(
 ) {
   if (!rows.length) return { persisted: 0, skipped: 0 };
 
-  // Deduplica no lote por (store, date)
+  // MK9 v3.4.0: Chave de dedup deve incluir industryId para permitir mesma loja/data em indústrias diferentes
   const dedup = new Map<string, { storeId: string; scheduledDate: string }>();
-  for (const r of rows) dedup.set(`${r.storeId}|${r.scheduledDate}`, r);
+  for (const r of rows) dedup.set(`${industryId}|${r.storeId}|${r.scheduledDate}`, r);
   const list = Array.from(dedup.values());
 
   // Verifica quais já existem para reportar "skipped"
-  const keys = list.map((r) => `${r.storeId}|${r.scheduledDate}`);
+  const keys = list.map((r) => `${industryId}|${r.storeId}|${r.scheduledDate}`);
   const { data: existing, error: exErr } = await supabaseAdmin
     .from("mk9_actual_visits")
     .select("store_id, scheduled_date")
@@ -331,7 +331,7 @@ export async function persistActualVisits(
     .in("store_id", Array.from(new Set(list.map((r) => r.storeId))));
   if (exErr) throw new Error(exErr.message);
   const existingSet = new Set(
-    (existing ?? []).map((r: any) => `${r.store_id}|${r.scheduled_date}`),
+    (existing ?? []).map((r: any) => `${industryId}|${r.store_id}|${r.scheduled_date}`),
   );
   const skipped = keys.filter((k) => existingSet.has(k)).length;
 
