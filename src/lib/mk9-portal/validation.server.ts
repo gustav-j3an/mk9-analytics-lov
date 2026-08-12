@@ -67,10 +67,9 @@ export async function processVisitEvidenceLogic(data: {
 
   // APROVAÇÃO: Fluxo Transacional via RPC mk9_approve_visit_evidence
   // MISSÃO 5.1: Garantir atomicidade real e conciliação cross-origin.
-  // @ts-ignore - RPC definida via migração SQL
-  const { data: result, error: rpcError } = await supabaseAdmin.rpc('mk9_approve_visit_evidence', {
+  const { error: rpcError } = await supabaseAdmin.rpc('mk9_approve_visit_evidence', {
     p_evidence_id: data.evidenceId,
-    p_reviewer_id: ctx.userId,
+    p_reviewer_id: ctx.userId as string,
     p_now: now
   });
 
