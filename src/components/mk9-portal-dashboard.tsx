@@ -90,7 +90,8 @@ export function Mk9PortalDashboard() {
         data: {
           plannedRouteId: routeId,
           photoPath: filePath,
-          capturedAt: now.toISOString()
+          capturedAt: now.toISOString(),
+          mimeType: compressedFile.type
         }
       });
 

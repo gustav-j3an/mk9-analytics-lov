@@ -9,12 +9,21 @@ export const uploadVisitEvidence = createServerFn({ method: "POST" })
       plannedRouteId: z.string().uuid(),
       photoPath: z.string(),
       capturedAt: z.string().datetime().optional(),
+      mimeType: z.string().optional(),
     }).parse(data)
   )
   .handler(async ({ data }) => {
     const promoter = await getCurrentPromoter();
     if (!promoter) {
       throw new Error("PROMOTER_NOT_FOUND");
+    }
+
+    // Validação de MIME Type no servidor
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (data.mimeType && !allowedMimeTypes.includes(data.mimeType)) {
+      // Se subir algo inválido, tentamos limpar imediatamente
+      await supabaseAdmin.storage.from("visit-evidence").remove([data.photoPath]);
+      throw new Error("INVALID_FILE_TYPE");
     }
 
     // 1. Validar que a planned_route pertence ao promotor e obter IDs relacionados
@@ -26,19 +35,31 @@ export const uploadVisitEvidence = createServerFn({ method: "POST" })
       .single();
 
     if (routeError || !route) {
+      // Se a rota for inválida ou acesso negado, limpar upload órfão
+      await supabaseAdmin.storage.from("visit-evidence").remove([data.photoPath]);
       throw new Error("INVALID_ROUTE_OR_ACCESS_DENIED");
     }
 
-    // 2. Verificar se já existe evidência PENDING para esta visita
-    const { data: existingEvidence } = await supabaseAdmin
+    // 2. Verificar se já existe evidência para esta visita
+    const { data: existingEvidence, error: fetchError } = await supabaseAdmin
       .from("mk9_visit_evidence")
-      .select("id, photo_path")
+      .select("id, photo_path, status")
       .eq("planned_route_id", route.id)
-      .eq("status", "PENDING")
       .maybeSingle();
 
+    if (fetchError) {
+      await supabaseAdmin.storage.from("visit-evidence").remove([data.photoPath]);
+      throw fetchError;
+    }
+
+    // Regra: APPROVED ou REJECTED (bloqueado por enquanto) não podem ser substituídas
+    if (existingEvidence && existingEvidence.status !== "PENDING") {
+      await supabaseAdmin.storage.from("visit-evidence").remove([data.photoPath]);
+      throw new Error("EVIDENCE_ALREADY_PROCESSED");
+    }
+
     if (existingEvidence) {
-      // 3. Atualizar evidência existente (Substituição)
+      // 3. Atualizar evidência existente (Substituição Segura)
       const oldPhotoPath = existingEvidence.photo_path;
       
       const { error: updateError } = await supabaseAdmin
@@ -50,11 +71,20 @@ export const uploadVisitEvidence = createServerFn({ method: "POST" })
         })
         .eq("id", existingEvidence.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        // Se falhar o banco, removemos a foto nova pra não ficar órfã
+        await supabaseAdmin.storage.from("visit-evidence").remove([data.photoPath]);
+        throw updateError;
+      }
 
       // 4. Tentar remover arquivo antigo (Cleanup)
+      // Se falhar aqui, não revertemos o banco (B é válida), mas emitimos log
       if (oldPhotoPath !== data.photoPath) {
-        await supabaseAdmin.storage.from("visit-evidence").remove([oldPhotoPath]);
+        try {
+          await supabaseAdmin.storage.from("visit-evidence").remove([oldPhotoPath]);
+        } catch (cleanupErr) {
+          console.error("[EVIDENCE] Falha ao remover foto antiga órfã:", oldPhotoPath, cleanupErr);
+        }
       }
 
       return { success: true, id: existingEvidence.id, updated: true };
@@ -75,7 +105,11 @@ export const uploadVisitEvidence = createServerFn({ method: "POST" })
       .select("id")
       .single();
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      // Se falhar a criação no banco, limpar o upload do storage
+      await supabaseAdmin.storage.from("visit-evidence").remove([data.photoPath]);
+      throw insertError;
+    }
 
     return { success: true, id: newEvidence.id, updated: false };
   });
