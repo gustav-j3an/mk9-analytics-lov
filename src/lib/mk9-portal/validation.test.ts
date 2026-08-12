@@ -1,9 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { processVisitEvidenceLogic } from "./validation.server";
 
-// Mocks
-const mockRpc = vi.fn(() => Promise.resolve({ data: { success: true }, error: null as any }));
-
 vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
     from: vi.fn(() => ({
@@ -21,23 +18,26 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       })),
       insert: vi.fn()
     })),
-    rpc: mockRpc
+    rpc: vi.fn(() => Promise.resolve({ data: { success: true }, error: null as any }))
   }
 }));
 
-// Mock Auth
 vi.mock("@/lib/mk9-auth/require-role.server", () => ({
   requireMk9Role: vi.fn(() => Promise.resolve({ userId: "user-123", roles: ["ADMIN"] }))
 }));
 
 describe("MK9 Validation Center - Server Logic (Missão 5.1)", () => {
   it("TESTE B - ADMIN aprova evidência via RPC", async () => {
-    mockRpc.mockClear();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const rpcMock = vi.mocked(supabaseAdmin.rpc);
+    rpcMock.mockClear();
+    
     const result = await processVisitEvidenceLogic({ 
       evidenceId: "ev-123", action: "APPROVE" 
     });
+    
     expect(result.success).toBe(true);
-    expect(mockRpc).toHaveBeenCalledWith('mk9_approve_visit_evidence', expect.objectContaining({
+    expect(rpcMock).toHaveBeenCalledWith('mk9_approve_visit_evidence', expect.objectContaining({
       p_evidence_id: "ev-123",
       p_reviewer_id: "user-123"
     }));
@@ -50,7 +50,10 @@ describe("MK9 Validation Center - Server Logic (Missão 5.1)", () => {
   });
 
   it("TESTE D - Erro na RPC deve ser propagado", async () => {
-    mockRpc.mockReturnValueOnce(Promise.resolve({ data: null as any, error: { message: "EVIDENCIA_NAO_ENCONTRADA" } as any }));
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const rpcMock = vi.mocked(supabaseAdmin.rpc);
+    rpcMock.mockReturnValueOnce(Promise.resolve({ data: null as any, error: { message: "EVIDENCIA_NAO_ENCONTRADA" } as any }));
+    
     await expect(processVisitEvidenceLogic({ 
       evidenceId: "ev-123", action: "APPROVE" 
     })).rejects.toThrow("EVIDENCIA_NAO_ENCONTRADA_OU_JA_PROCESSADA");
