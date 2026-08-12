@@ -21,14 +21,18 @@ export const Route = createFileRoute("/cleanup")({
 });
 
 function CleanupPage() {
-  const { session, loading } = useMk9Session();
+  const { session, loading, roles } = useMk9Session();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !session) {
-      navigate({ to: "/", replace: true });
+    if (!loading) {
+      if (!session) {
+        navigate({ to: "/", replace: true });
+      } else if (roles.includes("PROMOTOR") && !roles.includes("ADMIN") && !roles.includes("SUPERVISOR")) {
+        navigate({ to: "/mk9-portal", replace: true });
+      }
     }
-  }, [loading, session, navigate]);
+  }, [loading, session, roles, navigate]);
 
   if (loading || !session) {
     return (
