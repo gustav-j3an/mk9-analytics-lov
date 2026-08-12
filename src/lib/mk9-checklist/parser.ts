@@ -229,7 +229,11 @@ export function parseChecklistWorkbook(
           continue;
         }
         const iso = detectDateColumn(cell);
-        if (iso) localDateCols.push({ col: c, iso });
+        if (iso === "INVALID_DATE_FORMAT") {
+          out.warnings.push(`Coluna ${c + 1} na linha ${r + 1} ignorada: Formato de data não reconhecido ("${cell}").`);
+        } else if (iso) {
+          localDateCols.push({ col: c, iso });
+        }
       }
 
       // Restringe às datas entre VISITA MENSAL e REALIZADO quando ambos existem.
