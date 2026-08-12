@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
-    title: "MK9 | v3.4.0 — IMPORT ENGINE STABILIZATION",
+    title: "MK9 | v3.5.0 — CICOPAL INVESTIGATION",
     meta: [
       {
         name: "description",
