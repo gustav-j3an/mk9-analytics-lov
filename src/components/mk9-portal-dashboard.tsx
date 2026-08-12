@@ -116,8 +116,47 @@ export function Mk9PortalDashboard() {
       toast.error("Falha ao enviar evidência. Tente novamente.");
     } finally {
       setUploadingRouteId(null);
+      setCapturedLocation(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const captureGpsAndTriggerFile = async (routeId: string) => {
+    if (!navigator.geolocation) {
+      toast.error("Seu navegador não suporta geolocalização.");
+      return;
+    }
+
+    setGpsLoading(routeId);
+    
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCapturedLocation({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+          accuracy: pos.coords.accuracy
+        });
+        setGpsLoading(null);
+        (window as any)._currentRouteId = routeId;
+        fileInputRef.current?.click();
+      },
+      (err) => {
+        setGpsLoading(null);
+        console.error("[GPS] Erro:", err);
+        if (err.code === 1) {
+          toast.error("Permissão de localização negada. Precisamos do GPS para validar a visita.");
+        } else if (err.code === 3) {
+          toast.error("Tempo esgotado ao tentar obter localização.");
+        } else {
+          toast.error("Falha ao obter localização. Verifique o GPS.");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
   };
 
   useEffect(() => {
