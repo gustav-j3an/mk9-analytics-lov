@@ -18,7 +18,10 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       })),
       insert: vi.fn()
     })),
-    rpc: vi.fn(() => Promise.resolve({ data: { success: true, visit_id: "visit-123" }, error: null }))
+    rpc: vi.fn(() => ({
+      data: { success: true, visit_id: "visit-123" },
+      error: null
+    }))
   }
 }));
 
@@ -50,7 +53,7 @@ describe("MK9 Validation Center - Server Logic (Missão 5.1)", () => {
 
   it("TESTE D - Erro na RPC deve ser propagado", async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    vi.mocked(supabaseAdmin.rpc).mockReturnValueOnce(Promise.resolve({ data: null as any, error: { message: "EVIDENCIA_NAO_ENCONTRADA" } as any }));
+    vi.mocked(supabaseAdmin.rpc).mockReturnValueOnce({ data: null as any, error: { message: "EVIDENCIA_NAO_ENCONTRADA" } as any } as any);
     
     await expect(processVisitEvidenceLogic({ 
       evidenceId: "ev-123", action: "APPROVE" 
