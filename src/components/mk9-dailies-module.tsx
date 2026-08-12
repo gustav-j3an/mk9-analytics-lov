@@ -116,11 +116,7 @@ export function Mk9DailiesModule() {
     const realized = dailies.filter((d: any) => d.status === 'REALIZADA');
     
     // REGRA MK9 v2.6.0: Total = Soma dos Atendimentos (Valor Unitário de cada item)
-    const calculateTotal = (dailyList: any[]) => dailyList.reduce((acc: number, d: any) => {
-      const industryCount = d.items?.length || 0;
-      const unitRate = Number(d.amount) || 0;
-      return acc + (unitRate * industryCount);
-    }, 0);
+    const calculateTotal = (dailyList: any[]) => dailyList.reduce((acc: number, d: any) => acc + calculateFinancialTotal(d), 0);
 
     const total = calculateTotal(realized);
     const toPay = calculateTotal(dailies.filter((d: any) => d.payment_status === 'A PAGAR'));
@@ -482,9 +478,14 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
 
   const totals = useMemo(() => {
     if (!dailies) return { count: 0, amount: 0 };
+    
+    // Contagem baseada em ATENDIMENTOS (v2.6.0)
+    const attendanceCount = dailies.reduce((acc: number, d: any) => acc + (d.items?.length || 0), 0);
+    const amount = dailies.reduce((acc: number, d: any) => acc + calculateFinancialTotal(d), 0);
+    
     return {
-      count: dailies.length,
-      amount: dailies.reduce((acc: number, d: any) => acc + (Number(d.amount) * (d.items?.length || 0)), 0)
+      count: attendanceCount,
+      amount: amount
     };
   }, [dailies]);
 
@@ -511,7 +512,7 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
           <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-center space-y-2">
             <p className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.2em]">Pendente no Período</p>
             <p className="text-4xl font-black text-foreground tracking-tighter">R$ {totals.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            <p className="text-xs text-amber-500/80 font-medium">{totals.count} diárias aguardando pagamento</p>
+            <p className="text-xs text-amber-500/80 font-medium">{totals.count} atendimentos aguardando pagamento</p>
           </div>
 
           <div className="space-y-4">
@@ -537,20 +538,20 @@ function BiWeeklyClosingPanel({ open, onOpenChange }: any) {
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Resumo por Freelancer</label>
             <div className="space-y-2">
               {isLoading ? <p className="text-xs text-muted-foreground italic">Carregando...</p> : 
-               Object.values((dailies || []).reduce((acc: any, d: any) => {
-                 if(!acc[d.freelancer_id]) acc[d.freelancer_id] = { name: d.freelancer.name, count: 0, amount: 0 };
-                 acc[d.freelancer_id].count++;
-                 acc[d.freelancer_id].amount += Number(d.amount);
-                 return acc;
-               }, {}) || {}).map((f: any, i: number) => (
-                 <div key={i} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg border border-border/50">
-                   <div>
-                     <p className="text-xs font-bold text-foreground">{f.name}</p>
-                     <p className="text-[10px] text-muted-foreground">{f.count} diárias</p>
-                   </div>
-                   <p className="text-sm font-mono font-bold text-amber-400">R$ {f.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                 </div>
-               ))
+                Object.values((dailies || []).reduce((acc: any, d: any) => {
+                  if(!acc[d.freelancer_id]) acc[d.freelancer_id] = { name: d.freelancer.name, count: 0, amount: 0 };
+                  acc[d.freelancer_id].count += (d.items?.length || 0);
+                  acc[d.freelancer_id].amount += calculateFinancialTotal(d);
+                  return acc;
+                }, {}) || {}).map((f: any, i: number) => (
+                  <div key={i} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg border border-border/50">
+                    <div>
+                      <p className="text-xs font-bold text-foreground">{f.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{f.count} atendimentos</p>
+                    </div>
+                    <p className="text-sm font-mono font-bold text-amber-400">R$ {f.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                ))
               }
             </div>
           </div>
