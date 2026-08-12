@@ -21,7 +21,15 @@ export const mk9GetPromoterAccessStatus = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .single();
 
-    if (error || !promoter) return { hasUser: false, plannedVisits: 0, storesCount: 0 };
+    if (error || !promoter) return { hasUser: false, plannedVisits: 0, storesCount: 0, email: null, isActive: false, month: new Date().getMonth() + 1, year: new Date().getFullYear() };
+
+    let email = null;
+    let isActive = false;
+    if (promoter.user_id) {
+       const { data: profile } = await supabaseAdmin.from("mk9_profiles").select("email, active").eq("user_id", promoter.user_id).single();
+       email = profile?.email;
+       isActive = !!profile?.active;
+    }
 
     const { count } = await supabaseAdmin
       .from("mk9_planned_routes")
@@ -40,7 +48,11 @@ export const mk9GetPromoterAccessStatus = createServerFn({ method: "POST" })
     return {
       hasUser: !!promoter.user_id,
       plannedVisits: count || 0,
-      storesCount: uniqueStores.size
+      storesCount: uniqueStores.size,
+      email,
+      isActive,
+      month: new Date().getMonth() + 1,
+      year: new Date().getFullYear()
     };
   });
 
@@ -100,6 +112,7 @@ export const mk9CreatePromoter = createServerFn({ method: "POST" })
       .from("mk9_promoters")
       .insert({
         name: data.name,
+        name_normalized: data.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
         city: data.city,
         uf: data.uf,
         contact: data.contact,
@@ -126,6 +139,7 @@ export const mk9UpdatePromoter = createServerFn({ method: "POST" })
       .from("mk9_promoters")
       .update({
         name: data.data.name,
+        name_normalized: data.data.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
         city: data.data.city,
         uf: data.data.uf,
         contact: data.data.contact,
@@ -165,5 +179,12 @@ export const mk9PromoterDeleteImpact = createServerFn({ method: "POST" })
       .from("mk9_planned_routes")
       .select("*", { count: "exact", head: true })
       .eq("promoter_id", data.id);
-    return { routesCount: routes || 0 };
+    
+    // Simplificando visits para resolver erro TS (core.server demoraria muito aqui)
+    const { count: visits } = await supabaseAdmin
+      .from("mk9_actual_visits")
+      .select("*", { count: "exact", head: true })
+      .eq("promoter_id", data.id);
+
+    return { routesCount: routes || 0, visitsCount: visits || 0 };
   });
