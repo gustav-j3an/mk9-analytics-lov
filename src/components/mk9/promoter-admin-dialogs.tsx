@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2, UserPlus, Shield, MessageSquare, ExternalLink, Calendar, Copy, Check, QrCode } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,10 +27,13 @@ import {
   mk9UpdatePromoter,
   mk9DeletePromoter,
   mk9PromoterDeleteImpact,
+  mk9GetPromoterAccessStatus,
 } from "@/lib/mk9-promoters.functions";
 import { listPresenceTeams } from "@/lib/mk9-presence-teams.functions";
 import { listSupervisors } from "@/lib/mk9-supervisors.functions";
 import { mk9ListProfiles } from "@/lib/mk9-data.functions";
+import { mk9CreateUser } from "@/lib/mk9-users.functions";
+import { Mk9Badge, Mk9MetricCard, Mk9Panel } from "./design-system";
 
 
 export function PromoterDialog({
