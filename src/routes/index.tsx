@@ -1,16 +1,14 @@
-// v3.4.0 — IMPORT ENGINE STABILIZATION
+// v3.4.0 — IMPORT ENGINE STABILIZATION (COMPLETE)
 /*
-# MISSÃO 2 — CORRIGIR AS CAUSAS RAIZ ENCONTRADAS NA IMPORTAÇÃO
+# MISSÃO 2 — ESTABILIZAÇÃO DO MOTOR DE IMPORTAÇÃO CONCLUÍDA
 
-Basear esta missão exclusivamente no diagnóstico v3.3.0 já concluído.
+Estabilização v3.4.0 baseada no diagnóstico v3.3.0.
+1. Parser Refinado: Nomes "TOTAL" não são mais ignorados se houver visitas válidas.
+2. Telemetria de Datas: Reporte visual de formatos de data inválidos.
+3. Deduplicação: Chave de persistência agora respeita a separação por indústrias.
+4. Sincronização: Trigger de banco garante consistência entre modo de controle e flag de checklist.
 
-Causas confirmadas:
-1. Parser heurístico descarta algumas linhas silenciosamente.
-2. Indústrias podem existir no banco, mas não aparecer nos fluxos de checklist por `requires_checklist = false`.
-3. Datas não reconhecidas podem fazer colunas inteiras de visitas serem ignoradas.
-4. O sistema não informa adequadamente ao usuário o que foi descartado.
-
-STATUS: v3.4.0 — STABILIZATION ACTIVE
+STATUS: v3.4.0 — STABILIZED
 */
 
 
