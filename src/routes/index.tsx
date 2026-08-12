@@ -1,19 +1,14 @@
-// v3.5.0 — INVESTIGAÇÃO CICOPAL CONCLUÍDA
+// v3.6.0 — INDUSTRY NAME EDIT FIXED
 /*
-# MISSÃO 3 — INVESTIGAÇÃO DE PERSISTÊNCIA CICOPAL CONCLUÍDA
+# MISSÃO — CORRIGIR EDIÇÃO DO NOME DA INDÚSTRIA
 
-## CICOPAL — TRACE
-Parser: IDENTIFICADO (28 visitas)
-Preview: GERADO (28 visitas)
-Snapshot: SALVO (28 visitas)
-Commit: EXECUTADO
-Industry resolution: OK (6e8c1ff7-a364-4fcd-ad27-0a18eaf8485d)
-Store resolution: OK (7 lojas resolvidas)
-Payload: GERADO (28 itens)
-Dedup: OK (Diferencia indústrias)
-Upsert: OK (Diferencia indústrias)
-Banco: 0 NOVAS / 28 EXISTENTES
-Auditoria: OK (VALIDATED)
+## STATUS: CONCLUÍDO (v3.6.0)
+- Motor de atualização restaurado com suporte a `name` e `name_normalized`.
+- Sincronização automática com `mk9_industry_period_config`.
+- Tratamento de conflito de duplicidade (UNIQUE) implementado.
+- Reatividade garantida via invalidação de cache.
+*/
+
 
 ## FUNIL
 28 identificadas
