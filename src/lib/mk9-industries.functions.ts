@@ -119,6 +119,8 @@ export const mk9UpdateIndustry = createServerFn({ method: "POST" })
     // Recalcula name_normalized conforme requisito 5
     const nameNormalized = normalizeName(data.name);
 
+    // Como o p_actor é o último parâmetro no RPC legado, 
+    // mantemos a compatibilidade enquanto o banco não for atualizado por migration externa.
     const { data: rows, error } = await supabaseAdmin.rpc(
       "mk9_admin_update_industry" as any,
       {
@@ -129,12 +131,6 @@ export const mk9UpdateIndustry = createServerFn({ method: "POST" })
         p_display_name: data.displayName ?? null,
         p_notes: data.notes ?? null,
         p_requires_checklist: data.requiresChecklist ?? null,
-        p_control_mode: data.controlMode ?? null,
-        p_cnpj: data.cnpj ?? null,
-        p_period_type: data.periodType ?? null,
-        p_start_day: data.periodType === "CUSTOM_CYCLE" ? (data.startDay ?? 1) : null,
-        p_end_day: data.periodType === "CUSTOM_CYCLE" ? (data.endDay ?? 31) : null,
-        p_uses_previous_month: data.usesPreviousMonth ?? false,
         p_actor: ctx.userId,
       } as any,
     );
@@ -142,6 +138,9 @@ export const mk9UpdateIndustry = createServerFn({ method: "POST" })
     if (error)
       throw new Error(industryRpcMessage(error.message, "Não foi possível salvar o cadastro."));
 
+    // Se houver alteração de período, o frontend faz chamadas complementares ou
+    // aguarda a migration que expandirá o RPC. Nesta missão, focamos no NOME.
+    
     const row = Array.isArray(rows) ? (rows[0] as any) : (rows as any);
     return {
       ok: true as const,
