@@ -62,7 +62,6 @@ export const mk9CreateUser = createServerFn({ method: "POST" })
     z
       .object({
         email: z.string().email(),
-        password: z.string().min(8),
         name: z.string().min(1).optional(),
         phone: z.string().optional(),
         role: z.enum(ROLES).optional(),
@@ -73,15 +72,19 @@ export const mk9CreateUser = createServerFn({ method: "POST" })
     const ctx = await requireMk9Role(["ADMIN"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
-      email: data.email,
-      password: data.password,
-      email_confirm: true,
-      user_metadata: { name: data.name },
-    });
+    // MISSÃO 6D.2: Criar usuário via convite por e-mail (Supabase Auth)
+    // Isso garante que o promotor defina sua própria senha via link seguro.
+    const { data: created, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+      data.email,
+      {
+        data: { name: data.name },
+        redirectTo: `${process.env.VITE_SUPABASE_URL?.replace('.supabase.co', '.lovable.app')}/mk9-portal` // Ajuste para o domínio do app
+      }
+    );
+
     if (error) throw new Error(error.message);
     const userId = created.user?.id;
-    if (!userId) throw new Error("Falha ao criar usuário.");
+    if (!userId) throw new Error("Falha ao convidar usuário.");
 
     // Perfil (trigger deve criar, mas garantimos os campos extras).
     await supabaseAdmin.from("mk9_profiles").upsert(
@@ -101,12 +104,13 @@ export const mk9CreateUser = createServerFn({ method: "POST" })
         .upsert({ user_id: userId, role: data.role }, { onConflict: "user_id,role" });
     }
 
-    await logAudit(ctx, "user.create", "mk9_profiles", userId, {
+    await logAudit(ctx, "user.invite", "mk9_profiles", userId, {
       email: data.email,
       role: data.role,
     });
     return { userId };
   });
+
 
 export const mk9SetUserActive = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>

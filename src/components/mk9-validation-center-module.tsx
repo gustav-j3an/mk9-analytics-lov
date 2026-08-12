@@ -66,10 +66,16 @@ export function Mk9ValidationCenterModule() {
                   ) : <Badge>{ev.status}</Badge>}
                 </div>
                 
-                <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-                  <MapPin className="w-3 h-3" />
-                  {ev.location_status} • {ev.distance_from_store_meters}m
+                <div className="flex flex-col gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted/20 p-2 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-3 h-3" />
+                    {ev.location_status} • {ev.distance_from_store_meters}m (Acc: {ev.accuracy_meters}m)
+                  </div>
+                  <div className="text-[8px] opacity-70">
+                    LOJA: {ev.store?.name} ({ev.store?.chain}) - {ev.store?.uf}
+                  </div>
                 </div>
+
               </CardContent>
             </Card>
           ))}

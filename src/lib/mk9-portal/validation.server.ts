@@ -20,9 +20,10 @@ export async function listVisitEvidencesLogic(data: {
     .select(`
       *,
       promoter:mk9_promoters(name),
-      store:mk9_stores(name, chain),
+      store:mk9_stores(name, chain, uf),
       industry:mk9_industries(name)
     `, { count: 'exact' });
+
 
   if (data.status) query = query.eq("status", data.status);
   if (data.promoterId) query = query.eq("promoter_id", data.promoterId);
