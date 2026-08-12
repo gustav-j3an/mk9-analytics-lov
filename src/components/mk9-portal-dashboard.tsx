@@ -24,7 +24,8 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
-  RotateCcw
+  RotateCcw,
+  Navigation
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -234,8 +235,38 @@ export function Mk9PortalDashboard() {
             <Button variant="outline" className="w-full text-[10px] font-black uppercase tracking-widest" onClick={() => signOut()}>
               Sair da conta
             </Button>
-          </div>
-        ) : (
+                            {route.locationStatus && (
+                              <div className="flex flex-col gap-1.5 p-2 rounded-lg bg-background/40 border border-border/30 mt-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-1.5">
+                                    <Navigation className={`w-3 h-3 ${
+                                      route.locationStatus === 'MATCH' ? 'text-emerald-500' :
+                                      route.locationStatus === 'REVIEW' ? 'text-amber-500' :
+                                      route.locationStatus === 'OUTSIDE' ? 'text-rose-500' : 'text-muted-foreground'
+                                    }`} />
+                                    <span className="text-[8px] font-black uppercase tracking-tighter">
+                                      GPS: {route.locationStatus === 'UNAVAILABLE' ? 'Não Cadastrado' : 
+                                            route.locationStatus === 'MATCH' ? 'Compatível' :
+                                            route.locationStatus === 'REVIEW' ? 'Revisar' : 'Fora do Raio'}
+                                    </span>
+                                  </div>
+                                  {route.distanceFromStore !== null && (
+                                    <span className="text-[8px] font-bold text-muted-foreground">
+                                      {route.distanceFromStore < 1000 
+                                        ? `${Math.round(route.distanceFromStore)}m` 
+                                        : `${(route.distanceFromStore / 1000).toFixed(1)}km`}
+                                    </span>
+                                  )}
+                                </div>
+                                {route.accuracy && (
+                                  <p className="text-[7px] font-bold text-muted-foreground/60 uppercase tracking-tighter">
+                                    Precisão: ±{Math.round(route.accuracy)}m
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
           <>
             {/* Saudação */}
             <section className="space-y-1">
