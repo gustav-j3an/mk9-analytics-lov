@@ -203,9 +203,11 @@ export function Mk9PortalDashboard() {
            <Button variant="ghost" className="w-full text-xs font-bold text-muted-foreground uppercase tracking-widest hover:text-primary">
              Ver roteiro completo do mês
            </Button>
-          </>
-        )}
-      </main>
+        </section>
+      </>
+    )}
+</main>
+
 
 
       {/* Footer / Navbar Mobile */}
