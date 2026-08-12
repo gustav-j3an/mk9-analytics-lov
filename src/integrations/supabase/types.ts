@@ -1769,6 +1769,8 @@ export type Database = {
           id: string
           is_incomplete: boolean
           last_import_id: string | null
+          latitude: number | null
+          longitude: number | null
           name: string
           name_normalized: string
           notes: string | null
@@ -1786,6 +1788,8 @@ export type Database = {
           id?: string
           is_incomplete?: boolean
           last_import_id?: string | null
+          latitude?: number | null
+          longitude?: number | null
           name: string
           name_normalized: string
           notes?: string | null
@@ -1803,6 +1807,8 @@ export type Database = {
           id?: string
           is_incomplete?: boolean
           last_import_id?: string | null
+          latitude?: number | null
+          longitude?: number | null
           name?: string
           name_normalized?: string
           notes?: string | null
@@ -1891,11 +1897,17 @@ export type Database = {
       }
       mk9_visit_evidence: {
         Row: {
+          accuracy_meters: number | null
           captured_at: string
           created_at: string
           delete_after: string | null
+          distance_from_store_meters: number | null
           id: string
           industry_id: string
+          latitude: number | null
+          location_captured_at: string | null
+          location_status: string | null
+          longitude: number | null
           photo_path: string
           planned_route_id: string
           promoter_id: string
@@ -1907,11 +1919,17 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accuracy_meters?: number | null
           captured_at?: string
           created_at?: string
           delete_after?: string | null
+          distance_from_store_meters?: number | null
           id?: string
           industry_id: string
+          latitude?: number | null
+          location_captured_at?: string | null
+          location_status?: string | null
+          longitude?: number | null
           photo_path: string
           planned_route_id: string
           promoter_id: string
@@ -1923,11 +1941,17 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accuracy_meters?: number | null
           captured_at?: string
           created_at?: string
           delete_after?: string | null
+          distance_from_store_meters?: number | null
           id?: string
           industry_id?: string
+          latitude?: number | null
+          location_captured_at?: string | null
+          location_status?: string | null
+          longitude?: number | null
           photo_path?: string
           planned_route_id?: string
           promoter_id?: string
