@@ -259,7 +259,8 @@ export function PromoterDialog({
               </SelectTrigger>
               <SelectContent className="bg-popover border-border text-foreground">
                 <SelectItem value="NONE">Sem Acesso Vinculado</SelectItem>
-                {profiles?.map(p => (
+                {profiles?.map((p: any) => (
+
                   <SelectItem key={p.user_id} value={p.user_id}>{p.name} ({p.email})</SelectItem>
                 ))}
               </SelectContent>
