@@ -5,6 +5,12 @@ import { getNormalizedChain } from "./mk9/chain-normalization";
 
 import { requireMk9Role, logAudit } from "@/lib/mk9-auth/require-role.server";
 
+export function calculateFinancialTotal(daily: any) {
+  const industryCount = daily.items?.length || 0;
+  const unitRate = Number(daily.amount) || 0;
+  return unitRate * industryCount;
+}
+
 export const listDailies = createServerFn({ method: "GET" })
   .inputValidator(z.object({
     startDate: z.string().optional(),
@@ -270,8 +276,6 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       TELEFONE: d.freelancer?.phone || "-",
       LOJA: it.store?.name || "-",
       REDE: it.store ? getNormalizedChain(it.store) : "-",
-
-
       CIDADE: it.store?.city || "-",
       UF: it.store?.uf || "-",
       INDÚSTRIA: it.industry?.name || "-",
@@ -281,6 +285,16 @@ export const getDailiesExportData = createServerFn({ method: "GET" })
       "DATA DE PAGAMENTO": d.payment_date ? new Date(d.payment_date + 'T12:00:00').toLocaleDateString('pt-BR') : "-",
       OBSERVAÇÃO: d.notes || "-"
     })));
+
+    // Validação de paridade (Dev-Only Check)
+    const totalByAtendimentos = itemsList.reduce((acc: number, it: any) => acc + it["VALOR DO ATENDIMENTO"], 0);
+    const totalByDailies = dailies.reduce((acc: number, d: any) => acc + calculateFinancialTotal(d), 0);
+    
+    if (Math.abs(totalByAtendimentos - totalByDailies) > 0.01) {
+      console.error(`[MK9 CONSISTENCY ERROR] Export parity failed: Atendimentos=${totalByAtendimentos} vs Dailies=${totalByDailies}`);
+    }
+
+    return { itemsList };
 
     return { itemsList };
   });
