@@ -5,7 +5,7 @@ interface MatrixRow {
   storeName: string;
   storeChain: string | null;
   uf: string | null;
-  days: Set<number>;
+  days: Record<number, string>;
 }
 
 interface PromoterRouteDocumentProps {
@@ -107,10 +107,10 @@ export function PromoterRouteDocument({
                       key={dayCode} 
                       className={cn(
                         "px-2 py-3 text-center border-r border-slate-200 last:border-r-0",
-                        row.days.has(dayCode) ? "bg-primary/5" : ""
+                        row.days[dayCode] ? "bg-primary/5" : ""
                       )}
                     >
-                      {row.days.has(dayCode) ? (
+                      {row.days[dayCode] ? (
                         <div className="flex justify-center">
                           <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                             <span className="text-xs font-black">✓</span>

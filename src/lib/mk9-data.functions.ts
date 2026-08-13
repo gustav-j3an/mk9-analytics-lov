@@ -301,7 +301,7 @@ export const mk9ListPromoters = createServerFn({ method: "GET" }).handler(async 
     let rq = supabaseAdmin
       .from("mk9_planned_routes")
       .select("promoter_id, store:mk9_stores(uf)")
-      .is("archived_at", null)
+        .is("archived_at", null)
       .not("promoter_id", "is", null)
       .limit(50000);
     if (scope.allowedIndustryIds) rq = rq.in("industry_id", scope.allowedIndustryIds);
