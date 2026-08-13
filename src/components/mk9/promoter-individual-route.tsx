@@ -111,13 +111,8 @@ export function PromoterIndividualRoute() {
   }, [matrix]);
 
   const handlePrint = () => {
-    // Navigate to the preview document route which is optimized for print
-    navigate({ search: { ...search, previewDocument: 'true' } });
-    
-    // Give it a moment to render and then trigger print
-    setTimeout(() => {
-      window.print();
-    }, 500);
+    // Agora o componente já renderiza a visualização final por padrão
+    window.print();
   };
 
 
@@ -136,40 +131,21 @@ export function PromoterIndividualRoute() {
     );
   }
 
-  if (search.previewDocument === 'true') {
-    return (
-      <div className="animate-in fade-in duration-500">
-        <div className="print:hidden fixed top-4 right-4 z-50 flex gap-2">
-          <Button 
-            variant="default"
-            onClick={() => window.print()}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
-          >
-            <Printer className="h-4 w-4 mr-2" />
-            Imprimir Agora
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => navigate({ search: { ...search, previewDocument: undefined } })}
-            className="bg-white border-slate-200 text-slate-600 hover:text-slate-900 font-black uppercase tracking-widest text-[10px]"
-          >
-            <Layout className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-        </div>
+  // Visualização intermediária removida conforme Missão 8A.4
+  // O componente agora renderiza diretamente a matriz final.
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500 relative">
+      {/* MK9 / Rota Individual Header for Print (Mission 8A.4) */}
+      <div className="hidden print:block mb-6 border-b border-primary/20 pb-4">
         <PromoterRouteDocument 
           promoterName={promoter?.name || "N/A"}
           referenceDate={referenceDate}
           totalVisits={totalVisits}
           rows={matrix}
+          minimal={true}
         />
       </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6 animate-in fade-in duration-500 relative">
-      {/* Print-only Header */}
       <div className="hidden print:block mb-8 border-b-2 border-primary/20 pb-4">
         <div className="flex justify-between items-start">
           <div>
@@ -206,7 +182,7 @@ export function PromoterIndividualRoute() {
           className="text-muted-foreground hover:text-foreground -ml-2"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Voltar para Gestão</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Voltar para Roteiros</span>
         </Button>
       </div>
 
@@ -247,15 +223,6 @@ export function PromoterIndividualRoute() {
             </div>
           </div>
 
-          <Button
-            variant="outline"
-            onClick={() => navigate({ search: { ...search, previewDocument: 'true' } })}
-            disabled={matrix.length === 0}
-            className="h-10 border-primary/20 hover:bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 min-w-[140px]"
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            Visualizar Rota
-          </Button>
 
           <Button
             onClick={handlePrint}
