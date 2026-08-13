@@ -7,18 +7,11 @@ export const Route = createFileRoute("/roteiros/")({
       promoterId: z.string().optional(),
     }).parse(search);
   },
-  loader: async (ctx) => {
-    const search = ctx.deps as { promoterId?: string };
-    if (!search?.promoterId) {
-      throw redirect({
-        to: "/dashboard",
-      });
-    }
-  },
-  loaderDeps: ({ search: { promoterId } }) => ({ promoterId }),
-  component: () => {
+  loader: async ({ search }) => {
     throw redirect({
-      to: "/dashboard",
+      to: "/",
+      search: { module: "roteiros", ...search },
     });
-  }
+  },
+
 });
