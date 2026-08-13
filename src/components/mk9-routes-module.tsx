@@ -28,6 +28,10 @@ import { toast } from "sonner";
 import { mk9RoutesListVersioned, mk9RoutesDeleteItem } from "@/lib/mk9-routes.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { RouteItemDialog } from "./mk9/route-item-dialog";
+import {
+  RouteDayEditorDialog,
+  type DayEditorInitial,
+} from "./mk9/route-day-editor-dialog";
 
 
 interface Props {
@@ -43,7 +47,9 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
   const [filterUf, setFilterUf] = useState<string>("all");
   const [filterIndustry, setFilterIndustry] = useState<string>("all");
   const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [dayEditor, setDayEditor] = useState<DayEditorInitial | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+
   const referenceDate = new Date().toISOString().slice(0, 10);
 
 
