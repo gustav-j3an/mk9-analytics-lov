@@ -1,62 +1,38 @@
-# Plan - Missão 8A.3: Editor de Roteiro por Dia (Multi-Loja/Indústria)
+# Plan - Missão 8A.4: Simplificar Rota Individual e Navegação
 
-Reestruturar a gestão de roteiros para permitir edição por dia da semana, agrupando múltiplas lojas e indústrias em uma única interface, mantendo a normalização no banco de dados (`mk9_planned_routes`).
-
-## User Review Required
-
-> [!IMPORTANT]
-> A edição de um dia preservará registros que abrangem outros dias da semana. Se um registro (ex: Loja X, Indústria Y) vale para "SEG + QUA" e você remover da "SEG", ele continuará existindo para "QUA".
-
-- O componente de Combobox pesquisável será baseado no padrão Radix/Command para Promotores e Lojas.
-- O layout do modal de edição será responsivo, com scrolls internos para evitar quebras em telas menores.
+Simplificar o fluxo de visualização da Rota Individual, eliminando a tela intermediária redundante e garantindo que o botão "Ver Rota" leve diretamente à matriz semanal completa (visualização final), com navegação corrigida para retorno ao módulo de Roteiros.
 
 ## Proposed Changes
 
-### 1. Novo Componente: `RouteDayEditorDialog`
-- Criar `src/components/mk9/route-day-editor-dialog.tsx`.
-- Interface:
-  - Título dinâmico (ex: "EDITAR SEGUNDA-FEIRA").
-  - Seleção de Promotor via Combobox pesquisável.
-  - Lista de Lojas adicionadas ao dia.
-  - Para cada loja: Checklist de Indústrias + Botão Remover.
-  - Botão central "[ + ADICIONAR LOJA ]" com busca compacta.
-- Lógica de Persistência:
-  - Identificar registros atuais do promotor no dia selecionado.
-  - Comparar com o novo estado.
-  - Gerar novos registros para adições.
-  - Encerrar registros (via `valid_until`) para remoções.
+### 1. Eliminar Visualização Intermediária em `src/components/mk9/promoter-individual-route.tsx`
+- Remover o estado e a lógica que renderizava a tela intermediária.
+- Transformar a "Visualização 2" (a matriz semanal detalhada) na visualização principal e única do componente.
+- Remover o botão redundante "[ VISUALIZAR ROTA ]".
+- Unificar a ação de impressão/PDF, mantendo apenas "[ IMPRIMIR ROTA ]".
 
-### 2. Ajustes no `MK9RoutesModule`
-- Adicionar botão "[ EDITAR DIA ]" no cabeçalho de cada dia da semana.
-- Adicionar botão "[ + ADICIONAR LOJA NA [DIA] ]" no final de cada bloco diário.
-- Atualizar a visualização para garantir o agrupamento correto Loja > Indústrias.
+### 2. Corrigir Navegação de Retorno
+- Alterar o botão "Voltar para Gestão" para "VOLTAR PARA ROTEIROS".
+- Garantir que o destino seja explicitamente `/dashboard?module=roteiros`, preservando o `promoterId` no search param para manter o foco no promotor selecionado.
 
-### 3. Melhoria no "Novo Roteiro"
-- Refatorar o dialog de criação para o novo "Construtor de Roteiro".
-- Permitir selecionar múltiplos dias e aplicar a mesma matriz de Lojas/Indústrias a todos eles simultaneamente.
+### 3. Ajustes no `Mk9RoutesModule` (`src/components/mk9-routes-module.tsx`)
+- Confirmar que o botão "[ VER ROTA INDIVIDUAL ]" no card do promotor navega diretamente para a rota final sem popups ou passos extras.
 
-### 4. Componentes de UI (Pesquisa Compacta)
-- Implementar `PromoterSearch` e `StoreSearch` com `Command` do shadcn.
-- Configurar `max-height` e scroll interno nos dropdowns.
-- Formatação compacta dos resultados das lojas (Nome, Rede, Cidade/UF).
-
-### 5. Rota Individual e Matriz
-- Garantir que o cálculo de "Total de Visitas" reflita a soma correta das ocorrências semanais.
-- Validar a exibição dos checks na matriz após as edições multi-loja.
+### 4. Preservação de Funcionalidades
+- Manter a funcionalidade de busca por loja/indústria na matriz.
+- Preservar a lógica de referência de data e versionamento.
+- Garantir que o layout de impressão continue operando corretamente a partir da tela única.
 
 ## Technical Details
-
-- **Persistência**: Operações transacionais para garantir que a atualização de um dia não corrompa os outros.
-- **Filtros de Vigência**: Manter a lógica de `valid_from` e `valid_until` para o versionamento.
-- **Performance**: Otimizar a busca de lojas/promotores para lidar com volumes crescentes sem travar a interface.
+- **Navegação**: Uso de `useNavigate` do TanStack Router para transições explícitas.
+- **Estado**: Remoção do parâmetro `previewDocument` do search, já que a tela final será o padrão (ou ajuste para que a tela final seja renderizada imediatamente).
 
 ## Verification Plan
 
-### Automated Tests
-- `bun run test`: Verificar se as métricas operacionais e o motor de roteiros permanecem íntegros.
-- Testar a lógica de diff entre estado anterior e novo no `RouteDayEditorDialog`.
-
 ### Manual Verification
-1. **Teste Anderson**: Abrir Segunda-feira, adicionar Assaí (King/Pacha), salvar e conferir na Rota Individual.
-2. **Pesquisa**: Digitar nomes parciais de promotores e lojas e verificar a velocidade e layout do dropdown.
-3. **Responsividade**: Testar o editor em resolução mobile (375px width).
+1. **Fluxo Anderson**: Acessar Roteiros > Anderson > Ver Rota. Verificar se abre a matriz semanal diretamente.
+2. **Navegação**: Clicar em "VOLTAR PARA ROTEIROS" e confirmar retorno ao Command Center com Anderson selecionado.
+3. **Impressão**: Acionar "Imprimir Rota" e verificar se o layout A4 é gerado corretamente.
+4. **URL Direta**: Acessar a URL da rota individual e testar o botão de voltar.
+
+### Automated Tests
+- Executar `vitest` para garantir que não houve regressão nas métricas calculadas na tela de rota.
