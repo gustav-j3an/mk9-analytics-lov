@@ -180,7 +180,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
             <SelectContent>
               <SelectItem value="all">Todas as UFs</SelectItem>
               {ufs.map(uf => (
-                <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                <SelectItem key={uf} value={uf || "—"}>{uf}</SelectItem>
               ))}
             </SelectContent>
           </Select>
