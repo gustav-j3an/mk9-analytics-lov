@@ -324,7 +324,7 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-orange-400 hover:bg-orange-400/10"
                           title="Acompanhar Execução / Validação"
-                          onClick={() => navigate({ to: "/portal/validacao", search: { promoterId: p.id } })}
+                          onClick={() => navigate({ to: "/dashboard", search: { module: "validacao", promoterId: p.id } as any })}
                         >
                           <ArrowRight className="h-3.5 w-3.5" />
                         </Button>
