@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { Loader2, Calendar, Search } from "lucide-react";
 import { mk9RoutesUpsertItem } from "@/lib/mk9-routes.functions";
 import { Mk9StoreAutocomplete } from "./store-autocomplete";
