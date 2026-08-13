@@ -35,13 +35,13 @@ export const mk9GetPromoterAccessStatus = createServerFn({ method: "POST" })
       .from("mk9_planned_routes")
       .select("*", { count: "exact", head: true })
       .eq("promoter_id", data.id)
-      .is("deactivated_at", null);
+      .is("archived_at", null);
 
     const { data: storesData } = await supabaseAdmin
       .from("mk9_planned_routes")
       .select("store_id")
       .eq("promoter_id", data.id)
-      .is("deactivated_at", null);
+      .is("archived_at", null);
 
     const uniqueStores = new Set(storesData?.map(s => s.store_id) || []);
 
@@ -80,7 +80,7 @@ export const mk9ListPromotersWithStats = createServerFn({ method: "POST" })
     const { data: routes } = await supabaseAdmin
       .from("mk9_planned_routes")
       .select("id, promoter_id, store_id, weekday")
-      .is("deactivated_at", null);
+      .is("archived_at", null);
 
     // 3. Buscar evidências pendentes (contagem global)
     const { data: evidences } = await supabaseAdmin
@@ -146,12 +146,14 @@ export const mk9GetPromoterOperationalRoute = createServerFn({ method: "POST" })
     const monday = new Date(ref.setDate(diff)).toISOString().split('T')[0];
     const sunday = new Date(ref.setDate(diff + 6)).toISOString().split('T')[0];
 
-    // 1. Rota Planejada
+    // 1. Rota Planejada Vigente
     const { data: routes } = await supabaseAdmin
       .from("mk9_planned_routes")
       .select("id, store_id, industry_id, weekday, store:mk9_stores(name, uf, chain), industry:mk9_industries(name)")
       .eq("promoter_id", data.promoterId)
-      .is("deactivated_at", null);
+      .is("archived_at", null)
+      .lte("valid_from", data.referenceDate)
+      .or(`valid_until.is.null,valid_until.gte.${data.referenceDate}`);
 
     // 2. Evidências no período da semana
     const { data: evidences } = await supabaseAdmin
