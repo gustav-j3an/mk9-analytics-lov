@@ -324,7 +324,12 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-orange-400 hover:bg-orange-400/10"
                           title="Acompanhar Execução / Validação"
-                          onClick={() => navigate({ to: "/dashboard", search: { module: "validacao", promoterId: p.id } as any })}
+                          onClick={() => {
+                            // Definimos os filtros e ativamos o módulo via window message ou contexto se disponível
+                            // Por enquanto, como o Mk9AnalyticsApp é o container, podemos usar o navigate para o dashboard 
+                            // e o Mk9AnalyticsApp cuidará do resto se injetarmos os parâmetros.
+                            navigate({ to: "/dashboard", search: { module: "validacao_visitas", promoterId: p.id } as any });
+                          }}
                         >
                           <ArrowRight className="h-3.5 w-3.5" />
                         </Button>
