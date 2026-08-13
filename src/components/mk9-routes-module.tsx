@@ -1,362 +1,301 @@
-// Mk9RoutesModule — Central de Distribuição de Rotas (MK9 Command Center)
-// Unifica a visão de quem possui rota, acesso ao Portal e métricas operacionais.
-
-import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useNavigate } from "@tanstack/react-router";
 import {
-  CalendarClock,
-  Loader2,
-  Plus,
-  Route as RouteIcon,
-  Users,
-  Search,
-  RefreshCw,
-  MapPin,
-  MessageSquare,
-  ExternalLink,
-  Eye,
+  CalendarDays,
   Edit2,
-  History,
-  ShieldCheck,
-  ShieldAlert,
-  ArrowRight
+  Trash2,
+  Plus,
+  Search,
+  ChevronDown,
+  ChevronRight,
+  Store,
+  MapPin,
+  Route as RouteIcon,
+  Copy,
+  Layout,
+  ExternalLink,
+  Loader2,
+  Eye,
+  ArrowRightLeft
 } from "lucide-react";
-import { Mk9PageHeader, Mk9Panel, Mk9MetricCard, Mk9Badge, Mk9LoadingState, Mk9EmptyState } from "./mk9/design-system";
+import { Mk9PageHeader, Mk9Panel, Mk9Badge, Mk9LoadingState, Mk9EmptyState } from "./mk9/design-system";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger,
   SelectValue,
+  SelectTrigger,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { mk9ListPromotersWithStats } from "@/lib/mk9-promoters.functions";
-import { PromoterDialog, PromoterInviteDialog } from "@/components/mk9/promoter-admin-dialogs";
+import { mk9RoutesListVersioned, mk9RoutesDeleteItem } from "@/lib/mk9-routes.functions";
+import { useNavigate } from "@tanstack/react-router";
+import { RouteItemDialog } from "./mk9/route-item-dialog";
+
 
 interface Props {
-  promoters: Array<{ id: string; name: string }>;
+  promoters: Array<{ id: string; name: string; supervisor_id?: string | null }>;
   stores: Array<{ id: string; name: string; chain: string | null; uf: string | null }>;
   industries: Array<{ id: string; name: string }>;
 }
 
-export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries }: Props) {
+export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const today = new Date().toISOString().slice(0, 10);
-  const [referenceDate, setReferenceDate] = useState(today);
   const [search, setSearch] = useState("");
   const [filterUf, setFilterUf] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  
-  const [showCreatePromoter, setShowCreatePromoter] = useState(false);
-  const [invitingPromoter, setInvitingPromoter] = useState<any | null>(null);
-  const [editingPromoter, setEditingPromoter] = useState<any | null>(null);
+  const [filterIndustry, setFilterIndustry] = useState<string>("all");
+  const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const referenceDate = new Date().toISOString().slice(0, 10);
 
-  const refDateObj = new Date(referenceDate + "T12:00:00Z");
-  const year = refDateObj.getFullYear();
-  const month = refDateObj.getMonth() + 1;
 
-  const listStatsFn = useServerFn(mk9ListPromotersWithStats);
-  const { data: promoters = [], isLoading, refetch } = useQuery({
-    queryKey: ["mk9-routes-distribution-center", year, month, referenceDate],
-    queryFn: () => listStatsFn({ data: { year, month, referenceDate } }),
+  const listRoutesFn = useServerFn(mk9RoutesListVersioned);
+  const deleteRouteFn = useServerFn(mk9RoutesDeleteItem);
+
+  const { data: routes = [], isLoading, refetch } = useQuery({
+    queryKey: ["mk9-planned-routes-list", referenceDate],
+    queryFn: () => listRoutesFn({ data: { referenceDate, includeInactive: false } }),
   });
 
-  const filtered = useMemo(() => {
-    return promoters.filter((p: any) => {
-      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
-      const matchesUf = filterUf === "all" || p.uf === filterUf;
-      
-      let matchesStatus = true;
-      if (filterStatus === "no_route") matchesStatus = p.plannedVisits === 0;
-      else if (filterStatus === "no_access") matchesStatus = !p.user_id;
-      else if (filterStatus === "active") matchesStatus = p.plannedVisits > 0 && !!p.user_id;
-      else if (filterStatus === "pending_evidence") matchesStatus = p.pendingEvidences > 0;
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => deleteRouteFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Vínculo de roteiro excluído.");
+      qc.invalidateQueries({ queryKey: ["mk9-planned-routes-list"] });
+    },
+    onError: (err: any) => toast.error(err.message || "Erro ao excluir."),
+  });
 
-      return matchesSearch && matchesUf && matchesStatus;
+  // Agrupamento: Promotor -> Dia -> Loja -> Indústrias
+  const groupedData = useMemo(() => {
+    const filtered = routes.filter((r: any) => {
+      const matchesSearch = r.promoterName.toLowerCase().includes(search.toLowerCase()) || 
+                           r.storeName.toLowerCase().includes(search.toLowerCase());
+      const matchesUf = filterUf === "all" || r.storeUf === filterUf;
+      const matchesInd = filterIndustry === "all" || r.industryId === filterIndustry;
+      return matchesSearch && matchesUf && matchesInd;
     });
-  }, [promoters, search, filterUf, filterStatus]);
 
-  const stats = useMemo(() => {
-    return {
-      total: promoters.length,
-      withRoute: promoters.filter((p: any) => p.plannedVisits > 0).length,
-      withAccess: promoters.filter((p: any) => !!p.user_id).length,
-      totalVisits: promoters.reduce((acc: number, p: any) => acc + (p.plannedVisits || 0), 0),
-      totalRealized: promoters.reduce((acc: number, p: any) => acc + (p.realizedVisits || 0), 0),
-      totalPendingEvidences: promoters.reduce((acc: number, p: any) => acc + (p.pendingEvidences || 0), 0)
-    };
-  }, [promoters]);
+    const map = new Map();
+
+    filtered.forEach((r: any) => {
+      if (!map.has(r.promoterId)) {
+        const promoter = promoters.find(p => p.id === r.promoterId);
+        map.set(r.promoterId, {
+          id: r.promoterId,
+          name: r.promoterName,
+          supervisor: promoter?.supervisor_id || "Sem Supervisor",
+          uf: r.storeUf,
+          days: new Map()
+        });
+      }
+      const p = map.get(r.promoterId);
+      if (!p.days.has(r.weekday)) {
+        p.days.set(r.weekday, new Map());
+      }
+      const d = p.days.get(r.weekday);
+      if (!d.has(r.storeId)) {
+        d.set(r.storeId, {
+          id: r.storeId,
+          name: r.storeName,
+          chain: r.storeChain,
+          industries: []
+        });
+      }
+      d.get(r.storeId).industries.push({
+        id: r.id,
+        industryId: r.industryId,
+        name: r.industryName
+      });
+    });
+
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [routes, search, filterUf, filterIndustry, promoters]);
 
   const ufs = useMemo(() => {
-    return Array.from(new Set(promoters.map((p: any) => p.uf).filter(Boolean))).sort() as string[];
-  }, [promoters]);
+    return Array.from(new Set(stores.map(s => s.uf).filter(Boolean))).sort();
+  }, [stores]);
 
-  if (isLoading) return <Mk9LoadingState message="Carregando central de distribuição..." />;
+  const WEEKDAYS = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+
+  if (isLoading) return <Mk9LoadingState message="Carregando roteiros..." />;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <Mk9PageHeader
-        title="MK9 Command Center"
-        subtitle="Central de Planejamento e Acompanhamento de Rotas"
+        title="Roteiros"
+        subtitle="Gestão da Rota-Base e Planejamento Semanal"
         icon={RouteIcon}
         actions={
           <div className="flex items-center gap-3">
-            <Button
+             <Button
               variant="outline"
               className="h-9 border-border text-muted-foreground hover:text-foreground hover:bg-accent text-[10px] font-black uppercase tracking-widest"
-              onClick={() => refetch()}
+              onClick={() => {}} // TODO: Implementar Transferência
             >
-              <RefreshCw className="h-4 w-4 mr-2" /> Atualizar
+              <ArrowRightLeft className="h-4 w-4 mr-2" /> Transferência
             </Button>
             <Button
-              onClick={() => setShowCreatePromoter(true)}
+              onClick={() => setShowCreate(true)}
               className="h-9 bg-primary hover:bg-primary/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-primary/20 border-none"
             >
-              <Plus className="h-4 w-4 mr-2" /> Novo Promotor
+              <Plus className="h-4 w-4 mr-2" /> Novo Item de Roteiro
             </Button>
+
           </div>
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6">
-        <Mk9MetricCard label="Total Agentes" value={stats.total} icon={Users} color="purple" />
-        <Mk9MetricCard label="Com Rota" value={stats.withRoute} icon={MapPin} color="emerald" hint={`${stats.total - stats.withRoute} sem rota`} />
-        <Mk9MetricCard label="Realizadas" value={stats.totalRealized} icon={ShieldCheck} color="sky" hint={`${stats.totalVisits} programadas`} />
-        <Mk9MetricCard label="Evidências Pend." value={stats.totalPendingEvidences} icon={History} color="orange" />
-        <Mk9MetricCard label="Acesso Portal" value={stats.withAccess} icon={ShieldCheck} color="purple" hint={`${stats.total - stats.withAccess} sem acesso`} />
-      </div>
-
       <Mk9Panel>
-        <div className="flex items-center gap-2 mb-6">
-          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-            <CalendarClock className="h-5 w-5" />
-          </div>
-          <h3 className="text-sm font-black text-foreground uppercase tracking-widest">
-            Filtros Operacionais
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-3 items-end">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-              Data de Referência
-            </label>
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              type="date"
-              value={referenceDate}
-              onChange={(e) => setReferenceDate(e.target.value)}
-              className="h-9 bg-input/50 border-border/50 text-xs text-foreground"
+              placeholder="Buscar promotor ou loja..."
+              className="pl-10 bg-muted/30 border-border"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
-          <div className="col-span-2 space-y-1.5">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-              Busca por Agente
-            </label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Nome do promotor..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-9 bg-input/50 border-border/50 text-xs text-foreground"
-              />
-            </div>
-          </div>
+          <Select value={filterIndustry} onValueChange={setFilterIndustry}>
+            <SelectTrigger className="bg-muted/30 border-border">
+              <SelectValue placeholder="Todas as Indústrias" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Indústrias</SelectItem>
+              {industries.map(i => (
+                <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-              UF
-            </label>
-            <Select value={filterUf} onValueChange={setFilterUf}>
-              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-foreground">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                <SelectItem value="all">Todas UFs</SelectItem>
-                {ufs.map((u) => (
-                  <SelectItem key={u} value={u}>{u}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="col-span-2 space-y-1.5">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-              Status Operacional
-            </label>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="h-9 bg-input/50 border-border/50 text-xs text-foreground">
-                <SelectValue placeholder="Todos" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                <SelectItem value="all">Todos os Status</SelectItem>
-                <SelectItem value="active">Com Rota & Acesso</SelectItem>
-                <SelectItem value="no_route">Sem Rota Planejada</SelectItem>
-                <SelectItem value="no_access">Sem Acesso ao Portal</SelectItem>
-                <SelectItem value="pending_evidence">Com Evidência Pendente</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={filterUf} onValueChange={setFilterUf}>
+            <SelectTrigger className="bg-muted/30 border-border">
+              <SelectValue placeholder="Todas as UFs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as UFs</SelectItem>
+              {ufs.map(uf => (
+                <SelectItem key={uf} value={uf || "—"}>{uf}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="mt-8 overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border/50 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                <th className="px-4 py-4 text-left font-black">Promotor / Supervisor</th>
-                <th className="px-4 py-4 text-left font-black">UF / Cidade</th>
-                <th className="px-4 py-4 text-left font-black">Acesso Portal</th>
-                <th className="px-4 py-4 text-left font-black">Visitas (P/R/P)</th>
-                <th className="px-4 py-4 text-left font-black">Evidências</th>
-                <th className="px-4 py-4 text-right font-black">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/[0.02]">
+        <div className="space-y-6">
+          {groupedData.length === 0 ? (
+            <Mk9EmptyState message="Nenhum roteiro encontrado para os filtros aplicados." />
+          ) : (
+            groupedData.map((promoter: any) => (
+              <div key={promoter.id} className="border border-border/50 rounded-2xl overflow-hidden bg-white/[0.01]">
+                <div className="bg-muted/20 p-4 flex items-center justify-between border-b border-border/50">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                      <Layout className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-foreground uppercase tracking-tight">{promoter.name}</h3>
+                      <div className="flex items-center gap-3 mt-0.5">
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                          <MapPin className="h-2.5 w-2.5" /> {promoter.uf || "—"}
+                        </span>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                           {promoter.supervisor}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="h-8 text-[9px] font-black uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/10"
+                    onClick={() => navigate({ to: `/roteiros/promotor/${promoter.id}` })}
+                  >
+                    <Eye className="h-3.5 w-3.5 mr-1.5" /> Ver Rota
+                  </Button>
+                </div>
 
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={6}>
-                    <Mk9EmptyState message="Nenhum agente encontrado com os filtros aplicados." />
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((p: any) => (
-                  <tr key={p.id} className="group hover:bg-white/[0.02] transition-colors">
-                    <td className="px-4 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-foreground group-hover:text-mk9-accent-primary transition-colors">
-                          {p.name}
-                        </span>
-                        <span className="text-[9px] text-muted-foreground uppercase font-medium tracking-wider">
-                          {p.supervisorName}
+                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {Array.from(promoter.days.entries()).sort((a: any, b: any) => a[0] - b[0]).map(([day, storesMap]: any) => (
+                    <div key={day} className="space-y-3">
+                      <div className="flex items-center gap-2 border-b border-border/30 pb-1.5">
+                        <CalendarDays className="h-3.5 w-3.5 text-primary/60" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground/80">
+                          {WEEKDAYS[day]}
                         </span>
                       </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-foreground font-bold flex items-center gap-1 uppercase">
-                          <MapPin className="h-2.5 w-2.5" /> {p.uf || "—"}
-                        </span>
-                        <span className="text-[9px] text-muted-foreground uppercase truncate max-w-[120px]">
-                          {p.city || "—"}
-                        </span>
+                      <div className="space-y-4">
+                        {Array.from(storesMap.values()).map((store: any) => (
+                          <div key={store.id} className="space-y-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <Store className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-[10px] font-bold text-foreground uppercase tracking-tight truncate">
+                                {store.name}
+                              </span>
+                            </div>
+                            <div className="pl-4 space-y-1">
+                              {store.industries.map((ind: any) => (
+                                <div key={ind.id} className="flex items-center justify-between group">
+                                  <span className="text-[9px] font-medium text-muted-foreground uppercase">
+                                    • {ind.name}
+                                  </span>
+                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-5 w-5 h-5 w-5 text-muted-foreground hover:text-primary"
+                                      onClick={() => setEditingItem({
+                                        id: ind.id,
+                                        promoterId: promoter.id,
+                                        industryId: ind.industryId,
+                                        storeId: store.id,
+                                        storeName: store.name,
+                                        weekday: day
+                                      })}
+                                    >
+                                      <Edit2 className="h-2.5 w-2.5" />
+                                    </Button>
+
+
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-5 w-5 text-muted-foreground hover:text-rose-500"
+                                      onClick={() => deleteMut.mutate(ind.id)}
+                                    >
+                                      <Trash2 className="h-2.5 w-2.5" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        {p.user_id ? (
-                          <Mk9Badge variant="success">
-                            <ShieldCheck className="h-3 w-3 mr-1 inline" /> Ativo
-                          </Mk9Badge>
-                        ) : (
-                          <Mk9Badge variant="danger">
-                            <ShieldAlert className="h-3 w-3 mr-1 inline" /> Sem Acesso
-                          </Mk9Badge>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="flex flex-col items-center">
-                          <span className="text-[10px] font-black text-foreground">{p.plannedVisits}</span>
-                          <span className="text-[8px] text-muted-foreground uppercase">Prog</span>
-                        </div>
-                        <div className="h-4 w-[1px] bg-border/50" />
-                        <div className="flex flex-col items-center">
-                          <span className="text-[10px] font-black text-emerald-400">{p.realizedVisits}</span>
-                          <span className="text-[8px] text-muted-foreground uppercase">Real</span>
-                        </div>
-                        <div className="h-4 w-[1px] bg-border/50" />
-                        <div className="flex flex-col items-center">
-                          <span className="text-[10px] font-black text-orange-400">{p.pendingVisits}</span>
-                          <span className="text-[8px] text-muted-foreground uppercase">Pend</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      {p.pendingEvidences > 0 ? (
-                        <Mk9Badge variant="warning">
-                          {p.pendingEvidences} Pendentes
-                        </Mk9Badge>
-                      ) : (
-                        <span className="text-[9px] text-muted-foreground uppercase font-bold italic opacity-50">
-                          Zerado
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-mk9-accent-primary hover:bg-mk9-accent-primary/10"
-                          title="Montar Rota"
-                          onClick={() => navigate({ to: "/roteiros", search: { promoterId: p.id } })}
-                        >
-                          <RouteIcon className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-sky-400 hover:bg-sky-400/10"
-                          title="Ver Rota (Matriz Semanal)"
-                          onClick={() => navigate({ to: `/roteiros/promotor/${p.id}`, search: { date: referenceDate } })}
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-400/10"
-                          title="Enviar ao Promotor (WhatsApp)"
-                          onClick={() => setInvitingPromoter(p)}
-                        >
-                          <MessageSquare className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-orange-400 hover:bg-orange-400/10"
-                          title="Acompanhar Execução / Validação"
-                          onClick={() => {
-                            // Definimos os filtros e ativamos o módulo via window message ou contexto se disponível
-                            // Por enquanto, como o Mk9AnalyticsApp é o container, podemos usar o navigate para o dashboard 
-                            // e o Mk9AnalyticsApp cuidará do resto se injetarmos os parâmetros.
-                            navigate({ to: "/dashboard", search: { module: "validacao_visitas", promoterId: p.id } as any });
-                          }}
-                        >
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </Mk9Panel>
 
-      <PromoterDialog
-        open={showCreatePromoter || !!editingPromoter}
+      <RouteItemDialog 
+        open={showCreate || !!editingItem}
         onClose={() => {
-          setShowCreatePromoter(false);
-          setEditingPromoter(null);
-          refetch();
+          setShowCreate(false);
+          setEditingItem(null);
         }}
-        promoter={editingPromoter}
-      />
-      <PromoterInviteDialog
-        open={!!invitingPromoter}
-        onClose={() => setInvitingPromoter(null)}
-        promoter={invitingPromoter}
+        promoters={promoters}
+        industries={industries}
+        item={editingItem}
       />
     </div>
+
   );
 }
