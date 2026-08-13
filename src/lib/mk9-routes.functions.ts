@@ -536,3 +536,138 @@ export const mk9StoreGet = createServerFn({ method: "POST" })
       uf,
     };
   });
+
+// ---------------------------------------------------------------------------
+// SALVAR O DIA INTEIRO (Missão 8A.3)
+// Recebe o estado desejado de um dia (promotor + weekday): lista de lojas,
+// cada uma com suas indústrias. Faz DIFF contra o estado vigente:
+//   - cria somente vínculos novos;
+//   - mantém inalterados os que já existem;
+//   - encerra vigência (valid_until = validFrom - 1) dos removidos
+//     (ou apaga quando a versão começaria depois da data escolhida).
+// Só afeta o weekday informado — os demais dias continuam intactos.
+// mode = "merge" apenas adiciona (usado pelo construtor de Novo Roteiro).
+// ---------------------------------------------------------------------------
+export const mk9RoutesSaveDay = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        promoterId: z.string().uuid(),
+        weekday: z.number().int().min(0).max(6),
+        validFrom: isoDate,
+        mode: z.enum(["replace", "merge"]).optional(),
+        stores: z
+          .array(
+            z.object({
+              storeId: z.string().uuid(),
+              industryIds: z.array(z.string().uuid()),
+            }),
+          )
+          .max(200),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const ctx = await requireMk9Role(["ADMIN", "SUPERVISOR"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const validFrom = data.validFrom;
+    const mode = data.mode ?? "replace";
+    const before = new Date(validFrom + "T00:00:00Z");
+    before.setUTCDate(before.getUTCDate() - 1);
+    const closeAt = before.toISOString().slice(0, 10);
+    const [y, m] = validFrom.split("-").map(Number);
+
+    // Estado atual vigente na data de referência (somente este dia da semana).
+    const { data: current, error: cErr } = await supabaseAdmin
+      .from("mk9_planned_routes")
+      .select("id, store_id, industry_id, valid_from")
+      .eq("promoter_id", data.promoterId)
+      .eq("weekday", data.weekday)
+      .eq("is_active", true)
+      .is("archived_at", null)
+      .or(`valid_until.is.null,valid_until.gte.${validFrom}`);
+    if (cErr) throw new Error(cErr.message);
+
+    const existing = new Map<string, { id: string; validFrom: string }>();
+    for (const r of current ?? []) {
+      existing.set(`${r.store_id}|${r.industry_id}`, {
+        id: r.id as string,
+        validFrom: r.valid_from as string,
+      });
+    }
+
+    const desired = new Set<string>();
+    const toInsert: Array<{ storeId: string; industryId: string }> = [];
+    for (const s of data.stores) {
+      for (const industryId of s.industryIds) {
+        const key = `${s.storeId}|${industryId}`;
+        if (desired.has(key)) continue;
+        desired.add(key);
+        if (!existing.has(key)) toInsert.push({ storeId: s.storeId, industryId });
+      }
+    }
+
+    let created = 0;
+    let removed = 0;
+    const conflicts: string[] = [];
+
+    for (const item of toInsert) {
+      const { error: iErr } = await supabaseAdmin.from("mk9_planned_routes").insert({
+        promoter_id: data.promoterId,
+        store_id: item.storeId,
+        industry_id: item.industryId,
+        weekday: data.weekday,
+        operation_month: m,
+        operation_year: y,
+        source_sheet: "edicao_manual",
+        valid_from: validFrom,
+        valid_until: null,
+        is_active: true,
+        created_by: ctx.userId,
+        updated_by: ctx.userId,
+        source_type: "MANUAL",
+        last_manual_edit_at: new Date().toISOString(),
+      });
+      if (iErr) {
+        if ((iErr.message || "").includes("MK9_ROUTE_OVERLAP")) {
+          conflicts.push(`${item.storeId}|${item.industryId}`);
+          continue;
+        }
+        throw new Error(iErr.message);
+      }
+      created += 1;
+    }
+
+    if (mode === "replace") {
+      for (const [key, row] of existing.entries()) {
+        if (desired.has(key)) continue;
+        if (row.validFrom >= validFrom) {
+          const { error } = await supabaseAdmin
+            .from("mk9_planned_routes")
+            .delete()
+            .eq("id", row.id);
+          if (error) throw new Error(error.message);
+        } else {
+          const { error } = await supabaseAdmin
+            .from("mk9_planned_routes")
+            .update({ valid_until: closeAt, updated_by: ctx.userId })
+            .eq("id", row.id);
+          if (error) throw new Error(error.message);
+        }
+        removed += 1;
+      }
+    }
+
+    await logAudit(ctx, "mk9_routes.save_day", "mk9_planned_routes", null, {
+      promoterId: data.promoterId,
+      weekday: data.weekday,
+      validFrom,
+      mode,
+      created,
+      removed,
+      conflicts: conflicts.length,
+    });
+
+    return { ok: true, created, removed, conflicts: conflicts.length };
+  });
