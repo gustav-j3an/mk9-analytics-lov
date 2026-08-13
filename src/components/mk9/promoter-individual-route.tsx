@@ -29,6 +29,7 @@ import {
 import { Badge } from "../ui/badge";
 import { mk9RoutesListVersioned } from "../../lib/mk9-routes.functions";
 import { mk9ListPromoters } from "../../lib/mk9-data.functions";
+import { mk9GetPromoterOperationalRoute } from "../../lib/mk9-promoters.functions";
 import { cn } from "../../lib/utils";
 import { toast } from "sonner";
 
@@ -65,9 +66,11 @@ export function PromoterIndividualRoute() {
   const listRoutesFn = useServerFn(mk9RoutesListVersioned);
   const listPromotersFn = useServerFn(mk9ListPromoters);
 
+  const getOperationalRouteFn = useServerFn(mk9GetPromoterOperationalRoute);
+
   const routesQ = useQuery({
-    queryKey: ["mk9-promoter-route", promoterId, referenceDate],
-    queryFn: () => listRoutesFn({ data: { promoterId, referenceDate } }),
+    queryKey: ["mk9-promoter-operational-route", promoterId, referenceDate],
+    queryFn: () => getOperationalRouteFn({ data: { promoterId, referenceDate } }),
   });
 
   const promotersQ = useQuery({
@@ -79,35 +82,11 @@ export function PromoterIndividualRoute() {
 
   const matrix = useMemo(() => {
     const data = routesQ.data ?? [];
-    // Key: industryId|storeId
-    const rows = new Map<string, {
-      industryName: string;
-      storeName: string;
-      storeChain: string | null;
-      uf: string | null;
-      days: Set<number>;
-    }>();
-
-    for (const r of data) {
-      const key = `${r.industryId}|${r.storeId}`;
-      if (!rows.has(key)) {
-        rows.set(key, {
-          industryName: r.industryName,
-          storeName: r.storeName,
-          storeChain: r.storeChain,
-          uf: r.storeUf,
-          days: new Set(),
-        });
-      }
-      rows.get(key)!.days.add(r.weekday);
-    }
-
-    return Array.from(rows.values())
-      .sort((a, b) => {
-        const indComp = a.industryName.localeCompare(b.industryName, "pt-BR");
-        if (indComp !== 0) return indComp;
-        return a.storeName.localeCompare(b.storeName, "pt-BR");
-      });
+    return data.sort((a: any, b: any) => {
+      const indComp = a.industryName.localeCompare(b.industryName, "pt-BR");
+      if (indComp !== 0) return indComp;
+      return a.storeName.localeCompare(b.storeName, "pt-BR");
+    });
   }, [routesQ.data]);
 
   const filteredMatrix = useMemo(() => {
@@ -122,7 +101,7 @@ export function PromoterIndividualRoute() {
   }, [matrix, searchTerm]);
 
   const totalVisits = useMemo(() => {
-    return matrix.reduce((acc, row) => acc + row.days.size, 0);
+    return matrix.reduce((acc: number, row: any) => acc + Object.keys(row.days).length, 0);
   }, [matrix]);
 
   const handlePrint = () => {
@@ -363,40 +342,71 @@ export function PromoterIndividualRoute() {
                       </Badge>
                     </TableCell>
                     {/* Monday to Saturday */}
-                    {[1, 2, 3, 4, 5, 6].map((day) => (
-                      <TableCell key={day} className={cn(
-                        "text-center py-3 border-x border-border/20 print:border print:border-gray-300",
-                        row.days.has(day) ? "bg-primary/5 print:bg-white" : ""
-                      )}>
-
-                        {row.days.has(day) ? (
-                          <div className="flex justify-center">
-                            <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-[0_0_10px_rgba(168,85,247,0.2)] animate-in zoom-in duration-300 print:shadow-none print:border-primary/50 print:bg-primary/10">
-                              <span className="text-xs font-black">✓</span>
+                    {[1, 2, 3, 4, 5, 6].map((day) => {
+                      const status = row.days[day];
+                      const isProgrammed = !!status;
+                      
+                      return (
+                        <TableCell key={day} className={cn(
+                          "text-center py-3 border-x border-border/20 print:border print:border-gray-300",
+                          isProgrammed ? "bg-primary/5 print:bg-white" : ""
+                        )}>
+                          {isProgrammed ? (
+                            <div className="flex justify-center">
+                              <div 
+                                className={cn(
+                                  "h-6 w-6 rounded-full flex items-center justify-center border transition-all duration-300 print:shadow-none",
+                                  status === "APROVADA" && "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]",
+                                  status === "EVIDÊNCIA ENVIADA" && "bg-sky-500/20 text-sky-400 border-sky-500/30 shadow-[0_0_10px_rgba(14,165,233,0.2)]",
+                                  status === "REJEITADA" && "bg-rose-500/20 text-rose-400 border-rose-500/30 shadow-[0_0_10px_rgba(244,63,94,0.2)]",
+                                  status === "PROGRAMADA" && "bg-primary/20 text-primary border-primary/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+                                )}
+                                title={status}
+                              >
+                                <span className="text-[10px] font-black">
+                                  {status === "APROVADA" ? "✓" : status === "REJEITADA" ? "✕" : "•"}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-muted-foreground/10 font-black print:hidden">•</span>
-
-                        )}
-                      </TableCell>
-                    ))}
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground/10 font-black print:hidden">•</span>
+                          )}
+                        </TableCell>
+                      );
+                    })}
                     {/* Sunday */}
-                    <TableCell className={cn(
-                      "text-center py-3 border-l border-border/20 print:border print:border-gray-300",
-                      row.days.has(0) ? "bg-primary/5 print:bg-white" : ""
-                    )}>
-
-                      {row.days.has(0) ? (
-                        <div className="flex justify-center">
-                          <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30 shadow-[0_0_10px_rgba(168,85,247,0.2)] print:shadow-none print:border-primary/50 print:bg-primary/10">
-                            <span className="text-xs font-black">✓</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-[10px] text-muted-foreground/10 font-black print:hidden">•</span>
-                      )}
-                    </TableCell>
+                    {[0].map((day) => {
+                      const status = row.days[day];
+                      const isProgrammed = !!status;
+                      
+                      return (
+                        <TableCell key={day} className={cn(
+                          "text-center py-3 border-l border-border/20 print:border print:border-gray-300",
+                          isProgrammed ? "bg-primary/5 print:bg-white" : ""
+                        )}>
+                          {isProgrammed ? (
+                            <div className="flex justify-center">
+                              <div 
+                                className={cn(
+                                  "h-6 w-6 rounded-full flex items-center justify-center border transition-all duration-300 print:shadow-none",
+                                  status === "APROVADA" && "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]",
+                                  status === "EVIDÊNCIA ENVIADA" && "bg-sky-500/20 text-sky-400 border-sky-500/30 shadow-[0_0_10px_rgba(14,165,233,0.2)]",
+                                  status === "REJEITADA" && "bg-rose-500/20 text-rose-400 border-rose-500/30 shadow-[0_0_10px_rgba(244,63,94,0.2)]",
+                                  status === "PROGRAMADA" && "bg-primary/20 text-primary border-primary/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+                                )}
+                                title={status}
+                              >
+                                <span className="text-[10px] font-black">
+                                  {status === "APROVADA" ? "✓" : status === "REJEITADA" ? "✕" : "•"}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground/10 font-black print:hidden">•</span>
+                          )}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))
               )}

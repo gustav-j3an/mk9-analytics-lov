@@ -114,7 +114,11 @@ export function Mk9AnalyticsApp() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const promoterId = params.get('promoterId');
-    if (promoterId) {
+    const module = params.get('module');
+    
+    if (module === 'validacao_visitas') {
+      setActiveModule("validacao_visitas");
+    } else if (promoterId || module === 'roteiros') {
       setActiveModule("roteiros");
     }
   }, []);
