@@ -28,6 +28,10 @@ import { toast } from "sonner";
 import { mk9RoutesListVersioned, mk9RoutesDeleteItem } from "@/lib/mk9-routes.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { RouteItemDialog } from "./mk9/route-item-dialog";
+import {
+  RouteDayEditorDialog,
+  type DayEditorInitial,
+} from "./mk9/route-day-editor-dialog";
 
 
 interface Props {
@@ -43,7 +47,9 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
   const [filterUf, setFilterUf] = useState<string>("all");
   const [filterIndustry, setFilterIndustry] = useState<string>("all");
   const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [dayEditor, setDayEditor] = useState<DayEditorInitial | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+
   const referenceDate = new Date().toISOString().slice(0, 10);
 
 
@@ -97,9 +103,11 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           id: r.storeId,
           name: r.storeName,
           chain: r.storeChain,
+          uf: r.storeUf,
           industries: []
         });
       }
+
       d.get(r.storeId).industries.push({
         id: r.id,
         industryId: r.industryId,
@@ -114,6 +122,33 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
   const ufs = useMemo(() => {
     return Array.from(new Set(stores.map(s => s.uf).filter(Boolean))).sort();
   }, [stores]);
+
+  // Editor por dia: sempre montado a partir da base COMPLETA (sem filtros de tela),
+  // para que salvar um dia nunca remova vínculos apenas ocultos pelo filtro.
+  const openDayEditor = (promoterId: string, weekday: number) => {
+    const dayRows = routes.filter(
+      (r: any) => r.promoterId === promoterId && r.weekday === weekday,
+    );
+    const byStore = new Map<string, any>();
+    dayRows.forEach((r: any) => {
+      if (!byStore.has(r.storeId)) {
+        byStore.set(r.storeId, {
+          storeId: r.storeId,
+          storeName: r.storeName,
+          storeUf: r.storeUf,
+          industryIds: [],
+        });
+      }
+      byStore.get(r.storeId).industryIds.push(r.industryId);
+    });
+    setDayEditor({
+      promoterId,
+      promoterName: promoters.find((p) => p.id === promoterId)?.name,
+      weekdays: [weekday],
+      stores: Array.from(byStore.values()),
+    });
+  };
+
 
   const WEEKDAYS = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
 
@@ -138,7 +173,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
               onClick={() => setShowCreate(true)}
               className="h-9 bg-primary hover:bg-primary/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-primary/20 border-none"
             >
-              <Plus className="h-4 w-4 mr-2" /> Novo Item de Roteiro
+              <Plus className="h-4 w-4 mr-2" /> Novo Roteiro
             </Button>
 
           </div>
@@ -218,12 +253,22 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                 <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {Array.from(promoter.days.entries()).sort((a: any, b: any) => a[0] - b[0]).map(([day, storesMap]: any) => (
                     <div key={day} className="bg-muted/10 rounded-xl p-3 border border-border/30 space-y-3">
-                      <div className="flex items-center gap-2 border-b border-border/30 pb-1.5">
-                        <CalendarDays className="h-3.5 w-3.5 text-primary/60" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground/80">
-                          {WEEKDAYS[day]}
-                        </span>
+                      <div className="flex items-center justify-between gap-2 border-b border-border/30 pb-1.5">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <CalendarDays className="h-3.5 w-3.5 text-primary/60 shrink-0" />
+                          <span className="text-[10px] font-black uppercase tracking-widest text-foreground/80 truncate">
+                            {WEEKDAYS[day]}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openDayEditor(promoter.id, day)}
+                          className="text-[9px] font-black uppercase tracking-widest text-primary hover:underline shrink-0"
+                        >
+                          Editar Dia
+                        </button>
                       </div>
+
                       <div className="space-y-3">
                         {Array.from(storesMap.values()).map((store: any) => (
                           <div key={store.id} className="space-y-1">
@@ -271,6 +316,13 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                             </div>
                           </div>
                         ))}
+                        <button
+                          type="button"
+                          onClick={() => openDayEditor(promoter.id, day)}
+                          className="w-full mt-1 text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary border border-dashed border-border/50 rounded-lg py-1.5 transition-colors"
+                        >
+                          + Adicionar loja neste dia
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -282,15 +334,25 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
       </Mk9Panel>
 
       <RouteItemDialog 
-        open={showCreate || !!editingItem}
-        onClose={() => {
-          setShowCreate(false);
-          setEditingItem(null);
-        }}
+        open={!!editingItem}
+        onClose={() => setEditingItem(null)}
         promoters={promoters}
         industries={industries}
         item={editingItem}
       />
+
+      <RouteDayEditorDialog
+        open={showCreate || !!dayEditor}
+        onClose={() => {
+          setShowCreate(false);
+          setDayEditor(null);
+        }}
+        mode={dayEditor ? "day" : "new"}
+        promoters={promoters}
+        industries={industries}
+        initial={dayEditor}
+      />
+
     </div>
 
   );
