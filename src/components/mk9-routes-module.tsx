@@ -26,18 +26,14 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger,
   SelectValue,
+  SelectTrigger,
 } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { mk9RoutesListVersioned, mk9RoutesDeleteItem } from "@/lib/mk9-routes.functions";
 import { useNavigate } from "@tanstack/react-router";
+import { RouteItemDialog } from "./mk9/route-item-dialog";
+
 
 interface Props {
   promoters: Array<{ id: string; name: string; supervisor_id?: string | null }>;
@@ -51,7 +47,10 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
   const [search, setSearch] = useState("");
   const [filterUf, setFilterUf] = useState<string>("all");
   const [filterIndustry, setFilterIndustry] = useState<string>("all");
+  const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
   const referenceDate = new Date().toISOString().slice(0, 10);
+
 
   const listRoutesFn = useServerFn(mk9RoutesListVersioned);
   const deleteRouteFn = useServerFn(mk9RoutesDeleteItem);
@@ -140,11 +139,12 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
               <ArrowRightLeft className="h-4 w-4 mr-2" /> Transferência
             </Button>
             <Button
-              onClick={() => {}} // TODO: Implementar Novo Item
+              onClick={() => setShowCreate(true)}
               className="h-9 bg-primary hover:bg-primary/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-primary/20 border-none"
             >
               <Plus className="h-4 w-4 mr-2" /> Novo Item de Roteiro
             </Button>
+
           </div>
         }
       />
@@ -248,10 +248,17 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                                       variant="ghost" 
                                       size="icon" 
                                       className="h-5 w-5 h-5 w-5 text-muted-foreground hover:text-primary"
-                                      onClick={() => {}} // TODO: Editar
+                                      onClick={() => setEditingItem({
+                                        ...ind,
+                                        promoterId: promoter.id,
+                                        storeId: store.id,
+                                        storeName: store.name,
+                                        weekday: day
+                                      })}
                                     >
                                       <Edit2 className="h-2.5 w-2.5" />
                                     </Button>
+
                                     <Button 
                                       variant="ghost" 
                                       size="icon" 
@@ -275,6 +282,18 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           )}
         </div>
       </Mk9Panel>
+
+      <RouteItemDialog 
+        open={showCreate || !!editingItem}
+        onClose={() => {
+          setShowCreate(false);
+          setEditingItem(null);
+        }}
+        promoters={promoters}
+        industries={industries}
+        item={editingItem}
+      />
     </div>
+
   );
 }
