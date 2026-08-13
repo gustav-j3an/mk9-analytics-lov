@@ -101,7 +101,13 @@ export function PromoterIndividualRoute() {
   }, [matrix, searchTerm]);
 
   const totalVisits = useMemo(() => {
+    // Na Missão 8A.1 Parte 12: É a soma das marcações semanais (store x industry x weekday).
     return matrix.reduce((acc: number, row: any) => acc + Object.keys(row.days).length, 0);
+  }, [matrix]);
+
+  const totalCombinations = useMemo(() => {
+    // Parte 13: Combinações representa Indústria x Loja
+    return matrix.length;
   }, [matrix]);
 
   const handlePrint = () => {
@@ -281,7 +287,7 @@ export function PromoterIndividualRoute() {
               <span>Visita Programada</span>
             </div>
             <span>|</span>
-            <span>{filteredMatrix.length} Combinações</span>
+            <span>{totalCombinations} Combinações</span>
           </div>
         </div>
 

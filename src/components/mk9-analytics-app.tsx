@@ -215,7 +215,7 @@ export function Mk9AnalyticsApp() {
                 { 
                   title: "Visão Geral", 
                   items: [
-                    { id: "dashboard", icon: BarChart3, label: "Dashboard" },
+                    { id: "dashboard", icon: BarChart3, label: "Analytics" },
                   ]
                 },
                 { 
