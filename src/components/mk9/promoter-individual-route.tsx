@@ -202,7 +202,7 @@ export function PromoterIndividualRoute() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate({ to: '/', search: { module: 'roteiros' } as any })}
+          onClick={() => navigate({ to: '/dashboard', search: { module: 'roteiros', promoterId } as any })}
           className="text-muted-foreground hover:text-foreground -ml-2"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
