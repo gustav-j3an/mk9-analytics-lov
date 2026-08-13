@@ -173,7 +173,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
               onClick={() => setShowCreate(true)}
               className="h-9 bg-primary hover:bg-primary/90 text-foreground font-black uppercase tracking-widest px-6 shadow-lg shadow-primary/20 border-none"
             >
-              <Plus className="h-4 w-4 mr-2" /> Novo Item de Roteiro
+              <Plus className="h-4 w-4 mr-2" /> Novo Roteiro
             </Button>
 
           </div>
