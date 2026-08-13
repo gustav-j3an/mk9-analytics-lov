@@ -249,8 +249,9 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                                       size="icon" 
                                       className="h-5 w-5 h-5 w-5 text-muted-foreground hover:text-primary"
                                       onClick={() => setEditingItem({
-                                        ...ind,
+                                        id: ind.id,
                                         promoterId: promoter.id,
+                                        industryId: ind.industryId,
                                         storeId: store.id,
                                         storeName: store.name,
                                         weekday: day
@@ -258,6 +259,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                                     >
                                       <Edit2 className="h-2.5 w-2.5" />
                                     </Button>
+
 
                                     <Button 
                                       variant="ghost" 

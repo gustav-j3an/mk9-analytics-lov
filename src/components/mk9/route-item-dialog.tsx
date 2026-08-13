@@ -57,6 +57,7 @@ export function RouteItemDialog({ open, onClose, promoters, industries, item }: 
       setWeekdays([]);
       setValidFrom(new Date().toISOString().slice(0, 10));
     }
+
   }, [item, open]);
 
   const mut = useMutation({
