@@ -253,12 +253,22 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                 <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {Array.from(promoter.days.entries()).sort((a: any, b: any) => a[0] - b[0]).map(([day, storesMap]: any) => (
                     <div key={day} className="bg-muted/10 rounded-xl p-3 border border-border/30 space-y-3">
-                      <div className="flex items-center gap-2 border-b border-border/30 pb-1.5">
-                        <CalendarDays className="h-3.5 w-3.5 text-primary/60" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground/80">
-                          {WEEKDAYS[day]}
-                        </span>
+                      <div className="flex items-center justify-between gap-2 border-b border-border/30 pb-1.5">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <CalendarDays className="h-3.5 w-3.5 text-primary/60 shrink-0" />
+                          <span className="text-[10px] font-black uppercase tracking-widest text-foreground/80 truncate">
+                            {WEEKDAYS[day]}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openDayEditor(promoter.id, day)}
+                          className="text-[9px] font-black uppercase tracking-widest text-primary hover:underline shrink-0"
+                        >
+                          Editar Dia
+                        </button>
                       </div>
+
                       <div className="space-y-3">
                         {Array.from(storesMap.values()).map((store: any) => (
                           <div key={store.id} className="space-y-1">
