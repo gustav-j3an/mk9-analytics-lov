@@ -316,6 +316,13 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                             </div>
                           </div>
                         ))}
+                        <button
+                          type="button"
+                          onClick={() => openDayEditor(promoter.id, day)}
+                          className="w-full mt-1 text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary border border-dashed border-border/50 rounded-lg py-1.5 transition-colors"
+                        >
+                          + Adicionar loja neste dia
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -327,15 +334,25 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
       </Mk9Panel>
 
       <RouteItemDialog 
-        open={showCreate || !!editingItem}
-        onClose={() => {
-          setShowCreate(false);
-          setEditingItem(null);
-        }}
+        open={!!editingItem}
+        onClose={() => setEditingItem(null)}
         promoters={promoters}
         industries={industries}
         item={editingItem}
       />
+
+      <RouteDayEditorDialog
+        open={showCreate || !!dayEditor}
+        onClose={() => {
+          setShowCreate(false);
+          setDayEditor(null);
+        }}
+        mode={dayEditor ? "day" : "new"}
+        promoters={promoters}
+        industries={industries}
+        initial={dayEditor}
+      />
+
     </div>
 
   );
