@@ -7,19 +7,14 @@ import {
   Trash2,
   Plus,
   Search,
-  ChevronDown,
-  ChevronRight,
   Store,
   MapPin,
   Route as RouteIcon,
-  Copy,
   Layout,
-  ExternalLink,
-  Loader2,
   Eye,
   ArrowRightLeft
 } from "lucide-react";
-import { Mk9PageHeader, Mk9Panel, Mk9Badge, Mk9LoadingState, Mk9EmptyState } from "./mk9/design-system";
+import { Mk9PageHeader, Mk9Panel, Mk9LoadingState, Mk9EmptyState } from "./mk9/design-system";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -55,7 +50,7 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
   const listRoutesFn = useServerFn(mk9RoutesListVersioned);
   const deleteRouteFn = useServerFn(mk9RoutesDeleteItem);
 
-  const { data: routes = [], isLoading, refetch } = useQuery({
+  const { data: routes = [], isLoading } = useQuery({
     queryKey: ["mk9-planned-routes-list", referenceDate],
     queryFn: () => listRoutesFn({ data: { referenceDate, includeInactive: false } }),
   });
@@ -108,7 +103,8 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
       d.get(r.storeId).industries.push({
         id: r.id,
         industryId: r.industryId,
-        name: r.industryName
+        name: r.industryName,
+        validFrom: r.validFrom
       });
     });
 
@@ -215,60 +211,60 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
                     className="h-8 text-[9px] font-black uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/10"
                     onClick={() => navigate({ to: `/roteiros/promotor/${promoter.id}` })}
                   >
-                    <Eye className="h-3.5 w-3.5 mr-1.5" /> Ver Rota
+                    <Eye className="h-3.5 w-3.5 mr-1.5" /> Ver Rota Individual
                   </Button>
                 </div>
 
-                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {Array.from(promoter.days.entries()).sort((a: any, b: any) => a[0] - b[0]).map(([day, storesMap]: any) => (
-                    <div key={day} className="space-y-3">
+                    <div key={day} className="bg-muted/10 rounded-xl p-3 border border-border/30 space-y-3">
                       <div className="flex items-center gap-2 border-b border-border/30 pb-1.5">
                         <CalendarDays className="h-3.5 w-3.5 text-primary/60" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-foreground/80">
                           {WEEKDAYS[day]}
                         </span>
                       </div>
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {Array.from(storesMap.values()).map((store: any) => (
-                          <div key={store.id} className="space-y-1.5">
-                            <div className="flex items-center gap-1.5">
+                          <div key={store.id} className="space-y-1">
+                            <div className="flex items-center gap-1.5 px-1">
                               <Store className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-[10px] font-bold text-foreground uppercase tracking-tight truncate">
+                              <span className="text-[10px] font-black text-foreground uppercase tracking-tight truncate">
                                 {store.name}
                               </span>
                             </div>
-                            <div className="pl-4 space-y-1">
+                            <div className="pl-3 space-y-0.5 border-l border-border/30 ml-2 mt-1">
                               {store.industries.map((ind: any) => (
-                                <div key={ind.id} className="flex items-center justify-between group">
-                                  <span className="text-[9px] font-medium text-muted-foreground uppercase">
-                                    • {ind.name}
+                                <div key={ind.id} className="flex items-center justify-between group py-0.5 px-2 rounded hover:bg-accent/50 transition-colors">
+                                  <span className="text-[9px] font-bold text-muted-foreground uppercase">
+                                    {ind.name}
                                   </span>
                                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon" 
-                                      className="h-5 w-5 h-5 w-5 text-muted-foreground hover:text-primary"
+                                    <button 
+                                      className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors flex items-center justify-center"
                                       onClick={() => setEditingItem({
                                         id: ind.id,
                                         promoterId: promoter.id,
                                         industryId: ind.industryId,
+                                        industryName: ind.name,
                                         storeId: store.id,
                                         storeName: store.name,
-                                        weekday: day
+                                        weekday: day,
+                                        validFrom: ind.validFrom
                                       })}
                                     >
                                       <Edit2 className="h-2.5 w-2.5" />
-                                    </Button>
-
-
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon" 
-                                      className="h-5 w-5 text-muted-foreground hover:text-rose-500"
-                                      onClick={() => deleteMut.mutate(ind.id)}
+                                    </button>
+                                    <button 
+                                      className="h-4 w-4 text-muted-foreground hover:text-rose-500 transition-colors flex items-center justify-center"
+                                      onClick={() => {
+                                        if (window.confirm(`Excluir vínculo da indústria ${ind.name} nesta loja?`)) {
+                                          deleteMut.mutate(ind.id);
+                                        }
+                                      }}
                                     >
                                       <Trash2 className="h-2.5 w-2.5" />
-                                    </Button>
+                                    </button>
                                   </div>
                                 </div>
                               ))}
