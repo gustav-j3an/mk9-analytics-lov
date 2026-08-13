@@ -137,6 +137,7 @@ export function PromoterIndividualRoute() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 relative">
       {/* MK9 / Rota Individual Header for Print (Mission 8A.4) */}
+      {/* MK9 / Rota Individual Header for Print (Mission 8A.4) */}
       <div className="hidden print:block mb-6 border-b border-primary/20 pb-4">
         <PromoterRouteDocument 
           promoterName={promoter?.name || "N/A"}
@@ -145,33 +146,6 @@ export function PromoterIndividualRoute() {
           rows={matrix}
           minimal={true}
         />
-      </div>
-      <div className="hidden print:block mb-8 border-b-2 border-primary/20 pb-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-xl font-black tracking-tight text-primary uppercase mb-1">MK9 Command Center</h1>
-            <h2 className="text-lg font-black text-foreground uppercase">Rota Individual</h2>
-          </div>
-          <div className="text-right">
-            <p className="text-xs font-black uppercase text-muted-foreground">Emissão</p>
-            <p className="text-sm font-bold">{new Date().toLocaleDateString('pt-BR')}</p>
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-3 gap-8">
-          <div className="space-y-1">
-            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Promotor</span>
-            <span className="text-base font-bold text-foreground uppercase">{promoter?.name}</span>
-          </div>
-          <div className="space-y-1">
-            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Referência</span>
-            <span className="text-base font-bold text-foreground">{referenceDate.split('-').reverse().join('/')}</span>
-          </div>
-          <div className="space-y-1">
-            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Total de Visitas</span>
-            <span className="text-base font-bold text-primary">{totalVisits}</span>
-          </div>
-        </div>
       </div>
 
       <div className="flex items-center gap-2 mb-2 print:hidden">
