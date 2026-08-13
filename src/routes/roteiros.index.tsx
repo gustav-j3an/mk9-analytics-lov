@@ -7,12 +7,14 @@ export const Route = createFileRoute("/roteiros/")({
       promoterId: z.string().optional(),
     }).parse(search);
   },
-  loader: async ({ search }) => {
+  loader: async ({ deps }) => {
     throw redirect({
       to: "/dashboard",
-      search: { module: "roteiros", ...search },
+      search: { module: "roteiros", ...deps },
     });
   },
+  loaderDeps: ({ search }) => search,
+
 
   loaderDeps: ({ search }) => search,
 
