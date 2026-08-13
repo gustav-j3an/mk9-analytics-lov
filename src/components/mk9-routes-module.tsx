@@ -62,8 +62,8 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
 
   const listStatsFn = useServerFn(mk9ListPromotersWithStats);
   const { data: promoters = [], isLoading, refetch } = useQuery({
-    queryKey: ["mk9-routes-distribution-center", year, month],
-    queryFn: () => listStatsFn({ data: { year, month } }),
+    queryKey: ["mk9-routes-distribution-center", year, month, referenceDate],
+    queryFn: () => listStatsFn({ data: { year, month, referenceDate } }),
   });
 
   const filtered = useMemo(() => {
@@ -75,6 +75,7 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
       if (filterStatus === "no_route") matchesStatus = p.plannedVisits === 0;
       else if (filterStatus === "no_access") matchesStatus = !p.user_id;
       else if (filterStatus === "active") matchesStatus = p.plannedVisits > 0 && !!p.user_id;
+      else if (filterStatus === "pending_evidence") matchesStatus = p.pendingEvidences > 0;
 
       return matchesSearch && matchesUf && matchesStatus;
     });
@@ -85,7 +86,9 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
       total: promoters.length,
       withRoute: promoters.filter((p: any) => p.plannedVisits > 0).length,
       withAccess: promoters.filter((p: any) => !!p.user_id).length,
-      totalVisits: promoters.reduce((acc: number, p: any) => acc + (p.plannedVisits || 0), 0)
+      totalVisits: promoters.reduce((acc: number, p: any) => acc + (p.plannedVisits || 0), 0),
+      totalRealized: promoters.reduce((acc: number, p: any) => acc + (p.realizedVisits || 0), 0),
+      totalPendingEvidences: promoters.reduce((acc: number, p: any) => acc + (p.pendingEvidences || 0), 0)
     };
   }, [promoters]);
 
@@ -99,7 +102,7 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
     <div className="space-y-6 animate-in fade-in duration-500">
       <Mk9PageHeader
         title="MK9 Command Center"
-        subtitle="Distribuição de rotas e gestão de acessos"
+        subtitle="Central de Planejamento e Acompanhamento de Rotas"
         icon={RouteIcon}
         actions={
           <div className="flex items-center gap-3">
@@ -120,11 +123,12 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6">
         <Mk9MetricCard label="Total Agentes" value={stats.total} icon={Users} color="purple" />
         <Mk9MetricCard label="Com Rota" value={stats.withRoute} icon={MapPin} color="emerald" hint={`${stats.total - stats.withRoute} sem rota`} />
-        <Mk9MetricCard label="Com Acesso" value={stats.withAccess} icon={ShieldCheck} color="sky" hint={`${stats.total - stats.withAccess} pendentes`} />
-        <Mk9MetricCard label="Visitas Totais" value={stats.totalVisits} icon={CalendarClock} color="orange" hint={`Mês ${month}/${year}`} />
+        <Mk9MetricCard label="Realizadas" value={stats.totalRealized} icon={ShieldCheck} color="sky" hint={`${stats.totalVisits} programadas`} />
+        <Mk9MetricCard label="Evidências Pend." value={stats.totalPendingEvidences} icon={History} color="orange" />
+        <Mk9MetricCard label="Acesso Portal" value={stats.withAccess} icon={ShieldCheck} color="indigo" hint={`${stats.total - stats.withAccess} sem acesso`} />
       </div>
 
       <Mk9Panel>
@@ -140,7 +144,7 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
         <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-3 items-end">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">
-              Referência
+              Data de Referência
             </label>
             <Input
               type="date"
@@ -195,6 +199,7 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
                 <SelectItem value="active">Com Rota & Acesso</SelectItem>
                 <SelectItem value="no_route">Sem Rota Planejada</SelectItem>
                 <SelectItem value="no_access">Sem Acesso ao Portal</SelectItem>
+                <SelectItem value="pending_evidence">Com Evidência Pendente</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -204,14 +209,16 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
           <table className="w-full">
             <thead>
               <tr className="border-b border-border/50 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                <th className="px-4 py-4 text-left font-black">Promotor / UF</th>
+                <th className="px-4 py-4 text-left font-black">Promotor / Supervisor</th>
+                <th className="px-4 py-4 text-left font-black">UF / Cidade</th>
                 <th className="px-4 py-4 text-left font-black">Acesso Portal</th>
-                <th className="px-4 py-4 text-left font-black">Saúde da Rota</th>
-                <th className="px-4 py-4 text-left font-black">Métricas</th>
-                <th className="px-4 py-4 text-right font-black">Ações Rápidas</th>
+                <th className="px-4 py-4 text-left font-black">Visitas (P/R/P)</th>
+                <th className="px-4 py-4 text-left font-black">Evidências</th>
+                <th className="px-4 py-4 text-right font-black">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.02]">
+
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={5}>
