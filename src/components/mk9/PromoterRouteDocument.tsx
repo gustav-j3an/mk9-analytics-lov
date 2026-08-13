@@ -13,6 +13,7 @@ interface PromoterRouteDocumentProps {
   referenceDate: string;
   totalVisits: number;
   rows: MatrixRow[];
+  minimal?: boolean;
 }
 
 const WEEKDAYS = ["SEG", "TER", "QUA", "QUI", "SEX", "SAB", "DOM"];
@@ -21,8 +22,54 @@ export function PromoterRouteDocument({
   promoterName,
   referenceDate,
   totalVisits,
-  rows
+  rows,
+  minimal = false
 }: PromoterRouteDocumentProps) {
+  if (minimal) {
+    return (
+      <div className="bg-white text-slate-950">
+        <div className="flex justify-between items-start mb-6">
+          <div className="space-y-1">
+            <h1 className="text-xl font-black tracking-tight text-slate-900 uppercase">
+              MK9 COMMAND CENTER
+            </h1>
+            <h2 className="text-base font-bold text-slate-500 uppercase tracking-widest">
+              Rota Individual
+            </h2>
+          </div>
+          
+          <div className="text-right space-y-1">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data de Emissão</p>
+            <p className="text-sm font-bold text-slate-900">
+              {new Date().toLocaleDateString('pt-BR')}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-8 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+          <div className="space-y-1">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Promotor</span>
+            <span className="text-base font-black text-slate-900 uppercase leading-none">
+              {promoterName}
+            </span>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Referência</span>
+            <span className="text-base font-black text-slate-900 leading-none">
+              {referenceDate.split('-').reverse().join('/')}
+            </span>
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Total de Visitas</span>
+            <span className="text-xl font-black text-primary leading-none">
+              {totalVisits}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white text-slate-950 p-8 min-h-screen font-sans selection:bg-primary/20">
       {/* Container A4 Landscape reference (approx) */}
