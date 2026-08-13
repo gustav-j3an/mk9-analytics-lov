@@ -11,14 +11,20 @@ import { Clock, CheckCircle, XCircle, MapPin, Loader2, Image as ImageIcon, Alert
 
 export function Mk9ValidationCenterModule() {
   const [status, setStatus] = useState("PENDING");
+  
+  // Captura o promoterId da URL se houver
+  const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+  const initialPromoterId = params.get('promoterId') || "";
+  const [promoterIdFilter, setPromoterIdFilter] = useState(initialPromoterId);
+
   const listEvidencesFn = useServerFn(listVisitEvidences);
   const processFn = useServerFn(processVisitEvidence);
   const getSignedUrlFn = useServerFn(getEvidenceSignedUrl);
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["mk9-validation", status],
-    queryFn: () => listEvidencesFn({ data: { status: status as any } }),
+    queryKey: ["mk9-validation", status, promoterIdFilter],
+    queryFn: () => listEvidencesFn({ data: { status: status as any, promoterId: promoterIdFilter || undefined } }),
   });
 
   const mutation = useMutation({
