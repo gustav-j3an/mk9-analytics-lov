@@ -128,7 +128,7 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
         <Mk9MetricCard label="Com Rota" value={stats.withRoute} icon={MapPin} color="emerald" hint={`${stats.total - stats.withRoute} sem rota`} />
         <Mk9MetricCard label="Realizadas" value={stats.totalRealized} icon={ShieldCheck} color="sky" hint={`${stats.totalVisits} programadas`} />
         <Mk9MetricCard label="Evidências Pend." value={stats.totalPendingEvidences} icon={History} color="orange" />
-        <Mk9MetricCard label="Acesso Portal" value={stats.withAccess} icon={ShieldCheck} color="indigo" hint={`${stats.total - stats.withAccess} sem acesso`} />
+        <Mk9MetricCard label="Acesso Portal" value={stats.withAccess} icon={ShieldCheck} color="purple" hint={`${stats.total - stats.withAccess} sem acesso`} />
       </div>
 
       <Mk9Panel>
@@ -221,7 +221,7 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
 
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                     <Mk9EmptyState message="Nenhum agente encontrado com os filtros aplicados." />
                   </td>
                 </tr>
@@ -233,8 +233,18 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
                         <span className="text-sm font-bold text-foreground group-hover:text-mk9-accent-primary transition-colors">
                           {p.name}
                         </span>
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-1 uppercase">
+                        <span className="text-[9px] text-muted-foreground uppercase font-medium tracking-wider">
+                          {p.supervisorName}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-foreground font-bold flex items-center gap-1 uppercase">
                           <MapPin className="h-2.5 w-2.5" /> {p.uf || "—"}
+                        </span>
+                        <span className="text-[9px] text-muted-foreground uppercase truncate max-w-[120px]">
+                          {p.city || "—"}
                         </span>
                       </div>
                     </td>
@@ -253,39 +263,58 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
-                        {p.plannedVisits > 0 ? (
-                          <Mk9Badge variant="info">
-                            {p.plannedVisits} Visitas
-                          </Mk9Badge>
-                        ) : (
-                          <Mk9Badge variant="warning">
-                            Sem Rota
-                          </Mk9Badge>
-                        )}
-                        {p.uniqueStores > 0 && (
-                          <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">
-                            {p.uniqueStores} Lojas
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Status</span>
-                          <span className="text-[11px] font-black text-foreground">
-                            {p.isActive ? "EM ATIVIDADE" : "INATIVO"}
-                          </span>
+                        <div className="flex flex-col items-center">
+                          <span className="text-[10px] font-black text-foreground">{p.plannedVisits}</span>
+                          <span className="text-[8px] text-muted-foreground uppercase">Prog</span>
+                        </div>
+                        <div className="h-4 w-[1px] bg-border/50" />
+                        <div className="flex flex-col items-center">
+                          <span className="text-[10px] font-black text-emerald-400">{p.realizedVisits}</span>
+                          <span className="text-[8px] text-muted-foreground uppercase">Real</span>
+                        </div>
+                        <div className="h-4 w-[1px] bg-border/50" />
+                        <div className="flex flex-col items-center">
+                          <span className="text-[10px] font-black text-orange-400">{p.pendingVisits}</span>
+                          <span className="text-[8px] text-muted-foreground uppercase">Pend</span>
                         </div>
                       </div>
                     </td>
+                    <td className="px-4 py-4">
+                      {p.pendingEvidences > 0 ? (
+                        <Mk9Badge variant="warning">
+                          {p.pendingEvidences} Pendentes
+                        </Mk9Badge>
+                      ) : (
+                        <span className="text-[9px] text-muted-foreground uppercase font-bold italic opacity-50">
+                          Zerado
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-mk9-accent-primary hover:bg-mk9-accent-primary/10"
+                          title="Montar Rota"
+                          onClick={() => navigate({ to: "/roteiros", search: { promoterId: p.id } })}
+                        >
+                          <RouteIcon className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-sky-400 hover:bg-sky-400/10"
+                          title="Ver Rota (Matriz Semanal)"
+                          onClick={() => navigate({ to: `/roteiros/promotor/${p.id}`, search: { date: referenceDate } })}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-400/10"
-                          title="Enviar Convite Acesso"
+                          title="Enviar ao Promotor (WhatsApp)"
                           onClick={() => setInvitingPromoter(p)}
                         >
                           <MessageSquare className="h-3.5 w-3.5" />
@@ -293,20 +322,11 @@ export function Mk9RoutesModule({ promoters: basicPromoters, stores, industries 
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-sky-400 hover:bg-sky-400/10"
-                          title="Visualizar Rota (Mobile Preview)"
-                          onClick={() => window.open(`/roteiros/promotor/${p.id}?date=${referenceDate}`, "_blank")}
+                          className="h-8 w-8 text-muted-foreground hover:text-orange-400 hover:bg-orange-400/10"
+                          title="Acompanhar Execução / Validação"
+                          onClick={() => navigate({ to: "/portal/validacao", search: { promoterId: p.id } })}
                         >
-                          <Eye className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-mk9-accent-primary hover:bg-mk9-accent-primary/10"
-                          title="Gerenciar / Editar Rota"
-                          onClick={() => navigate({ to: "/roteiros", search: { promoterId: p.id } })}
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
+                          <ArrowRight className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </td>
