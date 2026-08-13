@@ -57,7 +57,7 @@ describe("Contrato de Sincronia de Visitas Realizadas", () => {
     // Validação de Contrato
     expect(dashboardRealized).toBe(operationalCount);
     expect(pdfRealized).toBe(operationalCount);
-    expect(dashboardRealized).toBe(146); // Valor auditado da KING Ago/2026
+    expect(dashboardRealized).toBe(195); // Valor auditado da KING Ago/2026 após Missão 8A.1
   });
 
   it("TESTE 2 & 3: Regra de Vigência e Reversão", async () => {
