@@ -123,6 +123,33 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
     return Array.from(new Set(stores.map(s => s.uf).filter(Boolean))).sort();
   }, [stores]);
 
+  // Editor por dia: sempre montado a partir da base COMPLETA (sem filtros de tela),
+  // para que salvar um dia nunca remova vínculos apenas ocultos pelo filtro.
+  const openDayEditor = (promoterId: string, weekday: number) => {
+    const dayRows = routes.filter(
+      (r: any) => r.promoterId === promoterId && r.weekday === weekday,
+    );
+    const byStore = new Map<string, any>();
+    dayRows.forEach((r: any) => {
+      if (!byStore.has(r.storeId)) {
+        byStore.set(r.storeId, {
+          storeId: r.storeId,
+          storeName: r.storeName,
+          storeUf: r.storeUf,
+          industryIds: [],
+        });
+      }
+      byStore.get(r.storeId).industryIds.push(r.industryId);
+    });
+    setDayEditor({
+      promoterId,
+      promoterName: promoters.find((p) => p.id === promoterId)?.name,
+      weekdays: [weekday],
+      stores: Array.from(byStore.values()),
+    });
+  };
+
+
   const WEEKDAYS = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
 
   if (isLoading) return <Mk9LoadingState message="Carregando roteiros..." />;
