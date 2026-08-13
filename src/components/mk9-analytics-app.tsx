@@ -223,7 +223,7 @@ export function Mk9AnalyticsApp() {
                   items: [
                     { id: "importacoes", icon: Settings2, label: "Gestão Operacional", adminOnly: true },
                     { id: "checklists", icon: Upload, label: "Importar Checklist", adminOnly: true },
-                    { id: "roteiros", icon: Route, label: "Distribuição de Rotas" },
+                    { id: "roteiros", icon: Route, label: "Roteiros" },
                     { id: "presenca", icon: CheckCircle2, label: "Presença" },
                     { id: "diarias", icon: WalletCards, label: "Controle de Diárias" },
                     { id: "validacao_visitas", icon: ClipboardCheck, label: "Validação de Visitas" },
