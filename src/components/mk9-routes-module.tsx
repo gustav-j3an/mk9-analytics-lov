@@ -103,9 +103,11 @@ export function Mk9RoutesModule({ promoters, stores, industries }: Props) {
           id: r.storeId,
           name: r.storeName,
           chain: r.storeChain,
+          uf: r.storeUf,
           industries: []
         });
       }
+
       d.get(r.storeId).industries.push({
         id: r.id,
         industryId: r.industryId,
