@@ -92,4 +92,3 @@ function LoginPage() {
     </div>
   );
 }
-
