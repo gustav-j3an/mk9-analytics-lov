@@ -1,3 +1,7 @@
+/**
+ * MISSÃO — SUBIR E SINCRONIZAR O BANCO DO MK9 COM O SUPABASE
+ * BANCO SUPABASE SINCRONIZADO: SIM (v1.0.0-infra)
+ */
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
