@@ -50,6 +50,29 @@ export function Mk9LoginForm() {
     }
   };
 
+  const handleOAuth = async (provider: OAuthProvider) => {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
+      });
+
+      if (result.error) {
+        toast.error(
+          result.error instanceof Error
+            ? result.error.message
+            : "Erro ao iniciar login social.",
+        );
+      }
+      // Em fluxos não-redirect, a sessão já é injetada pelo helper da Lovable
+      // e o useMk9Session redireciona automaticamente para o destino correto.
+    } catch (err: any) {
+      toast.error("Ocorreu um erro ao tentar entrar com " + provider + ".");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Card className="w-full max-w-md shadow-xl border-border/50 bg-card/80 backdrop-blur-sm">
       <CardHeader className="space-y-2 text-center">
