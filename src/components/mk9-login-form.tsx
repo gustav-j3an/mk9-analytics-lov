@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,8 @@ import {
 import { ShieldCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+
+type OAuthProvider = "google" | "apple" | "microsoft";
 
 export function Mk9LoginForm() {
   const [email, setEmail] = useState("");
@@ -42,6 +45,29 @@ export function Mk9LoginForm() {
       }
     } catch (err: any) {
       toast.error("Ocorreu um erro ao tentar entrar.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOAuth = async (provider: OAuthProvider) => {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
+      });
+
+      if (result.error) {
+        toast.error(
+          result.error instanceof Error
+            ? result.error.message
+            : "Erro ao iniciar login social.",
+        );
+      }
+      // Em fluxos não-redirect, a sessão já é injetada pelo helper da Lovable
+      // e o useMk9Session redireciona automaticamente para o destino correto.
+    } catch (err: any) {
+      toast.error("Ocorreu um erro ao tentar entrar com " + provider + ".");
     } finally {
       setLoading(false);
     }
@@ -88,7 +114,7 @@ export function Mk9LoginForm() {
             />
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex flex-col gap-3">
           <Button className="w-full font-semibold py-6 text-base" type="submit" disabled={loading}>
             {loading ? (
               <>
@@ -99,6 +125,45 @@ export function Mk9LoginForm() {
               "Entrar no Sistema"
             )}
           </Button>
+
+          <div className="relative flex w-full items-center justify-center py-2">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <span className="relative bg-card/80 px-3 text-xs text-muted-foreground uppercase tracking-wider">
+              ou continue com
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 w-full">
+            <Button
+              type="button"
+              variant="outline"
+              className="py-5"
+              disabled={loading}
+              onClick={() => handleOAuth("google")}
+            >
+              Google
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="py-5"
+              disabled={loading}
+              onClick={() => handleOAuth("apple")}
+            >
+              Apple
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="py-5"
+              disabled={loading}
+              onClick={() => handleOAuth("microsoft")}
+            >
+              Microsoft
+            </Button>
+          </div>
         </CardFooter>
       </form>
     </Card>
