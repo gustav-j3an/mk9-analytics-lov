@@ -114,7 +114,7 @@ export function Mk9LoginForm() {
             />
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex flex-col gap-3">
           <Button className="w-full font-semibold py-6 text-base" type="submit" disabled={loading}>
             {loading ? (
               <>
@@ -125,6 +125,45 @@ export function Mk9LoginForm() {
               "Entrar no Sistema"
             )}
           </Button>
+
+          <div className="relative flex w-full items-center justify-center py-2">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <span className="relative bg-card/80 px-3 text-xs text-muted-foreground uppercase tracking-wider">
+              ou continue com
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 w-full">
+            <Button
+              type="button"
+              variant="outline"
+              className="py-5"
+              disabled={loading}
+              onClick={() => handleOAuth("google")}
+            >
+              Google
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="py-5"
+              disabled={loading}
+              onClick={() => handleOAuth("apple")}
+            >
+              Apple
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="py-5"
+              disabled={loading}
+              onClick={() => handleOAuth("microsoft")}
+            >
+              Microsoft
+            </Button>
+          </div>
         </CardFooter>
       </form>
     </Card>
